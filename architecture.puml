@@ -1,0 +1,282 @@
+@startuml
+' Arquitetura de pastas representada como pacotes UML
+
+' força diagramas de pacotes a cair de cima pra baixo
+top to bottom direction
+
+' limita a largura máxima do canvas (px)
+skinparam maxPageWidth 400
+' ou escala todo o diagrama para 80% do tamanho
+scale 0.8
+
+skinparam packageStyle rectangle
+
+package "src" {
+  
+  package "domain" {
+    package "auth" {
+      package "application" {
+        folder "repositories" {
+          [i-account-repository.ts]
+          [i-role-repository.ts]
+        }
+        folder "use-cases" {
+          [create-account.ts]
+          [authenticate-user.ts]
+          [refresh-token.ts]
+        }
+      }
+      package "enterprise" {
+        folder "entities" {
+          [User.ts]
+          [Role.ts]
+          [Session.ts]
+          [Token.ts]
+        }
+      }
+    }
+    package "student-profile" {
+      package "application" {
+        folder "repositories" {
+          [i-enrollment-repository.ts]
+          [i-progress-repository.ts]
+        }
+        folder "use-cases" {
+          [enroll-student.ts]
+          [track-progress.ts]
+          [issue-certificate.ts]
+        }
+      }
+      package "enterprise" {
+        folder "entities" {
+          [Enrollment.ts]
+          [Progress.ts]
+          [Certificate.ts]
+        }
+      }
+    }
+    package "course-catalog" {
+      package "application" {
+        folder "repositories" {
+          [i-course-repository.ts]
+          [i-content-repository.ts]
+        }
+        folder "use-cases" {
+          [create-course.ts]
+          [add-module.ts]
+          [publish-content.ts]
+        }
+      }
+      package "enterprise" {
+        folder "entities" {
+          [Course.ts]
+          [Module.ts]
+          [Content.ts]
+        }
+      }
+    }
+    package "assessment" {
+      package "application" {
+        folder "repositories" {
+          [i-quiz-repository.ts]
+          [i-submission-repository.ts]
+        }
+        folder "use-cases" {
+          [create-quiz.ts]
+          [submit-quiz-answers.ts]
+          [grade-submission.ts]
+        }
+      }
+      package "enterprise" {
+        folder "entities" {
+          [Quiz.ts]
+          [Question.ts]
+          [Option.ts]
+          [Submission.ts]
+        }
+      }
+    }
+    package "flashcards" {
+      package "application" {
+        folder "repositories" {
+          [i-deck-repository.ts]
+          [i-card-repository.ts]
+        }
+        folder "use-cases" {
+          [create-deck.ts]
+          [review-cards.ts]
+          [track-mastery.ts]
+        }
+      }
+      package "enterprise" {
+        folder "entities" {
+          [Deck.ts]
+          [Card.ts]
+          [MasteryRecord.ts]
+        }
+      }
+    }
+    package "forum" {
+      package "application" {
+        folder "repositories" {
+          [i-topic-repository.ts]
+          [i-post-repository.ts]
+        }
+        folder "use-cases" {
+          [create-topic.ts]
+          [reply-to-post.ts]
+          [list-notifications.ts]
+        }
+      }
+      package "enterprise" {
+        folder "entities" {
+          [Topic.ts]
+          [Post.ts]
+          [Reply.ts]
+        }
+      }
+    }
+    package "live-sessions" {
+      package "application" {
+        folder "repositories" {
+          [i-webinar-repository.ts]
+          [i-attendance-repository.ts]
+        }
+        folder "use-cases" {
+          [schedule-webinar.ts]
+          [register-attendance.ts]
+        }
+      }
+      package "enterprise" {
+        folder "entities" {
+          [Webinar.ts]
+          [AttendanceRecord.ts]
+        }
+      }
+    }
+    package "billing-enrollment" {
+      package "application" {
+        folder "repositories" {
+          [i-payment-repository.ts]
+          [i-invoice-repository.ts]
+        }
+        folder "use-cases" {
+          [process-hotmart-webhook.ts]
+          [issue-invoice.ts]
+          [auto-onboard-student.ts]
+        }
+      }
+      package "enterprise" {
+        folder "entities" {
+          [PaymentEvent.ts]
+          [Invoice.ts]
+          [OnboardingRecord.ts]
+        }
+      }
+    }
+  }
+  
+  package "application" {
+    package "auth" {
+      folder "services" {
+        [sign-in.service.ts]
+        [reset-password.service.ts]
+      }
+    }
+    package "student-profile" {
+      folder "services" {
+        [enrollment.service.ts]
+        [progress-report.service.ts]
+      }
+    }
+    package "assessment" {
+      folder "services" {
+        [quiz-grading.service.ts]
+        [submission-review.service.ts]
+      }
+    }
+    ' … demais domínios …
+  }
+  
+  package "infra" {
+    folder "controllers" {
+      folder "auth" {
+        [auth.controller.ts]
+        [password-reset.controller.ts]
+      }
+      folder "student-profile" {
+        [enrollment.controller.ts]
+        [progress.controller.ts]
+      }
+      folder "course-catalog" {
+        [courses.controller.ts]
+        [modules.controller.ts]
+      }
+      folder "assessment" {
+        [quiz.controller.ts]
+        [submission.controller.ts]
+      }
+      folder "flashcards" {
+        [deck.controller.ts]
+        [card.controller.ts]
+      }
+      folder "forum" {
+        [topics.controller.ts]
+        [posts.controller.ts]
+      }
+      folder "live-sessions" {
+        [webinars.controller.ts]
+        [attendance.controller.ts]
+      }
+      folder "billing-enrollment" {
+        [payments.controller.ts]
+        [onboarding.controller.ts]
+      }
+    }
+    package "auth" {
+      [guards/]
+      [strategies/]
+      [repositories/]
+      [dtos/]
+      [auth.module.ts]
+    }
+    package "notifications" {
+      folder "handlers" {
+        [SendEmailOnEnrollment]
+        [NotifyQuizCompleted]
+      }
+    }
+    package "integrations" {
+      [hotmart-webhook.adapter.ts]
+      [asaas-webhook.adapter.ts]
+      [zoom.adapter.ts]
+    }
+    package "persistence" {
+      [database.module.ts]
+      [s3.service.ts]
+      [vimeo.service.ts]
+    }
+  }
+  
+  package "shared" {
+    package "kernel" {
+      [BaseEntity]
+      [UniqueEntityId]
+      [DomainError]
+    }
+    package "logging" {
+      [Winston]
+      [AuditInterceptor]
+    }
+    package "config" {
+      [env.ts]
+    }
+    package "utils" {
+      [Parsers]
+      [Helpers]
+    }
+  }
+
+}
+
+@enduml
