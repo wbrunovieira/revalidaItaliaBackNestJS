@@ -1,3 +1,4 @@
+// src/domain/auth/application/use-cases/create-account.use-case.ts
 import { Either, left, right } from "@/core/either";
 import { Injectable, Inject } from "@nestjs/common";
 import { IAccountRepository } from "@/domain/auth/application/repositories/i-account-repository";
