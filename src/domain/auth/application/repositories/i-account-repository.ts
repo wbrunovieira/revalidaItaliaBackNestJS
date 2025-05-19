@@ -1,6 +1,7 @@
-import { Either } from "src/core/either";
+import { Either } from "@/core/either";
 import { User } from "../../enterprise/entities/user.entity";
-import { PaginationParams } from "src/core/repositories/pagination-params";
+import { PaginationParams } from "@/core/repositories/pagination-params";
+
 
 export abstract class IAccountRepository {
     abstract findById(id: string): Promise<Either<Error, User>>;

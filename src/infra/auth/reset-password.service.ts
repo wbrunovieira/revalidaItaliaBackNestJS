@@ -3,7 +3,8 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import * as jwt from "jsonwebtoken";
 import { ConfigService } from "@nestjs/config";
-import { Env } from "src/env/env";
+import { Env } from "@/env/env";
+
 
 
 @Injectable()

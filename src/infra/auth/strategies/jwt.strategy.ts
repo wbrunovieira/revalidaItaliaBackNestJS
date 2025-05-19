@@ -1,10 +1,11 @@
 // src/infra/auth/strategies/jwt.strategy.ts
 
+import { Env } from "@/env/env";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { Env } from "src/env/env";
+
 import { z } from "zod";
 
 const tokenPayloadSchema = z.object({

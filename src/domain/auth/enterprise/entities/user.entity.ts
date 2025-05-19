@@ -1,6 +1,10 @@
-import { Entity } from "src/core/entity";
-import { Optional } from "src/core/types/optional";
-import { UniqueEntityID } from "src/core/unique-entity-id";
+// src/domain/auth/enterprise/entities/user.entity.ts
+
+import { Entity } from "@/core/entity";
+import { Optional } from "@/core/types/optional";
+import { UniqueEntityID } from "@/core/unique-entity-id";
+
+
 
 
 export interface UserProps {

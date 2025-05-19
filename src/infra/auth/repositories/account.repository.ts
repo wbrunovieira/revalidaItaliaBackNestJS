@@ -1,8 +1,9 @@
+import { Either } from '@/core/either';
+import { PaginationParams } from '@/core/repositories/pagination-params';
+import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { User } from '@/domain/auth/enterprise/entities/user.entity';
 import { Injectable } from '@nestjs/common';
-import { IAccountRepository } from 'src/domain/auth/application/repositories/i-account-repository';
-import { Either } from 'src/core/either';
-import { User } from 'src/domain/auth/enterprise/entities/user.entity';
-import { PaginationParams } from 'src/core/repositories/pagination-params';
+
 
 @Injectable()
 export class AccountRepository implements IAccountRepository {
