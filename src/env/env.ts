@@ -9,15 +9,9 @@ export const envSchema = z.object({
   NEXT_PUBLIC_URL: z.string().url(),
 
   JWT_PRIVATE_KEY: z.string()
-                      .nonempty("JWT_PRIVATE_KEY cannot be empty")
-                      .refine(val => base64Regex.test(val), {
-                        message: "JWT_PRIVATE_KEY must be a valid Base64 string"
-                      }),
-  JWT_PUBLIC_KEY:  z.string()
-                      .nonempty("JWT_PUBLIC_KEY cannot be empty")
-                      .refine(val => base64Regex.test(val), {
-                        message: "JWT_PUBLIC_KEY must be a valid Base64 string"
-                      }),
+  .nonempty("JWT_PRIVATE_KEY cannot be empty"),
+JWT_PUBLIC_KEY:  z.string()
+  .nonempty("JWT_PUBLIC_KEY cannot be empty"),
 
   PORT:            z.coerce.number().optional().default(3333),
 });
