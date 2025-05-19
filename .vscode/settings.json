@@ -1,0 +1,23 @@
+// .vscode/settings.json (backend)
+{
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#D9B2A9", // brand-rose
+    "titleBar.activeForeground": "#0C3559", // brand-navy
+    "titleBar.inactiveBackground": "#D9C5C1", // brand-rose-light
+    "titleBar.inactiveForeground": "#3887A6", // brand-teal
+    "activityBar.background": "#D9B2A9", // brand-rose
+    "activityBar.foreground": "#0C3559",
+    "activityBar.inactiveForeground": "#3887A6",
+    "activityBarBadge.background": "#3887A6", // brand-teal
+    "activityBarBadge.foreground": "#F2ECE9",
+    "statusBar.background": "#D9B2A9",
+    "statusBar.foreground": "#0C3559",
+    "statusBar.debuggingBackground": "#79BED9", // brand-sky
+    "window.activeBorder": "#3887A6", // destaque
+    "editorGroupHeader.tabsBackground": "#D9C5C1",
+    "tab.activeBackground": "#D9B2A9",
+    "tab.activeForeground": "#0C3559",
+    "tab.inactiveBackground": "#D9C5C1",
+    "tab.inactiveForeground": "#0F2940"
+  }
+}
