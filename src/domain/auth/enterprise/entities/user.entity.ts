@@ -58,7 +58,10 @@ export class User extends Entity<UserProps> {
     get email(): string {
         return this.props.email;
     }
-
+    public get password(): string {
+      return this.props.password;
+    }
+  
 
 
     get createdAt(): Date {

@@ -30,15 +30,7 @@ export class PrismaAccountRepository implements IAccountRepository {
         );
     }
 
-    async findByVerificationToken(token: string): Promise<User | null> {
-        console.log("findByVerificationToken token", token);
-        const user = await this.prisma.user.findFirst({
-            where: { verificationToken: token },
-        });
-        console.log("findByVerificationToken user", user);
 
-        return user ? this.toDomain(user) : null;
-    }
 
     async findById(id: string): Promise<Either<Error, User>> {
         try {
@@ -113,23 +105,24 @@ export class PrismaAccountRepository implements IAccountRepository {
     }
 
     async create(user: User): Promise<Either<Error, void>> {
-        try {
-            await this.prisma.user.create({
-                data: {
-                    id: user.id.toString(),
-                    name: user.name,
-                    email: user.email,
-            
-                    profileImageUrl: user.profileImageUrl,
-                    role: user.role,
-                    createdAt: user.createdAt,
-                    updatedAt: user.updatedAt,
-                },
-            });
-            return right(undefined);
-        } catch (error) {
-            return left(new Error("Failed to create user"));
-        }
+      try {
+        await this.prisma.user.create({
+          data: {
+            id:               user.id.toString(),
+            name:             user.name,
+            email:            user.email,
+            password:         user.password,  
+            cpf:              user.cpf,       
+            profileImageUrl:  user.profileImageUrl,
+            role:             user.role,
+            createdAt:        user.createdAt,
+            updatedAt:        user.updatedAt,
+          },
+        });
+        return right(undefined);
+      } catch (error) {
+        return left(new Error("Failed to create user"));
+      }
     }
 
     async delete(user: User): Promise<Either<Error, void>> {

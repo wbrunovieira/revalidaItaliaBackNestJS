@@ -10,7 +10,7 @@ export abstract class IAccountRepository {
     abstract findAll(params: PaginationParams): Promise<Either<Error, User[]>>;
     abstract delete(account: User): Promise<Either<Error, void>>;
     abstract save(account: User): Promise<Either<Error, void>>;
-    abstract findByVerificationToken(token: string): Promise<User | null>;
+
     abstract updatePassword(
         userId: string,
         password: string

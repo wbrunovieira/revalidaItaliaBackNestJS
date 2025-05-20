@@ -8,6 +8,7 @@ import { User, UserProps } from "@/domain/auth/enterprise/entities/user.entity";
 import { InvalidInputError } from "./errors/invalid-input-error";
 import { DuplicateEmailError } from "./errors/duplicate-email-error";
 import { RepositoryError } from "./errors/repository-error";
+import { CreateAccountRequest } from "../dtos/create-account-request.dto";
 
 
 const createAccountSchema = z.object({
@@ -18,13 +19,6 @@ const createAccountSchema = z.object({
   role:     z.enum(["admin", "tutor", "student"]),
 });
 
-export interface CreateAccountUseCaseRequest {
-  name: string;
-  cpf: string;
-  email: string;
-  password: string;
-  role: "admin" | "tutor" | "student";
-}
 
 type CreateAccountUseCaseResponse = Either<
   InvalidInputError | DuplicateEmailError | RepositoryError | Error,
@@ -39,7 +33,7 @@ export class CreateAccountUseCase {
   ) {}
 
   async execute(
-    request: CreateAccountUseCaseRequest,
+    request: CreateAccountRequest,
   ): Promise<CreateAccountUseCaseResponse> {
     // 1) Validate input
     const parseResult = createAccountSchema.safeParse(request);

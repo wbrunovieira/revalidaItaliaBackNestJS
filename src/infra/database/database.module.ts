@@ -12,25 +12,19 @@ import { PrismaAccountRepository } from "./prisma/repositories/prisma-account-re
 @Module({
     providers: [
         PrismaService,
-        
-        
-        {
+        PrismaAccountRepository,
+    {
             provide: IAccountRepository,
             useClass: PrismaAccountRepository,
         },
-        
 
-       
-        PrismaAccountRepository,
-      
-    
+
     ],
     exports: [
         PrismaService,
-   
         IAccountRepository,
- 
-        PrismaService
+        PrismaAccountRepository,
+      
     ],
 })
 export class DatabaseModule {}
