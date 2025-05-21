@@ -2,13 +2,13 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ConflictException }    from "@nestjs/common";
 import { left, right }          from "@/core/either";
 import { vi }                   from "vitest";
-import { AccountController }    from "./account.controller";
+import {StudentsController }    from "./students.controller";
 import { CreateAccountUseCase } from "@/domain/auth/application/use-cases/create-account.use-case";
 import { CreateAccountDto }     from "@/domain/auth/application/dtos/create-account.dto";
 import type { UserProps }       from "@/domain/auth/enterprise/entities/user.entity";
 
 describe("AccountController", () => {
-  let controller: AccountController;
+  let controller: StudentsController;
   let createAccount: CreateAccountUseCase;
 
   const dto: CreateAccountDto = {
@@ -21,7 +21,7 @@ describe("AccountController", () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AccountController],
+      controllers: [StudentsController],
       providers: [
         {
           provide: CreateAccountUseCase,
@@ -30,7 +30,7 @@ describe("AccountController", () => {
       ],
     }).compile();
 
-    controller = module.get(AccountController);
+    controller = module.get(StudentsController);
     createAccount = module.get(CreateAccountUseCase);
   });
 

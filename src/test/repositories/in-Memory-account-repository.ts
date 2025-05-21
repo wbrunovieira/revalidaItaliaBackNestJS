@@ -36,7 +36,13 @@ export class InMemoryAccountRepository implements IAccountRepository {
         }
         return right(user);
     }
-
+    async findByCpf(cpf: string): Promise<Either<Error, User>> {
+      const user = this.items.find(item => item.cpf === cpf);
+      if (!user) {
+        return left(new ResourceNotFoundError("User not found"));
+      }
+      return right(user);
+    }
     async findAll(params: PaginationParams): Promise<Either<Error, User[]>> {
         return right(this.items);
     }

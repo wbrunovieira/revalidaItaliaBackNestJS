@@ -3,8 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { envSchema } from '@/env/env';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+
 import { AuthModule } from '@/infra/auth/auth.module';
 import { HttpModule } from '@/infra/http.module';
 
@@ -22,7 +21,7 @@ import { HttpModule } from '@/infra/http.module';
 
     HttpModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

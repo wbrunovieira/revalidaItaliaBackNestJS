@@ -1,0 +1,19 @@
+@BASE_URL = http://localhost:3333
+
+
+###
+
+# @name create-account
+POST {{BASE_URL}}/students
+Content-Type: application/json
+
+{
+  "name": "Walter Bruno Prado Vieira",
+  "email": "wbrunovieira@yahoo.com.br",
+  "password":"123456aA@",
+  "role":"student",
+  "cpf":"12345678900"
+}
+
+###
+

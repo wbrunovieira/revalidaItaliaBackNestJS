@@ -6,14 +6,15 @@ import {
   CreateAccountUseCase,
 
 } from './create-account.use-case'
-import type { CreateAccountUseCaseRequest } from './create-account.use-case'
+
 import { InvalidInputError } from './errors/invalid-input-error'
 import { DuplicateEmailError } from './errors/duplicate-email-error'
 import { RepositoryError } from './errors/repository-error'
+import { CreateAccountRequest } from '../dtos/create-account-request.dto'
 
 let repo: InMemoryAccountRepository
 let sut: CreateAccountUseCase
-let defaultDto: CreateAccountUseCaseRequest
+let defaultDto: CreateAccountRequest
 
 describe('CreateAccountUseCase', () => {
   beforeEach(() => {

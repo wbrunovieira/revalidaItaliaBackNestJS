@@ -5,9 +5,10 @@ import { z } from 'zod'
 import { compare } from 'bcryptjs'
 
 import { IAccountRepository } from '../repositories/i-account-repository'
-import { Either, left, right } from '@/core/either'
+
 import { AuthenticationError } from './errors/authentication-error'
 import type { UserProps } from '@/domain/auth/enterprise/entities/user.entity'
+import { Either, left, right } from '@/core/either'
 
 // 1) Esquema de validação
 const schema = z.object({

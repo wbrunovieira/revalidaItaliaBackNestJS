@@ -5,23 +5,30 @@ import { IAccountRepository } from "@/domain/auth/application/repositories/i-acc
 import { hash } from "bcryptjs";
 import { z } from "zod";
 import { User, UserProps } from "@/domain/auth/enterprise/entities/user.entity";
+import { CreateAccountRequest } from "../dtos/create-account-request.dto";
 import { InvalidInputError } from "./errors/invalid-input-error";
 import { DuplicateEmailError } from "./errors/duplicate-email-error";
+import { DuplicateCPFError } from "./errors/duplicate-cpf-error";
 import { RepositoryError } from "./errors/repository-error";
-import { CreateAccountRequest } from "../dtos/create-account-request.dto";
 
+// password: ≥6 chars, uppercase, number, special
+const passwordSchema = z
+  .string()
+  .min(6, "Password must be at least 6 characters long")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/\d/, "Password must contain at least one number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
 const createAccountSchema = z.object({
   name:     z.string().min(3, "User name must be at least 3 characters long"),
-  email:    z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
-  cpf:      z.string().regex(/^\d{11}$/, "CPF must be 11 digits"),
+  email:    z.string().email("Invalid email"),
+  password: passwordSchema,
+  cpf:      z.string().regex(/^\d{11}$/, "Invalid CPF"),
   role:     z.enum(["admin", "tutor", "student"]),
 });
 
-
 type CreateAccountUseCaseResponse = Either<
-  InvalidInputError | DuplicateEmailError | RepositoryError | Error,
+  InvalidInputError | DuplicateEmailError | DuplicateCPFError | RepositoryError | Error,
   { user: Omit<UserProps, "password"> & { id: string } }
 >;
 
@@ -36,39 +43,66 @@ export class CreateAccountUseCase {
     request: CreateAccountRequest,
   ): Promise<CreateAccountUseCaseResponse> {
     // 1) Validate input
-    const parseResult = createAccountSchema.safeParse(request);
-    if (!parseResult.success) {
-      const issue = parseResult.error.issues[0];
-      return left(new InvalidInputError(issue.message));
+    const parse = createAccountSchema.safeParse(request);
+    if (!parse.success) {
+      const details = parse.error.issues.map(issue => {
+        const detail: any = {
+          code: issue.code,
+          message: issue.message,
+          path: issue.path,
+        };
+        // always treat type errors as string
+        if (issue.code === 'invalid_type') {
+          detail.expected = 'string';
+          detail.received = (issue as any).received;
+        } else if ('expected' in issue) {
+          detail.expected = (issue as any).expected;
+        }
+        if ('received' in issue && issue.code !== 'invalid_type') {
+          detail.received = (issue as any).received;
+        }
+        if ('validation' in issue) detail.validation = (issue as any).validation;
+        if ('minimum' in issue)    detail.minimum    = (issue as any).minimum;
+        if ('inclusive' in issue)  detail.inclusive  = (issue as any).inclusive;
+        if ('exact' in issue)      detail.exact      = (issue as any).exact;
+        return detail;
+      });
+      return left(new InvalidInputError("Validation failed", details));
     }
-    const { name, cpf, email, password, role } = parseResult.data;
+    const { name, email, password, cpf, role } = parse.data;
 
-    // 2) Ensure email not in use
+    // 2) Duplicate-email?
     try {
-      const existing = await this.accountRepository.findByEmail(email);
-      if (existing.isRight()) {
+      if ((await this.accountRepository.findByEmail(email)).isRight()) {
         return left(new DuplicateEmailError());
       }
     } catch (err: any) {
       return left(new RepositoryError(err.message));
     }
 
-    // 3) Hash password
-    let hashedPassword: string;
+    // 3) Duplicate-CPF?
     try {
-      hashedPassword = await hash(password, this.saltRounds);
+      if ((await this.accountRepository.findByCpf(cpf)).isRight()) {
+        return left(new DuplicateCPFError());
+      }
+    } catch (err: any) {
+      return left(new RepositoryError(err.message));
+    }
+
+    // 4) Hash password
+    let hashed: string;
+    try {
+      hashed = await hash(password, this.saltRounds);
     } catch {
       return left(new RepositoryError("Error hashing password"));
     }
 
-    // 4) Create domain entity
-    const user = User.create({ name, cpf, email, password: hashedPassword, role });
-
-    // 5) Persist user
+    // 5) Create domain and persist
+    const user = User.create({ name, email, password: hashed, cpf, role });
     try {
-      const result = await this.accountRepository.create(user);
-      if (result.isLeft()) {
-        return left(new RepositoryError(result.value.message));
+      const r = await this.accountRepository.create(user);
+      if (r.isLeft()) {
+        return left(new RepositoryError(r.value.message));
       }
     } catch (err: any) {
       return left(new RepositoryError(err.message));

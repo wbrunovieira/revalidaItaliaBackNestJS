@@ -15,6 +15,10 @@ export class AccountRepository implements IAccountRepository {
     throw new Error('Method not implemented.');
   }
 
+  findByCpf(cpf: string): Promise<Either<Error, User>> {
+    throw new Error('Method not implemented.');
+  }
+
   findByEmail(email: string): Promise<Either<Error, User>> {
     throw new Error('Method not implemented.');
   }

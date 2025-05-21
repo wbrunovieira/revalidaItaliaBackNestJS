@@ -1,3 +1,4 @@
+// src/infra/database/prisma/repositories/prisma-account-repositories.ts
 import { PrismaService } from "@/prisma/prisma.service";
 import { PaginationParams } from "@/core/repositories/pagination-params";
 
@@ -28,6 +29,18 @@ export class PrismaAccountRepository implements IAccountRepository {
             },
             user.id
         );
+    }
+
+    async findByCpf(cpf: string): Promise<Either<Error, User>> {
+      try {
+        const data = await this.prisma.user.findUnique({ where: { cpf } });
+        if (!data) {
+          return left(new ResourceNotFoundError("User not found"));
+        }
+        return right(this.toDomain(data));
+      } catch (err: any) {
+        return left(new Error("Database error"));
+      }
     }
 
 
