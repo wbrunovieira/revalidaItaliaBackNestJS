@@ -29,8 +29,8 @@ import { UpdateAccountUseCase } from '@/domain/auth/application/use-cases/update
       imports: [ConfigModule],
       inject:  [ConfigService],
       useFactory: (config: ConfigService) => ({
-        privateKey:  Buffer.from(config.get('JWT_PRIVATE_KEY'),'base64').toString('utf8'),
-        publicKey:   Buffer.from(config.get('JWT_PUBLIC_KEY'),'base64').toString('utf8'),
+        privateKey: config.get('JWT_PRIVATE_KEY'),
+        publicKey:  config.get('JWT_PUBLIC_KEY'),
         signOptions: { algorithm: 'RS256', expiresIn: '1h' },
       }),
     }),
@@ -58,7 +58,8 @@ import { UpdateAccountUseCase } from '@/domain/auth/application/use-cases/update
     RolesGuard,
     CreateAccountUseCase,
     AuthenticateUserUseCase,
-    UpdateAccountUseCase
+    UpdateAccountUseCase,
+    JwtModule
   ],
 })
 export class AuthModule {}
