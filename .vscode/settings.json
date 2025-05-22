@@ -2,7 +2,7 @@
 {
   "workbench.colorCustomizations": {
     "titleBar.activeBackground": "#0C3559", // brand-rose
-    "titleBar.activeForeground": "#3887A6", // brand-navy
+    "titleBar.activeForeground": "#F2ECE9", // brand-navy
     "titleBar.inactiveBackground": "#0C3559", // brand-rose-light
     "titleBar.inactiveForeground": "#3887A6", // brand-teal
     "activityBar.background": "#0C3559", // brand-rose

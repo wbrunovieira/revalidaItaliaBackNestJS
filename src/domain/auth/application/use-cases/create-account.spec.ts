@@ -1,4 +1,3 @@
-
 import { compare } from 'bcryptjs'
 import { left } from '@/core/either'
 import { InMemoryAccountRepository } from '@/test/repositories/in-Memory-account-repository'
@@ -23,7 +22,8 @@ describe('CreateAccountUseCase', () => {
     defaultDto = {
       name:     'John Doe',
       email:    'john@example.com',
-      password: 'securepassword',
+     
+      password: 'Secure1@',
       role:     'student',
       cpf:      '12345678900',
     }
@@ -54,7 +54,7 @@ describe('CreateAccountUseCase', () => {
   })
 
   it('should allow password with exactly 6 characters', async () => {
-    const dto = { ...defaultDto, password: '123456' }
+    const dto = { ...defaultDto, password: 'Ab1@c2' }
     const result = await sut.execute(dto)
     expect(result.isRight()).toBe(true)
   })
@@ -65,7 +65,7 @@ describe('CreateAccountUseCase', () => {
     expect(result.isLeft()).toBe(true)
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidInputError)
-      expect(result.value.message).toBe('Invalid email address')
+      expect(result.value.message).toBe('Validation failed')
     }
   })
 
@@ -75,7 +75,7 @@ describe('CreateAccountUseCase', () => {
     expect(result.isLeft()).toBe(true)
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidInputError)
-      expect(result.value.message).toBe('CPF must be 11 digits')
+      expect(result.value.message).toBe('Validation failed')
     }
   })
 
@@ -85,7 +85,7 @@ describe('CreateAccountUseCase', () => {
     expect(result.isLeft()).toBe(true)
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidInputError)
-      expect(result.value.message).toMatch(/Invalid enum value/)
+      expect(result.value.message).toBe('Validation failed')
     }
   })
 

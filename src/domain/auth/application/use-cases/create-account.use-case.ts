@@ -11,7 +11,7 @@ import { DuplicateEmailError } from "./errors/duplicate-email-error";
 import { DuplicateCPFError } from "./errors/duplicate-cpf-error";
 import { RepositoryError } from "./errors/repository-error";
 
-// password: ≥6 chars, uppercase, number, special
+
 const passwordSchema = z
   .string()
   .min(6, "Password must be at least 6 characters long")
@@ -42,7 +42,7 @@ export class CreateAccountUseCase {
   async execute(
     request: CreateAccountRequest,
   ): Promise<CreateAccountUseCaseResponse> {
-    // 1) Validate input
+
     const parse = createAccountSchema.safeParse(request);
     if (!parse.success) {
       const details = parse.error.issues.map(issue => {
@@ -51,7 +51,7 @@ export class CreateAccountUseCase {
           message: issue.message,
           path: issue.path,
         };
-        // always treat type errors as string
+
         if (issue.code === 'invalid_type') {
           detail.expected = 'string';
           detail.received = (issue as any).received;
@@ -71,7 +71,7 @@ export class CreateAccountUseCase {
     }
     const { name, email, password, cpf, role } = parse.data;
 
-    // 2) Duplicate-email?
+
     try {
       if ((await this.accountRepository.findByEmail(email)).isRight()) {
         return left(new DuplicateEmailError());
@@ -80,7 +80,7 @@ export class CreateAccountUseCase {
       return left(new RepositoryError(err.message));
     }
 
-    // 3) Duplicate-CPF?
+
     try {
       if ((await this.accountRepository.findByCpf(cpf)).isRight()) {
         return left(new DuplicateCPFError());
@@ -89,7 +89,7 @@ export class CreateAccountUseCase {
       return left(new RepositoryError(err.message));
     }
 
-    // 4) Hash password
+
     let hashed: string;
     try {
       hashed = await hash(password, this.saltRounds);
@@ -97,7 +97,7 @@ export class CreateAccountUseCase {
       return left(new RepositoryError("Error hashing password"));
     }
 
-    // 5) Create domain and persist
+
     const user = User.create({ name, email, password: hashed, cpf, role });
     try {
       const r = await this.accountRepository.create(user);
@@ -108,7 +108,7 @@ export class CreateAccountUseCase {
       return left(new RepositoryError(err.message));
     }
 
-    // 6) Success
+
     return right({ user: user.toResponseObject() });
   }
 }
