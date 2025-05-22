@@ -18,6 +18,7 @@ import { JwtStrategy }           from './strategies/jwt.strategy'
 import { JwtAuthGuard }          from './guards/jwt-auth.guard'
 import { RolesGuard }            from './guards/roles.guard'
 import { SignInService } from './strategies/sign-in.service'
+import { UpdateAccountUseCase } from '@/domain/auth/application/use-cases/update-account.use-case'
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { SignInService } from './strategies/sign-in.service'
     RolesGuard,
     CreateAccountUseCase,
     AuthenticateUserUseCase,
+    UpdateAccountUseCase,
 
 
     { provide: 'SALT_ROUNDS', useValue: 8 },
@@ -56,6 +58,7 @@ import { SignInService } from './strategies/sign-in.service'
     RolesGuard,
     CreateAccountUseCase,
     AuthenticateUserUseCase,
+    UpdateAccountUseCase
   ],
 })
 export class AuthModule {}

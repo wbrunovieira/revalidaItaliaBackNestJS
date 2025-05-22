@@ -1,92 +1,123 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { ConflictException }    from "@nestjs/common";
-import { left, right }          from "@/core/either";
-import { vi }                   from "vitest";
-import {StudentsController }    from "./students.controller";
-import { CreateAccountUseCase } from "@/domain/auth/application/use-cases/create-account.use-case";
-import { CreateAccountDto }     from "@/domain/auth/application/dtos/create-account.dto";
-import type { UserProps }       from "@/domain/auth/enterprise/entities/user.entity";
+import { compare } from 'bcryptjs'
+import { left } from '@/core/either'
+import { InMemoryAccountRepository } from '@/test/repositories/in-Memory-account-repository'
+import { CreateAccountUseCase } from '@/domain/auth/application/use-cases/create-account.use-case'
+import { CreateAccountRequest } from '@/domain/auth/application/dtos/create-account-request.dto'
+import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error'
+import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error'
+import { RepositoryError } from '@/domain/auth/application/use-cases/errors/repository-error'
 
-describe("AccountController", () => {
-  let controller: StudentsController;
-  let createAccount: CreateAccountUseCase;
 
-  const dto: CreateAccountDto = {
-    name:     "Jane Doe",
-    cpf:      "12345678901",
-    email:    "jane@example.com",
-    password: "Str0ngP@ss!",
-    role:     "student",
-  };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [StudentsController],
-      providers: [
-        {
-          provide: CreateAccountUseCase,
-          useValue: { execute: vi.fn() },
-        },
-      ],
-    }).compile();
 
-    controller = module.get(StudentsController);
-    createAccount = module.get(CreateAccountUseCase);
-  });
+let repo: InMemoryAccountRepository
+let sut: CreateAccountUseCase
+let defaultDto: CreateAccountRequest
 
-  it("should return created user when use-case succeeds", async () => {
-    const fakeUser: Omit<UserProps, "password"> & { id: string } = {
-      id:               "uuid-1",
-      name:             dto.name,
-      cpf:              dto.cpf,
-      email:            dto.email,
-      role:             dto.role,
-      phone:            undefined,
-      paymentToken:     null,
-      birthDate:        undefined,
-      lastLogin:        undefined,
-      profileImageUrl:  undefined,
-      createdAt:        new Date(),
-      updatedAt:        new Date(),
-    };
+describe('CreateAccountUseCase', () => {
+  beforeEach(() => {
+    repo = new InMemoryAccountRepository()
+    sut  = new CreateAccountUseCase(repo, 8)
+    defaultDto = {
+      name:     'John Doe',
+      email:    'john@example.com',
 
-    vi.spyOn(createAccount, "execute").mockResolvedValueOnce(
-      right({ user: fakeUser }) as any
-    );
+      password: 'Secure1@',
+      role:     'student',
+      cpf:      '12345678900',
+    }
+  })
 
-    const result = await controller.create(dto);
-    expect(result).toEqual({ user: fakeUser });
-    expect(createAccount.execute).toHaveBeenCalledWith(dto);
-  });
+  it('should be able to create an account', async () => {
+    const result = await sut.execute(defaultDto)
+    expect(result.isRight()).toBe(true)
+    if (result.isRight()) {
+      expect(repo.items[0].toResponseObject()).toEqual(result.value.user)
+    }
+  })
 
-  it("should throw ConflictException when use-case returns Left with message", async () => {
-    vi.spyOn(createAccount, "execute").mockResolvedValueOnce(
-      left(new Error("Email already in use")) as any
-    );
+  it('should hash the password before storing', async () => {
+    const result = await sut.execute(defaultDto)
+    expect(result.isRight()).toBe(true)
+    if (result.isRight()) {
+      const stored = repo.items[0] as any
+      const hashed = stored.props.password
+      expect(await compare(defaultDto.password, hashed)).toBe(true)
+    }
+  })
 
-    const promise = controller.create(dto);
-    await expect(promise).rejects.toThrow(ConflictException);
-    await expect(promise).rejects.toThrow("Email already in use");
-    expect(createAccount.execute).toHaveBeenCalledWith(dto);
-  });
+  it('should allow name with exactly 3 characters', async () => {
+    const dto = { ...defaultDto, name: 'Tom' }
+    const result = await sut.execute(dto)
+    expect(result.isRight()).toBe(true)
+  })
 
-  it("should throw ConflictException with default message when Left has no message", async () => {
-    vi.spyOn(createAccount, "execute").mockResolvedValueOnce(
-      left(new Error("")) as any
-    );
+  it('should allow password with exactly 6 characters', async () => {
+    const dto = { ...defaultDto, password: 'Ab1@c2' }
+    const result = await sut.execute(dto)
+    expect(result.isRight()).toBe(true)
+  })
 
-    const promise = controller.create(dto);
-    await expect(promise).rejects.toThrow(ConflictException);
-    await expect(promise).rejects.toThrow("Failed to create account");
-    expect(createAccount.execute).toHaveBeenCalledWith(dto);
-  });
+  it('should reject invalid email format', async () => {
+    const dto = { ...defaultDto, email: 'foo@' }
+    const result = await sut.execute(dto)
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(InvalidInputError)
+      expect(result.value.message).toBe('Validation failed')
+    }
+  })
 
-  it("should propagate if use-case throws unexpectedly", async () => {
-    const unexpected = new Error("something bad");
-    vi.spyOn(createAccount, "execute").mockImplementationOnce(() => {
-      throw unexpected;
-    });
+  it('should reject invalid CPF format', async () => {
+    const dto = { ...defaultDto, cpf: '123' }
+    const result = await sut.execute(dto)
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(InvalidInputError)
+      expect(result.value.message).toBe('Validation failed')
+    }
+  })
 
-    await expect(controller.create(dto)).rejects.toThrow("something bad");
-  });
-});
+  it('should reject invalid role value', async () => {
+    const dto = { ...defaultDto, role: 'manager' as any }
+    const result = await sut.execute(dto as any)
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(InvalidInputError)
+      expect(result.value.message).toBe('Validation failed')
+    }
+  })
+
+  it('should not be able to create an account with a duplicate email', async () => {
+    // first creation
+    await sut.execute(defaultDto)
+    const result = await sut.execute(defaultDto)
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(DuplicateEmailError)
+      expect(result.value.message).toBe('User already exists')
+    }
+  })
+
+  it('should handle repository create returning Left', async () => {
+    vi.spyOn(repo, 'create').mockResolvedValueOnce(left(new Error('DB down')))
+    const result = await sut.execute(defaultDto)
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(RepositoryError)
+      expect(result.value.message).toBe('DB down')
+    }
+  })
+
+  it('should handle errors thrown by the repository', async () => {
+    vi.spyOn(repo, 'create').mockImplementationOnce(() => {
+      throw new Error('Repository thrown')
+    })
+    const result = await sut.execute(defaultDto)
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(RepositoryError)
+      expect(result.value.message).toBe('Repository thrown')
+    }
+  })
+})

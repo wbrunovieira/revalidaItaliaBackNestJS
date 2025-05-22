@@ -239,4 +239,128 @@ describe('Create Account (E2E)', () => {
     expect(res.status).toBe(409)
     expect(res.body.message).toContain('already exists')
   })
+
+  // ────────────────────────────────────────────────────────────
+  // Update Account (E2E)
+  // ────────────────────────────────────────────────────────────
+
+  it('[PATCH] /students/:id - Success', async () => {
+
+    const createRes = await request(app.getHttpServer())
+      .post('/students')
+      .send({
+        name:     'Updater',
+        email:    'updater@example.com',
+        password: 'Aa11@@aa',
+        cpf:      '10101010101',
+        role:     'student',
+      });
+    expect(createRes.status).toBe(201);
+    const { id } = createRes.body.user;
+
+
+    const res = await request(app.getHttpServer())
+      .patch(`/students/${id}`)
+      .send({
+        name:  'Updated Name',
+        email: 'updated@example.com',
+      });
+    expect(res.status).toBe(200);
+    expect(res.body.user.name).toBe('Updated Name');
+    expect(res.body.user.email).toBe('updated@example.com');
+
+
+    const updated = await prisma.user.findUnique({ where: { id } });
+    expect(updated).toBeTruthy();
+    if (updated) {
+          expect(updated.name).toBe('Updated Name');
+            expect(updated.email).toBe('updated@example.com');
+          }
+  });
+
+  it('[PATCH] /students/:id - Missing Fields', async () => {
+    const createRes = await request(app.getHttpServer())
+      .post('/students')
+      .send({
+        name:     'NoFields',
+        email:    'nofields@example.com',
+        password: 'Bb22##bb',
+        cpf:      '20202020202',
+        role:     'student',
+      });
+    const { id } = createRes.body.user;
+
+    const res = await request(app.getHttpServer())
+      .patch(`/students/${id}`)
+      .send({});
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('At least one field to update must be provided');
+    expect(res.body.errors.details).toEqual([]);
+  });
+
+  it('[PATCH] /students/:id - Not Found', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/students/nonexistent-id')
+      .send({ name: 'X' });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('User not found');
+  });
+
+  it('[PATCH] /students/:id - Email Conflict', async () => {
+
+    const u1 = await request(app.getHttpServer())
+      .post('/students')
+      .send({
+        name:     'EmailA',
+        email:    'emaila@example.com',
+        password: 'Cc33$$cc',
+        cpf:      '30303030303',
+        role:     'student',
+      });
+    const u2 = await request(app.getHttpServer())
+      .post('/students')
+      .send({
+        name:     'EmailB',
+        email:    'emailb@example.com',
+        password: 'Dd44%%dd',
+        cpf:      '40404040404',
+        role:     'student',
+      });
+    const idA = u1.body.user.id;
+
+    const res = await request(app.getHttpServer())
+      .patch(`/students/${idA}`)
+      .send({ email: 'emailb@example.com' });
+    expect(res.status).toBe(409);
+    expect(res.body.message).toContain('already exists');
+  });
+
+  it('[PATCH] /students/:id - CPF Conflict', async () => {
+
+    const u1 = await request(app.getHttpServer())
+      .post('/students')
+      .send({
+        name:     'CpfA',
+        email:    'cpfa@example.com',
+        password: 'Ee55^^ee',
+        cpf:      '50505050505',
+        role:     'student',
+      });
+    const u2 = await request(app.getHttpServer())
+      .post('/students')
+      .send({
+        name:     'CpfB',
+        email:    'cpfb@example.com',
+        password: 'Ff66&&ff',
+        cpf:      '60606060606',
+        role:     'student',
+      });
+    const idA = u1.body.user.id;
+
+    const res = await request(app.getHttpServer())
+      .patch(`/students/${idA}`)
+      .send({ cpf: '60606060606' });
+    expect(res.status).toBe(409);
+    expect(res.body.message).toContain('already exists');
+  });
 })
