@@ -1,147 +1,99 @@
 // src/domain/auth/enterprise/entities/user.entity.ts
-
 import { Entity } from "@/core/entity";
 import { Optional } from "@/core/types/optional";
 import { UniqueEntityID } from "@/core/unique-entity-id";
 
-
-
-
 export interface UserProps {
-    name: string;
-    email: string;
-    password: string;
-    cpf: string;
-    phone?: string;
-    paymentToken?: string | null;
-    birthDate?: Date;
-    lastLogin?: Date;
-    profileImageUrl?: string;
-    createdAt: Date;
-    updatedAt: Date;
-    role:  "admin"  | "tutor" | "student";
+  name: string;
+  email: string;
+  password: string;
+  cpf: string;
+  phone?: string;
+  paymentToken?: string | null;
+  birthDate?: Date;
+  lastLogin?: Date;
+  profileImageUrl?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  role: "admin" | "tutor" | "student";
 }
 
 export class User extends Entity<UserProps> {
-    toResponseObjectPartial(): Partial<Omit<UserProps, "password">> & {
-        id: string;
-    } {
-        const { password, ...userWithoutPassword } = this.props;
-        return {
-            id: this.id.toString(),
-            ...userWithoutPassword,
-        };
+
+  toResponseObject(): Omit<UserProps, "password"> & { id: string } {
+    const { password, ...rest } = this.props;
+    return { id: this.id.toString(), ...(rest as any) };
+  }
+
+  // getters públicos
+  get email(): string {
+    return this.props.email;
+  }
+  get profileImageUrl(): string {
+    return this.props.email;
+  }
+  get cpf(): string {
+    return this.props.cpf;
+  }
+  get name(): string {
+    return this.props.name;
+  }
+  get role(): UserProps["role"] {
+    return this.props.role;
+  }
+
+  private touch() {
+    this.props.updatedAt = new Date();
+  }
+
+  public updateProfile(updates: {
+    name?: string;
+    email?: string;
+    cpf?: string;
+    role?: UserProps["role"];
+  }) {
+    if (updates.name) {
+      this.props.name = updates.name;
+      this.touch();
     }
-
-    toResponseObject(): Omit<UserProps, "password"> & { id: string } {
-        const { password, ...userWithoutPassword } = this.props;
-        return {
-            id: this.id.toString(),
-            ...(userWithoutPassword as Omit<UserProps, "password">),
-        };
+    if (updates.email) {
+      this.props.email = updates.email;
+      this.touch();
     }
-
-    get name(): string {
-        return this.props.name;
+    if (updates.cpf) {
+      this.props.cpf = updates.cpf;
+      this.touch();
     }
-
-    get cpf(): string {
-        return this.props.cpf;
+    if (updates.role) {
+      this.props.role = updates.role;
+      this.touch();
     }
+  }
 
+  public get password(): string {
+    return this.props.password;
+  }
 
+  public get createdAt(): Date {
+    return this.props.createdAt;
+  }
 
-    get role(): string {
-        return this.props.role;
-    }
+  public get updatedAt(): Date {
+    return this.props.updatedAt;
+  }
 
-    get email(): string {
-        return this.props.email;
-    }
-    public get password(): string {
-      return this.props.password;
-    }
-  
-
-
-    get createdAt(): Date {
-        return this.props.createdAt;
-    }
-
-    get updatedAt(): Date {
-        return this.props.updatedAt;
-    }
-
-    private touch() {
-        this.props.updatedAt = new Date();
-    }
-
-    set name(value: string) {
-        this.props.name = value;
-        this.touch();
-    }
-
-
-
-    set profileImageUrl(value: string) {
-        this.props.profileImageUrl = value;
-        this.touch();
-    }
-
-
-
-    set phone(value: string) {
-        this.props.phone = value;
-        this.touch();
-    }
-
- 
-
-    get birthDate(): Date | null {
-        return this.props.birthDate || null;
-    }
-
-    set birthDate(value: Date) {
-        this.props.birthDate = value;
-        this.touch();
-    }
-
-
-    get phone(): string | null {
-        return this.props.phone || null;
-    }
-
-
-
-    get lastLogin(): Date | null {
-        return this.props.lastLogin || null;
-    }
-
-    set lastLogin(value: Date) {
-        this.props.lastLogin = value;
-        this.touch();
-    }
-
-
-
-
-
-    get profileImageUrl(): string | null {
-        return this.props.profileImageUrl || null;
-    }
-
-    public static create(
-        props: Optional<UserProps, "createdAt" | "updatedAt">,
-        id?: UniqueEntityID
-    ) {
-        const user = new User(
-            {
-                ...props,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            },
-            id
-        );
-        return user;
-    }
+  public static create(
+    props: Optional<UserProps, "createdAt" | "updatedAt">,
+    id?: UniqueEntityID
+  ) {
+    const now = new Date();
+    return new User(
+      {
+        ...props,
+        createdAt: now,
+        updatedAt: now,
+      },
+      id
+    );
+  }
 }

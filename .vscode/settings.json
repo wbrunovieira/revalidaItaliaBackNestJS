@@ -6,7 +6,7 @@
     "titleBar.inactiveBackground": "#0C3559", // brand-rose-light
     "titleBar.inactiveForeground": "#3887A6", // brand-teal
     "activityBar.background": "#0C3559", // brand-rose
-    "activityBar.foreground": "#0C3559",
+    "activityBar.foreground": "#F2ECE9",
     "activityBar.inactiveForeground": "#3887A6",
     "activityBarBadge.background": "#3887A6", // brand-teal
     "activityBarBadge.foreground": "#F2ECE9",
@@ -16,7 +16,7 @@
     "window.activeBorder": "#3887A6", // destaque
     "editorGroupHeader.tabsBackground": "#0C3559",
     "tab.activeBackground": "#0C3559",
-    "tab.activeForeground": "#0C3559",
+    "tab.activeForeground": "#F2ECE9",
     "tab.inactiveBackground": "#0C3559",
     "tab.inactiveForeground": "#3887A6"
   }
