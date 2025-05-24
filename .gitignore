@@ -1,4 +1,4 @@
-# compiled output
+# Directories
 /dist
 /node_modules
 /build
@@ -12,10 +12,7 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-
-commands.*
-
-# OS
+# OS files
 .DS_Store
 
 # Tests
@@ -30,6 +27,8 @@ commands.*
 *.launch
 .settings/
 *.sublime-workspace
+
+.terraform/
 
 # IDE - VSCode
 .vscode/*
