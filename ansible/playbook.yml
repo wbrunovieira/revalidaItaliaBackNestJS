@@ -95,8 +95,3 @@
         build: 'always'
         state: present # ou restarted se quiser reiniciar sempre
 
-    - name: Roda migrações Prisma dentro do container
-      shell: docker compose -f compose.prod.yml exec -T backend pnpm prisma:migrate
-      args:
-        chdir: '{{ app_dir }}'
-      become_user: ubuntu
