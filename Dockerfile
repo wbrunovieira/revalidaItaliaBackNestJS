@@ -5,6 +5,7 @@ WORKDIR /app
 # install all deps and build
 COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npx prisma migrate deploy
 COPY . .
 RUN npx prisma generate
 RUN npm run build
@@ -15,7 +16,7 @@ WORKDIR /app
 
 
 COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 
 COPY --from=builder /app/dist ./dist

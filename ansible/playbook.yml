@@ -8,18 +8,32 @@
   vars:
     repo_url: 'https://github.com/wbrunovieira/revalidaItaliaBackNestJS.git'
     app_dir: /home/ubuntu/app
+    compose_file: compose.prod.yml
 
   pre_tasks:
     - name: Atualiza cache do apt
       apt:
         update_cache: yes
 
-    - name: Garante Docker e plugin do Compose v2
+    - name: Instala dependências do Docker
       apt:
         name:
           - docker.io
-          - docker-compose
+          - git
+          - curl
         state: latest
+
+    - name: Cria diretório de plugins do Docker
+      file:
+        path: /usr/local/lib/docker/cli-plugins
+        state: directory
+        mode: '0755'
+
+    - name: Instala Docker Compose V2
+      get_url:
+        url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64
+        dest: /usr/local/lib/docker/cli-plugins/docker-compose
+        mode: '0755'
 
     - name: Adiciona ubuntu ao grupo docker
       user:
@@ -54,36 +68,35 @@
       become_user: ubuntu
 
     - name: Lista arquivos clonados
-      ansible.builtin.shell: ls -R /home/ubuntu/app
+      ansible.builtin.shell: ls -R {{ app_dir }}
       register: listagem
 
     - name: Exibe resultado
       ansible.builtin.debug:
         var: listagem.stdout_lines
 
-    - name: Sobe containers (produção)
-      become: yes
-      become_user: ubuntu
-      shell: |
-        newgrp docker <<EONG
-          cd /home/ubuntu/app
-          docker-compose -f compose.prod.yml pull
-          docker-compose -f compose.prod.yml up -d --build
-        EONG
+    - name: Faz pull das imagens com Compose V2
+      community.docker.docker_compose_v2_pull:
+        project_src: '{{ app_dir }}'
+        files:
+          - '{{ compose_file }}'
 
-    - name: Roda migrações Prisma dentro do container
-      shell: |
-        cd {{ app_dir }}
-        docker-compose -f compose.prod.yml exec -T backend npx prisma migrate deploy
+    - name: Derruba containers antigos
+      shell: docker compose -f {{ compose_file }} down
       args:
         chdir: '{{ app_dir }}'
-      become_user: ubuntu
+      ignore_errors: yes
 
-  handlers:
-    - name: Reinicia stack Docker (Compose V2)
-      shell: |
-        cd {{ app_dir }}
-        docker-compose -f compose.prod.yml up -d
+    - name: Sobe os containers com Compose V2
+      community.docker.docker_compose_v2:
+        project_src: '{{ app_dir }}'
+        files:
+          - '{{ compose_file }}'
+        build: 'always'
+        state: present # ou restarted se quiser reiniciar sempre
+
+    - name: Roda migrações Prisma dentro do container
+      shell: docker compose -f compose.prod.yml exec -T backend pnpm prisma:migrate
       args:
         chdir: '{{ app_dir }}'
       become_user: ubuntu
