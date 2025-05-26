@@ -2,6 +2,7 @@
 FROM node:18-alpine AS builder
 
 WORKDIR /app
+RUN npm install -g pnpm @nestjs/cli
 
 # Copiar arquivos essenciais primeiro
 COPY package.json pnpm-lock.yaml ./
