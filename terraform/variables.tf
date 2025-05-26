@@ -63,3 +63,23 @@ variable "db_engine_version" {
   description = "Postgres engine version"
   default     = "16"
 }
+
+variable "next_public_url" {
+  description = "URL pública do frontend"
+  type        = string
+  default     = "http://example.com"
+}
+
+variable "node_env" {
+  description = "Ambiente Node"
+  type        = string
+  default     = "development"
+}
+
+variable "port" {
+  description = "Porta da API"
+  type        = string
+  default     = "3333"
+}
+
+
