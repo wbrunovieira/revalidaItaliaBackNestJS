@@ -12,5 +12,4 @@ services:
       - '${PORT}:${PORT}'
 
     command: >
-      sh -c "pnpm prisma migrate deploy &&
-             node dist/main.js"
+      sh -c "npx prisma migrate deploy && node dist/main.js"
