@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ead-backend-prod
+    volumes:
+      - .:/app
     env_file:
       - .env
     ports:

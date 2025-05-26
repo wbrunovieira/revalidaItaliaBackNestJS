@@ -53,6 +53,14 @@
         mode: '0600'
       become_user: ubuntu
 
+    - name: Lista arquivos clonados
+      ansible.builtin.shell: ls -R /home/ubuntu/app
+      register: listagem
+
+    - name: Exibe resultado
+      ansible.builtin.debug:
+        var: listagem.stdout_lines
+
     - name: Roda migrações Prisma dentro do container
       shell: |
         cd {{ app_dir }}
