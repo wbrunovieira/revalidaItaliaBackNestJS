@@ -24,11 +24,11 @@ COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
 
 # **copia o schema do prisma para o runner**
-COPY --from=builder /app/prisma ./prisma
 
 # copia artefatos do build
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 3333
 ENV NODE_ENV=production
