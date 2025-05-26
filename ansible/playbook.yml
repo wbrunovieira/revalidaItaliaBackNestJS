@@ -62,13 +62,14 @@
         var: listagem.stdout_lines
 
     - name: Sobe containers (produção)
-      shell: |
-        cd {{ app_dir }}
-        docker-compose -f compose.prod.yml pull
-        docker-compose -f compose.prod.yml up -d --build
-      args:
-        chdir: '{{ app_dir }}'
+      become: yes
       become_user: ubuntu
+      shell: |
+        newgrp docker <<EONG
+          cd /home/ubuntu/app
+          docker-compose -f compose.prod.yml pull
+          docker-compose -f compose.prod.yml up -d --build
+        EONG
 
     - name: Roda migrações Prisma dentro do container
       shell: |

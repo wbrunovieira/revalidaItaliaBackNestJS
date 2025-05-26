@@ -1,3 +1,4 @@
+# terraform/variables.tf
 variable "aws_region" {
   description = "AWS region"
   default     = "us-east-2"
@@ -18,10 +19,7 @@ variable "public_key_path" {
   default     = "/Users/brunovieira/.ssh/revalida-key.pub"
 }
 
-variable "private_key_path" {
-  description = "Absolute path to your private key"
-  default     = "/Users/brunovieira/.ssh/revalida-key"
-}
+
 
 variable "instance_type" {
   description = "EC2 instance type"
@@ -82,4 +80,7 @@ variable "port" {
   default     = "3333"
 }
 
-
+variable "private_key_path" {
+  description = "Absolute path to your private key"
+  default     = "/Users/brunovieira/.ssh/revalida-key"
+}

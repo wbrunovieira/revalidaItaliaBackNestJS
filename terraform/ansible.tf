@@ -1,5 +1,4 @@
 # terraform/ansible.tf
-
 resource "local_file" "ansible_inventory" {
   filename = "${path.module}/../ansible/inventory.yml"
 
@@ -18,12 +17,25 @@ resource "local_file" "ansible_inventory" {
   )
 }
 
+resource "null_resource" "wait_for_ssh" {
+  provisioner "remote-exec" {
+    inline = ["echo 'SSH is ready'"]
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file(var.private_key_path)
+      host        = aws_instance.backend.public_ip
+    }
+  }
+
+  depends_on = [aws_instance.backend]
+}
+
 resource "null_resource" "run_ansible" {
   depends_on = [
-    aws_instance.backend,
-    local_file.ansible_inventory,
+    null_resource.wait_for_ssh, # ✅ Aguarda o SSH responder
+    local_file.ansible_inventory
   ]
-
 
   triggers = {
     playbook_checksum  = filemd5("${path.module}/../ansible/playbook.yml")
