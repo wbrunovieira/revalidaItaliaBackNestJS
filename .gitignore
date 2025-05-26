@@ -59,3 +59,8 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 
 /ansible/inventory.yml
+
+# Terraform
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/.terraform/
