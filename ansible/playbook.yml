@@ -1,0 +1,83 @@
+---
+- hosts: backend
+  become: true
+  vars:
+    repo_url: 'git@github.com:wbrunovieira/revalidaItaliaBackNestJS.git'
+    app_dir: /home/ubuntu/app
+
+  pre_tasks:
+    - name: Atualiza cache do apt
+      apt:
+        update_cache: yes
+
+    - name: Garante que Docker e Compose estão instalados
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+        state: latest
+
+    - name: Coloca ubuntu no grupo docker
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+  tasks:
+    - name: Clona (ou atualiza) o código da aplicação
+      git:
+        repo: '{{ repo_url }}'
+        dest: '{{ app_dir }}'
+        version: main
+        force: yes
+        accept_hostkey: yes
+      become_user: ubuntu
+
+    - name: Copia o arquivo de ambiente (.env)
+      template:
+        src: 'templates/.env.j2'
+        dest: '{{ app_dir }}/.env'
+        owner: ubuntu
+        group: ubuntu
+        mode: 0600
+      vars:
+        # aqui você pode definir variáveis sensíveis via ansible-vault
+        DATABASE_URL: 'postgres://postgres:docker@localhost:5432/revalida_postgres'
+
+    - name: Garante diretório de logs do Postgres (se usar host-mount)
+      file:
+        path: '{{ app_dir }}/logs/db'
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: 0755
+
+    - name: Instala dependências Node (caso queira rodar localmente)
+      command: npm install
+      args:
+        chdir: '{{ app_dir }}'
+      become_user: ubuntu
+
+    - name: Executa migrações Prisma
+      command: npx prisma migrate deploy
+      args:
+        chdir: '{{ app_dir }}'
+      environment:
+        DATABASE_URL: '{{ DATABASE_URL }}'
+      become_user: ubuntu
+
+    - name: Reconstrói e sobe containers com Docker Compose
+      docker_compose:
+        project_src: '{{ app_dir }}'
+        build: yes
+        up: yes
+        restarted: yes
+        remove_orphans: yes
+      become_user: ubuntu
+
+  handlers:
+    - name: Reinicia stack Docker
+      docker_compose:
+        project_src: '{{ app_dir }}'
+        up: yes
+        restarted: yes
