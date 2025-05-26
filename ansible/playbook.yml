@@ -50,6 +50,35 @@
         force: yes
       become_user: ubuntu
 
+    - name: Instala pnpm globalmente
+      shell: npm install -g pnpm
+      args:
+        executable: /bin/bash
+
+    - name: Instala dependências do projeto
+      shell: pnpm install
+      args:
+        chdir: '{{ app_dir }}'
+        executable: /bin/bash
+
+    - name: Gera arquivos Prisma
+      shell: pnpm exec prisma generate
+      args:
+        chdir: '{{ app_dir }}'
+        executable: /bin/bash
+
+    - name: Aplica migrações
+      shell: pnpm exec prisma migrate deploy
+      args:
+        chdir: '{{ app_dir }}'
+        executable: /bin/bash
+
+    - name: Gera build do projeto
+      shell: pnpm build
+      args:
+        chdir: '{{ app_dir }}'
+        executable: /bin/bash
+
     - name: Garante diretório de logs do Postgres
       file:
         path: '{{ app_dir }}/logs/db'
@@ -67,15 +96,7 @@
         mode: '0600'
       become_user: ubuntu
 
-    - name: Lista arquivos clonados
-      ansible.builtin.shell: ls -R {{ app_dir }}
-      register: listagem
-
-    - name: Exibe resultado
-      ansible.builtin.debug:
-        var: listagem.stdout_lines
-
-    - name: Faz pull das imagens com Compose V2
+    - name: Faz pull da imagem com Docker Compose V2
       community.docker.docker_compose_v2_pull:
         project_src: '{{ app_dir }}'
         files:
@@ -87,11 +108,9 @@
         chdir: '{{ app_dir }}'
       ignore_errors: yes
 
-    - name: Sobe os containers com Compose V2
+    - name: Sobe os containers com Docker Compose V2
       community.docker.docker_compose_v2:
         project_src: '{{ app_dir }}'
         files:
           - '{{ compose_file }}'
-        build: 'always'
-        state: present # ou restarted se quiser reiniciar sempre
-
+        state: present

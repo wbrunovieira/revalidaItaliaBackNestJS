@@ -4,12 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ead-backend-prod
-    volumes:
-      - .:/app
     env_file:
       - .env
     ports:
       - '${PORT}:${PORT}'
-
-    command: >
-      sh -c "npx prisma migrate deploy && node dist/main.js"
