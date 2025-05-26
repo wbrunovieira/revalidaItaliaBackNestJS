@@ -30,5 +30,36 @@ variable "instance_type" {
 
 variable "ami_id" {
   description = "Ubuntu 22.04 LTS HVM SSD"
-  default     = "ami-04f167a56786e4b09" # AMI para Ubuntu 22.04 LTS (Exemplo para us-east-2)
+  default     = "ami-04f167a56786e4b09"
+}
+
+variable "db_name" {
+  description = "Name of the database to create"
+  default     = "revalida_postgres"
+}
+
+variable "db_username" {
+  description = "Postgres username"
+  default     = "postgres"
+}
+
+variable "db_password" {
+  description = "Postgres user password"
+  default     = "docker123"
+  sensitive   = true
+}
+
+variable "db_allocated_storage" {
+  description = "Storage (GB) for RDS"
+  default     = 20
+}
+
+variable "db_instance_class" {
+  description = "RDS instance class"
+  default     = "db.t3.micro"
+}
+
+variable "db_engine_version" {
+  description = "Postgres engine version"
+  default     = "16"
 }

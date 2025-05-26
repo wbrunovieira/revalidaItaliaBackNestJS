@@ -1,33 +1,35 @@
 resource "aws_security_group" "backend_sg" {
+  # keep the AWS Security Group *name* unchanged so Terraform won't replace it
   name        = "backend_sg"
-  description = "Allow SSH, API and DB"
+  description = "Allow SSH & API traffic to EC2"
 
-  # **SSH**
+  # SSH
   ingress {
+    description = "SSH from anywhere"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Sua app (3333) e Postgres interno
+  # Your app on port 3333
   ingress {
+    description = "Backend API"
     from_port   = 3333
     to_port     = 3333
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = ["127.0.0.1/32"]
-  }
 
+  # all outbound
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "revalida-backend-sg"
   }
 }
