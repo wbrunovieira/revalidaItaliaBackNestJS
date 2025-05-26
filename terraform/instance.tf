@@ -57,9 +57,6 @@ resource "aws_instance" "backend" {
     JWT_PUBLIC_KEY='${data.aws_ssm_parameter.jwt_public_key.value}'
     EOT
 
-    # Inicia o container via docker-compose
-    cd /home/ubuntu/app
-    docker compose -f compose.prod.yml up -d --build
   EOF
 
   tags = {

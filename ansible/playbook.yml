@@ -1,5 +1,5 @@
 ---
-- name: Deploy Backend via Ansible
+- name: Deploy Backend via Ansible (produção)
   hosts: backend
   become: true
   collections:
@@ -11,23 +11,24 @@
 
   pre_tasks:
     - name: Atualiza cache do apt
-      apt: { update_cache: yes }
+      apt:
+        update_cache: yes
 
-    - name: Garante que Docker e Compose estão instalados
+    - name: Garante Docker e plugin do Compose v2
       apt:
         name:
           - docker.io
           - docker-compose
         state: latest
 
-    - name: Coloca ubuntu no grupo docker
+    - name: Adiciona ubuntu ao grupo docker
       user:
         name: ubuntu
         groups: docker
         append: yes
 
   tasks:
-    - name: Clona (ou atualiza) o código da aplicação
+    - name: Clona ou atualiza o código
       git:
         repo: '{{ repo_url }}'
         dest: '{{ app_dir }}'
@@ -43,17 +44,37 @@
         group: ubuntu
         mode: '0755'
 
-    - name: Roda migrações Prisma dentro do container
-      community.docker.docker_compose_v2:
-        project_src: '{{ app_dir }}'
-        command: run --rm backend npx prisma migrate deploy
+    - name: Gera arquivo de ambiente (.env)
+      template:
+        src: 'templates/.env.prod.j2'
+        dest: '{{ app_dir }}/.env'
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
       become_user: ubuntu
 
-    - name: Reconstrói e sobe containers com Docker Compose V2 (produção)
+    - name: Roda migrações Prisma dentro do container
       shell: |
         cd {{ app_dir }}
-        docker compose -f docker-compose.prod.yml pull
-        docker compose -f docker-compose.prod.yml up -d --build
+        docker-compose -f compose.prod.yml run --rm backend npx prisma migrate deploy
+      args:
+        chdir: '{{ app_dir }}'
+      become_user: ubuntu
+
+    - name: Sobe containers (produção)
+      shell: |
+        cd {{ app_dir }}
+        docker-compose -f compose.prod.yml pull
+        docker-compose -f compose.prod.yml up -d --build
+      args:
+        chdir: '{{ app_dir }}'
+      become_user: ubuntu
+
+  handlers:
+    - name: Reinicia stack Docker (Compose V2)
+      shell: |
+        cd {{ app_dir }}
+        docker-compose -f compose.prod.yml up -d
       args:
         chdir: '{{ app_dir }}'
       become_user: ubuntu

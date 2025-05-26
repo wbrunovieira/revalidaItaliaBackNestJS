@@ -1,4 +1,5 @@
-// terraform/ansible.tf
+# terraform/ansible.tf
+
 resource "local_file" "ansible_inventory" {
   filename = "${path.module}/../ansible/inventory.yml"
 
@@ -22,6 +23,13 @@ resource "null_resource" "run_ansible" {
     aws_instance.backend,
     local_file.ansible_inventory,
   ]
+
+
+  triggers = {
+    playbook_checksum  = filemd5("${path.module}/../ansible/playbook.yml")
+    inventory_checksum = filemd5("${path.module}/../ansible/inventory.tpl")
+    always_run         = timestamp()
+  }
 
   provisioner "local-exec" {
     working_dir = "${path.module}/../ansible"
