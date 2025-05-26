@@ -10,6 +10,7 @@ COPY dist ./dist
 COPY package.json ./
 COPY node_modules ./node_modules
 COPY prisma ./prisma
+COPY tsconfig.json ./ 
 
 # Comando de produção (a base assume que prisma migrate já foi feito)
 CMD ["node", "-r", "tsconfig-paths/register", "dist/main"]
