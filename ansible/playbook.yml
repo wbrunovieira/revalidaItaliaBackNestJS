@@ -50,6 +50,13 @@
         force: yes
       become_user: ubuntu
 
+    - name: Instala Node.js e npm (via NodeSource)
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        apt-get install -y nodejs
+      args:
+        executable: /bin/bash
+
     - name: Instala pnpm globalmente
       shell: npm install -g pnpm
       args:

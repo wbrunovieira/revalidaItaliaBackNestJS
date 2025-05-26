@@ -12,4 +12,4 @@ COPY node_modules ./node_modules
 COPY prisma ./prisma
 
 # Comando de produção (a base assume que prisma migrate já foi feito)
-CMD ["node", "dist/main"]
+CMD ["node", "-r", "tsconfig-paths/register", "dist/main"]
