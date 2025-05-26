@@ -61,19 +61,19 @@
       ansible.builtin.debug:
         var: listagem.stdout_lines
 
-    - name: Roda migrações Prisma dentro do container
-      shell: |
-        cd {{ app_dir }}
-        docker-compose -f compose.prod.yml run --rm backend npx prisma migrate deploy
-      args:
-        chdir: '{{ app_dir }}'
-      become_user: ubuntu
-
     - name: Sobe containers (produção)
       shell: |
         cd {{ app_dir }}
         docker-compose -f compose.prod.yml pull
         docker-compose -f compose.prod.yml up -d --build
+      args:
+        chdir: '{{ app_dir }}'
+      become_user: ubuntu
+
+    - name: Roda migrações Prisma dentro do container
+      shell: |
+        cd {{ app_dir }}
+        docker-compose -f compose.prod.yml exec -T backend npx prisma migrate deploy
       args:
         chdir: '{{ app_dir }}'
       become_user: ubuntu
