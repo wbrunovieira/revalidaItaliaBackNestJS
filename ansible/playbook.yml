@@ -49,6 +49,7 @@
         version: main
         force: yes
       become_user: ubuntu
+      register: git_result
 
     - name: Instala Node.js e npm (via NodeSource)
       shell: |
@@ -114,6 +115,12 @@
       args:
         chdir: '{{ app_dir }}'
       ignore_errors: yes
+
+    - name: Build das imagens com Docker Compose (se houve mudança)
+      shell: docker compose -f {{ compose_file }} build
+      args:
+        chdir: '{{ app_dir }}'
+      when: git_result.after != git_result.before
 
     - name: Sobe os containers com Docker Compose V2
       community.docker.docker_compose_v2:
