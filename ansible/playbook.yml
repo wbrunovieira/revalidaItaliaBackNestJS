@@ -1,14 +1,17 @@
 ---
-- hosts: backend
+- name: Deploy Backend via Ansible
+  hosts: backend
   become: true
+  collections:
+    - community.docker
+
   vars:
-    repo_url: 'git@github.com:wbrunovieira/revalidaItaliaBackNestJS.git'
+    repo_url: 'https://github.com/wbrunovieira/revalidaItaliaBackNestJS.git'
     app_dir: /home/ubuntu/app
 
   pre_tasks:
     - name: Atualiza cache do apt
-      apt:
-        update_cache: yes
+      apt: { update_cache: yes }
 
     - name: Garante que Docker e Compose estão instalados
       apt:
@@ -30,54 +33,27 @@
         dest: '{{ app_dir }}'
         version: main
         force: yes
-        accept_hostkey: yes
       become_user: ubuntu
 
-    - name: Copia o arquivo de ambiente (.env)
-      template:
-        src: 'templates/.env.j2'
-        dest: '{{ app_dir }}/.env'
-        owner: ubuntu
-        group: ubuntu
-        mode: 0600
-      vars:
-        # aqui você pode definir variáveis sensíveis via ansible-vault
-        DATABASE_URL: 'postgres://postgres:docker@localhost:5432/revalida_postgres'
-
-    - name: Garante diretório de logs do Postgres (se usar host-mount)
+    - name: Garante diretório de logs do Postgres
       file:
         path: '{{ app_dir }}/logs/db'
         state: directory
         owner: ubuntu
         group: ubuntu
-        mode: 0755
+        mode: '0755'
 
-    - name: Instala dependências Node (caso queira rodar localmente)
-      command: npm install
+    - name: Roda migrações Prisma dentro do container
+      community.docker.docker_compose_v2:
+        project_src: '{{ app_dir }}'
+        command: run --rm backend npx prisma migrate deploy
+      become_user: ubuntu
+
+    - name: Reconstrói e sobe containers com Docker Compose V2 (produção)
+      shell: |
+        cd {{ app_dir }}
+        docker compose -f docker-compose.prod.yml pull
+        docker compose -f docker-compose.prod.yml up -d --build
       args:
         chdir: '{{ app_dir }}'
       become_user: ubuntu
-
-    - name: Executa migrações Prisma
-      command: npx prisma migrate deploy
-      args:
-        chdir: '{{ app_dir }}'
-      environment:
-        DATABASE_URL: '{{ DATABASE_URL }}'
-      become_user: ubuntu
-
-    - name: Reconstrói e sobe containers com Docker Compose
-      docker_compose:
-        project_src: '{{ app_dir }}'
-        build: yes
-        up: yes
-        restarted: yes
-        remove_orphans: yes
-      become_user: ubuntu
-
-  handlers:
-    - name: Reinicia stack Docker
-      docker_compose:
-        project_src: '{{ app_dir }}'
-        up: yes
-        restarted: yes

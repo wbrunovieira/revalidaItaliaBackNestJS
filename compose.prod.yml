@@ -1,0 +1,14 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ead-backend-prod
+    env_file:
+      - .env
+    ports:
+      - '${PORT}:${PORT}'
+
+    command: >
+      sh -c "pnpm prisma migrate deploy &&
+             node dist/main.js"

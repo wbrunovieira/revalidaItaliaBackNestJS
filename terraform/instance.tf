@@ -59,7 +59,7 @@ resource "aws_instance" "backend" {
 
     # Inicia o container via docker-compose
     cd /home/ubuntu/app
-    docker-compose up -d --build
+    docker compose -f compose.prod.yml up -d --build
   EOF
 
   tags = {
