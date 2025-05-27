@@ -1,6 +1,6 @@
 # instance.tf
 
-# 1) lookup dos parâmetros no SSM Parameter Store
+
 data "aws_ssm_parameter" "next_public_url" {
   name = aws_ssm_parameter.next_public_url.name
 }
@@ -26,7 +26,7 @@ data "aws_ssm_parameter" "jwt_public_key" {
 resource "aws_instance" "backend" {
   ami                         = var.ami_id
   instance_type               = var.instance_type
-  key_name                    = aws_key_pair.revalida.key_name
+  key_name                    = data.aws_key_pair.revalida.key_name
   iam_instance_profile        = aws_iam_instance_profile.ssm_profile.name
   vpc_security_group_ids      = [aws_security_group.backend_sg.id]
   associate_public_ip_address = true

@@ -23,7 +23,7 @@ variable "public_key_path" {
 
 variable "instance_type" {
   description = "EC2 instance type"
-  default     = "t3.micro"
+  default     = "t3.small"
 }
 
 variable "ami_id" {

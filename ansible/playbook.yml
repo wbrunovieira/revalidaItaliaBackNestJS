@@ -69,6 +69,15 @@
         chdir: '{{ app_dir }}'
         executable: /bin/bash
 
+    - name: Gera arquivo de ambiente (.env)
+      template:
+        src: 'templates/.env.prod.j2'
+        dest: '{{ app_dir }}/.env'
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
+      become_user: ubuntu
+
     - name: Gera arquivos Prisma
       shell: pnpm exec prisma generate
       args:
@@ -76,9 +85,13 @@
         executable: /bin/bash
 
     - name: Aplica migrações
-      shell: pnpm exec prisma migrate deploy
+      shell: |
+        set -a
+        source /home/ubuntu/app/.env
+        set +a
+        pnpm exec prisma migrate deploy
       args:
-        chdir: '{{ app_dir }}'
+        chdir: /home/ubuntu/app
         executable: /bin/bash
 
     - name: Gera build do projeto
@@ -94,15 +107,6 @@
         owner: ubuntu
         group: ubuntu
         mode: '0755'
-
-    - name: Gera arquivo de ambiente (.env)
-      template:
-        src: 'templates/.env.prod.j2'
-        dest: '{{ app_dir }}/.env'
-        owner: ubuntu
-        group: ubuntu
-        mode: '0600'
-      become_user: ubuntu
 
     - name: Faz pull da imagem com Docker Compose V2
       community.docker.docker_compose_v2_pull:

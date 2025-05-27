@@ -6,7 +6,7 @@ resource "local_file" "ansible_inventory" {
     "${path.module}/../ansible/inventory.tpl",
     {
       public_ip       = aws_instance.backend.public_ip,
-      key_name        = aws_key_pair.revalida.key_name,
+      key_name        = data.aws_key_pair.revalida.key_name,
       next_public_url = data.aws_ssm_parameter.next_public_url.value,
       node_env        = data.aws_ssm_parameter.node_env.value,
       port            = data.aws_ssm_parameter.port.value,
