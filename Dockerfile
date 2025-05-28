@@ -4,12 +4,16 @@ WORKDIR /app
 
 
 COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install
+COPY prisma ./prisma
+
+RUN npm install -g pnpm \
+  && pnpm install \
+  && pnpm exec prisma generate
 
 
 COPY tsconfig.base.json tsconfig.dev.json tsconfig.build.json ./
 COPY src ./src
-RUN pnpm run build    # gera ./dist
+RUN pnpm run build    
 
 # ───── development ─────
 FROM builder AS dev
