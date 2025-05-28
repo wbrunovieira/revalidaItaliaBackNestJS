@@ -1,10 +1,9 @@
+// tsconfig.dev.json
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": "./",
-    "paths": {
-      "@/*": ["src/*"]
-    },
+    "paths": { "@/*": ["src/*"] },
     "sourceMap": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts"],

@@ -1,9 +1,8 @@
+//tsconfig.prod.json
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": "./",
-    "paths": {
-      "@/*": ["dist/*"]
-    }
+    "paths": { "@/*": ["dist/*"] }
   }
 }
