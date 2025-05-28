@@ -1,3 +1,4 @@
+// src/infra/controllers/auth.controller.spec.ts
 import { compare } from 'bcryptjs'
 import { left } from '@/core/either'
 import { InMemoryAccountRepository } from '@/test/repositories/in-Memory-account-repository'
@@ -6,6 +7,7 @@ import { CreateAccountRequest } from '@/domain/auth/application/dtos/create-acco
 import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error'
 import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error'
 import { RepositoryError } from '@/domain/auth/application/use-cases/errors/repository-error'
+import { vi } from 'vitest'
 
 
 let repo: InMemoryAccountRepository
