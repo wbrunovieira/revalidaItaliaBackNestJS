@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: prod
+
     container_name: ead-backend-prod
     env_file:
       - .env
