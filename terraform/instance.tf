@@ -1,4 +1,4 @@
-# instance.tf
+# terraform/instance.tf
 
 
 data "aws_ssm_parameter" "next_public_url" {
@@ -22,7 +22,7 @@ data "aws_ssm_parameter" "jwt_public_key" {
   name = aws_ssm_parameter.jwt_public_key.name
 }
 
-# 2) define recurso EC2 que irá montar o .env e subir o Docker Compose
+
 resource "aws_instance" "backend" {
   ami                         = var.ami_id
   instance_type               = var.instance_type
@@ -61,5 +61,14 @@ resource "aws_instance" "backend" {
 
   tags = {
     Name = "backend-instance"
+  }
+}
+
+resource "aws_eip" "backend" {
+  domain   = "vpc"
+  instance = aws_instance.backend.id
+
+  tags = {
+    Name = "backend-eip"
   }
 }

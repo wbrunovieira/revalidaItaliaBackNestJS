@@ -1,6 +1,7 @@
-output "ec2_public_ip" {
-  description = "Public IP da instância backend"
-  value       = aws_instance.backend.public_ip
+# terraform/outputs.tf
+output "backend_fixed_ip" {
+  description = "Elastic IP público do backend"
+  value       = aws_eip.backend.public_ip
 }
 
 
