@@ -1,11 +1,12 @@
 # terraform/ansible.tf
+
 resource "local_file" "ansible_inventory" {
   filename = "${path.module}/../ansible/inventory.yml"
 
   content = templatefile(
     "${path.module}/../ansible/inventory.tpl",
     {
-      public_ip       = aws_instance.backend.public_ip,
+      public_ip       = aws_eip.backend.public_ip, # usar EIP
       key_name        = data.aws_key_pair.revalida.key_name,
       next_public_url = data.aws_ssm_parameter.next_public_url.value,
       node_env        = data.aws_ssm_parameter.node_env.value,
@@ -18,23 +19,29 @@ resource "local_file" "ansible_inventory" {
 }
 
 resource "null_resource" "wait_for_ssh" {
-  provisioner "remote-exec" {
-    inline = ["echo 'SSH is ready'"]
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      private_key = file(var.private_key_path)
-      host        = aws_instance.backend.public_ip
-    }
+  # só roda depois do EIP estar associado
+  depends_on = [aws_eip.backend]
+
+  # conexão em nível de recurso (vale pra todos os provisioners abaixo)
+  connection {
+    type        = "ssh"
+    host        = aws_eip.backend.public_ip
+    user        = "ubuntu" # ajuste ao seu AMI
+    private_key = file(var.private_key_path)
+    timeout     = "5m" # até 5 minutos de tentativas
   }
 
-  depends_on = [aws_instance.backend]
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'SSH is ready ✅'",
+    ]
+  }
 }
 
 resource "null_resource" "run_ansible" {
   depends_on = [
-    null_resource.wait_for_ssh, # ✅ Aguarda o SSH responder
-    local_file.ansible_inventory
+    null_resource.wait_for_ssh,
+    local_file.ansible_inventory,
   ]
 
   triggers = {
