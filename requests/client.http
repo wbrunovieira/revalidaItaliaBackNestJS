@@ -1,5 +1,5 @@
-@BASE_URL = http://localhost:3333
-# @BASE_URL = http://18.222.85.79:3333"
+# @BASE_URL = http://localhost:3333
+@BASE_URL = http://18.222.85.79:3333"
 
 
 ###
