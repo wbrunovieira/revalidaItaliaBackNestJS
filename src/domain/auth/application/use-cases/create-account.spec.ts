@@ -11,6 +11,7 @@ import { InvalidInputError } from './errors/invalid-input-error'
 import { DuplicateEmailError } from './errors/duplicate-email-error'
 import { RepositoryError } from './errors/repository-error'
 import { CreateAccountRequest } from '../dtos/create-account-request.dto'
+import { vi } from 'vitest'
 
 let repo: InMemoryAccountRepository
 let sut: CreateAccountUseCase

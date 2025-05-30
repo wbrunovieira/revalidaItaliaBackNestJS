@@ -19,6 +19,9 @@ import { JwtAuthGuard }          from './guards/jwt-auth.guard'
 import { RolesGuard }            from './guards/roles.guard'
 import { SignInService } from './strategies/sign-in.service'
 import { UpdateAccountUseCase } from '@/domain/auth/application/use-cases/update-account.use-case'
+import { CreateAddressUseCase } from '@/domain/auth/application/use-cases/create-address.use-case'
+import { IAddressRepository } from '@/domain/auth/application/repositories/i-address-repository'
+import { PrismaAddressRepository } from '../database/prisma/repositories/prisma-address-repository'
 
 @Module({
   imports: [
@@ -39,7 +42,11 @@ import { UpdateAccountUseCase } from '@/domain/auth/application/use-cases/update
 
     { provide: IAccountRepository, useClass: PrismaAccountRepository },
 
-
+    {
+      provide: IAddressRepository,
+      useClass: PrismaAddressRepository,
+    },
+    CreateAddressUseCase,
     LocalStrategy,
     SignInService,
     JwtStrategy,
@@ -48,6 +55,7 @@ import { UpdateAccountUseCase } from '@/domain/auth/application/use-cases/update
     CreateAccountUseCase,
     AuthenticateUserUseCase,
     UpdateAccountUseCase,
+    CreateAddressUseCase,
 
 
     { provide: 'SALT_ROUNDS', useValue: 8 },
@@ -59,6 +67,7 @@ import { UpdateAccountUseCase } from '@/domain/auth/application/use-cases/update
     CreateAccountUseCase,
     AuthenticateUserUseCase,
     UpdateAccountUseCase,
+    CreateAddressUseCase,
     JwtModule
   ],
 })
