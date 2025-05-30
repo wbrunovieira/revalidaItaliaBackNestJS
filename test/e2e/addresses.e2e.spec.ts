@@ -29,7 +29,7 @@ describe('Create Address (E2E)', () => {
   })
 
   afterAll(async () => {
-    // cleanup: remove addresses then users
+
     const users = await prisma.user.findMany({
       where: { email: { in: testEmails } },
       select: { id: true },
@@ -117,4 +117,69 @@ describe('Create Address (E2E)', () => {
     expect(res.status).toBe(500)
     expect(res.body.message).toBe('Database error creating address')
   })
+
+  it('[GET] /addresses?userId= – Success', async () => {
+    // create a fresh test user
+    const userRes = await request(app.getHttpServer())
+      .post('/students')
+      .send({
+        name:  'FindAddr User',
+        email: 'findaddr@example.com',
+        password: 'Cc33$$cc',
+        cpf:   '70770770770',
+        role:  'student',
+      });
+    expect(userRes.status).toBe(201);
+    const userId = userRes.body.user.id;
+
+    // create two addresses for that user
+    await request(app.getHttpServer())
+      .post('/addresses')
+      .send({
+        userId,
+        street: '200 Oak St',
+        number: '20A',
+        city: 'Treeville',
+        country: 'Woodland',
+        postalCode: '22233-444',
+      })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .post('/addresses')
+      .send({
+        userId,
+        street: '300 Pine St',
+        number: '30B',
+        city: 'Forest City',
+        country: 'Woodland',
+        postalCode: '33344-555',
+      })
+      .expect(201);
+
+    // fetch them back
+    const res = await request(app.getHttpServer())
+      .get('/addresses')
+      .query({ userId })
+      .expect(200);
+
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body).toHaveLength(2);
+    expect(res.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ street: '200 Oak St', number: '20A', city: 'Treeville' }),
+        expect.objectContaining({ street: '300 Pine St', number: '30B', city: 'Forest City' }),
+      ]),
+    );
+  });
+
+  it('[GET] /addresses – Missing userId', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/addresses')
+      .expect(400);
+
+
+    expect(res.body.message).toMatch(/userId/i);
+    expect(res.body.errors).toBeDefined();
+  });
 })
