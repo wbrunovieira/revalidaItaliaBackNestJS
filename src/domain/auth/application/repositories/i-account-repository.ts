@@ -1,3 +1,4 @@
+// src/domain/auth/application/repositories/i-account-repository.ts
 import { Either } from "@/core/either";
 import { User } from "../../enterprise/entities/user.entity";
 import { PaginationParams } from "@/core/repositories/pagination-params";
