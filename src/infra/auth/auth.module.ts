@@ -23,6 +23,7 @@ import { CreateAddressUseCase } from '@/domain/auth/application/use-cases/create
 import { IAddressRepository } from '@/domain/auth/application/repositories/i-address-repository'
 import { PrismaAddressRepository } from '../database/prisma/repositories/prisma-address-repository'
 import { FindAddressByUserUseCase } from '@/domain/auth/application/use-cases/find-address-by-user.use-case'
+import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update-address.use-case'
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { FindAddressByUserUseCase } from '@/domain/auth/application/use-cases/fi
     UpdateAccountUseCase,
     CreateAddressUseCase,
     FindAddressByUserUseCase,
+    UpdateAddressUseCase,
 
 
     { provide: 'SALT_ROUNDS', useValue: 8 },
@@ -71,6 +73,7 @@ import { FindAddressByUserUseCase } from '@/domain/auth/application/use-cases/fi
     UpdateAccountUseCase,
     CreateAddressUseCase,
     FindAddressByUserUseCase,
+    UpdateAddressUseCase,
     JwtModule
   ],
 })

@@ -181,5 +181,70 @@ describe('Create Address (E2E)', () => {
 
     expect(res.body.message).toMatch(/userId/i);
     expect(res.body.errors).toBeDefined();
-  });
+  });  it('[PATCH] /addresses/:id – Success', async () => {
+    // first, create a user + address
+    const userRes = await request(app.getHttpServer())
+      .post('/students')
+      .send({
+        name: 'Addr User2',
+        email: testEmails[1],
+        password: 'Bb22##bb',
+        cpf: '80880880880',
+        role: 'student',
+      })
+    expect(userRes.status).toBe(201)
+    const userId = userRes.body.user.id
+
+    const createRes = await request(app.getHttpServer())
+      .post('/addresses')
+      .send({
+        userId,
+        street: '200 Oak St',
+        number: '20A',
+        city: 'Oldtown',
+        country: 'Oldland',
+        postalCode: '22233-444',
+      })
+    expect(createRes.status).toBe(201)
+    const addressId = createRes.body.addressId
+
+    // now update it
+    const updateRes = await request(app.getHttpServer())
+      .patch(`/addresses/${addressId}`)
+      .send({ street: '201 Oak St', city: 'Newtown' })
+      .expect(200)
+
+    // verify response payload (if your controller returns updated address)
+    expect(updateRes.body).toMatchObject({
+      id: addressId,
+      street: '201 Oak St',
+      city: 'Newtown',
+    })
+
+    // verify persistence
+    const updated = await prisma.address.findUnique({ where: { id: addressId } })
+    expect(updated).toBeTruthy()
+    if (updated) {
+      expect(updated.street).toBe('201 Oak St')
+      expect(updated.city).toBe('Newtown')
+    }
+  })
+
+  it('[PATCH] /addresses/:id – Missing Fields', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/addresses/nonexistent-id')
+      .send({})
+      .expect(400)
+
+    expect(res.body.message).toBe('At least one field to update must be provided')
+  })
+
+  it('[PATCH] /addresses/:id – Not Found', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/addresses/00000000-0000-0000-0000-000000000000')
+      .send({ street: 'Nothing' })
+      .expect(400)
+
+    expect(res.body.message).toBe('Address not found')
+  })
 })
