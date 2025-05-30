@@ -19,3 +19,8 @@ Content-Type: application/json
 }
 
 ###
+
+GET {{BASE_URL}}/addresses?userId=28cdcee1-1d0f-45a5-9aba-8cc2c2725d3e
+Content-Type: application/json
+
+###
