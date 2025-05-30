@@ -1,5 +1,5 @@
-# @BASE_URL = http://localhost:3333
-@BASE_URL = http://18.222.85.79:3333"
+@BASE_URL = http://localhost:3333
+# @BASE_URL = http://18.222.85.79:3333"
 
 
 ###
@@ -10,10 +10,10 @@ Content-Type: application/json
 
 {
   "name": "Walter Bruno Prado Vieira",
-  "email": "wbrunovieira5@yahoo.com.br",
+  "email": "wbrunovieira52@yahoo.com.br",
   "password":"123456aA@",
   "role":"student",
-  "cpf":"12445678900"
+  "cpf":"12645678900"
 }
 
 ###

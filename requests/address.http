@@ -1,0 +1,21 @@
+@BASE_URL = http://localhost:3333
+# @BASE_URL = http://18.222.85.79:3333
+
+###
+
+POST {{BASE_URL}}/addresses
+Content-Type: application/json
+
+{
+  "userId":     "28cdcee1-1d0f-45a5-9aba-8cc2c2725d3e",
+  "street":     "123 Main St",
+  "number":     "42A",
+  "complement": "Apt. 7",
+  "district":   "Central",
+  "city":       "Metropolis",
+  "state":      "Stateville",
+  "country":    "Freedonia",
+  "postalCode": "12345-678"
+}
+
+###

@@ -6,6 +6,7 @@ import { CreateAccountRequest } from '@/domain/auth/application/dtos/create-acco
 import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error'
 import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error'
 import { RepositoryError } from '@/domain/auth/application/use-cases/errors/repository-error'
+import { vi } from 'vitest'
 
 
 
