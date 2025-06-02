@@ -7,6 +7,7 @@ import { vi } from 'vitest'
 import { AddressController } from './address.controller'
 import { CreateAddressUseCase } from '@/domain/auth/application/use-cases/create-address.use-case'
 import { FindAddressByUserUseCase } from '@/domain/auth/application/use-cases/find-address-by-user.use-case'
+import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update-address.use-case'
 import { CreateAddressRequest } from '@/domain/auth/application/dtos/create-address-request.dto'
 import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error'
 import { Either, right, left } from '@/core/either'
@@ -17,6 +18,7 @@ describe('AddressController', () => {
   let app: INestApplication
   let createAddress: CreateAddressUseCase
   let findAddressByUser: FindAddressByUserUseCase
+  let updateAddress: UpdateAddressUseCase
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -24,6 +26,7 @@ describe('AddressController', () => {
       providers: [
         { provide: CreateAddressUseCase, useValue: { execute: vi.fn() } },
         { provide: FindAddressByUserUseCase, useValue: { execute: vi.fn() } },
+        { provide: UpdateAddressUseCase, useValue: { execute: vi.fn() } },
       ],
     }).compile()
 
@@ -33,6 +36,7 @@ describe('AddressController', () => {
     )
     createAddress = moduleFixture.get(CreateAddressUseCase)
     findAddressByUser = moduleFixture.get(FindAddressByUserUseCase)
+    updateAddress = moduleFixture.get(UpdateAddressUseCase)
     await app.init()
   })
 
@@ -52,91 +56,236 @@ describe('AddressController', () => {
     postalCode: '12345-678',
   }
 
-  it('POST /addresses → 201 { addressId }', async () => {
-    vi.spyOn(createAddress, 'execute')
-      .mockResolvedValueOnce(right({ addressId: 'addr-123' }))
+  describe('POST /addresses', () => {
+    it('should return 201 { addressId }', async () => {
+      vi.spyOn(createAddress, 'execute')
+        .mockResolvedValueOnce(right({ addressId: 'addr-123' }))
 
-    const res = await request(app.getHttpServer())
-      .post('/addresses')
-      .send(validDto)
-      .expect(HttpStatus.CREATED)
+      const res = await request(app.getHttpServer())
+        .post('/addresses')
+        .send(validDto)
+        .expect(HttpStatus.CREATED)
 
-    expect(res.body).toEqual({ addressId: 'addr-123' })
+      expect(res.body).toEqual({ addressId: 'addr-123' })
+    })
+
+    it('should return 400 on InvalidInputError', async () => {
+      const details = ['street is required']
+      vi.spyOn(createAddress, 'execute')
+        .mockResolvedValueOnce(left(new InvalidInputError('Invalid input', details)))
+
+      const res = await request(app.getHttpServer())
+        .post('/addresses')
+        .send(validDto)
+        .expect(HttpStatus.BAD_REQUEST)
+
+      expect(res.body).toHaveProperty('message', 'Invalid input')
+      expect(res.body.errors).toEqual({ details })
+    })
+
+    it('should return 500 on other Left error', async () => {
+      vi.spyOn(createAddress, 'execute')
+        .mockResolvedValueOnce(left(new Error('DB down')))
+
+      const res = await request(app.getHttpServer())
+        .post('/addresses')
+        .send(validDto)
+        .expect(HttpStatus.INTERNAL_SERVER_ERROR)
+
+      expect(res.body).toHaveProperty('message', 'DB down')
+    })
+
+    it('should return 500 on thrown exception', async () => {
+      vi.spyOn(createAddress, 'execute').mockImplementationOnce(() => {
+        throw new Error('Unexpected')
+      })
+
+      const res = await request(app.getHttpServer())
+        .post('/addresses')
+        .send(validDto)
+        .expect(HttpStatus.INTERNAL_SERVER_ERROR)
+
+      expect(res.body).toHaveProperty('message', 'Unexpected')
+    })
   })
 
-  it('GET /addresses?userId= → 200 [addr1, addr2]', async () => {
-    const userId = new UniqueEntityID('user-1')
-    const addr1 = Address.create({
-      userId,
-      street: 'A',
-      number: '1',
-      city: 'C',
-      country: 'X',
-      postalCode: '000',
+  describe('GET /addresses', () => {
+    it('should return 200 [addr1, addr2]', async () => {
+      const userId = new UniqueEntityID('user-1')
+      const addr1 = Address.create({
+        userId,
+        street: 'A',
+        number: '1',
+        city: 'C',
+        country: 'X',
+        postalCode: '000',
+      })
+      const addr2 = Address.create({
+        userId,
+        street: 'B',
+        number: '2',
+        city: 'D',
+        country: 'Y',
+        postalCode: '111',
+      })
+
+      vi.spyOn(findAddressByUser, 'execute')
+        .mockResolvedValueOnce(right([addr1, addr2]))
+
+      const res = await request(app.getHttpServer())
+        .get('/addresses')
+        .query({ userId: userId.toString() })
+        .expect(HttpStatus.OK)
+
+      const expected = [addr1, addr2].map(a => {
+        const { createdAt, updatedAt, ...rest } = a.toResponseObject()
+        return {
+          ...rest,
+          createdAt: createdAt.toISOString(),
+          updatedAt: updatedAt.toISOString(),
+        }
+      })
+      expect(res.body).toEqual(expected)
     })
-    const addr2 = Address.create({
-      userId,
-      street: 'B',
-      number: '2',
-      city: 'D',
-      country: 'Y',
-      postalCode: '111',
+
+    it('should return 400 when missing userId', async () => {
+      vi.spyOn(findAddressByUser, 'execute')
+        .mockResolvedValueOnce(left(new InvalidInputError('Missing userId', [])))
+
+      const res = await request(app.getHttpServer())
+        .get('/addresses')
+        .expect(HttpStatus.BAD_REQUEST)
+
+      expect(res.body).toHaveProperty('message', 'Missing userId')
+      expect(res.body.errors).toEqual({ details: [] })
     })
 
-    // mock the use-case
-    vi.spyOn(findAddressByUser, 'execute')
-      .mockResolvedValueOnce(right([addr1, addr2]))
+    it('should return 500 on repository error', async () => {
+      vi.spyOn(findAddressByUser, 'execute')
+        .mockResolvedValueOnce(left(new Error('DB down')))
 
-    const res = await request(app.getHttpServer())
-      .get('/addresses')
-      .query({ userId: userId.toString() })
-      .expect(HttpStatus.OK)
+      const res = await request(app.getHttpServer())
+        .get('/addresses')
+        .query({ userId: 'user-1' })
+        .expect(HttpStatus.INTERNAL_SERVER_ERROR)
 
-    // we expect ISO strings for dates in the JSON response
-    const expected = [addr1, addr2].map(a => {
-      const { createdAt, updatedAt, ...rest } = a.toResponseObject()
-      return {
+      expect(res.body).toHaveProperty('message', 'DB down')
+    })
+
+    it('should return 500 on exception thrown', async () => {
+      vi.spyOn(findAddressByUser, 'execute')
+        .mockImplementationOnce(() => { throw new Error('Thrown') })
+
+      const res = await request(app.getHttpServer())
+        .get('/addresses')
+        .query({ userId: 'user-1' })
+        .expect(HttpStatus.INTERNAL_SERVER_ERROR)
+
+      expect(res.body).toHaveProperty('message', 'Thrown')
+    })
+  })
+
+  describe('PATCH /addresses/:id', () => {
+    const paramId = 'addr-99'
+    const updateDto = {
+      id:         'ignored-id',
+      street:     'New St',
+      number:     '99B',
+      complement: 'Suite 100',
+      district:   'New District',
+      city:       'New City',
+      state:      'New State',
+      country:    'New Country',
+      postalCode: '99999-999',
+    }
+
+    it('should return 200 with updated address on success', async () => {
+      const userId = new UniqueEntityID('user-1')
+      const existing = Address.create({
+        userId,
+        street: 'Old St',
+        number: '1',
+        city: 'Old City',
+        country: 'Old Country',
+        postalCode: '00000-000',
+      })
+      // apply updates manually to simulate returned entity
+      existing.street = updateDto.street
+      existing.number = updateDto.number
+      existing.complement = updateDto.complement
+      existing.district = updateDto.district
+      existing.city = updateDto.city
+      existing.state = updateDto.state
+      existing.country = updateDto.country
+      existing.postalCode = updateDto.postalCode
+
+      vi.spyOn(updateAddress, 'execute')
+        .mockResolvedValueOnce(right(existing))
+
+      const res = await request(app.getHttpServer())
+        .patch(`/addresses/${paramId}`)
+        .send(updateDto)
+        .expect(HttpStatus.OK)
+
+      const responseObj = existing.toResponseObject()
+      const { createdAt, updatedAt, ...rest } = responseObj
+      const expected = {
         ...rest,
         createdAt: createdAt.toISOString(),
         updatedAt: updatedAt.toISOString(),
       }
+      expect(res.body).toEqual(expected)
+      // verify that the use-case was called with param id, not dto.id
+      expect(updateAddress.execute).toHaveBeenCalledWith({
+        id: paramId,
+        street: updateDto.street,
+        number: updateDto.number,
+        complement: updateDto.complement,
+        district: updateDto.district,
+        city: updateDto.city,
+        state: updateDto.state,
+        country: updateDto.country,
+        postalCode: updateDto.postalCode,
+      })
     })
-    expect(res.body).toEqual(expected)
-  })
 
-  it('GET /addresses → 400 when missing userId', async () => {
-    vi.spyOn(findAddressByUser, 'execute')
-      .mockResolvedValueOnce(left(new InvalidInputError('Missing userId', [])))
+    it('should return 400 on InvalidInputError', async () => {
+      const details = ['At least one field must be provided']
+      vi.spyOn(updateAddress, 'execute')
+        .mockResolvedValueOnce(left(new InvalidInputError('Validation failed', details)))
 
-    const res = await request(app.getHttpServer())
-      .get('/addresses')
-      .expect(HttpStatus.BAD_REQUEST)
+      const res = await request(app.getHttpServer())
+        .patch(`/addresses/${paramId}`)
+        .send(updateDto)
+        .expect(HttpStatus.BAD_REQUEST)
 
-    expect(res.body).toHaveProperty('message', 'Missing userId')
-    expect(res.body.errors).toEqual({ details: [] })
-  })
+      expect(res.body).toHaveProperty('message', 'Validation failed')
+      expect(res.body.errors).toEqual({ details })
+    })
 
-  it('GET /addresses → 500 on repository error', async () => {
-    vi.spyOn(findAddressByUser, 'execute')
-      .mockResolvedValueOnce(left(new Error('DB down')))
+    it('should return 500 on other Left error', async () => {
+      vi.spyOn(updateAddress, 'execute')
+        .mockResolvedValueOnce(left(new Error('update failed')))
 
-    const res = await request(app.getHttpServer())
-      .get('/addresses')
-      .query({ userId: 'user-1' })
-      .expect(HttpStatus.INTERNAL_SERVER_ERROR)
+      const res = await request(app.getHttpServer())
+        .patch(`/addresses/${paramId}`)
+        .send(updateDto)
+        .expect(HttpStatus.INTERNAL_SERVER_ERROR)
 
-    expect(res.body).toHaveProperty('message', 'DB down')
-  })
+      expect(res.body).toHaveProperty('message', 'update failed')
+    })
 
-  it('GET /addresses → 500 on exception thrown', async () => {
-    vi.spyOn(findAddressByUser, 'execute')
-      .mockImplementationOnce(() => { throw new Error('Thrown') })
+    it('should return 500 on exception thrown', async () => {
+      vi.spyOn(updateAddress, 'execute').mockImplementationOnce(() => {
+        throw new Error('exploded')
+      })
 
-    const res = await request(app.getHttpServer())
-      .get('/addresses')
-      .query({ userId: 'user-1' })
-      .expect(HttpStatus.INTERNAL_SERVER_ERROR)
+      const res = await request(app.getHttpServer())
+        .patch(`/addresses/${paramId}`)
+        .send(updateDto)
+        .expect(HttpStatus.INTERNAL_SERVER_ERROR)
 
-    expect(res.body).toHaveProperty('message', 'Thrown')
+      expect(res.body).toHaveProperty('message', 'exploded')
+    })
   })
 })

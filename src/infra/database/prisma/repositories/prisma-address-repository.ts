@@ -10,6 +10,41 @@ import { UniqueEntityID } from "@/core/unique-entity-id";
 export class PrismaAddressRepository implements IAddressRepository {
   constructor(private prisma: PrismaService) {}
 
+
+ async findById(id: string): Promise<Either<Error, Address | undefined>> {
+    try {
+      const row = await this.prisma.address.findUnique({
+        where: { id },
+      });
+
+      if (!row) {
+
+        return right(undefined);
+      }
+
+
+      const address = Address.create(
+        {
+          userId:     new UniqueEntityID(row.userId),
+          street:     row.street,
+          number:     row.number,
+          complement: row.complement,
+          district:   row.district,
+          city:       row.city,
+          state:      row.state,
+          country:    row.country,
+          postalCode: row.postalCode,
+        },
+        new UniqueEntityID(row.id)
+      );
+
+      return right(address);
+    } catch (err: any) {
+      return left(err);
+    }
+  }
+
+
   async create(address: Address): Promise<Either<Error, void>> {
     try {
       await this.prisma.address.create({
@@ -60,4 +95,28 @@ export class PrismaAddressRepository implements IAddressRepository {
       return left(new Error("Database error fetching addresses"));
     }
   }
+
+  async update(addr: Address): Promise<Either<Error, void>> {
+    try {
+      await this.prisma.address.update({
+        where: { id: addr.id.toString() },
+        data: {
+          street:     addr.street,
+          number:     addr.number,
+          complement: addr.complement,
+          district:   addr.district,
+          city:       addr.city,
+          state:      addr.state,
+          country:    addr.country,
+          postalCode: addr.postalCode,
+        },
+      });
+      return right(undefined);
+    } catch (err: any) {
+      return left(err);
+    }
+  }
+
+
+  
 }

@@ -2,7 +2,7 @@
 # @BASE_URL = http://18.222.85.79:3333
 
 ###
-
+# @name create-address
 POST {{BASE_URL}}/addresses
 Content-Type: application/json
 
@@ -19,8 +19,25 @@ Content-Type: application/json
 }
 
 ###
-
+# @name find-addresses-by-user
 GET {{BASE_URL}}/addresses?userId=28cdcee1-1d0f-45a5-9aba-8cc2c2725d3e
 Content-Type: application/json
 
 ###
+
+###
+# @name update-address
+PATCH {{BASE_URL}}/addresses/28e07201-ba49-4219-bb2e-68b1fa055bf4
+Content-Type: application/json
+
+{
+  "id": "28e07201-ba49-4219-bb2e-68b1fa055bf4",
+  "street": "456 Elm St",
+  "number": "99B",
+  "complement": "Suite 100",
+  "district": "New District",
+  "city": "New City",
+  "state": "New State",
+  "country": "New Country",
+  "postalCode": "99999-999"
+}

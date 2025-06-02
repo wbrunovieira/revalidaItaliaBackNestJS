@@ -49,7 +49,7 @@ describe("UpdateAddressUseCase", () => {
     expect(result.isLeft()).toBe(true)
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidInputError)
-      expect(result.value.message).toBe("At least one field must be provided")
+      expect(result.value.message).toBe("At least one field to update must be provided")
     }
   })
 

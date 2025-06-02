@@ -43,7 +43,7 @@ export class UpdateAddressUseCase {
       country === undefined &&
       postalCode === undefined
     ) {
-      return left(new InvalidInputError("At least one field must be provided", []))
+      return left(new InvalidInputError("At least one field to update must be provided", []))
     }
 
     try {

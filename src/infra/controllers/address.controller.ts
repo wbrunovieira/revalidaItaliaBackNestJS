@@ -17,6 +17,7 @@ import { UpdateAddressRequest, UpdateAddressUseCase } from "@/domain/auth/applic
 import { CreateAddressRequest } from "@/domain/auth/application/dtos/create-address-request.dto";
 
 import { InvalidInputError } from "@/domain/auth/application/use-cases/errors/invalid-input-error";
+import { NotFoundError } from "rxjs/internal/util/NotFoundError";
 
 @Controller("addresses")
 export class AddressController {
@@ -97,6 +98,10 @@ export class AddressController {
             message: err.message,
             errors: { details: err.details },
           });
+        }
+        if (err instanceof NotFoundError) {
+
+                   throw new BadRequestException({ message: err.message });
         }
         throw new InternalServerErrorException(err.message);
       }

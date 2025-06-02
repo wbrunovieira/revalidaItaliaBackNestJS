@@ -182,18 +182,18 @@ describe('Create Address (E2E)', () => {
     expect(res.body.message).toMatch(/userId/i);
     expect(res.body.errors).toBeDefined();
   });  it('[PATCH] /addresses/:id – Success', async () => {
-    // first, create a user + address
+
     const userRes = await request(app.getHttpServer())
-      .post('/students')
-      .send({
-        name: 'Addr User2',
-        email: testEmails[1],
-        password: 'Bb22##bb',
-        cpf: '80880880880',
-        role: 'student',
-      })
-    expect(userRes.status).toBe(201)
-    const userId = userRes.body.user.id
+    .post('/students')
+    .send({
+      name: 'Patch Success User',
+      email: 'addr-patch-success@example.com',
+      password: 'Cc44%%cc',
+      cpf: '60660660660',
+      role: 'student',
+    })
+  expect(userRes.status).toBe(201)
+  const userId = userRes.body.user.id
 
     const createRes = await request(app.getHttpServer())
       .post('/addresses')
@@ -208,20 +208,20 @@ describe('Create Address (E2E)', () => {
     expect(createRes.status).toBe(201)
     const addressId = createRes.body.addressId
 
-    // now update it
+
     const updateRes = await request(app.getHttpServer())
       .patch(`/addresses/${addressId}`)
       .send({ street: '201 Oak St', city: 'Newtown' })
       .expect(200)
 
-    // verify response payload (if your controller returns updated address)
+
     expect(updateRes.body).toMatchObject({
       id: addressId,
       street: '201 Oak St',
       city: 'Newtown',
     })
 
-    // verify persistence
+
     const updated = await prisma.address.findUnique({ where: { id: addressId } })
     expect(updated).toBeTruthy()
     if (updated) {
