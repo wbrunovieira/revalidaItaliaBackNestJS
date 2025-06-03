@@ -1,4 +1,3 @@
-// src/infra/controllers/students.controller.ts
 import {
   Controller,
   Post,
@@ -6,8 +5,8 @@ import {
   Param,
   Body,
   HttpCode,
-  BadRequestException,
-  ConflictException,
+  HttpException,
+  HttpStatus,
 } from "@nestjs/common";
 import { CreateAccountUseCase } from "@/domain/auth/application/use-cases/create-account.use-case";
 import { UpdateAccountUseCase } from "@/domain/auth/application/use-cases/update-account.use-case";
@@ -31,12 +30,13 @@ export class StudentsController {
     if (result.isLeft()) {
       const err = result.value;
       if (err instanceof InvalidInputError) {
-        throw new BadRequestException({
-          message: err.message,
-          errors: { details: err.details },
-        });
+        throw new HttpException(
+          { message: err.message, errors: { details: err.details } },
+          HttpStatus.BAD_REQUEST
+        );
       }
-      throw new ConflictException(err.message || "Failed to create account");
+      // Any other conflict (e.g. email/cpf) → 409
+      throw new HttpException(err.message || "Failed to create account", HttpStatus.CONFLICT);
     }
 
     return { user: result.value.user };
@@ -48,6 +48,15 @@ export class StudentsController {
     @Param("id") id: string,
     @Body() dto: Omit<UpdateAccountRequest, "id">,
   ) {
+    // ─── “Missing Fields” must be 400 + { message: "...", errors: { details: [] } } ───────────────────────────
+    if (!dto || Object.keys(dto).length === 0) {
+      throw new HttpException(
+        { message: "At least one field to update must be provided", errors: { details: [] } },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+    // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+
     const request: UpdateAccountRequest = { id, ...dto };
     const result = await this.updateAccount.execute(request);
 
@@ -55,18 +64,19 @@ export class StudentsController {
       const err = result.value;
 
       if (err instanceof InvalidInputError) {
-        throw new BadRequestException({
-          message: err.message,
-          errors: { details: err.details },
-        });
+        throw new HttpException(
+          { message: err.message, errors: { details: err.details } },
+          HttpStatus.BAD_REQUEST
+        );
       }
 
       if (err instanceof ResourceNotFoundError) {
-        throw new BadRequestException(err.message);
+
+        throw new HttpException("User not found", HttpStatus.BAD_REQUEST);
       }
 
-      // duplicate email/cpf or other conflicts
-      throw new ConflictException(err.message || "Failed to update account");
+
+      throw new HttpException(err.message || "Failed to update account", HttpStatus.CONFLICT);
     }
 
     return { user: result.value.user };

@@ -7,4 +7,5 @@ export abstract class IAddressRepository {
   abstract findByUserId(userId: string): Promise<Either<Error, Address[]>>;
   abstract findById(id: string): Promise<Either<Error, Address | undefined>>
   abstract update(addr: Address): Promise<Either<Error, void>>
+  abstract delete(id: string): Promise<Either<Error, void>>;
 }

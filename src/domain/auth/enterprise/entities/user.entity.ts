@@ -25,7 +25,7 @@ export class User extends Entity<UserProps> {
     return { id: this.id.toString(), ...(rest as any) };
   }
 
-  // getters públicos
+
   get email(): string {
     return this.props.email;
   }

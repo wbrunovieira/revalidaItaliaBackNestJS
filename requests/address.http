@@ -31,13 +31,17 @@ PATCH {{BASE_URL}}/addresses/28e07201-ba49-4219-bb2e-68b1fa055bf4
 Content-Type: application/json
 
 {
-  "id": "28e07201-ba49-4219-bb2e-68b1fa055bf4",
-  "street": "456 Elm St",
-  "number": "99B",
+  "street":     "456 Elm St",
+  "number":     "99B",
   "complement": "Suite 100",
-  "district": "New District",
-  "city": "New City",
-  "state": "New State",
-  "country": "New Country",
+  "district":   "New District",
+  "city":       "New City",
+  "state":      "New State",
+  "country":    "New Country",
   "postalCode": "99999-999"
 }
+
+###
+# @name delete-address
+DELETE {{BASE_URL}}/addresses/28e07201-ba49-4219-bb2e-68b1fa055bf4
+Content-Type: application/json

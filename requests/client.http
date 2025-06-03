@@ -1,20 +1,19 @@
 @BASE_URL = http://localhost:3333
-# @BASE_URL = http://18.222.85.79:3333"
-
+# @BASE_URL = http://18.222.85.79:3333
 
 ###
-
 # @name create-account
 POST {{BASE_URL}}/students
 Content-Type: application/json
 
 {
   "name": "Walter Bruno Prado Vieira",
-  "email": "wbrunovieira52@yahoo.com.br",
-  "password":"123456aA@",
-  "role":"student",
-  "cpf":"12645678900"
+  "email": "wbrunovieira54@yahoo.com.br",
+  "password": "123456aA@",
+  "role": "student",
+  "cpf": "12845678900"
 }
+###
 
 ###
 # @name login
@@ -22,8 +21,20 @@ POST {{BASE_URL}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "wbrunovieira5@yahoo.com.br",
+  "email": "wbrunovieira54@yahoo.com.br",
   "password": "123456aA@"
 }
 ###
 
+###
+# @name update-account
+PATCH {{BASE_URL}}/students/cf74d223-ef28-4579-b7c6-6d9f0095aab6
+Content-Type: application/json
+
+{
+  "name": "Walter Bruno P. Vieira (Atualizado)",
+  "email": "wbrunovieira53_atualizado@yahoo.com.br",
+  "cpf": "12745678901",
+  "role": "student"
+}
+###

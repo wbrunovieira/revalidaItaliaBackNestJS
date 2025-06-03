@@ -118,5 +118,15 @@ export class PrismaAddressRepository implements IAddressRepository {
   }
 
 
+  async delete(id: string): Promise<Either<Error, void>> {
+    try {
+      await this.prisma.address.delete({
+        where: { id },
+      });
+      return right(undefined);
+    } catch (err: any) {
+      return left(err);
+    }
+  }
   
 }

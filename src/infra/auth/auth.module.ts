@@ -24,6 +24,7 @@ import { IAddressRepository } from '@/domain/auth/application/repositories/i-add
 import { PrismaAddressRepository } from '../database/prisma/repositories/prisma-address-repository'
 import { FindAddressByUserUseCase } from '@/domain/auth/application/use-cases/find-address-by-user.use-case'
 import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update-address.use-case'
+import { DeleteAddressUseCase } from '@/domain/auth/application/use-cases/delete-address.use-case'
 
 @Module({
   imports: [
@@ -57,7 +58,8 @@ import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update
     CreateAccountUseCase,
     AuthenticateUserUseCase,
     UpdateAccountUseCase,
-    CreateAddressUseCase,
+    DeleteAddressUseCase,
+
     FindAddressByUserUseCase,
     UpdateAddressUseCase,
 
@@ -74,6 +76,7 @@ import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update
     CreateAddressUseCase,
     FindAddressByUserUseCase,
     UpdateAddressUseCase,
+    DeleteAddressUseCase,
     JwtModule
   ],
 })

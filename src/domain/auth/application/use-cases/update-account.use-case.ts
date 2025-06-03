@@ -1,4 +1,5 @@
 // src/domain/auth/application/use-cases/update-account.use-case.ts
+
 import { Either, left, right } from "@/core/either";
 import { Injectable } from "@nestjs/common";
 import { IAccountRepository } from "@/domain/auth/application/repositories/i-account-repository";
@@ -33,20 +34,27 @@ export class UpdateAccountUseCase {
     if (!name && !email && !cpf && !role) {
       return left(
         new InvalidInputError(
-          "At least one field to update must be provided",
+          "At least one field must be provided",
           []
         )
       );
     }
 
 
-    let existing: User;
+    let existing: User | undefined;
     try {
       const found = await this.accountRepository.findById(id);
-      if (found.isLeft()) return left(found.value);
+      if (found.isLeft()) {
+        return left(found.value);
+      }
       existing = found.value;
     } catch (err: any) {
       return left(new RepositoryError(err.message));
+    }
+
+
+    if (!existing) {
+      return left(new ResourceNotFoundError("User not found"));
     }
 
 

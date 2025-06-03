@@ -18,7 +18,7 @@ export interface AddressProps {
     createdAt: Date;
     updatedAt: Date;
 }
-
+          
 export class Address extends Entity<AddressProps> {
     toResponseObjectPartial(): Partial<Omit<AddressProps, "userId">> & { id: string } {
         const { userId, ...addr } = this.props;

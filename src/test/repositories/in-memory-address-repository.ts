@@ -24,4 +24,12 @@ export class InMemoryAddressRepository implements IAddressRepository {
     if (idx >= 0) this.items[idx] = address
     return right(undefined)
   }
+
+  async delete(id: string): Promise<Either<Error, void>> {
+    const idx = this.items.findIndex(a => a.id.toString() === id);
+    if (idx >= 0) {
+      this.items.splice(idx, 1);
+    }
+    return right(undefined);
+  }
 }

@@ -1,34 +1,13 @@
-import { IsString, IsOptional, Length } from "class-validator";
+// src/domain/auth/application/dtos/create-address-request.dto.ts
 
-export class CreateAddressRequest {
-  @IsString()
-  userId!: string;
-
-  @IsString()
-  street!: string;
-
-  @IsString()
-  number!: string;
-
-  @IsOptional()
-  @IsString()
+export interface CreateAddressRequest {
+  userId:     string;
+  street:     string;
+  number:     string;
   complement?: string;
-
-  @IsOptional()
-  @IsString()
-  district?: string;
-
-  @IsString()
-  city!: string;
-
-  @IsOptional()
-  @IsString()
-  state?: string;
-
-  @IsString()
-  country!: string;
-
-  @IsString()
-  @Length(1, 20)
-  postalCode!: string;
+  district:   string;
+  city:       string;
+  state?:     string;
+  country?:   string;
+  postalCode?: string;
 }

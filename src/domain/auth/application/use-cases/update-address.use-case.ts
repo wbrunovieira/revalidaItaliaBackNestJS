@@ -1,79 +1,106 @@
 // src/domain/auth/application/use-cases/update-address.use-case.ts
-import { Injectable } from "@nestjs/common"
-import { Either, left, right } from "@/core/either"
-import { IAddressRepository } from "../repositories/i-address-repository"
-import { InvalidInputError } from "./errors/invalid-input-error"
 
-import { Address } from "@/domain/auth/enterprise/entities/address.entity"
-import { NotFoundError } from "rxjs/internal/util/NotFoundError"
+import { Either, left, right } from '@/core/either';
+import { InvalidInputError } from './errors/invalid-input-error';
+import { ResourceNotFoundError } from './errors/resource-not-found-error';
+import { IAddressRepository } from '../repositories/i-address-repository';
+import { Address } from '../../enterprise/entities/address.entity';
 
 export interface UpdateAddressRequest {
-  id: string
-  street?: string
-  number?: string
-  complement?: string | null
-  district?: string | null
-  city?: string
-  state?: string | null
-  country?: string
-  postalCode?: string
+  id: string;
+  street?: string;
+  number?: string;
+  complement?: string | null;
+  district?: string | null;
+  city?: string;
+  state?: string | null;
+  country?: string;
+  postalCode?: string;
 }
 
-export type UpdateAddressResponse =
-  Either<InvalidInputError | NotFoundError | Error, Address>
+type UpdateAddressResponse = Either<
+  InvalidInputError | ResourceNotFoundError | Error,
+  Address
+>;
 
-@Injectable()
 export class UpdateAddressUseCase {
-  constructor(private readonly repo: IAddressRepository) {}
+  constructor(private readonly addressRepo: IAddressRepository) {}
 
-  async execute(req: UpdateAddressRequest): Promise<UpdateAddressResponse> {
-    const { id, street, number, complement, district, city, state, country, postalCode } = req
+  async execute(
+    request: UpdateAddressRequest
+  ): Promise<UpdateAddressResponse> {
+    const {
+      id,
+      street,
+      number,
+      complement,
+      district,
+      city,
+      state,
+      country,
+      postalCode,
+    } = request;
 
+    // 0) Regra de negócio: ID não pode ser vazio
     if (!id) {
-      return left(new InvalidInputError("Missing id", []))
+      return left(new InvalidInputError('Missing id', []));
     }
 
-    if (
-      street === undefined &&
-      number === undefined &&
-      complement === undefined &&
-      district === undefined &&
-      city === undefined &&
-      state === undefined &&
-      country === undefined &&
-      postalCode === undefined
-    ) {
-      return left(new InvalidInputError("At least one field to update must be provided", []))
+    // 1) Regra de negócio: ao menos um campo para atualizar deve ser fornecido
+    const hasAnyField =
+      street !== undefined ||
+      number !== undefined ||
+      complement !== undefined ||
+      district !== undefined ||
+      city !== undefined ||
+      state !== undefined ||
+      country !== undefined ||
+      postalCode !== undefined;
+
+    if (!hasAnyField) {
+      return left(
+        new InvalidInputError('At least one field to update must be provided', [])
+      );
     }
 
+    // 2) Buscar o endereço existente
+    let foundAddr: Address | undefined;
     try {
-      const foundOrError = await this.repo.findById(id)
-      if (foundOrError.isLeft()) {
-        return left(foundOrError.value)
+      const findResult = await this.addressRepo.findById(id);
+      if (findResult.isLeft()) {
+        return left(findResult.value);
       }
-
-      const address = foundOrError.value
-      if (!address) {
-        return left(new NotFoundError("Address not found"))
-      }
-
-      if (street !== undefined)     address.street = street
-      if (number !== undefined)     address.number = number
-      if (complement !== undefined) address.complement = complement
-      if (district !== undefined)   address.district = district
-      if (city !== undefined)       address.city = city
-      if (state !== undefined)      address.state = state
-      if (country !== undefined)    address.country = country
-      if (postalCode !== undefined) address.postalCode = postalCode
-
-      const saveResult = await this.repo.update(address)
-      if (saveResult.isLeft()) {
-        return left(saveResult.value)
-      }
-
-      return right(address)
+      foundAddr = findResult.value;
     } catch (err: any) {
-      return left(err)
+      return left(new Error(err.message));
+    }
+
+    // 3) Se não encontrou, retorna ResourceNotFoundError
+    if (!foundAddr) {
+      return left(new ResourceNotFoundError('Address not found'));
+    }
+
+    // 4) Aplicar as atualizações
+    if (street !== undefined) foundAddr.street = street;
+    if (number !== undefined) foundAddr.number = number;
+    if (complement !== undefined) foundAddr.complement = complement;
+    if (district !== undefined) foundAddr.district = district;
+    if (city !== undefined) foundAddr.city = city;
+    if (state !== undefined) foundAddr.state = state;
+    if (country !== undefined) foundAddr.country = country;
+    if (postalCode !== undefined) foundAddr.postalCode = postalCode;
+
+    // 5) Persistir as mudanças
+    try {
+      const updateResult = await this.addressRepo.update(foundAddr);
+      if (updateResult.isLeft()) {
+        return left(updateResult.value);
+      }
+      // Em vez de retornar updateResult.value (que pode ser `undefined` em alguns repositórios),
+      // retornamos explicitamente `foundAddr`, que já está mutado.
+      return right(foundAddr);
+    } catch (err: any) {
+      return left(new Error(err.message));
     }
   }
 }

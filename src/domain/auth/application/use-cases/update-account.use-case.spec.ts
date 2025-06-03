@@ -36,7 +36,7 @@ describe('UpdateAccountUseCase', () => {
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidInputError)
       expect(result.value.message).toBe(
-        'At least one field to update must be provided'
+        "At least one field must be provided"
       )
     }
   })

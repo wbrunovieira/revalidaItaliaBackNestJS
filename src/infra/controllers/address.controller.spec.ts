@@ -1,4 +1,5 @@
 // src/infra/controllers/address.controller.spec.ts
+
 import { Test, TestingModule } from '@nestjs/testing'
 import { INestApplication, ValidationPipe, HttpStatus } from '@nestjs/common'
 import request from 'supertest'
@@ -8,8 +9,10 @@ import { AddressController } from './address.controller'
 import { CreateAddressUseCase } from '@/domain/auth/application/use-cases/create-address.use-case'
 import { FindAddressByUserUseCase } from '@/domain/auth/application/use-cases/find-address-by-user.use-case'
 import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update-address.use-case'
+import { DeleteAddressUseCase } from '@/domain/auth/application/use-cases/delete-address.use-case'
 import { CreateAddressRequest } from '@/domain/auth/application/dtos/create-address-request.dto'
 import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error'
+import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error'
 import { Either, right, left } from '@/core/either'
 import { Address } from '@/domain/auth/enterprise/entities/address.entity'
 import { UniqueEntityID } from '@/core/unique-entity-id'
@@ -19,6 +22,7 @@ describe('AddressController', () => {
   let createAddress: CreateAddressUseCase
   let findAddressByUser: FindAddressByUserUseCase
   let updateAddress: UpdateAddressUseCase
+  let deleteAddress: DeleteAddressUseCase
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -27,6 +31,7 @@ describe('AddressController', () => {
         { provide: CreateAddressUseCase, useValue: { execute: vi.fn() } },
         { provide: FindAddressByUserUseCase, useValue: { execute: vi.fn() } },
         { provide: UpdateAddressUseCase, useValue: { execute: vi.fn() } },
+        { provide: DeleteAddressUseCase, useValue: { execute: vi.fn() } },
       ],
     }).compile()
 
@@ -37,6 +42,7 @@ describe('AddressController', () => {
     createAddress = moduleFixture.get(CreateAddressUseCase)
     findAddressByUser = moduleFixture.get(FindAddressByUserUseCase)
     updateAddress = moduleFixture.get(UpdateAddressUseCase)
+    deleteAddress = moduleFixture.get(DeleteAddressUseCase)
     await app.init()
   })
 
@@ -188,7 +194,6 @@ describe('AddressController', () => {
   describe('PATCH /addresses/:id', () => {
     const paramId = 'addr-99'
     const updateDto = {
-      id:         'ignored-id',
       street:     'New St',
       number:     '99B',
       complement: 'Suite 100',
@@ -238,14 +243,7 @@ describe('AddressController', () => {
       // verify that the use-case was called with param id, not dto.id
       expect(updateAddress.execute).toHaveBeenCalledWith({
         id: paramId,
-        street: updateDto.street,
-        number: updateDto.number,
-        complement: updateDto.complement,
-        district: updateDto.district,
-        city: updateDto.city,
-        state: updateDto.state,
-        country: updateDto.country,
-        postalCode: updateDto.postalCode,
+        ...updateDto,
       })
     })
 
@@ -283,6 +281,55 @@ describe('AddressController', () => {
       const res = await request(app.getHttpServer())
         .patch(`/addresses/${paramId}`)
         .send(updateDto)
+        .expect(HttpStatus.INTERNAL_SERVER_ERROR)
+
+      expect(res.body).toHaveProperty('message', 'exploded')
+    })
+  })
+
+  describe('DELETE /addresses/:id', () => {
+    const paramId = 'addr-77'
+
+    it('should return 204 on success', async () => {
+      vi.spyOn(deleteAddress, 'execute')
+        .mockResolvedValueOnce(right(undefined))
+
+      await request(app.getHttpServer())
+        .delete(`/addresses/${paramId}`)
+        .expect(HttpStatus.NO_CONTENT)
+
+      expect(deleteAddress.execute).toHaveBeenCalledWith({ id: paramId })
+    })
+
+    it('should return 404 on ResourceNotFoundError', async () => {
+      vi.spyOn(deleteAddress, 'execute')
+        .mockResolvedValueOnce(left(new ResourceNotFoundError('Address not found')))
+
+      const res = await request(app.getHttpServer())
+        .delete(`/addresses/${paramId}`)
+        .expect(HttpStatus.NOT_FOUND)
+
+      expect(res.body).toHaveProperty('message', 'Address not found')
+    })
+
+    it('should return 500 on other Left error', async () => {
+      vi.spyOn(deleteAddress, 'execute')
+        .mockResolvedValueOnce(left(new Error('delete failed')))
+
+      const res = await request(app.getHttpServer())
+        .delete(`/addresses/${paramId}`)
+        .expect(HttpStatus.INTERNAL_SERVER_ERROR)
+
+      expect(res.body).toHaveProperty('message', 'delete failed')
+    })
+
+    it('should return 500 on exception thrown', async () => {
+      vi.spyOn(deleteAddress, 'execute').mockImplementationOnce(() => {
+        throw new Error('exploded')
+      })
+
+      const res = await request(app.getHttpServer())
+        .delete(`/addresses/${paramId}`)
         .expect(HttpStatus.INTERNAL_SERVER_ERROR)
 
       expect(res.body).toHaveProperty('message', 'exploded')
