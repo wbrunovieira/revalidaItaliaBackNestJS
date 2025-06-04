@@ -8,9 +8,12 @@ import { AuthController } from './controllers/auth.controller'
 import { AddressController } from './controllers/address.controller'
 
 
+import { CourseModule } from '@/infra/course.module'
+
+
 @Module({
-  imports: [AuthModule, DatabaseModule],
-  controllers: [ StudentsController , AuthController, AddressController],
+  imports: [AuthModule, CourseModule,DatabaseModule,],
+  controllers: [ StudentsController , AuthController, AddressController,],
   providers: [],                   
 })
 export class HttpModule {}

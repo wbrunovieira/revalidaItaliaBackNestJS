@@ -35,7 +35,7 @@ export class StudentsController {
           HttpStatus.BAD_REQUEST
         );
       }
-      // Any other conflict (e.g. email/cpf) → 409
+
       throw new HttpException(err.message || "Failed to create account", HttpStatus.CONFLICT);
     }
 

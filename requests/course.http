@@ -1,0 +1,23 @@
+@BASE_URL = http://localhost:3333
+# @BASE_URL = http://18.222.85.79:3333
+
+###
+# @name create-course
+POST {{BASE_URL}}/courses
+Content-Type: application/json
+
+{
+  "title": "Advanced Mathematics",
+  "description": "A deep dive into advanced math topics.",
+  "modules": [
+    {
+      "title": "Calculus I",
+      "order": 1
+    },
+    {
+      "title": "Linear Algebra",
+      "order": 2
+    }
+  ]
+}
+###
