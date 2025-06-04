@@ -1,10 +1,20 @@
+// ─────────────────────────────────────────────────────────────────
 // src/domain/course-catalog/enterprise/entities/module.entity.ts
+// ─────────────────────────────────────────────────────────────────
 import { Entity } from "@/core/entity"
 import { UniqueEntityID } from "@/core/unique-entity-id"
 import { Video } from "./video.entity"
 
-export interface ModuleProps {
+export interface ModuleTranslationVO {
+  locale: "pt" | "it" | "es"
   title: string
+  description: string
+}
+
+export interface ModuleProps {
+
+  translations: ModuleTranslationVO[]
+
   order: number
   videos: Video[]
   createdAt: Date
@@ -16,8 +26,14 @@ export class Module extends Entity<ModuleProps> {
     this.props.updatedAt = new Date()
   }
 
+
+  public get translations(): ModuleTranslationVO[] {
+    return this.props.translations
+  }
+
   public get title(): string {
-    return this.props.title
+    const pt = this.props.translations.find((t) => t.locale === "pt")!
+    return pt.title
   }
   public get order(): number {
     return this.props.order
@@ -37,7 +53,10 @@ export class Module extends Entity<ModuleProps> {
     order?: number
   }) {
     if (updates.title) {
-      this.props.title = updates.title
+      const ptIndex = this.props.translations.findIndex((t) => t.locale === "pt")
+      if (ptIndex >= 0) {
+        this.props.translations[ptIndex].title = updates.title
+      }
       this.touch()
     }
     if (typeof updates.order === "number") {
@@ -73,7 +92,7 @@ export class Module extends Entity<ModuleProps> {
     }))
     return {
       id: this.id.toString(),
-      title: this.props.title,
+      title: this.title,
       order: this.props.order,
       videos: videoSummaries,
       createdAt: this.props.createdAt,
@@ -96,12 +115,10 @@ export class Module extends Entity<ModuleProps> {
     )
   }
 
-
   public static reconstruct(
     props: ModuleProps,
     id: UniqueEntityID
   ): Module {
-  
     return new Module(props, id)
   }
 }

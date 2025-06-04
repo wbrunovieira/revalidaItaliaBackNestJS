@@ -8,12 +8,21 @@ import { CreateCourseRequest } from "../dtos/create-course-request.dto"
 import { InvalidInputError } from "./errors/invalid-input-error"
 import { RepositoryError } from "./errors/repository-error"
 import { DuplicateCourseError } from "./errors/duplicate-course-error"
-import { CreateCourseSchema, createCourseSchema } from "./validations/create-course.schema"
-
+import {
+  createCourseSchema,
+  CreateCourseSchema,
+} from "./validations/create-course.schema"
 
 type CreateCourseUseCaseResponse = Either<
   InvalidInputError | DuplicateCourseError | RepositoryError | Error,
-  { course: { id: string; title: string; description: string; modules: Array<{ id: string; title: string; order: number }> } }
+  {
+    course: {
+      id: string
+      title: string
+      description: string
+      modules: Array<{ id: string; title: string; order: number }>
+    }
+  }
 >
 
 @Injectable()
@@ -26,7 +35,7 @@ export class CreateCourseUseCase {
   async execute(
     request: CreateCourseRequest
   ): Promise<CreateCourseUseCaseResponse> {
-    // 1) Validate input
+
     const parseResult = createCourseSchema.safeParse(request)
     if (!parseResult.success) {
       const details = parseResult.error.issues.map((issue) => {
@@ -45,7 +54,6 @@ export class CreateCourseUseCase {
           detail.received = (issue as any).received
         }
         if ("minimum" in issue) detail.minimum = (issue as any).minimum
-        if ("inclusive" in issue) detail.inclusive = (issue as any).inclusive
         return detail
       })
       return left(new InvalidInputError("Validation failed", details))
@@ -53,9 +61,10 @@ export class CreateCourseUseCase {
 
     const data: CreateCourseSchema = parseResult.data
 
-    // 2) Check duplicate by title
+  
     try {
-      const existing = await this.courseRepository.findByTitle(data.title)
+      const ptCourse = data.translations.find((t) => t.locale === "pt")!
+      const existing = await this.courseRepository.findByTitle(ptCourse.title)
       if (existing.isRight()) {
         return left(new DuplicateCourseError())
       }
@@ -63,23 +72,23 @@ export class CreateCourseUseCase {
       return left(new RepositoryError(err.message))
     }
 
-    // 3) Build Module entities
-    const modulesEntities: Module[] = (data.modules ?? []).map((modDto) =>
-      Module.create({
-        title: modDto.title,
-        order: modDto.order,
-        videos: [],
-      })
-    )
+  
+    const modulesEntities: Module[] = (data.modules ?? []).map((modDto) => {
+      return Module.create(
+        {
+          translations: modDto.translations, 
+          order: modDto.order,
+          videos: [],
+        }
+      )
+    })
 
-    // 4) Build Course entity
+   
     const course = Course.create({
-      title: data.title,
-      description: data.description,
+      translations: data.translations, 
       modules: modulesEntities,
     })
 
-    // 5) Persist
     try {
       const createdOrError = await this.courseRepository.create(course)
       if (createdOrError.isLeft()) {
@@ -89,15 +98,15 @@ export class CreateCourseUseCase {
       return left(new RepositoryError(err.message))
     }
 
-    // 6) Build response
+
     const responsePayload = {
       course: {
         id: course.id.toString(),
-        title: course.title,
-        description: course.description,
+        title: course.title,            
+        description: course.description,  
         modules: modulesEntities.map((mod) => ({
           id: mod.id.toString(),
-          title: mod.title,
+          title: mod.title,               
           order: mod.order,
         })),
       },

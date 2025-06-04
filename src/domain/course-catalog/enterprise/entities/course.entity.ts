@@ -1,11 +1,21 @@
+// ─────────────────────────────────────────────────────────────────
 // src/domain/course-catalog/enterprise/entities/course.entity.ts
+// ─────────────────────────────────────────────────────────────────
 import { Entity } from "@/core/entity"
 import { UniqueEntityID } from "@/core/unique-entity-id"
 import { Module } from "./module.entity"
 
-export interface CourseProps {
+export interface CourseTranslationVO {
+  locale: "pt" | "it" | "es"
   title: string
   description: string
+}
+
+export interface CourseProps {
+
+  translations: CourseTranslationVO[]
+
+
   modules: Module[]
   createdAt: Date
   updatedAt: Date
@@ -16,12 +26,21 @@ export class Course extends Entity<CourseProps> {
     this.props.updatedAt = new Date()
   }
 
+
+  public get translations(): CourseTranslationVO[] {
+    return this.props.translations
+  }
+
   public get title(): string {
-    return this.props.title
+
+    const pt = this.props.translations.find((t) => t.locale === "pt")!
+    return pt.title
   }
   public get description(): string {
-    return this.props.description
+    const pt = this.props.translations.find((t) => t.locale === "pt")!
+    return pt.description
   }
+
   public get modules(): Module[] {
     return this.props.modules
   }
@@ -32,16 +51,25 @@ export class Course extends Entity<CourseProps> {
     return this.props.updatedAt
   }
 
+
+
   public updateDetails(updates: {
     title?: string
     description?: string
   }) {
     if (updates.title) {
-      this.props.title = updates.title
+
+      const ptIndex = this.props.translations.findIndex((t) => t.locale === "pt")
+      if (ptIndex >= 0) {
+        this.props.translations[ptIndex].title = updates.title
+      }
       this.touch()
     }
     if (updates.description) {
-      this.props.description = updates.description
+      const ptIndex = this.props.translations.findIndex((t) => t.locale === "pt")
+      if (ptIndex >= 0) {
+        this.props.translations[ptIndex].description = updates.description
+      }
       this.touch()
     }
   }
@@ -73,8 +101,8 @@ export class Course extends Entity<CourseProps> {
     }))
     return {
       id: this.id.toString(),
-      title: this.props.title,
-      description: this.props.description,
+      title: this.title,         
+      description: this.description, 
       modules: moduleSummaries,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,

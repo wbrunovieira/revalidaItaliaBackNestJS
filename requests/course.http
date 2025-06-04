@@ -1,5 +1,4 @@
 @BASE_URL = http://localhost:3333
-# @BASE_URL = http://18.222.85.79:3333
 
 ###
 # @name create-course
@@ -7,15 +6,62 @@ POST {{BASE_URL}}/courses
 Content-Type: application/json
 
 {
-  "title": "Advanced Mathematics",
-  "description": "A deep dive into advanced math topics.",
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Matemática Avançada3",
+      "description": "Um mergulho profundo em tópicos avançados de matemática."
+    },
+    {
+      "locale": "it",
+      "title": "Matematica Avanzata3",
+      "description": "Un'immersione approfondita in argomenti matematici avanzati."
+    },
+    {
+      "locale": "es",
+      "title": "Matemáticas Avanzadas3",
+      "description": "Una inmersión profunda en temas avanzados de matemáticas."
+    }
+  ],
   "modules": [
     {
-      "title": "Calculus I",
+      "translations": [
+        {
+          "locale": "pt",
+          "title": "Cálculo I",
+          "description": "Introdução ao Cálculo Diferencial."
+        },
+        {
+          "locale": "it",
+          "title": "Calcolo I",
+          "description": "Introduzione al Calcolo Differenziale."
+        },
+        {
+          "locale": "es",
+          "title": "Cálculo I",
+          "description": "Introducción al Cálculo Diferencial."
+        }
+      ],
       "order": 1
     },
     {
-      "title": "Linear Algebra",
+      "translations": [
+        {
+          "locale": "pt",
+          "title": "Álgebra Linear",
+          "description": "Vetores, matrizes e espaços vetoriais."
+        },
+        {
+          "locale": "it",
+          "title": "Algebra Lineare",
+          "description": "Vettori, matrici e spazi vettoriali."
+        },
+        {
+          "locale": "es",
+          "title": "Álgebra Lineal",
+          "description": "Vectores, matrices y espacios vectoriales."
+        }
+      ],
       "order": 2
     }
   ]

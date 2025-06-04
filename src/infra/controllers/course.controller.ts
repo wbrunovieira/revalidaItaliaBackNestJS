@@ -27,10 +27,17 @@ export class CourseController {
   async create(@Body() dto: CreateCourseDto) {
 
     const request = {
-      title: dto.title,
-      description: dto.description,
+      translations: dto.translations.map((t) => ({
+        locale: t.locale as 'pt' | 'it' | 'es',
+        title: t.title,
+        description: t.description,
+      })),
       modules: dto.modules?.map((m) => ({
-        title: m.title,
+        translations: m.translations.map((mt) => ({
+          locale: mt.locale as 'pt' | 'it' | 'es',
+          title: mt.title,
+          description: mt.description,
+        })),
         order: m.order,
       })),
     }
@@ -50,7 +57,7 @@ export class CourseController {
     }
 
 
-    const { course } = (result as any).value
+    const { course } = result.value as any
     return course
   }
 }

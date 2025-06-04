@@ -1,5 +1,6 @@
 // src/infra/course-catalog/dtos/create-course.dto.ts
 import {
+  IsEnum,
   IsString,
   MinLength,
   IsOptional,
@@ -10,17 +11,10 @@ import {
 } from 'class-validator'
 import { Type } from 'class-transformer'
 
-export class CreateModuleDto {
-  @IsString()
-  @MinLength(1)
-  title: string
+export class TranslationDto {
+  @IsEnum(['pt', 'it', 'es'])
+  locale: 'pt' | 'it' | 'es'
 
-  @IsInt()
-  @Min(1)
-  order: number
-}
-
-export class CreateCourseDto {
   @IsString()
   @MinLength(3)
   title: string
@@ -28,6 +22,24 @@ export class CreateCourseDto {
   @IsString()
   @MinLength(5)
   description: string
+}
+
+export class CreateModuleDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TranslationDto)
+  translations: TranslationDto[]
+
+  @IsInt()
+  @Min(1)
+  order: number
+}
+
+export class CreateCourseDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TranslationDto)
+  translations: TranslationDto[]
 
   @IsOptional()
   @IsArray()
