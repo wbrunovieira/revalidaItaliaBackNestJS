@@ -43,8 +43,13 @@ describe("GetCourseUseCase", () => {
       const { course: dto } = result.value;
       expect(dto.id).toBe("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
       expect(dto.slug).toBe("curso-exemplo");
-      expect(dto.title).toBe("Curso Exemplo");
-      expect(dto.description).toBe("Descrição Exemplo");
+      expect(dto.translations).toEqual(
+        expect.arrayContaining([
+          { locale: "pt", title: "Curso Exemplo", description: "Descrição Exemplo" },
+          { locale: "it", title: "Corso Esempio", description: "Descrizione Esempio" },
+          { locale: "es", title: "Curso Ejemplo", description: "Descripción Ejemplo" },
+        ])
+      );
     }
   });
 

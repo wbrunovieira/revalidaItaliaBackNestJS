@@ -9,7 +9,6 @@ import { RepositoryError } from "./errors/repository-error";
 import { CourseNotFoundError } from "./errors/course-not-found-error";
 import { GetCourseSchema, getCourseSchema } from "./validations/get-course.schema";
 
-
 type GetCourseUseCaseResponse = Either<
   | InvalidInputError
   | CourseNotFoundError
@@ -19,8 +18,11 @@ type GetCourseUseCaseResponse = Either<
     course: {
       id: string;
       slug: string;
-      title: string;
-      description: string;
+      translations: Array<{
+        locale: "pt" | "it" | "es";
+        title: string;
+        description: string;
+      }>;
     };
   }
 >;
@@ -53,18 +55,20 @@ export class GetCourseUseCase {
     try {
       const found = await this.courseRepository.findById(courseId);
       if (found.isLeft()) {
-        // Se o repositório devolveu Left(Error("Course not found"))
         return left(new CourseNotFoundError());
       }
       const courseEntity = found.value as Course;
 
-      // 3) Montar payload (somente PT como título/descrição)
+      // 3) Montar payload com todas as traduções
       const payload = {
         course: {
           id: courseEntity.id.toString(),
           slug: courseEntity.slug,
-          title: courseEntity.title,
-          description: courseEntity.description,
+          translations: courseEntity.translations.map((tr) => ({
+            locale: tr.locale,
+            title: tr.title,
+            description: tr.description,
+          })),
         },
       };
       return right(payload);

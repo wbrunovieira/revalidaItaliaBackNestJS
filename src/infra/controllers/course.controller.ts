@@ -8,6 +8,8 @@ import {
   BadRequestException,
   ConflictException,
   InternalServerErrorException,
+  Param,
+  NotFoundException,
 } from '@nestjs/common';
 
 import { CreateCourseUseCase } from '@/domain/course-catalog/application/use-cases/create-course.use-case';
@@ -15,6 +17,8 @@ import { ListCoursesUseCase } from '@/domain/course-catalog/application/use-case
 import { DuplicateCourseError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-course-error';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { CreateCourseDto } from '@/domain/course-catalog/application/dtos/create-course.dto';
+import { GetCourseUseCase } from '@/domain/course-catalog/application/use-cases/get-course.use-case';
+import { CourseNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/course-not-found-error';
 
 @Controller('courses')
 export class CourseController {
@@ -22,7 +26,9 @@ export class CourseController {
     @Inject(CreateCourseUseCase)
     private readonly createCourseUseCase: CreateCourseUseCase,
     @Inject(ListCoursesUseCase)
-    private readonly listCoursesUseCase: ListCoursesUseCase
+    private readonly listCoursesUseCase: ListCoursesUseCase,
+    @Inject(GetCourseUseCase)
+    private readonly getCourseUseCase: GetCourseUseCase
   ) {}
 
   @Post()
@@ -60,5 +66,21 @@ export class CourseController {
       throw new InternalServerErrorException(result.value.message);
     }
     return (result.value as any).courses;
+  }
+
+  @Get(":id")
+  async getById(@Param("id") id: string) {
+    const result = await this.getCourseUseCase.execute({ id });
+    if (result.isLeft()) {
+      const err = result.value;
+      if (err instanceof InvalidInputError) {
+        throw new BadRequestException(err.details);
+      }
+      if (err instanceof CourseNotFoundError) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException(err.message);
+    }
+    return (result.value as any).course;
   }
 }
