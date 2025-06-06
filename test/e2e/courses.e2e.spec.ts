@@ -5,7 +5,7 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
-describe('Create Course (E2E)', () => {
+describe('Create & List Courses (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
@@ -16,20 +16,19 @@ describe('Create Course (E2E)', () => {
 
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })
     );
 
     await app.init();
-
     prisma = app.get(PrismaService);
 
-    // Limpeza antes de cada suíte
+  
     await prisma.courseTranslation.deleteMany({});
     await prisma.course.deleteMany({});
   });
 
   afterAll(async () => {
-    // Limpeza final
+
     await prisma.courseTranslation.deleteMany({});
     await prisma.course.deleteMany({});
     await app.close();
@@ -45,10 +44,7 @@ describe('Create Course (E2E)', () => {
       ],
     };
 
-    const res = await request(app.getHttpServer())
-      .post('/courses')
-      .send(payload);
-
+    const res = await request(app.getHttpServer()).post('/courses').send(payload);
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('id');
   });
@@ -62,10 +58,7 @@ describe('Create Course (E2E)', () => {
       ],
     };
 
-    const res = await request(app.getHttpServer())
-      .post('/courses')
-      .send(payload);
-
+    const res = await request(app.getHttpServer()).post('/courses').send(payload);
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message');
     const msgs: any[] = res.body.message;
@@ -88,60 +81,27 @@ describe('Create Course (E2E)', () => {
       ],
     };
 
-    const firstRes = await request(app.getHttpServer())
-      .post('/courses')
-      .send(firstPayload);
+    const firstRes = await request(app.getHttpServer()).post('/courses').send(firstPayload);
     expect(firstRes.status).toBe(201);
 
     const secondPayload = { ...firstPayload, slug: 'second-course' };
-    const secondRes = await request(app.getHttpServer())
-      .post('/courses')
-      .send(secondPayload);
-
+    const secondRes = await request(app.getHttpServer()).post('/courses').send(secondPayload);
     expect(secondRes.status).toBe(409);
     expect(secondRes.body).toHaveProperty('message');
   });
 
-  it('[POST] /courses - Invalid Slug Format', async () => {
-    const payload = {
-      slug: 'Invalid Slug!', // contém espaços e caracteres inválidos
-      translations: [
-        { locale: 'pt', title: 'Curso X', description: 'Descrição válida' },
-        { locale: 'it', title: 'Corso X', description: 'Descrizione valida' },
-        { locale: 'es', title: 'Curso X', description: 'Descripción válida' },
-      ],
-    };
-
-    const res = await request(app.getHttpServer())
-      .post('/courses')
-      .send(payload);
-
-    expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty('message');
-    const msgs: any[] = res.body.message;
-
-    const slugError = msgs.some((m) =>
-      typeof m === 'string'
-        ? m.toLowerCase().includes('slug')
-        : typeof m.message === 'string' && m.message.toLowerCase().includes('slug')
-    );
-    expect(slugError).toBe(true);
-  });
 
   it('[POST] /courses - Too-Short Title in a Translation', async () => {
     const payload = {
       slug: 'short-title-course',
       translations: [
-        { locale: 'pt', title: 'OK', description: 'Descrição válida' }, // título muito curto
+        { locale: 'pt', title: 'OK', description: 'Descrição válida' }, 
         { locale: 'it', title: 'Corso OK', description: 'Descrizione valida' },
         { locale: 'es', title: 'Curso OK', description: 'Descripción válida' },
       ],
     };
 
-    const res = await request(app.getHttpServer())
-      .post('/courses')
-      .send(payload);
-
+    const res = await request(app.getHttpServer()).post('/courses').send(payload);
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message');
     const msgs: any[] = res.body.message;
@@ -160,14 +120,11 @@ describe('Create Course (E2E)', () => {
       slug: 'unsupported-locale',
       translations: [
         { locale: 'pt', title: 'Curso OK', description: 'Descrição válida' },
-        { locale: 'en', title: 'Course OK', description: 'Valid description' }, // 'en' não permitido
+        { locale: 'en', title: 'Course OK', description: 'Valid description' },
       ],
     };
 
-    const res = await request(app.getHttpServer())
-      .post('/courses')
-      .send(payload);
-
+    const res = await request(app.getHttpServer()).post('/courses').send(payload);
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message');
     const msgs: any[] = res.body.message;
@@ -191,9 +148,7 @@ describe('Create Course (E2E)', () => {
       ],
     };
 
-    const firstRes = await request(app.getHttpServer())
-      .post('/courses')
-      .send(firstPayload);
+    const firstRes = await request(app.getHttpServer()).post('/courses').send(firstPayload);
     expect(firstRes.status).toBe(201);
 
     const secondPayload = {
@@ -205,11 +160,64 @@ describe('Create Course (E2E)', () => {
       ],
     };
 
-    const secondRes = await request(app.getHttpServer())
-      .post('/courses')
-      .send(secondPayload);
-
+    const secondRes = await request(app.getHttpServer()).post('/courses').send(secondPayload);
     expect(secondRes.status).toBe(500);
     expect(secondRes.body).toHaveProperty('statusCode', 500);
   });
+
+  it('[GET] /courses - Success', async () => {
+  
+    await prisma.courseTranslation.deleteMany({});
+    await prisma.course.deleteMany({});
+
+    const payload1 = {
+      slug: 'lista-curso-1',
+      translations: [
+        { locale: 'pt', title: 'Lista Curso Um', description: 'Descrição Um' },
+        { locale: 'it', title: 'Lista Corso Uno', description: 'Descrizione Uno' },
+        { locale: 'es', title: 'Lista Curso Uno', description: 'Descripción Uno' },
+      ],
+    };
+    const payload2 = {
+      slug: 'lista-curso-2',
+      translations: [
+        { locale: 'pt', title: 'Lista Curso Dois', description: 'Descrição Dois' },
+        { locale: 'it', title: 'Lista Corso Due', description: 'Descrizione Due' },
+        { locale: 'es', title: 'Lista Curso Dos', description: 'Descripción Dos' },
+      ],
+    };
+
+    await request(app.getHttpServer()).post('/courses').send(payload1);
+    await request(app.getHttpServer()).post('/courses').send(payload2);
+
+    const res = await request(app.getHttpServer()).get('/courses');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(2);
+
+    res.body.forEach((course: any) => {
+      expect(course).toHaveProperty('id');
+      expect(course).toHaveProperty('slug');
+      expect(course).toHaveProperty('title');
+      expect(course).toHaveProperty('description');
+    });
+  });
+
+  it('[POST] /courses - Slug Normalization', async () => {
+        const payload = {
+          slug: 'Invalid Slug!', 
+          translations: [
+            { locale: 'pt', title: 'Curso X', description: 'Descrição válida' },
+            { locale: 'it', title: 'Corso X', description: 'Descrizione valida' },
+            { locale: 'es', title: 'Curso X', description: 'Descripción válida' },
+          ],
+        };
+    
+        const res = await request(app.getHttpServer())
+          .post('/courses')
+          .send(payload);
+   
+        expect(res.status).toBe(201);
+        expect(res.body).toHaveProperty('slug', 'invalid-slug');
+      });
 });

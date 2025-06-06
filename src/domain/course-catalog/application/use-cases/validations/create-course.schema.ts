@@ -1,19 +1,18 @@
 // src/domain/course-catalog/application/validations/create-course.schema.ts
+
 import { z } from "zod";
 
 const translationSchema = z.object({
   locale: z.enum(["pt", "it", "es"]),
   title: z.string().min(3, "Course title must be at least 3 characters long"),
-  description: z
-    .string()
-    .min(5, "Course description must be at least 5 characters long"),
+  description: z.string().min(5, "Course description must be at least 5 characters long"),
 });
 
 export const createCourseSchema = z
   .object({
-    slug: z
-      .string()
-      .min(3, "Slug must be at least 3 characters long"),
+    // Agora só exigimos string de tamanho mínimo; não aplicamos regex aqui
+    slug: z.string().min(3, "Slug must be at least 3 characters long"),
+
     translations: z
       .array(translationSchema)
       .min(1, "At least one translation is required")
@@ -34,6 +33,7 @@ export const createCourseSchema = z
           });
         }
       }),
+
     modules: z
       .array(
         z
