@@ -218,11 +218,11 @@ describe('Create & List Courses (E2E)', () => {
   });
 
   it('[GET] /courses/:id - Success', async () => {
-    // Primeiro, garantir tabela limpa
+
     await prisma.courseTranslation.deleteMany({});
     await prisma.course.deleteMany({});
 
-    // Criar um curso e capturar o ID de retorno
+
     const createPayload = {
       slug: 'detalhe-curso',
       translations: [
@@ -237,13 +237,12 @@ describe('Create & List Courses (E2E)', () => {
     expect(createRes.status).toBe(201);
     const courseId = createRes.body.id;
 
-    // Agora, consultar GET /courses/:id
+
     const res = await request(app.getHttpServer()).get(`/courses/${courseId}`);
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('id', courseId);
     expect(res.body).toHaveProperty('slug', 'detalhe-curso');
 
-    // Deve conter o array completo de translations
     expect(Array.isArray(res.body.translations)).toBe(true);
     expect(res.body.translations).toEqual(
       expect.arrayContaining([
