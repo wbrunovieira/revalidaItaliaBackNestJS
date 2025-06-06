@@ -2,6 +2,7 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   Inject,
   BadRequestException,
@@ -10,16 +11,18 @@ import {
 } from '@nestjs/common';
 
 import { CreateCourseUseCase } from '@/domain/course-catalog/application/use-cases/create-course.use-case';
+import { ListCoursesUseCase } from '@/domain/course-catalog/application/use-cases/list-courses.use-case';
 import { DuplicateCourseError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-course-error';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { CreateCourseDto } from '@/domain/course-catalog/application/dtos/create-course.dto';
-
 
 @Controller('courses')
 export class CourseController {
   constructor(
     @Inject(CreateCourseUseCase)
-    private readonly createCourseUseCase: CreateCourseUseCase
+    private readonly createCourseUseCase: CreateCourseUseCase,
+    @Inject(ListCoursesUseCase)
+    private readonly listCoursesUseCase: ListCoursesUseCase
   ) {}
 
   @Post()
@@ -48,5 +51,14 @@ export class CourseController {
 
     const { course } = result.value as any;
     return course;
+  }
+
+  @Get()
+  async list() {
+    const result = await this.listCoursesUseCase.execute();
+    if (result.isLeft()) {
+      throw new InternalServerErrorException(result.value.message);
+    }
+    return (result.value as any).courses;
   }
 }

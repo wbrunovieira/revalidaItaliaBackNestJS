@@ -6,6 +6,7 @@ import { CreateCourseUseCase } from '@/domain/course-catalog/application/use-cas
 import { PrismaCourseRepository } from '@/infra/database/prisma/repositories/prisma-course-repository'
 import { DatabaseModule } from '@/infra/database/database.module'
 import { CourseController } from './controllers/course.controller'
+import { ListCoursesUseCase } from '@/domain/course-catalog/application/use-cases/list-courses.use-case'
 
 @Module({
   imports: [DatabaseModule],
@@ -13,6 +14,7 @@ import { CourseController } from './controllers/course.controller'
 
   providers: [
     CreateCourseUseCase,
+    ListCoursesUseCase,
     {
       provide: 'CourseRepository',
       useClass: PrismaCourseRepository,

@@ -25,3 +25,9 @@ Content-Type: application/json
     }
   ]
 }
+
+###
+
+# @name list-courses
+GET {{BASE_URL}}/courses
+Content-Type: application/json
