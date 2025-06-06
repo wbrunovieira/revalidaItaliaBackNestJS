@@ -22,13 +22,11 @@ describe('Create & List Courses (E2E)', () => {
     await app.init();
     prisma = app.get(PrismaService);
 
-  
     await prisma.courseTranslation.deleteMany({});
     await prisma.course.deleteMany({});
   });
 
   afterAll(async () => {
-
     await prisma.courseTranslation.deleteMany({});
     await prisma.course.deleteMany({});
     await app.close();
@@ -90,12 +88,11 @@ describe('Create & List Courses (E2E)', () => {
     expect(secondRes.body).toHaveProperty('message');
   });
 
-
   it('[POST] /courses - Too-Short Title in a Translation', async () => {
     const payload = {
       slug: 'short-title-course',
       translations: [
-        { locale: 'pt', title: 'OK', description: 'Descrição válida' }, 
+        { locale: 'pt', title: 'OK', description: 'Descrição válida' },
         { locale: 'it', title: 'Corso OK', description: 'Descrizione valida' },
         { locale: 'es', title: 'Curso OK', description: 'Descripción válida' },
       ],
@@ -166,7 +163,6 @@ describe('Create & List Courses (E2E)', () => {
   });
 
   it('[GET] /courses - Success', async () => {
-  
     await prisma.courseTranslation.deleteMany({});
     await prisma.course.deleteMany({});
 
@@ -204,20 +200,57 @@ describe('Create & List Courses (E2E)', () => {
   });
 
   it('[POST] /courses - Slug Normalization', async () => {
-        const payload = {
-          slug: 'Invalid Slug!', 
-          translations: [
-            { locale: 'pt', title: 'Curso X', description: 'Descrição válida' },
-            { locale: 'it', title: 'Corso X', description: 'Descrizione valida' },
-            { locale: 'es', title: 'Curso X', description: 'Descripción válida' },
-          ],
-        };
-    
-        const res = await request(app.getHttpServer())
-          .post('/courses')
-          .send(payload);
-   
-        expect(res.status).toBe(201);
-        expect(res.body).toHaveProperty('slug', 'invalid-slug');
-      });
+    const payload = {
+      slug: 'Invalid Slug!',
+      translations: [
+        { locale: 'pt', title: 'Curso X', description: 'Descrição válida' },
+        { locale: 'it', title: 'Corso X', description: 'Descrizione valida' },
+        { locale: 'es', title: 'Curso X', description: 'Descripción válida' },
+      ],
+    };
+
+    const res = await request(app.getHttpServer())
+      .post('/courses')
+      .send(payload);
+
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('slug', 'invalid-slug');
+  });
+
+  it('[GET] /courses/:id - Success', async () => {
+    // Primeiro, garantir tabela limpa
+    await prisma.courseTranslation.deleteMany({});
+    await prisma.course.deleteMany({});
+
+    // Criar um curso e capturar o ID de retorno
+    const createPayload = {
+      slug: 'detalhe-curso',
+      translations: [
+        { locale: 'pt', title: 'Detalhe Curso', description: 'Descrição Detalhe' },
+        { locale: 'it', title: 'Dettaglio Corso', description: 'Descrizione Dettaglio' },
+        { locale: 'es', title: 'Detalle Curso', description: 'Descripción Detalle' },
+      ],
+    };
+    const createRes = await request(app.getHttpServer())
+      .post('/courses')
+      .send(createPayload);
+    expect(createRes.status).toBe(201);
+    const courseId = createRes.body.id;
+
+    // Agora, consultar GET /courses/:id
+    const res = await request(app.getHttpServer()).get(`/courses/${courseId}`);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('id', courseId);
+    expect(res.body).toHaveProperty('slug', 'detalhe-curso');
+
+    // Deve conter o array completo de translations
+    expect(Array.isArray(res.body.translations)).toBe(true);
+    expect(res.body.translations).toEqual(
+      expect.arrayContaining([
+        { locale: 'pt', title: 'Detalhe Curso', description: 'Descrição Detalhe' },
+        { locale: 'it', title: 'Dettaglio Corso', description: 'Descrizione Dettaglio' },
+        { locale: 'es', title: 'Detalle Curso', description: 'Descripción Detalle' },
+      ])
+    );
+  });
 });
