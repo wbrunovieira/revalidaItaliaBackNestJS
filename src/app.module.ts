@@ -7,6 +7,7 @@ import { envSchema } from '@/env/env';
 import { AuthModule } from '@/infra/auth/auth.module';
 import { HttpModule } from '@/infra/http.module';
 import { CourseModule } from './infra/course.module';
+import { ModuleModule } from './infra/module.module';
 
 
 @Module({
@@ -18,6 +19,7 @@ import { CourseModule } from './infra/course.module';
     }),
     AuthModule,
     CourseModule,
+    ModuleModule,
     HttpModule,
   ],
   controllers: [],

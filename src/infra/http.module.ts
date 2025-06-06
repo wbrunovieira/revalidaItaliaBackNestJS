@@ -9,11 +9,13 @@ import { AddressController } from './controllers/address.controller'
 
 
 import { CourseModule } from '@/infra/course.module'
+import { ModuleModule } from './module.module'
+
 
 
 @Module({
-  imports: [AuthModule, CourseModule,DatabaseModule,],
-  controllers: [ StudentsController , AuthController, AddressController,],
+  imports: [AuthModule, CourseModule,DatabaseModule, ModuleModule],
+  controllers: [ StudentsController , AuthController, AddressController],
   providers: [],                   
 })
 export class HttpModule {}

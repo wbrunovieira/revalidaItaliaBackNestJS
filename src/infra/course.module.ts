@@ -17,10 +17,11 @@ import { GetCourseUseCase } from '@/domain/course-catalog/application/use-cases/
     CreateCourseUseCase,
     ListCoursesUseCase,
     GetCourseUseCase,
-    {
+        {
       provide: 'CourseRepository',
       useClass: PrismaCourseRepository,
     } as const,
   ],
+  exports: ['CourseRepository'],
 })
 export class CourseModule {}

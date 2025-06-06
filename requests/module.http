@@ -1,0 +1,28 @@
+@BASE_URL = http://localhost:3333
+
+###
+# @name create-module
+POST {{BASE_URL}}/courses/4e5a55db-40d0-4e6a-bbe4-c6bb5061666d/modules
+Content-Type: application/json
+
+{
+  "slug": "modulo-calculo",
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Módulo Cálculo",
+      "description": "Introdução ao cálculo diferencial."
+    },
+    {
+      "locale": "it",
+      "title": "Modulo Calcolo",
+      "description": "Introduzione al calcolo differenziale."
+    },
+    {
+      "locale": "es",
+      "title": "Módulo Cálculo",
+      "description": "Introducción al cálculo diferencial."
+    }
+  ],
+  "order": 1
+}
