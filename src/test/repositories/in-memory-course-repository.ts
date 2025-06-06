@@ -21,4 +21,8 @@ export class InMemoryCourseRepository implements ICourseRepository {
     this.items.push(course);
     return right(undefined);
   }
+
+  async findAll(): Promise<Either<Error, Course[]>> {
+    return right(this.items);
+  }
 }

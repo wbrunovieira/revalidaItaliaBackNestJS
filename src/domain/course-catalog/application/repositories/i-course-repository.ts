@@ -12,7 +12,7 @@ export abstract class ICourseRepository {
 
   abstract create(course: Course): Promise<Either<Error, void>>
 
-  // abstract findAll(params: PaginationParams): Promise<Either<Error, Course[]>>
+ abstract  findAll(): Promise<Either<Error, Course[]>>;
 
   // abstract save(course: Course): Promise<Either<Error, void>>
 

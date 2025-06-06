@@ -94,4 +94,31 @@ export class PrismaCourseRepository implements ICourseRepository {
       return left(new Error("Failed to create course"));
     }
   }
+
+  async findAll(): Promise<Either<Error, Course[]>> {
+    try {
+      const data = await this.prisma.course.findMany({
+        include: {
+          translations: { where: { locale: "pt" }, take: 1 },
+        
+        },
+      });
+
+      const courses = data.map((item) => {
+        const tr = item.translations[0];
+        const props = {
+          slug: item.slug,
+          translations: [
+            { locale: tr.locale as "pt", title: tr.title, description: tr.description },
+          ],
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        };
+        return Course.reconstruct(props, new UniqueEntityID(item.id));
+      });
+      return right(courses);
+    } catch (err: any) {
+      return left(new Error("Database error"));
+    }
+  }
 }
