@@ -5,7 +5,7 @@ import { PaginationParams } from "@/core/repositories/pagination-params"
 
 export abstract class ICourseRepository {
 
-  // abstract findById(id: string): Promise<Either<Error, Course>>
+  abstract findById(id: string): Promise<Either<Error, Course>>;
 
    abstract findByTitle(title: string): Promise<Either<Error, Course>>
 

@@ -7,6 +7,7 @@ import { Either, left, right } from "@/core/either";
 import { ICourseRepository } from "@/domain/course-catalog/application/repositories/i-course-repository";
 import { Course } from "@/domain/course-catalog/enterprise/entities/course.entity";
 import { UniqueEntityID } from "@/core/unique-entity-id";
+import { Module } from "@/domain/course-catalog/enterprise/entities/module.entity";
 
 @Injectable()
 export class PrismaCourseRepository implements ICourseRepository {
@@ -64,9 +65,7 @@ export class PrismaCourseRepository implements ICourseRepository {
     }
   }
 
-  /**
-   * Cria um curso simples, apenas com slug e traduções.
-   */
+ 
   async create(course: Course): Promise<Either<Error, void>> {
     try {
       const courseTranslations = course.translations;
@@ -118,6 +117,66 @@ export class PrismaCourseRepository implements ICourseRepository {
       });
       return right(courses);
     } catch (err: any) {
+      return left(new Error("Database error"));
+    }
+  }
+
+  async findById(id: string): Promise<Either<Error, Course>> {
+    try {
+      const data = await this.prisma.course.findUnique({
+        where: { id },
+        include: {
+          // agora trazemos todas as traduções de curso (pt, it, es)
+          translations: true,
+          modules: {
+            include: {
+              // todas as traduções de módulo (pt, it, es)
+              translations: true,
+            },
+          },
+        },
+      });
+  
+      if (!data) {
+        return left(new Error("Course not found"));
+      }
+  
+      // Reconstruir cada módulo com todas as traduções
+      const modulesEntities: Module[] = data.modules.map((mod) => {
+        const moduleProps = {
+          slug: mod.slug,
+          translations: mod.translations.map((modTr) => ({
+            locale: modTr.locale as "pt" | "it" | "es",
+            title: modTr.title,
+            description: modTr.description,
+          })),
+          order: mod.order,
+          videos: [],
+          createdAt: mod.createdAt,
+          updatedAt: mod.updatedAt,
+        };
+        return Module.reconstruct(moduleProps, new UniqueEntityID(mod.id));
+      });
+  
+
+      const courseProps = {
+        slug: data.slug,
+        translations: data.translations.map((ctr) => ({
+          locale: ctr.locale as "pt" | "it" | "es",
+          title: ctr.title,
+          description: ctr.description,
+        })),
+        modules: modulesEntities,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      };
+  
+      const courseEntity = Course.reconstruct(
+        courseProps,
+        new UniqueEntityID(data.id)
+      );
+      return right(courseEntity);
+    } catch {
       return left(new Error("Database error"));
     }
   }
