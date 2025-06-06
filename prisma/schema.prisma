@@ -14,6 +14,7 @@ datasource db {
 
 model Course {
   id        String   @id @default(uuid())
+  slug      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -25,6 +26,7 @@ model Course {
 
 model Module {
   id    String @id @default(uuid())
+  slug  String @unique
   order Int
 
   course   Course @relation(fields: [courseId], references: [id])
@@ -41,7 +43,8 @@ model Module {
 
 model Video {
   id                String @id @default(uuid())
-  pandaVideoId      String // ID no Panda (arquivo original em PT)
+  slug              String @unique
+  pandaVideoId      String
   durationInSeconds Int
 
   module   Module @relation(fields: [moduleId], references: [id])
@@ -60,7 +63,6 @@ model Video {
 // = Tabelas de tradução (multilíngue)
 // =======================================
 
-/// Traduções para Cursos (pt, it, es)
 model CourseTranslation {
   id          String @id @default(uuid())
   locale      String // "pt", "it" ou "es"
@@ -108,7 +110,7 @@ model VideoLink {
   id          String  @id @default(uuid())
   locale      String // "pt", "it" ou "es"
   streamUrl   String // link para streaming
-  downloadUrl String? // link para download (pode ficar nulo)
+  downloadUrl String?
 
   video   Video  @relation(fields: [videoId], references: [id])
   videoId String

@@ -6,64 +6,22 @@ POST {{BASE_URL}}/courses
 Content-Type: application/json
 
 {
+  "slug": "matematica-avancada5",
   "translations": [
     {
       "locale": "pt",
-      "title": "Matemática Avançada3",
+      "title": "Matemática Avançada5",
       "description": "Um mergulho profundo em tópicos avançados de matemática."
     },
     {
       "locale": "it",
-      "title": "Matematica Avanzata3",
+      "title": "Matematica Avanzata5",
       "description": "Un'immersione approfondita in argomenti matematici avanzati."
     },
     {
       "locale": "es",
-      "title": "Matemáticas Avanzadas3",
+      "title": "Matemáticas Avanzadas5",
       "description": "Una inmersión profunda en temas avanzados de matemáticas."
-    }
-  ],
-  "modules": [
-    {
-      "translations": [
-        {
-          "locale": "pt",
-          "title": "Cálculo I",
-          "description": "Introdução ao Cálculo Diferencial."
-        },
-        {
-          "locale": "it",
-          "title": "Calcolo I",
-          "description": "Introduzione al Calcolo Differenziale."
-        },
-        {
-          "locale": "es",
-          "title": "Cálculo I",
-          "description": "Introducción al Cálculo Diferencial."
-        }
-      ],
-      "order": 1
-    },
-    {
-      "translations": [
-        {
-          "locale": "pt",
-          "title": "Álgebra Linear",
-          "description": "Vetores, matrizes e espaços vetoriais."
-        },
-        {
-          "locale": "it",
-          "title": "Algebra Lineare",
-          "description": "Vettori, matrici e spazi vettoriali."
-        },
-        {
-          "locale": "es",
-          "title": "Álgebra Lineal",
-          "description": "Vectores, matrices y espacios vectoriales."
-        }
-      ],
-      "order": 2
     }
   ]
 }
-###

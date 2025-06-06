@@ -1,5 +1,4 @@
 // src/domain/course-catalog/application/validations/create-course.schema.ts
-
 import { z } from "zod";
 
 const translationSchema = z.object({
@@ -10,39 +9,11 @@ const translationSchema = z.object({
     .min(5, "Course description must be at least 5 characters long"),
 });
 
-const moduleSchema = z
-  .object({
-    translations: z
-      .array(translationSchema)
-      .min(1, "Each module needs at least one translation")
-      .superRefine((arr, ctx) => {
-        if (!arr.some((t) => t.locale === "pt")) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Each module needs a Portuguese translation",
-            path: ["translations"],
-          });
-        }
-        const locales = arr.map((t) => t.locale);
-        if (new Set(locales).size !== locales.length) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Locale duplicado em módulo",
-            path: ["translations"],
-          });
-        }
-      }),
-    order: z
-      .number()
-      .int("Order must be an integer")
-      .positive("Order must be a positive number"),
-  })
-  .superRefine(() => {
-
-  });
-
 export const createCourseSchema = z
   .object({
+    slug: z
+      .string()
+      .min(3, "Slug must be at least 3 characters long"),
     translations: z
       .array(translationSchema)
       .min(1, "At least one translation is required")
@@ -64,7 +35,35 @@ export const createCourseSchema = z
         }
       }),
     modules: z
-      .array(moduleSchema)
+      .array(
+        z
+          .object({
+            translations: z
+              .array(translationSchema)
+              .min(1, "Each module needs at least one translation")
+              .superRefine((arr, ctx) => {
+                if (!arr.some((t) => t.locale === "pt")) {
+                  ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Each module needs a Portuguese translation",
+                    path: ["translations"],
+                  });
+                }
+                const locales = arr.map((t) => t.locale);
+                if (new Set(locales).size !== locales.length) {
+                  ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Locale duplicado em módulo",
+                    path: ["translations"],
+                  });
+                }
+              }),
+            order: z
+              .number()
+              .int("Order must be an integer")
+              .positive("Order must be a positive number"),
+          })
+      )
       .optional()
       .superRefine((mods, ctx) => {
         if (!mods) return;

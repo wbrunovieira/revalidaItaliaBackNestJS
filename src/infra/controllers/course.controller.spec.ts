@@ -1,4 +1,5 @@
 // src/infra/course-catalog/controllers/course.controller.spec.ts
+
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   BadRequestException,
@@ -11,6 +12,7 @@ import { DuplicateCourseError } from '@/domain/course-catalog/application/use-ca
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error'
 import { CourseController } from './course.controller'
 import { CreateCourseDto } from '@/domain/course-catalog/application/dtos/create-course.dto'
+
 
 class MockUseCase {
   execute = vi.fn()
@@ -26,6 +28,7 @@ describe('CourseController', () => {
   })
 
   const validDto: CreateCourseDto = {
+    slug: 'curso-teste',
     translations: [
       {
         locale: 'pt',
@@ -43,39 +46,15 @@ describe('CourseController', () => {
         description: 'Descripción válida del curso.',
       },
     ],
-    modules: [
-      {
-        translations: [
-          {
-            locale: 'pt',
-            title: 'Módulo 1',
-            description: 'Descrição do módulo 1.',
-          },
-          {
-            locale: 'it',
-            title: 'Modulo 1',
-            description: 'Descrizione del modulo 1.',
-          },
-          {
-            locale: 'es',
-            title: 'Módulo 1',
-            description: 'Descripción del módulo 1.',
-          },
-        ],
-        order: 1,
-      },
-    ],
   }
 
   it('should return created course payload on success', async () => {
     const payload = {
       course: {
         id: 'uuid-1234',
-        title: 'Curso Teste',           
+        slug: 'curso-teste',
+        title: 'Curso Teste',
         description: 'Descrição válida do curso.',
-        modules: [
-          { id: 'mod-1', title: 'Módulo 1', order: 1 }, 
-        ],
       },
     }
     useCase.execute.mockResolvedValueOnce(right(payload))
@@ -83,20 +62,12 @@ describe('CourseController', () => {
     const response = await controller.create(validDto)
     expect(response).toEqual(payload.course)
 
-
     expect(useCase.execute).toHaveBeenCalledWith({
+      slug: validDto.slug,
       translations: validDto.translations.map((t) => ({
         locale: t.locale,
         title: t.title,
         description: t.description,
-      })),
-      modules: validDto.modules!.map((m) => ({
-        translations: m.translations.map((mt) => ({
-          locale: mt.locale,
-          title: mt.title,
-          description: mt.description,
-        })),
-        order: m.order,
       })),
     })
   })
