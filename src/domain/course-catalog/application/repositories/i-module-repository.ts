@@ -3,10 +3,17 @@ import { Either } from '@/core/either';
 import { Module as ModuleEntity } from '@/domain/course-catalog/enterprise/entities/module.entity';
 
 export interface IModuleRepository {
+ 
+  findByCourseId(
+    courseId: string
+  ): Promise<Either<Error, ModuleEntity[]>>;
+
   findByCourseIdAndOrder(
     courseId: string,
     order: number
   ): Promise<Either<Error, ModuleEntity>>;
+
+
   create(
     courseId: string,
     module: ModuleEntity

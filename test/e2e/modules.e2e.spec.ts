@@ -23,13 +23,13 @@ describe('Create Module (E2E)', () => {
 
     prisma = app.get(PrismaService);
 
-    // Clean up before suite
+
     await prisma.moduleTranslation.deleteMany({});
     await prisma.module.deleteMany({});
     await prisma.courseTranslation.deleteMany({});
     await prisma.course.deleteMany({});
 
-    // Create a course to attach modules to
+ 
     const courseRes = await request(app.getHttpServer())
       .post('/courses')
       .send({
@@ -44,7 +44,7 @@ describe('Create Module (E2E)', () => {
   });
 
   afterAll(async () => {
-    // Clean up after suite
+
     await prisma.moduleTranslation.deleteMany({});
     await prisma.module.deleteMany({});
     await prisma.courseTranslation.deleteMany({});
@@ -119,7 +119,7 @@ describe('Create Module (E2E)', () => {
         order: 3,
       });
 
-    // Attempt to create another with same order=3
+
     const res = await request(app.getHttpServer())
       .post(`/courses/${courseId}/modules`)
       .send({
