@@ -1,0 +1,28 @@
+@BASE_URL = http://localhost:3333
+
+###
+# @name create-video
+POST {{BASE_URL}}/courses/75cd5469-0047-4402-8360-e6288ef6cd66/modules/5e0e2e06-a74e-4553-ab9e-d1925be934e5/videos
+Content-Type: application/json
+
+{
+  "slug": "intro-derivadas",
+  "providerVideoId": "5cbf2ba5-49e0-4319-8dd4-8944808fab5a",
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Introdução às Derivadas",
+      "description": "Vídeo sobre os conceitos básicos de derivadas."
+    },
+    {
+      "locale": "it",
+      "title": "Introduzione alle Derivate",
+      "description": "Video sui concetti di base delle derivate."
+    },
+    {
+      "locale": "es",
+      "title": "Introducción a las Derivadas",
+      "description": "Vídeo sobre los conceptos básicos de derivadas."
+    }
+  ]
+}

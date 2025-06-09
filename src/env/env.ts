@@ -14,6 +14,9 @@ JWT_PUBLIC_KEY:  z.string()
   .nonempty("JWT_PUBLIC_KEY cannot be empty"),
 
   PORT:            z.coerce.number().optional().default(3333),
+  PANDA_API_BASE_URL: z.string()
+  .url("PANDA_API_BASE_URL precisa ser uma URL válida")
+  .default("https://api-v2.pandavideo.com.br"),
 
   PANDA_API_KEY: z.string().min(1, 'PANDA_API_KEY is required'),
 });

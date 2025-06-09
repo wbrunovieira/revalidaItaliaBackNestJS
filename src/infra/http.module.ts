@@ -10,12 +10,14 @@ import { AddressController } from './controllers/address.controller'
 
 import { CourseModule } from '@/infra/course.module'
 import { ModuleModule } from './module.module'
+import { VideoModule } from './video.module'
+import { VideoController } from './controllers/video.controller'
 
 
 
 @Module({
-  imports: [AuthModule, CourseModule,DatabaseModule, ModuleModule],
-  controllers: [ StudentsController , AuthController, AddressController],
+  imports: [AuthModule, CourseModule,DatabaseModule, ModuleModule, VideoModule],
+  controllers: [ StudentsController , AuthController, AddressController, VideoController],
   providers: [],                   
 })
 export class HttpModule {}
