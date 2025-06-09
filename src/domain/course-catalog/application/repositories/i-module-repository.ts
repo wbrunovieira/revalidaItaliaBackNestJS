@@ -2,24 +2,24 @@
 import { Either } from '@/core/either';
 import { Module as ModuleEntity } from '@/domain/course-catalog/enterprise/entities/module.entity';
 
-export interface IModuleRepository {
+export  abstract class IModuleRepository {
  
-  findByCourseId(
+  abstract findByCourseId(
     courseId: string
   ): Promise<Either<Error, ModuleEntity[]>>;
 
-  findByCourseIdAndOrder(
+  abstract findByCourseIdAndOrder(
     courseId: string,
     order: number
   ): Promise<Either<Error, ModuleEntity>>;
 
 
-  create(
+  abstract create(
     courseId: string,
     module: ModuleEntity
   ): Promise<Either<Error, void>>;
 
-  findById(
+  abstract findById(
     moduleId: string
   ): Promise<Either<Error, ModuleEntity>>;
 }

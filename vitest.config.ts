@@ -1,16 +1,24 @@
 // vitest.config.ts
-import { defineConfig } from 'vitest/config'
-import swc from 'unplugin-swc'
+import { defineConfig } from 'vitest/config';
+import swc from 'unplugin-swc';
+import path from 'path';
 
 export default defineConfig(async () => {
-  // importa dinamicamente o tsconfig-paths, já que é ESM-only
-  const tsconfigPaths = (await import('vite-tsconfig-paths')).default
+  // load the ESM-only tsconfig-paths plugin dynamically
+  const tsconfigPaths = (await import('vite-tsconfig-paths')).default;
 
   return {
+    resolve: {
+      alias: [
+        {
+          find: '@nestjs/axios',
+          replacement: path.resolve(__dirname, 'test-helpers/empty-module.ts'),
+        },
+      ],
+    },
     plugins: [
       tsconfigPaths(),
-      // se você quiser usar o swc igual no e2e, descomente:
-       swc.vite({ module: { type: 'es6' } }),
+      swc.vite({ module: { type: 'es6' } }),
     ],
     test: {
       globals: true,
@@ -20,5 +28,5 @@ export default defineConfig(async () => {
       hookTimeout: 120_000,
       testTimeout: 120_000,
     },
-  }
-})
+  };
+});

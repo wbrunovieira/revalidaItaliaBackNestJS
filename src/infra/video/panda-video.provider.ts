@@ -1,13 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
-import { AxiosResponse } from 'axios';
-import { ConfigService } from '@nestjs/config';
-
-export interface VideoHostProvider {
-  getMetadata(videoId: string): Promise<{ durationInSeconds: number }>;
-  getEmbedUrl(videoId: string): string;
-}
+// src/infra/video/panda-video.provider.ts
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
+import { firstValueFrom } from "rxjs";
+import { ConfigService } from "@nestjs/config";
+import { VideoHostProvider } from "@/domain/course-catalog/application/providers/video-host.provider";
 
 @Injectable()
 export class PandaVideoProvider implements VideoHostProvider {
@@ -17,27 +13,21 @@ export class PandaVideoProvider implements VideoHostProvider {
   ) {}
 
   private get apiKey(): string {
-    const key = this.config.get<string>('PANDA_API_KEY');
-    if (!key) {
-      throw new InternalServerErrorException('PANDA_API_KEY is not configured');
-    }
+    const key = this.config.get<string>("PANDA_API_KEY");
+    if (!key) throw new InternalServerErrorException('PANDA_API_KEY is not configured');
     return key;
   }
 
   async getMetadata(videoId: string): Promise<{ durationInSeconds: number }> {
     try {
-
-      const resp: AxiosResponse<{ duration: number }> = await firstValueFrom(
+      const resp = await firstValueFrom(
         this.http.get<{ duration: number }>(
           `https://api.panda.com/videos/${videoId}`,
-          {
-            headers: { Authorization: `Bearer ${this.apiKey}` },
-          }
+          { headers: { Authorization: `Bearer ${this.apiKey}` } }
         )
       );
-
       return { durationInSeconds: resp.data.duration };
-    } catch (err) {
+    } catch {
       throw new InternalServerErrorException('Failed to fetch video metadata');
     }
   }
