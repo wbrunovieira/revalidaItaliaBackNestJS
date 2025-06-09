@@ -2,6 +2,7 @@
 import {
   Controller,
   Post,
+  Get,
   Param,
   Body,
   Inject,
@@ -11,6 +12,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { CreateModuleUseCase } from '@/domain/course-catalog/application/use-cases/create-module.use-case';
+import { GetModulesUseCase } from '@/domain/course-catalog/application/use-cases/get-modules.use-case';
 
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { CourseNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/course-not-found-error';
@@ -21,7 +23,9 @@ import { CreateModuleDto } from '@/domain/course-catalog/application/dtos/create
 export class ModuleController {
   constructor(
     @Inject(CreateModuleUseCase)
-    private readonly createModuleUseCase: CreateModuleUseCase
+    private readonly createModuleUseCase: CreateModuleUseCase,
+    @Inject(GetModulesUseCase)
+    private readonly getModulesUseCase: GetModulesUseCase,
   ) {}
 
   @Post()
@@ -57,5 +61,19 @@ export class ModuleController {
 
     const { module } = result.value as any;
     return module;
+  }
+
+  @Get()
+  async findAll(@Param('courseId') courseId: string) {
+    const result = await this.getModulesUseCase.execute({ courseId });
+    if (result.isLeft()) {
+      const error = result.value;
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException(error.details);
+      }
+      throw new InternalServerErrorException(error.message);
+    }
+
+    return result.value.modules;
   }
 }
