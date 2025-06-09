@@ -175,4 +175,36 @@ describe('Create Module (E2E)', () => {
     expect(res.status).toBe(201);
     expect(res.body.slug).toBe('invalid-slug');
   });
+
+  it('[GET] /courses/:courseId/modules/:moduleId - Success', async () => {
+    // Create a module first
+    const createRes = await request(app.getHttpServer())
+      .post(`/courses/${courseId}/modules`)
+      .send({
+        slug: 'modulo-det',
+        translations: [
+          { locale: 'pt', title: 'Módulo Detalhe', description: 'Desc Detalhe' },
+          { locale: 'it', title: 'Modulo Dettaglio', description: 'Desc Dettaglio' },
+          { locale: 'es', title: 'Módulo Detalle', description: 'Desc Detalle' },
+        ],
+        order: 5,
+      });
+
+    const moduleId = createRes.body.id;
+
+    const res = await request(app.getHttpServer())
+      .get(`/courses/${courseId}/modules/${moduleId}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('id', moduleId);
+    expect(res.body).toHaveProperty('slug', 'modulo-det');
+    expect(res.body).toHaveProperty('order', 5);
+    expect(res.body.translations).toEqual(
+      expect.arrayContaining([
+        { locale: 'pt', title: 'Módulo Detalhe', description: 'Desc Detalhe' },
+        { locale: 'it', title: 'Modulo Dettaglio', description: 'Desc Dettaglio' },
+        { locale: 'es', title: 'Módulo Detalle', description: 'Desc Detalle' },
+      ])
+    );
+  });
 });
