@@ -10,9 +10,7 @@ import { UniqueEntityID } from "@/core/unique-entity-id";
 export class PrismaModuleRepository implements IModuleRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Finds a module by courseId and order.
-   */
+
   async findByCourseIdAndOrder(
     courseId: string,
     order: number
@@ -32,7 +30,7 @@ export class PrismaModuleRepository implements IModuleRepository {
         return left(new Error("Module not found"));
       }
 
-      // Reconstruct entity
+  
       const translationsVO = data.translations.map((tr) => ({
         locale: tr.locale as "pt" | "it" | "es",
         title: tr.title,
@@ -57,9 +55,7 @@ export class PrismaModuleRepository implements IModuleRepository {
     }
   }
 
-  /**
-   * Creates a new module under a given course.
-   */
+
   async create(
     courseId: string,
     module: Module
@@ -90,9 +86,7 @@ export class PrismaModuleRepository implements IModuleRepository {
     }
   }
 
-  /**
-   * Returns all modules for a given courseId.
-   */
+
   async findByCourseId(courseId: string): Promise<Either<Error, Module[]>> {
     try {
       const data = await this.prisma.module.findMany({
@@ -125,6 +119,36 @@ export class PrismaModuleRepository implements IModuleRepository {
 
       return right(modules);
     } catch (err: any) {
+      return left(new Error("Database error"));
+    }
+  }
+
+  async findById(moduleId: string): Promise<Either<Error, Module>> {
+    try {
+      const mod = await this.prisma.module.findUnique({
+        where: { id: moduleId },
+        include: { translations: true },
+      });
+      if (!mod) return left(new Error("Module not found"));
+      const vos = mod.translations.map((tr) => ({
+        locale: tr.locale as "pt" | "it" | "es",
+        title: tr.title,
+        description: tr.description,
+      }));
+      return right(
+        Module.reconstruct(
+          {
+            slug: mod.slug,
+            translations: vos,
+            order: mod.order,
+            videos: [],
+            createdAt: mod.createdAt,
+            updatedAt: mod.updatedAt,
+          },
+          new UniqueEntityID(mod.id)
+        )
+      );
+    } catch {
       return left(new Error("Database error"));
     }
   }

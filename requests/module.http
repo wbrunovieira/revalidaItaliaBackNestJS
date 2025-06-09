@@ -32,3 +32,8 @@ Content-Type: application/json
 # @name list-modules
 GET {{BASE_URL}}/courses/4e5a55db-40d0-4e6a-bbe4-c6bb5061666d/modules
 Content-Type: application/json
+
+###
+# @name get-module
+GET {{BASE_URL}}/courses/4e5a55db-40d0-4e6a-bbe4-c6bb5061666d/modules/d7a19ec3-f094-4f9b-84e5-990f42dcb55a
+Content-Type: application/json

@@ -39,4 +39,8 @@ export class InMemoryModuleRepository implements IModuleRepository {
     this.items.push({ module, courseId });
     return right(undefined);
   }
+  async findById(moduleId: string): Promise<Either<Error, Module>> {
+    const found = this.items.find((e) => e.module.id.toString() === moduleId);
+    return found ? right(found.module) : left(new Error("Module not found"));
+  }
 }

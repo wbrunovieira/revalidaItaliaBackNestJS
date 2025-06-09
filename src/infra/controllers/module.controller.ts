@@ -18,6 +18,8 @@ import { InvalidInputError } from '@/domain/course-catalog/application/use-cases
 import { CourseNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/course-not-found-error';
 import { DuplicateModuleOrderError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-module-order-error';
 import { CreateModuleDto } from '@/domain/course-catalog/application/dtos/create-module.dto';
+import { GetModuleUseCase } from '@/domain/course-catalog/application/use-cases/get-module.use-case';
+import { ModuleNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/module-not-found-error';
 
 @Controller('courses/:courseId/modules')
 export class ModuleController {
@@ -26,6 +28,8 @@ export class ModuleController {
     private readonly createModuleUseCase: CreateModuleUseCase,
     @Inject(GetModulesUseCase)
     private readonly getModulesUseCase: GetModulesUseCase,
+    @Inject(GetModuleUseCase)
+    private readonly getModuleUseCase: GetModuleUseCase,
   ) {}
 
   @Post()
@@ -75,5 +79,20 @@ export class ModuleController {
     }
 
     return result.value.modules;
+  }
+
+  @Get(':moduleId')
+  async findOne(
+    @Param('courseId') courseId: string,
+    @Param('moduleId') moduleId: string
+  ) {
+    const result = await this.getModuleUseCase.execute({ moduleId });
+    if (result.isLeft()) {
+      const err = result.value;
+      if (err instanceof InvalidInputError) throw new BadRequestException(err.details);
+      if (err instanceof ModuleNotFoundError) throw new NotFoundException(err.message);
+      throw new InternalServerErrorException(err.message);
+    }
+    return result.value.module;
   }
 }

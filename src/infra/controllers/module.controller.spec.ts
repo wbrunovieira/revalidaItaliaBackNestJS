@@ -13,6 +13,7 @@ import { DuplicateModuleOrderError } from '@/domain/course-catalog/application/u
 import { ModuleController } from './module.controller';
 import { CreateModuleDto } from '@/domain/course-catalog/application/dtos/create-module.dto';
 import { GetModulesUseCase } from '@/domain/course-catalog/application/use-cases/get-modules.use-case';
+import { ModuleNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/module-not-found-error';
 
 class MockCreateUseCase {
   execute = vi.fn();
@@ -22,10 +23,13 @@ class MockGetUseCase {
   execute = vi.fn();
 }
 
+class MockGetOne { execute = vi.fn() }
+
 describe('ModuleController', () => {
   let controller: ModuleController;
   let createUseCase: MockCreateUseCase;
   let getUseCase: MockGetUseCase;
+  let getOneUC: MockGetOne;
 
   const validDto: CreateModuleDto = {
     slug: 'modulo-teste',
@@ -41,9 +45,11 @@ describe('ModuleController', () => {
   beforeEach(() => {
     createUseCase = new MockCreateUseCase();
     getUseCase = new MockGetUseCase();
+    getOneUC = new MockGetOne();
     controller = new ModuleController(
       createUseCase as any,
-      getUseCase as any
+      getUseCase as any,
+      getOneUC as any,
     );
   });
 
@@ -125,5 +131,33 @@ describe('ModuleController', () => {
     getUseCase.execute.mockResolvedValueOnce(left(new Error('DB error')));
 
     await expect(controller.findAll(courseId)).rejects.toBeInstanceOf(InternalServerErrorException);
+  });
+
+  it('GET /courses/:courseId/modules/:moduleId – returns one module', async () => {
+    const mod = { id:'m1', slug:'mod1', order:1, translations:[] };
+    getOneUC.execute.mockResolvedValueOnce(right({ module: mod }));
+
+    const res = await controller.findOne(courseId, 'm1');
+    expect(res).toEqual(mod);
+    expect(getOneUC.execute).toHaveBeenCalledWith({ moduleId: 'm1' });
+  });
+
+  it('GET one – BadRequest on invalid UUID', async () => {
+    getOneUC.execute.mockResolvedValueOnce(
+      left(new InvalidInputError('Bad', [{ path:['moduleId'], message:'invalid' }]))
+    );
+    await expect(controller.findOne(courseId, 'bad-uuid')).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('GET one – 404 on not found', async () => {
+    getOneUC.execute.mockResolvedValueOnce(left(new ModuleNotFoundError()));
+    await expect(controller.findOne(courseId, 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'))
+      .rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('GET one – 500 on generic error', async () => {
+    getOneUC.execute.mockResolvedValueOnce(left(new Error('oops')));
+    await expect(controller.findOne(courseId, 'cccccccc-cccc-cccc-cccc-cccccccccccc'))
+      .rejects.toBeInstanceOf(InternalServerErrorException);
   });
 });

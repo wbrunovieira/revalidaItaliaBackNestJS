@@ -7,6 +7,7 @@ import { CourseModule } from './course.module';
 import { PrismaModuleRepository } from './database/prisma/repositories/prisma-module-repository';
 import { DatabaseModule } from './database/database.module';
 import { GetModulesUseCase } from '@/domain/course-catalog/application/use-cases/get-modules.use-case';
+import { GetModuleUseCase } from '@/domain/course-catalog/application/use-cases/get-module.use-case';
 
 @NestModule({
   imports: [DatabaseModule,CourseModule], 
@@ -14,6 +15,7 @@ import { GetModulesUseCase } from '@/domain/course-catalog/application/use-cases
   providers: [
     CreateModuleUseCase,
     GetModulesUseCase,
+    GetModuleUseCase,
     { provide: 'ModuleRepository', useClass: PrismaModuleRepository },
   ],
 })

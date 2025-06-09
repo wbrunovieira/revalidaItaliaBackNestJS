@@ -18,4 +18,8 @@ export interface IModuleRepository {
     courseId: string,
     module: ModuleEntity
   ): Promise<Either<Error, void>>;
+
+  findById(
+    moduleId: string
+  ): Promise<Either<Error, ModuleEntity>>;
 }
