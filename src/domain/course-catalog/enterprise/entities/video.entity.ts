@@ -8,7 +8,7 @@ export interface VideoProps {
   slug: string;
 
   title: string;
-  pandaVideoId: string;
+  providerVideoId: string;
   durationInSeconds: number;
   isSeen: boolean;
   createdAt: Date;
@@ -28,8 +28,8 @@ export class Video extends Entity<VideoProps> {
     return this.props.title;
   }
 
-  public get pandaVideoId(): string {
-    return this.props.pandaVideoId;
+  public get providerVideoId(): string {
+    return this.props.providerVideoId;
   }
 
   public get durationInSeconds(): number {
@@ -81,7 +81,7 @@ export class Video extends Entity<VideoProps> {
     id: string;
     slug: string;
     title: string;
-    pandaVideoId: string;
+    providerVideoId: string;
     durationInSeconds: number;
     isSeen: boolean;
     createdAt: Date;
@@ -91,7 +91,7 @@ export class Video extends Entity<VideoProps> {
       id: this.id.toString(),
       slug: this.slug,
       title: this.props.title,
-      pandaVideoId: this.props.pandaVideoId,
+      providerVideoId: this.props.providerVideoId,
       durationInSeconds: this.props.durationInSeconds,
       isSeen: this.props.isSeen,
       createdAt: this.props.createdAt,
@@ -108,7 +108,7 @@ export class Video extends Entity<VideoProps> {
       {
         slug: props.slug,
         title: props.title,
-        pandaVideoId: props.pandaVideoId,
+        providerVideoId: props.providerVideoId,
         durationInSeconds: props.durationInSeconds,
         isSeen: props.isSeen ?? false,
         createdAt: now,

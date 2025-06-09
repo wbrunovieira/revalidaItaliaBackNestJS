@@ -44,7 +44,7 @@ model Module {
 model Video {
   id                String @id @default(uuid())
   slug              String @unique
-  pandaVideoId      String
+  providerVideoId      String
   durationInSeconds Int
 
   module   Module @relation(fields: [moduleId], references: [id])

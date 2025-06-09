@@ -14,6 +14,8 @@ JWT_PUBLIC_KEY:  z.string()
   .nonempty("JWT_PUBLIC_KEY cannot be empty"),
 
   PORT:            z.coerce.number().optional().default(3333),
+
+  PANDA_API_KEY: z.string().min(1, 'PANDA_API_KEY is required'),
 });
 
 export type Env = z.infer<typeof envSchema>;
