@@ -7,7 +7,7 @@ POST {{BASE_URL}}/addresses
 Content-Type: application/json
 
 {
-  "userId":     "28cdcee1-1d0f-45a5-9aba-8cc2c2725d3e",
+  "userId":     "b0997302-513c-4d6f-8fe5-502ccb9c859a",
   "street":     "123 Main St",
   "number":     "42A",
   "complement": "Apt. 7",
@@ -20,18 +20,18 @@ Content-Type: application/json
 
 ###
 # @name find-addresses-by-user
-GET {{BASE_URL}}/addresses?userId=28cdcee1-1d0f-45a5-9aba-8cc2c2725d3e
+GET {{BASE_URL}}/addresses?userId=b0997302-513c-4d6f-8fe5-502ccb9c859a
 Content-Type: application/json
 
 ###
 
 ###
 # @name update-address
-PATCH {{BASE_URL}}/addresses/28e07201-ba49-4219-bb2e-68b1fa055bf4
+PATCH {{BASE_URL}}/addresses/fb33616b-8ca1-462e-a791-878fbe76dbb1
 Content-Type: application/json
 
 {
-  "street":     "456 Elm St",
+  "street":     "456 Elm St 2",
   "number":     "99B",
   "complement": "Suite 100",
   "district":   "New District",
@@ -43,5 +43,5 @@ Content-Type: application/json
 
 ###
 # @name delete-address
-DELETE {{BASE_URL}}/addresses/28e07201-ba49-4219-bb2e-68b1fa055bf4
+DELETE {{BASE_URL}}/addresses/fb33616b-8ca1-462e-a791-878fbe76dbb1
 Content-Type: application/json

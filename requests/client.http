@@ -28,7 +28,7 @@ Content-Type: application/json
 
 ###
 # @name update-account
-PATCH {{BASE_URL}}/students/cf74d223-ef28-4579-b7c6-6d9f0095aab6
+PATCH {{BASE_URL}}/students/b0997302-513c-4d6f-8fe5-502ccb9c859a
 Content-Type: application/json
 
 {

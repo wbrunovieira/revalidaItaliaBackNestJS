@@ -3,6 +3,7 @@ import { Either, left, right } from '@/core/either';
 import { InvalidInputError }   from './errors/invalid-input-error';
 import { IAddressRepository }  from '../repositories/i-address-repository';
 import { NotFoundError }       from 'rxjs/internal/util/NotFoundError';
+import { Inject, Injectable } from '@nestjs/common';
 
 export interface DeleteAddressRequest {
   id: string;
@@ -12,9 +13,11 @@ type DeleteAddressUseCaseResponse = Either<
   InvalidInputError | NotFoundError | Error,
   void
 >;
-
+@Injectable()
 export class DeleteAddressUseCase {
-  constructor(private readonly addressRepo: IAddressRepository) {}
+  constructor(
+    @Inject(IAddressRepository)
+    private readonly addressRepo: IAddressRepository) {}
 
   async execute(request: DeleteAddressRequest): Promise<DeleteAddressUseCaseResponse> {
     const { id } = request;
