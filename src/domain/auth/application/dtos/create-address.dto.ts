@@ -1,8 +1,9 @@
 // src/addresses/dto/create-address.dto.ts
-import { IsNotEmpty, IsOptional, IsUUID, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAddressDto {
-  @IsUUID()
+  
+  @IsString()
   @IsNotEmpty({ message: 'userId must be provided' })
   userId!: string;
 
@@ -15,7 +16,7 @@ export class CreateAddressDto {
   number!: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'district must be provided' })
+  @IsOptional()
   district!: string;
 
   @IsString()

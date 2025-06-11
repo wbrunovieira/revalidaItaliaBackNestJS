@@ -13,7 +13,7 @@ const createAddressSchema = z.object({
   userId: z.string().nonempty({ message: 'Missing required fields' }),
   street: z.string().nonempty({ message: 'Missing required fields' }),
   number: z.string().nonempty({ message: 'Missing required fields' }),
-  district: z.string().nonempty({ message: 'Missing required fields' }),
+  district:  z.string().optional(),
   city: z.string().nonempty({ message: 'Missing required fields' }),
 
 

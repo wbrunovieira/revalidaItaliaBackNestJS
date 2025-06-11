@@ -97,23 +97,35 @@ export class PrismaAddressRepository implements IAddressRepository {
   }
 
   async update(addr: Address): Promise<Either<Error, void>> {
+
+    const data: Partial<{
+      street: string
+      number: string
+      complement: string | null
+      district: string | null
+      city: string
+      state: string | null
+      country: string
+      postalCode: string
+    }> = {}
+
+    if (addr.street !== undefined)     data.street     = addr.street
+    if (addr.number !== undefined)     data.number     = addr.number
+    if (addr.complement != null) data.complement = addr.complement
+    if (addr.district   != null) data.district   = addr.district
+    if (addr.city !== undefined)       data.city       = addr.city
+    if (addr.state      != null) data.state      = addr.state
+    if (addr.country !== undefined)    data.country    = addr.country
+    if (addr.postalCode !== undefined) data.postalCode = addr.postalCode
+
     try {
       await this.prisma.address.update({
         where: { id: addr.id.toString() },
-        data: {
-          street:     addr.street,
-          number:     addr.number,
-          complement: addr.complement,
-          district:   addr.district,
-          city:       addr.city,
-          state:      addr.state,
-          country:    addr.country,
-          postalCode: addr.postalCode,
-        },
-      });
-      return right(undefined);
+        data,
+      })
+      return right(undefined)
     } catch (err: any) {
-      return left(err);
+      return left(new Error(err.message))
     }
   }
 

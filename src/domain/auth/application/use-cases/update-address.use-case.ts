@@ -5,6 +5,7 @@ import { InvalidInputError } from './errors/invalid-input-error';
 import { ResourceNotFoundError } from './errors/resource-not-found-error';
 import { IAddressRepository } from '../repositories/i-address-repository';
 import { Address } from '../../enterprise/entities/address.entity';
+import { Inject } from '@nestjs/common';
 
 export interface UpdateAddressRequest {
   id: string;
@@ -24,7 +25,9 @@ type UpdateAddressResponse = Either<
 >;
 
 export class UpdateAddressUseCase {
-  constructor(private readonly addressRepo: IAddressRepository) {}
+  constructor(
+    @Inject(IAddressRepository)
+    private readonly addressRepo: IAddressRepository) {}
 
   async execute(
     request: UpdateAddressRequest
@@ -41,12 +44,12 @@ export class UpdateAddressUseCase {
       postalCode,
     } = request;
 
-    // 0) Regra de negócio: ID não pode ser vazio
+
     if (!id) {
       return left(new InvalidInputError('Missing id', []));
     }
 
-    // 1) Regra de negócio: ao menos um campo para atualizar deve ser fornecido
+
     const hasAnyField =
       street !== undefined ||
       number !== undefined ||
@@ -80,7 +83,7 @@ export class UpdateAddressUseCase {
       return left(new ResourceNotFoundError('Address not found'));
     }
 
-    // 4) Aplicar as atualizações
+
     if (street !== undefined) foundAddr.street = street;
     if (number !== undefined) foundAddr.number = number;
     if (complement !== undefined) foundAddr.complement = complement;
@@ -90,14 +93,12 @@ export class UpdateAddressUseCase {
     if (country !== undefined) foundAddr.country = country;
     if (postalCode !== undefined) foundAddr.postalCode = postalCode;
 
-    // 5) Persistir as mudanças
     try {
       const updateResult = await this.addressRepo.update(foundAddr);
       if (updateResult.isLeft()) {
         return left(updateResult.value);
       }
-      // Em vez de retornar updateResult.value (que pode ser `undefined` em alguns repositórios),
-      // retornamos explicitamente `foundAddr`, que já está mutado.
+ 
       return right(foundAddr);
     } catch (err: any) {
       return left(new Error(err.message));

@@ -75,14 +75,6 @@ export class AddressController {
           );
         }
 
-        if (err instanceof ResourceNotFoundError) {
-
-          throw new HttpException(
-            'Database error creating address',
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          );
-        }
-
 
         throw new HttpException(
           { message: err.message },
@@ -159,7 +151,7 @@ export class AddressController {
   @Patch(':id')
   @HttpCode(200)
   async update(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('id') id: string,
     @Body() dto: UpdateAddressDto,
   ) {
 
@@ -181,7 +173,7 @@ export class AddressController {
         if (err instanceof ResourceNotFoundError) {
           throw new HttpException(
             { message: err.message },
-            HttpStatus.NOT_FOUND,
+            HttpStatus.INTERNAL_SERVER_ERROR,
           );
         }
 
