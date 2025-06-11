@@ -13,14 +13,19 @@ import { DuplicateVideoError } from "@/domain/course-catalog/application/use-cas
 import { CreateVideoDto } from "@/domain/course-catalog/application/dtos/create-video.dto";
 import { CreateVideoUseCase } from "@/domain/course-catalog/application/use-cases/create-video.use-case";
 import { VideoController } from "./video.controller";
+import { VideoNotFoundError } from "@/domain/course-catalog/application/use-cases/errors/video-not-found-error";
 
 class MockCreateVideoUseCase {
+  execute = vi.fn();
+}
+class MockGetVideoUseCase {
   execute = vi.fn();
 }
 
 describe("VideoController", () => {
   let controller: VideoController;
   let createVideoUseCase: MockCreateVideoUseCase;
+  let getVideoUseCase: MockGetVideoUseCase;
 
   const courseId = "course-1";
   const moduleId = "module-1";
@@ -36,7 +41,8 @@ describe("VideoController", () => {
 
   beforeEach(() => {
     createVideoUseCase = new MockCreateVideoUseCase();
-    controller = new VideoController(createVideoUseCase as any);
+    getVideoUseCase = new MockGetVideoUseCase();
+    controller = new VideoController(createVideoUseCase as any, getVideoUseCase as any);
   });
 
   it("returns created video on success", async () => {
@@ -93,4 +99,43 @@ describe("VideoController", () => {
       controller.create(courseId, moduleId, dto)
     ).rejects.toBeInstanceOf(InternalServerErrorException);
   });
+
+  it("returns video on success", async () => {
+    const videoPayload = {
+      id: "v1",
+      slug: dto.slug,
+      providerVideoId: dto.providerVideoId,
+      translations: dto.translations,
+    };
+    getVideoUseCase.execute.mockResolvedValueOnce(
+      right({ video: videoPayload })
+    );
+
+    const result = await controller.findOne(courseId, moduleId, "v1");
+    expect(getVideoUseCase.execute).toHaveBeenCalledWith({ id: "v1" });
+    expect(result).toEqual(videoPayload);
+  });
+
+  it("throws BadRequestException on InvalidInputError", async () => {
+    const details = [{ path: ["id"], message: "Required" }];
+    getVideoUseCase.execute.mockResolvedValueOnce(
+      left(new InvalidInputError("Invalid", details))
+    );
+
+    await expect(
+      controller.findOne(courseId, moduleId, "bad-id")
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it("throws NotFoundException on VideoNotFoundError", async () => {
+    getVideoUseCase.execute.mockResolvedValueOnce(
+      left(new VideoNotFoundError())
+    );
+
+    await expect(
+      controller.findOne(courseId, moduleId, "1111-1111-1111-1111")
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+
 });
