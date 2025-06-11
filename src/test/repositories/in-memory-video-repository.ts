@@ -46,4 +46,12 @@ export class InMemoryVideoRepository implements IVideoRepository {
     this.items.push({ moduleId, video, translations });
     return right(undefined);
   }
+
+  async findByModule(
+    moduleId: string,
+  ): Promise<Either<Error, Array<{ video: Video; translations: Array<{ locale: 'pt' | 'it' | 'es'; title: string; description: string }> }>>> {
+    const filtered = this.items.filter(item => item.moduleId === moduleId);
+    return right(filtered.map(item => ({ video: item.video, translations: item.translations })));
+  }
+
 }

@@ -113,4 +113,39 @@ export class PrismaVideoRepository implements IVideoRepository {
       return left(new Error(`Database error: ${err.message}`));
     }
   }
+
+  async findByModule(
+    moduleId: string,
+  ): Promise<Either<Error, Array<{ video: Video; translations: Array<{ locale: 'pt' | 'it' | 'es'; title: string; description: string }> }>>> {
+    try {
+      const rows = await this.prisma.video.findMany({
+        where: { moduleId },
+        include: { translations: true },
+      });
+      const result = rows.map(row => {
+        const v = Video.reconstruct(
+          {
+            slug: row.slug,
+            title: row.translations.find(t => t.locale === 'pt')!.title,
+            providerVideoId: row.providerVideoId,
+            durationInSeconds: row.durationInSeconds,
+            isSeen: false,
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt,
+          },
+          new UniqueEntityID(row.id),
+        );
+        const translations = row.translations.map(t => ({
+          locale: t.locale as 'pt' | 'it' | 'es',
+          title: t.title,
+          description: t.description,
+        }));
+        return { video: v, translations };
+      });
+      return right(result);
+    } catch(err: any) {
+      return left(new Error(`Database error: ${err.message}`));
+    }
+  }
+
 }

@@ -25,4 +25,14 @@ export interface IVideoRepository {
       }
     >
   >;
+
+  findByModule(
+    moduleId: string
+  ): Promise<
+    Either<
+      Error,
+      Array<{ video: Video; translations: Array<{ locale: 'pt' | 'it' | 'es'; title: string; description: string }> }>
+    >
+  >;
 }
+
