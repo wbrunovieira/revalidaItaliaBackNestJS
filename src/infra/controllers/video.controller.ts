@@ -20,6 +20,7 @@ import { ModuleNotFoundError } from '@/domain/course-catalog/application/use-cas
 import { DuplicateVideoError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-video-error';
 import { GetVideoUseCase } from '@/domain/course-catalog/application/use-cases/get-video.use-case';
 import { VideoNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/video-not-found-error';
+import { GetVideosUseCase } from '@/domain/course-catalog/application/use-cases/get-videos.use-case';
 
 @Controller('courses/:courseId/modules/:moduleId/videos')
 export class VideoController {
@@ -28,6 +29,8 @@ export class VideoController {
     private readonly createVideoUseCase: CreateVideoUseCase,
     @Inject(GetVideoUseCase)
     private readonly getVideoUseCase: GetVideoUseCase,
+    @Inject(GetVideosUseCase)
+    private readonly getVideosUseCase: GetVideosUseCase,
   ) {}
 
   @Post()
@@ -88,6 +91,20 @@ export class VideoController {
     }
 
     return result.value.video;
+  }
+
+  @Get()
+  async findAll(
+    @Param('courseId') courseId: string,
+    @Param('moduleId') moduleId: string,
+  ) {
+    const result = await this.getVideosUseCase.execute({ courseId, moduleId });
+    if (result.isLeft()) {
+      const error = result.value;
+      if (error instanceof InvalidInputError) throw new BadRequestException(error.details);
+      throw new InternalServerErrorException((error as any).message);
+    }
+    return result.value.videos;
   }
 
 }

@@ -216,4 +216,43 @@ describe('VideoController (E2E)', () => {
       expect(res.status).toBe(400);
     });
   });
+
+  describe('[GET] list videos', () => {
+    it('→ Success returns list of videos', async () => {
+      // create multiple video fixtures
+      const payload1 = {
+        slug: 'list-video-1',
+        providerVideoId: realVideoId,
+        translations: [
+          { locale: 'pt', title: 'L1 PT', description: 'Desc1' },
+          { locale: 'it', title: 'L1 IT', description: 'Desc1 IT' },
+          { locale: 'es', title: 'L1 ES', description: 'Desc1 ES' },
+        ],
+      };
+      const payload2 = {
+        slug: 'list-video-2',
+        providerVideoId: realVideoId,
+        translations: [
+          { locale: 'pt', title: 'L2 PT', description: 'Desc2' },
+          { locale: 'it', title: 'L2 IT', description: 'Desc2 IT' },
+          { locale: 'es', title: 'L2 ES', description: 'Desc2 ES' },
+        ],
+      };
+      await request(app.getHttpServer()).post(endpoint()).send(payload1);
+      await request(app.getHttpServer()).post(endpoint()).send(payload2);
+
+      const res = await request(app.getHttpServer()).get(endpoint()).send();
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveLength(2);
+      expect(res.body[0]).toHaveProperty('id');
+      expect(res.body[0]).toHaveProperty('translations');
+    });
+
+    it('→ Success returns empty array when no videos', async () => {
+      const res = await request(app.getHttpServer()).get(endpoint()).send();
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual([]);
+    });
+  });
 });

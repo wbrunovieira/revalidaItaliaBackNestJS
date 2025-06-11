@@ -21,11 +21,13 @@ class MockCreateVideoUseCase {
 class MockGetVideoUseCase {
   execute = vi.fn();
 }
+class MockGetVideosUseCase  { execute = vi.fn(); }
 
 describe("VideoController", () => {
   let controller: VideoController;
   let createVideoUseCase: MockCreateVideoUseCase;
   let getVideoUseCase: MockGetVideoUseCase;
+  let getVideos: MockGetVideosUseCase;
 
   const courseId = "course-1";
   const moduleId = "module-1";
@@ -42,7 +44,8 @@ describe("VideoController", () => {
   beforeEach(() => {
     createVideoUseCase = new MockCreateVideoUseCase();
     getVideoUseCase = new MockGetVideoUseCase();
-    controller = new VideoController(createVideoUseCase as any, getVideoUseCase as any);
+    getVideos  = new MockGetVideosUseCase();
+    controller = new VideoController(createVideoUseCase as any, getVideoUseCase as any , getVideos as any);
   });
 
   it("returns created video on success", async () => {
@@ -135,6 +138,25 @@ describe("VideoController", () => {
     await expect(
       controller.findOne(courseId, moduleId, "1111-1111-1111-1111")
     ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('returns list of videos on findAll success', async () => {
+    const payload = [{ id:'v1',slug:'s',providerVideoId:'p',durationInSeconds:10,createdAt:new Date(),updatedAt:new Date(),translations:dto.translations }];
+    getVideos.execute.mockResolvedValueOnce(right({ videos: payload }));
+    const result = await controller.findAll(courseId, moduleId);
+    expect(getVideos.execute).toHaveBeenCalledWith({ courseId, moduleId });
+    expect(result).toEqual(payload);
+  });
+
+  it('throws BadRequestException on InvalidInputError from findAll', async () => {
+    const details = [{ message:'m',path:['courseId'] }];
+    getVideos.execute.mockResolvedValueOnce(left(new InvalidInputError('Bad',details)));
+    await expect(controller.findAll(courseId,moduleId)).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('throws InternalServerErrorException on other errors from findAll', async () => {
+    getVideos.execute.mockResolvedValueOnce(left(new Error('boom')));
+    await expect(controller.findAll(courseId,moduleId)).rejects.toBeInstanceOf(InternalServerErrorException);
   });
 
 

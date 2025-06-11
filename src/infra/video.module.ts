@@ -10,6 +10,7 @@ import { HttpModule as AxiosHttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { ModuleModule } from './module.module';
 import { GetVideoUseCase } from '@/domain/course-catalog/application/use-cases/get-video.use-case';
+import { GetVideosUseCase } from '@/domain/course-catalog/application/use-cases/get-videos.use-case';
 
 @Module({
   imports: [DatabaseModule,AxiosHttpModule,ConfigModule,ModuleModule],
@@ -17,10 +18,11 @@ import { GetVideoUseCase } from '@/domain/course-catalog/application/use-cases/g
   providers: [
     CreateVideoUseCase,
     GetVideoUseCase,
+    GetVideosUseCase,
 
     { provide: 'VideoRepository', useClass: PrismaVideoRepository },
     { provide: 'VideoHostProvider', useClass: PandaVideoProvider },
   ],
-  exports: [  CreateVideoUseCase,     GetVideoUseCase,  'VideoRepository'],
+  exports: [  CreateVideoUseCase,     GetVideoUseCase, GetVideosUseCase, 'VideoRepository'],
 })
 export class VideoModule {}
