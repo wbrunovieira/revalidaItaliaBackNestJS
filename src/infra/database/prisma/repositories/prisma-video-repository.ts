@@ -75,4 +75,39 @@ export class PrismaVideoRepository implements IVideoRepository {
       return left(new Error(`Failed to create video: ${err.message}`));
     }
   }
+
+  async findById(id: string): Promise<Either<Error, Video>> {
+    try {
+      const row = await this.prisma.video.findUnique({
+        where: { id },
+        include: { translations: true },
+      });
+      if (!row) {
+        return left(new Error('Video not found'));
+      }
+
+      const ptTr = row.translations.find(t => t.locale === 'pt');
+      if (!ptTr) {
+        return left(new Error('Portuguese translation missing'));
+      }
+
+      const videoEntity = Video.reconstruct(
+        {
+          slug: row.slug,
+          title: ptTr.title,
+          providerVideoId: row.providerVideoId,
+          durationInSeconds: row.durationInSeconds,
+          isSeen: false,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+        },
+        new UniqueEntityID(row.id),
+      );
+
+      return right(videoEntity);
+    } catch (err: any) {
+      return left(new Error(`Database error: ${err.message}`));
+    }
+  }
+
 }

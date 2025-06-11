@@ -23,4 +23,9 @@ export class InMemoryVideoRepository implements IVideoRepository {
     this.items.push({ moduleId, video });
     return right(undefined);
   }
+
+  async findById(id: string): Promise<Either<Error, Video>> {
+    const found = this.items.find(entry => entry.video.id.toString() === id);
+    return found ? right(found.video) : left(new Error('Video not found'));
+  }
 }

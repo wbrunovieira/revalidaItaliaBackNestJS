@@ -6,5 +6,11 @@ docker-compose exec backend npx prisma migrate dev --name init
 docker-compose exec backend npx prisma migrate reset --force
 
 
-##Prompts
-crie unit test para cobrir cenarios de erro, edge case e entradas invalidas. foque em comportamento, nao em implmentacao.
+## Prompts
+crie unit test para cobrir cenarios de erro, edge case e entradas invalidas. foque em comportamento, nao em implementacao.
+
+### listar videos no panda
+curl -s \
+  -H "Authorization: panda-cdb205efa07ed9662761e12adf2b6aa8a97b79e9942ec7f9b4ad93c368cf411a" \
+  -H "Accept: application/json" \
+  "https://api-v2.pandavideo.com.br/videos" | jq '.videos[] | {id, title}'

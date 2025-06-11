@@ -3,7 +3,7 @@
 import { Either, left, right } from "@/core/either";
 import { Injectable, Inject } from "@nestjs/common";
 import { SlugVO } from "@/domain/course-catalog/enterprise/value-objects/slug.vo";
-import { Module as ModuleEntity } from "@/domain/course-catalog/enterprise/entities/module.entity";
+
 import { Video } from "@/domain/course-catalog/enterprise/entities/video.entity";
 import { IModuleRepository } from "../repositories/i-module-repository";
 import { IVideoRepository } from "../repositories/i-video-repository";

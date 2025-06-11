@@ -37,7 +37,7 @@ export class GetCourseUseCase {
   async execute(
     request: GetCourseRequest
   ): Promise<GetCourseUseCaseResponse> {
-    // 1) Validar com Zod
+
     const parseResult = getCourseSchema.safeParse(request);
     if (!parseResult.success) {
       const details = parseResult.error.issues.map((issue) => ({
@@ -51,7 +51,7 @@ export class GetCourseUseCase {
     const data: GetCourseSchema = parseResult.data;
     const courseId = data.id;
 
-    // 2) Buscar no repositório
+
     try {
       const found = await this.courseRepository.findById(courseId);
       if (found.isLeft()) {

@@ -9,4 +9,5 @@ export interface IVideoRepository {
     video: Video,
     translations: Array<{ locale: "pt"|"it"|"es"; title: string; description: string }>
   ): Promise<Either<Error, void>>;
+  findById(id: string): Promise<Either<Error, Video>>;
 }
