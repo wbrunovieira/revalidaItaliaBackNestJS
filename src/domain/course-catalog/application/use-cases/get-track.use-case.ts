@@ -12,7 +12,18 @@ import { GetTrackSchema, getTrackSchema } from './validations/get-track.schema';
 
 export type GetTrackResponse = Either<
   InvalidInputError | TrackNotFoundError | RepositoryError,
-  { track: { id: string; slug: string; courseIds: string[]; title: string; description: string } }
+  {
+    track: {
+      id: string;
+      slug: string;
+      courseIds: string[];
+      translations: {
+        locale: 'pt' | 'it' | 'es';
+        title: string;
+        description: string;
+      }[];
+    };
+  }
 >;
 
 @Injectable()
@@ -59,8 +70,12 @@ export class GetTrackUseCase {
         id: trackEntity.id.toString(),
         slug: trackEntity.slug,
         courseIds: trackEntity.courseIds,
-        title: trackEntity.title,
-        description: trackEntity.description,
+        // Exponha tudo:
+        translations: trackEntity.translations.map(t => ({
+          locale: t.locale,
+          title: t.title,
+          description: t.description,
+        })),
       },
     };
     return right(payload);

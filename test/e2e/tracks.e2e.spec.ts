@@ -1,117 +1,85 @@
-// test/e2e/tracks.e2e.spec.ts
-import request from 'supertest';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/prisma/prisma.service';
 
-describe('Create Track (E2E)', () => {
-  let app: INestApplication;
-  let prisma: PrismaService;
+// src/domain/course-catalog/application/use-cases/get-track.use-case.spec.ts
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { GetTrackUseCase } from '@/domain/course-catalog/application/use-cases/get-track.use-case';
+import { InMemoryTrackRepository } from '@/test/repositories/in-memory-track-repository';
+import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
+import { TrackNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/track-not-found-error';
+import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
+import { Track } from '@/domain/course-catalog/enterprise/entities/track.entity';
+import { TrackTranslationVO } from '@/domain/course-catalog/enterprise/value-objects/track-translation.vo';
+import { UniqueEntityID } from '@/core/unique-entity-id';
 
-  beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = moduleRef.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })
-    );
-    await app.init();
+describe('GetTrackUseCase', () => {
+  let repo: InMemoryTrackRepository;
+  let useCase: GetTrackUseCase;
 
-    prisma = app.get(PrismaService);
-    // clean up tracks and courses
-    await prisma.trackTranslation.deleteMany({});
-    await prisma.courseTranslation.deleteMany({});
-    await prisma.course.deleteMany({});
-    await prisma.track.deleteMany({});
-    await prisma.courseTranslation.deleteMany({});
-    await prisma.course.deleteMany({});
+  beforeEach(() => {
+    repo = new InMemoryTrackRepository();
+    useCase = new GetTrackUseCase(repo as any);
   });
 
-  afterAll(async () => {
-    await prisma.trackTranslation.deleteMany({});
-    await prisma.courseTranslation.deleteMany({});
-    await prisma.course.deleteMany({});   
-    await prisma.track.deleteMany({});
-    await prisma.courseTranslation.deleteMany({});
-    await prisma.course.deleteMany({});
-    await app.close();
+  it('returns track payload with all translations on success', async () => {
+    const translations = [
+      new TrackTranslationVO('pt', 'Título PT', 'Descrição PT'),
+      new TrackTranslationVO('it', 'Titolo IT', 'Descrizione IT'),
+      new TrackTranslationVO('es', 'Título ES', 'Descripción ES'),
+    ];
+    const trackEntity = Track.create({
+      slug: 'slug-track',
+      courseIds: ['c1', 'c2'],
+      translations,
+    }, new UniqueEntityID('00000000-0000-0000-0000-000000000001'));
+    repo.items.push(trackEntity);
+
+    const result = await useCase.execute({ id: trackEntity.id.toString() });
+    expect(result.isRight()).toBe(true);
+    if (result.isRight()) {
+      const { track } = result.value;
+      expect(track.id).toBe(trackEntity.id.toString());
+      expect(track.slug).toBe('slug-track');
+      expect(track.courseIds).toEqual(['c1', 'c2']);
+
+      expect(Array.isArray(track.translations)).toBe(true);
+      expect(track.translations).toHaveLength(3);
+      expect(track.translations).toEqual(
+        expect.arrayContaining([
+          { locale: 'pt', title: 'Título PT', description: 'Descrição PT' },
+          { locale: 'it', title: 'Titolo IT', description: 'Descrizione IT' },
+          { locale: 'es', title: 'Título ES', description: 'Descripción ES' },
+        ])
+      );
+    }
   });
 
-  it('[POST] /tracks - Success', async () => {
-    // first create a course to reference
-    const coursePayload = {
-      slug: 'curso-para-trilha',
-      translations: [
-        { locale: 'pt', title: 'Curso PT', description: 'Descrição PT' },
-        { locale: 'it', title: 'Corso IT', description: 'Descrizione IT' },
-        { locale: 'es', title: 'Curso ES', description: 'Descripción ES' },
-      ],
-    };
-    const courseRes = await request(app.getHttpServer())
-      .post('/courses')
-      .send(coursePayload);
-    expect(courseRes.status).toBe(201);
-    const courseId = courseRes.body.id;
-
-    const trackPayload = {
-      slug: 'trilha-exemplo',
-      courseIds: [courseId],
-      translations: [
-        { locale: 'pt', title: 'Trilha Exemplo', description: 'Descrição da trilha' },
-        { locale: 'it', title: 'Traccia Esempio', description: 'Descrizione della traccia' },
-        { locale: 'es', title: 'Pista Ejemplo', description: 'Descripción de la pista' },
-      ],
-    };
-
-    const res = await request(app.getHttpServer())
-      .post('/tracks')
-      .send(trackPayload);
-
-    expect(res.status).toBe(201);
-    expect(res.body).toHaveProperty('id');
-    expect(res.body).toHaveProperty('slug', 'trilha-exemplo');
-    expect(res.body).toHaveProperty('courseIds');
-    expect(res.body.courseIds).toEqual([courseId]);
-    expect(res.body).toHaveProperty('title', 'Trilha Exemplo');
-    expect(res.body).toHaveProperty('description', 'Descrição da trilha');
+  it('throws InvalidInputError for invalid UUID', async () => {
+    const result = await useCase.execute({ id: 'not-a-uuid' });
+    expect(result.isLeft()).toBe(true);
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(InvalidInputError);
+      const err = result.value as InvalidInputError;
+      expect(err.details.some(d => d.path.join('.') === 'id')).toBe(true);
+    }
   });
 
-  it('[POST] /tracks - Missing Portuguese Translation', async () => {
-    // ensure at least one course exists
-    const courseRes = await request(app.getHttpServer())
-      .post('/courses')
-      .send({
-        slug: 'curso-pt1',
-        translations: [
-          { locale: 'pt', title: 'Curso PT1', description: 'Desc PT1' },
-          { locale: 'it', title: 'Corso IT1', description: 'Desc IT1' },
-          { locale: 'es', title: 'Curso ES1', description: 'Desc ES1' },
-        ],
-      });
-    expect(courseRes.status).toBe(201);
-    const courseId = courseRes.body.id;
+  it('throws TrackNotFoundError when repository returns not found', async () => {
+    const id = '00000000-0000-0000-0000-000000000002';
+    const result = await useCase.execute({ id });
+    expect(result.isLeft()).toBe(true);
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(TrackNotFoundError);
+    }
+  });
 
-    const payload = {
-      slug: 'sem-traducao-pt',
-      courseIds: [courseId],
-      translations: [
-        { locale: 'it', title: 'Solo IT', description: 'Solo descrizione' },
-        { locale: 'es', title: 'Solo ES', description: 'Solo descripción' },
-      ],
-    };
-
-    const res = await request(app.getHttpServer())
-      .post('/tracks')
-      .send(payload);
-
-    expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty('message');
-    const msgs: any[] = res.body.message;
-    const hasPtError = msgs.some(m =>
-      typeof m === 'string'
-        ? m.toLowerCase().includes('portuguese')
-        : typeof m.message === 'string' && m.message.toLowerCase().includes('portuguese')
-    );
-    expect(hasPtError).toBe(true);
+  it('throws RepositoryError when repository throws', async () => {
+    const id = '00000000-0000-0000-0000-000000000003';
+    vi.spyOn(repo, 'findById').mockImplementationOnce(() => { throw new Error('DB crashed'); });
+    const result = await useCase.execute({ id });
+    expect(result.isLeft()).toBe(true);
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(RepositoryError);
+      expect((result.value as RepositoryError).message).toBe('DB crashed');
+    }
   });
 });
+

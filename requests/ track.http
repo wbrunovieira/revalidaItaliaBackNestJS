@@ -6,7 +6,7 @@ POST {{BASE_URL}}/tracks
 Content-Type: application/json
 
 {
-  "slug": "minha-trilha",
+  "slug": "minha-trilha2",
   "courseIds": [
     "2dc45518-6d02-4a17-9c4b-6fa5bb4c5bcd"
   ],
@@ -30,3 +30,8 @@ Content-Type: application/json
 }
 
 ###ddb811e6-5420-439e-997a-426539784bae
+
+
+
+GET {{BASE_URL}}/tracks/93408073-e497-4959-9ed4-67e873d5f25c
+Content-Type: application/json

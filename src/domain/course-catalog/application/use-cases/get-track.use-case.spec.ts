@@ -5,7 +5,6 @@ import { InMemoryTrackRepository } from '@/test/repositories/in-memory-track-rep
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { TrackNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/track-not-found-error';
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
-import { left, right } from '@/core/either';
 import { Track } from '@/domain/course-catalog/enterprise/entities/track.entity';
 import { TrackTranslationVO } from '@/domain/course-catalog/enterprise/value-objects/track-translation.vo';
 import { UniqueEntityID } from '@/core/unique-entity-id';
@@ -19,8 +18,7 @@ describe('GetTrackUseCase', () => {
     useCase = new GetTrackUseCase(repo as any);
   });
 
-  it('returns track payload on success', async () => {
-    // Create a track entity
+  it('returns track payload with all translations on success', async () => {
     const translations = [
       new TrackTranslationVO('pt', 'Título PT', 'Descrição PT'),
       new TrackTranslationVO('it', 'Titolo IT', 'Descrizione IT'),
@@ -40,8 +38,16 @@ describe('GetTrackUseCase', () => {
       expect(track.id).toBe(trackEntity.id.toString());
       expect(track.slug).toBe('slug-track');
       expect(track.courseIds).toEqual(['c1', 'c2']);
-      expect(track.title).toBe('Título PT');
-      expect(track.description).toBe('Descrição PT');
+      // verifica se recebemos todas as traduções
+      expect(Array.isArray(track.translations)).toBe(true);
+      expect(track.translations).toHaveLength(3);
+      expect(track.translations).toEqual(
+        expect.arrayContaining([
+          { locale: 'pt', title: 'Título PT', description: 'Descrição PT' },
+          { locale: 'it', title: 'Titolo IT', description: 'Descrizione IT' },
+          { locale: 'es', title: 'Título ES', description: 'Descripción ES' },
+        ])
+      );
     }
   });
 
@@ -56,7 +62,6 @@ describe('GetTrackUseCase', () => {
   });
 
   it('throws TrackNotFoundError when repository returns not found', async () => {
-    // repo is empty, so any ID yields not found
     const id = '00000000-0000-0000-0000-000000000002';
     const result = await useCase.execute({ id });
     expect(result.isLeft()).toBe(true);
