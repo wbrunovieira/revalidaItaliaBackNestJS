@@ -13,10 +13,6 @@ import { Module } from "@/domain/course-catalog/enterprise/entities/module.entit
 export class PrismaCourseRepository implements ICourseRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Busca um curso pelo título em português (para verificar duplicidade).
-   * Agora traz também o slug para reconstruir a entidade.
-   */
   async findByTitle(title: string): Promise<Either<Error, Course>> {
     try {
       const data = await this.prisma.course.findFirst({
@@ -141,7 +137,7 @@ export class PrismaCourseRepository implements ICourseRepository {
         return left(new Error("Course not found"));
       }
   
-      // Reconstruir cada módulo com todas as traduções
+
       const modulesEntities: Module[] = data.modules.map((mod) => {
         const moduleProps = {
           slug: mod.slug,

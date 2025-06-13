@@ -10,7 +10,7 @@ const translationSchema = z.object({
 
 export const createCourseSchema = z
   .object({
-    // Agora só exigimos string de tamanho mínimo; não aplicamos regex aqui
+
     slug: z.string().min(3, "Slug must be at least 3 characters long"),
 
     translations: z

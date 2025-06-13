@@ -1,6 +1,6 @@
 import { compare } from 'bcryptjs'
 import { left } from '@/core/either'
-import { InMemoryAccountRepository } from '@/test/repositories/in-Memory-account-repository'
+import { InMemoryAccountRepository } from '@/test/repositories/in-memory-account-repository'
 import { CreateAccountUseCase } from '@/domain/auth/application/use-cases/create-account.use-case'
 import { CreateAccountRequest } from '@/domain/auth/application/dtos/create-account-request.dto'
 import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error'

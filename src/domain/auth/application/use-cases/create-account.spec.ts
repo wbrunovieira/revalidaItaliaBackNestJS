@@ -1,7 +1,7 @@
 //src/domain/auth/application/use-cases/create-account.spec.ts
 import { compare } from 'bcryptjs'
 import { left } from '@/core/either'
-import { InMemoryAccountRepository } from '@/test/repositories/in-Memory-account-repository'
+import { InMemoryAccountRepository } from '@/test/repositories/in-memory-account-repository'
 import {
   CreateAccountUseCase,
 

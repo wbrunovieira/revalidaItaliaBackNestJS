@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { hash } from 'bcryptjs'
 import { left, right } from '@/core/either'
-import { InMemoryAccountRepository } from '@/test/repositories/in-Memory-account-repository'
+import { InMemoryAccountRepository } from '@/test/repositories/in-memory-account-repository'
 import { AuthenticateUserUseCase } from './authenticate-user.use-case'
 import { AuthenticationError } from './errors/authentication-error'
 import { User } from '@/domain/auth/enterprise/entities/user.entity'

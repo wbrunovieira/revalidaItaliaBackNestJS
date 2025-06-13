@@ -2,7 +2,7 @@
 import { vi } from 'vitest'
 import { left } from '@/core/either'
 import { User } from '@/domain/auth/enterprise/entities/user.entity'
-import { InMemoryAccountRepository } from '@/test/repositories/in-Memory-account-repository'
+import { InMemoryAccountRepository } from '@/test/repositories/in-memory-account-repository'
 import { UpdateAccountUseCase } from './update-account.use-case'
 import { InvalidInputError } from './errors/invalid-input-error'
 import { ResourceNotFoundError } from './errors/resource-not-found-error'

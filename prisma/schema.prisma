@@ -12,6 +12,17 @@ datasource db {
 // = Entidades principais (agrupamentos)
 // =====================================
 
+model Track {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações:
+  courses      Course[]
+  translations TrackTranslation[]
+}
+
 model Course {
   id        String   @id @default(uuid())
   slug      String   @unique
@@ -22,6 +33,9 @@ model Course {
   modules      Module[]
   translations CourseTranslation[]
   videoLinks   CourseVideoLink[]
+
+  track   Track?  @relation(fields: [trackId], references: [id])
+  trackId String?
 }
 
 model Module {
@@ -44,7 +58,7 @@ model Module {
 model Video {
   id                String @id @default(uuid())
   slug              String @unique
-  providerVideoId      String
+  providerVideoId   String
   durationInSeconds Int
 
   module   Module @relation(fields: [moduleId], references: [id])
@@ -54,14 +68,25 @@ model Video {
   updatedAt DateTime @updatedAt
 
   // Relações:
-  translations VideoTranslation[] // title/description em pt, it, es
+  translations VideoTranslation[]
   videosSeen   VideoSeen[]
-  videoLinks   VideoLink[] // URLs por idioma (streaming/download)
+  videoLinks   VideoLink[]
 }
 
 // =======================================
 // = Tabelas de tradução (multilíngue)
 // =======================================
+
+model TrackTranslation {
+  id          String @id @default(uuid())
+  locale      String
+  title       String
+  description String
+  track       Track  @relation(fields: [trackId], references: [id])
+  trackId     String
+
+  @@unique([trackId, locale])
+}
 
 model CourseTranslation {
   id          String @id @default(uuid())
@@ -75,7 +100,6 @@ model CourseTranslation {
   @@unique([courseId, locale])
 }
 
-/// Traduções para Módulos (pt, it, es)
 model ModuleTranslation {
   id          String @id @default(uuid())
   locale      String // "pt", "it" ou "es"
@@ -88,7 +112,6 @@ model ModuleTranslation {
   @@unique([moduleId, locale])
 }
 
-/// Traduções para Vídeos (pt, it, es)
 model VideoTranslation {
   id          String @id @default(uuid())
   locale      String // "pt", "it" ou "es"
@@ -105,11 +128,10 @@ model VideoTranslation {
 // = Tabelas de links de vídeo por idioma
 // ===========================================
 
-/// URLs de vídeo diferentes por idioma (caso seja streaming + download)
 model VideoLink {
   id          String  @id @default(uuid())
   locale      String // "pt", "it" ou "es"
-  streamUrl   String // link para streaming
+  streamUrl   String
   downloadUrl String?
 
   video   Video  @relation(fields: [videoId], references: [id])
@@ -118,11 +140,10 @@ model VideoLink {
   @@unique([videoId, locale])
 }
 
-/// URLs de vídeo por idioma no nível do curso (opcional)
 model CourseVideoLink {
   id     String @id @default(uuid())
   locale String // "pt", "it" ou "es"
-  url    String // link completo para player ou download
+  url    String
 
   course   Course @relation(fields: [courseId], references: [id])
   courseId String
@@ -130,7 +151,6 @@ model CourseVideoLink {
   @@unique([courseId, locale])
 }
 
-/// URLs de vídeo por idioma no nível do módulo (opcional)
 model ModuleVideoLink {
   id     String @id @default(uuid())
   locale String // "pt", "it" ou "es"
@@ -146,7 +166,6 @@ model ModuleVideoLink {
 // = Demais entidades auxiliares
 // ====================================
 
-/// Relação “Usuário já viu Vídeo”
 model VideoSeen {
   id     String   @id @default(uuid())
   seenAt DateTime @default(now())
