@@ -43,7 +43,7 @@ describe("CourseController", () => {
     );
   });
 
-  // … tests for create() & list() omitted; assume they already exist …
+
 
   describe("getById()", () => {
     it("returns course payload on success", async () => {

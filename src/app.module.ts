@@ -10,6 +10,7 @@ import { HttpModule } from '@/infra/http.module';
 import { CourseModule } from './infra/course.module';
 import { ModuleModule } from './infra/module.module';
 import { VideoModule } from './infra/video.module';
+import { TrackModule } from './domain/course-catalog/track.module';
 
 
 @Module({
@@ -25,6 +26,7 @@ import { VideoModule } from './infra/video.module';
     ModuleModule,
     VideoModule,
     HttpModule,
+    TrackModule,
   ],
   controllers: [],
   providers: [],

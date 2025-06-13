@@ -1,0 +1,32 @@
+# track.http
+@BASE_URL = http://localhost:3333
+
+### Create Track
+POST {{BASE_URL}}/tracks
+Content-Type: application/json
+
+{
+  "slug": "minha-trilha",
+  "courseIds": [
+    "2dc45518-6d02-4a17-9c4b-6fa5bb4c5bcd"
+  ],
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Trilha de Exemplo PT",
+      "description": "Uma descrição em português para a trilha."
+    },
+    {
+      "locale": "it",
+      "title": "Traccia di Esempio IT",
+      "description": "Una descrizione in italiano per la traccia."
+    },
+    {
+      "locale": "es",
+      "title": "Pista de Ejemplo ES",
+      "description": "Una descripción en español para la pista."
+    }
+  ]
+}
+
+###ddb811e6-5420-439e-997a-426539784bae
