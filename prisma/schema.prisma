@@ -19,8 +19,18 @@ model Track {
   updatedAt DateTime @updatedAt
 
   // Relações:
-  courses      Course[]
+  trackCourses TrackCourse[]
   translations TrackTranslation[]
+}
+
+model TrackCourse {
+  track   Track  @relation(fields: [trackId], references: [id])
+  trackId String
+
+  course   Course @relation(fields: [courseId], references: [id])
+  courseId String
+
+  @@id([trackId, courseId])
 }
 
 model Course {
@@ -34,8 +44,7 @@ model Course {
   translations CourseTranslation[]
   videoLinks   CourseVideoLink[]
 
-  track   Track?  @relation(fields: [trackId], references: [id])
-  trackId String?
+  trackCourses TrackCourse[]
 }
 
 model Module {

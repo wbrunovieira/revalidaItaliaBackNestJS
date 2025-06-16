@@ -17,7 +17,7 @@ export class PrismaTrackRepository implements ITrackRepository {
         where: { slug },
         include: {
           translations: true,
-          courses: true,
+          trackCourses: { include: { course: true } },
         },
       });
       if (!data) return left(new Error("Track not found"));
@@ -29,7 +29,8 @@ export class PrismaTrackRepository implements ITrackRepository {
           tr.description
         )
       );
-      const courseIds = data.courses.map(c => c.id);
+
+      const courseIds = data.trackCourses.map(tc => tc.course.id);
 
       const props = {
         slug: data.slug,
@@ -38,8 +39,7 @@ export class PrismaTrackRepository implements ITrackRepository {
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
-      const track = Track.reconstruct(props, new UniqueEntityID(data.id));
-      return right(track);
+      return right(Track.reconstruct(props, new UniqueEntityID(data.id)));
     } catch (err: any) {
       return left(new Error(err.message || "Database error"));
     }
@@ -51,7 +51,7 @@ export class PrismaTrackRepository implements ITrackRepository {
         where: { id },
         include: {
           translations: true,
-          courses: true,
+          trackCourses: { include: { course: true } },
         },
       });
       if (!data) return left(new Error("Track not found"));
@@ -63,7 +63,8 @@ export class PrismaTrackRepository implements ITrackRepository {
           tr.description
         )
       );
-      const courseIds = data.courses.map(c => c.id);
+
+      const courseIds = data.trackCourses.map(tc => tc.course.id);
 
       const props = {
         slug: data.slug,
@@ -72,8 +73,7 @@ export class PrismaTrackRepository implements ITrackRepository {
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
-      const track = Track.reconstruct(props, new UniqueEntityID(data.id));
-      return right(track);
+      return right(Track.reconstruct(props, new UniqueEntityID(data.id)));
     } catch (err: any) {
       return left(new Error(err.message || "Database error"));
     }
@@ -93,8 +93,10 @@ export class PrismaTrackRepository implements ITrackRepository {
               description: tr.description,
             })),
           },
-          courses: {
-            connect: track.courseIds.map(courseId => ({ id: courseId })),
+          trackCourses: {
+            create: track.courseIds.map(courseId => ({
+              course: { connect: { id: courseId } },
+            })),
           },
         },
       });
@@ -109,7 +111,7 @@ export class PrismaTrackRepository implements ITrackRepository {
       const data = await this.prisma.track.findMany({
         include: {
           translations: true,
-          courses: true,
+          trackCourses: { include: { course: true } },
         },
       });
       const tracks = data.map(item => {
@@ -120,7 +122,7 @@ export class PrismaTrackRepository implements ITrackRepository {
             tr.description
           )
         );
-        const courseIds = item.courses.map(c => c.id);
+        const courseIds = item.trackCourses.map(tc => tc.course.id);
 
         const props = {
           slug: item.slug,

@@ -103,4 +103,17 @@ describe("CreateTrackUseCase", () => {
       expect(r.value).toBeInstanceOf(RepositoryError);
     }
   });
+  it("allows the same course in multiple tracks", async () => {
+    const first = await sut.execute(baseRequest());
+    expect(first.isRight()).toBe(true);
+
+    const secondReq = { ...baseRequest(), slug: "my-track-2" };
+    const second = await sut.execute(secondReq);
+    expect(second.isRight()).toBe(true);
+
+    expect(repo.items.map(t => t.slug)).toEqual(
+      expect.arrayContaining(["my-track", "my-track-2"])
+    );
+  });
+  
 });
