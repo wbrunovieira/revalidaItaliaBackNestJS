@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   BadRequestException,
-  ConflictException,
+
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
@@ -23,16 +23,19 @@ class MockCreateTrackUseCase {
 class MockGetTrackUseCase {
   execute = vi.fn();
 }
+class MockListTracksUseCase { execute = vi.fn(); }
 
 describe('TrackController', () => {
   let controller: TrackController;
   let createUseCase: MockCreateTrackUseCase;
   let getUseCase: MockGetTrackUseCase;
+  let listUseCase: MockListTracksUseCase;
 
   beforeEach(() => {
     createUseCase = new MockCreateTrackUseCase();
     getUseCase = new MockGetTrackUseCase();
-    controller = new TrackController(createUseCase as any, getUseCase as any);
+    listUseCase = new MockListTracksUseCase();
+    controller = new TrackController(createUseCase as any, getUseCase as any, listUseCase as any);
   });
 
   const createDto: CreateTrackDto = {
@@ -74,4 +77,28 @@ describe('TrackController', () => {
     getUseCase.execute.mockResolvedValueOnce(left(new Error('oops')));
     await expect(controller.getById({ id: '1' } as GetTrackDto)).rejects.toBeInstanceOf(InternalServerErrorException);
   });
+
+  it('create() returns track on success', async () => {
+    const payload = { track: { id: '1', slug: 'minha-trilha', courseIds: ['uuid-1'], title: 'PT', description: 'Desc PT' } };
+    createUseCase.execute.mockResolvedValueOnce(right(payload));
+    expect(await controller.create(createDto)).toEqual(payload.track);
+  });
+
+  it('list() returns tracks on success', async () => {
+    const tracks = [
+      { id: '1', slug: 't1', courseIds: ['c1'], translations: [] },
+      { id: '2', slug: 't2', courseIds: ['c2'], translations: [] },
+    ];
+    listUseCase.execute.mockResolvedValueOnce(right({ tracks }));
+    expect(await controller.list()).toEqual(tracks);
+    expect(listUseCase.execute).toHaveBeenCalled();
+  });
+
+
+  it('list() throws InternalServerError on error', async () => {
+    listUseCase.execute.mockResolvedValueOnce(left(new Error('fail')));
+    await expect(controller.list()).rejects.toBeInstanceOf(InternalServerErrorException);
+  });
+
+
 });

@@ -1,85 +1,100 @@
+// test/e2e/tracks.e2e.spec.ts
+import request from 'supertest';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { AppModule } from '../../src/app.module';
+import { PrismaService } from '../../src/prisma/prisma.service';
 
-// src/domain/course-catalog/application/use-cases/get-track.use-case.spec.ts
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { GetTrackUseCase } from '@/domain/course-catalog/application/use-cases/get-track.use-case';
-import { InMemoryTrackRepository } from '@/test/repositories/in-memory-track-repository';
-import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
-import { TrackNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/track-not-found-error';
-import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
-import { Track } from '@/domain/course-catalog/enterprise/entities/track.entity';
-import { TrackTranslationVO } from '@/domain/course-catalog/enterprise/value-objects/track-translation.vo';
-import { UniqueEntityID } from '@/core/unique-entity-id';
+describe('Track API (E2E)', () => {
+  let app: INestApplication;
+  let prisma: PrismaService;
 
-describe('GetTrackUseCase', () => {
-  let repo: InMemoryTrackRepository;
-  let useCase: GetTrackUseCase;
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    app = moduleRef.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+    await app.init();
 
-  beforeEach(() => {
-    repo = new InMemoryTrackRepository();
-    useCase = new GetTrackUseCase(repo as any);
+    prisma = app.get(PrismaService);
+    // cleanup
+    await prisma.trackTranslation.deleteMany({});
+    await prisma.track.deleteMany({});
+    await prisma.courseTranslation.deleteMany({});
+    await prisma.course.deleteMany({});
   });
 
-  it('returns track payload with all translations on success', async () => {
-    const translations = [
-      new TrackTranslationVO('pt', 'Título PT', 'Descrição PT'),
-      new TrackTranslationVO('it', 'Titolo IT', 'Descrizione IT'),
-      new TrackTranslationVO('es', 'Título ES', 'Descripción ES'),
-    ];
-    const trackEntity = Track.create({
-      slug: 'slug-track',
-      courseIds: ['c1', 'c2'],
-      translations,
-    }, new UniqueEntityID('00000000-0000-0000-0000-000000000001'));
-    repo.items.push(trackEntity);
-
-    const result = await useCase.execute({ id: trackEntity.id.toString() });
-    expect(result.isRight()).toBe(true);
-    if (result.isRight()) {
-      const { track } = result.value;
-      expect(track.id).toBe(trackEntity.id.toString());
-      expect(track.slug).toBe('slug-track');
-      expect(track.courseIds).toEqual(['c1', 'c2']);
-
-      expect(Array.isArray(track.translations)).toBe(true);
-      expect(track.translations).toHaveLength(3);
-      expect(track.translations).toEqual(
-        expect.arrayContaining([
-          { locale: 'pt', title: 'Título PT', description: 'Descrição PT' },
-          { locale: 'it', title: 'Titolo IT', description: 'Descrizione IT' },
-          { locale: 'es', title: 'Título ES', description: 'Descripción ES' },
-        ])
-      );
-    }
+  afterAll(async () => {
+    await prisma.trackTranslation.deleteMany({});
+    await prisma.track.deleteMany({});
+    await prisma.courseTranslation.deleteMany({});
+    await prisma.course.deleteMany({});
+    await app.close();
   });
 
-  it('throws InvalidInputError for invalid UUID', async () => {
-    const result = await useCase.execute({ id: 'not-a-uuid' });
-    expect(result.isLeft()).toBe(true);
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(InvalidInputError);
-      const err = result.value as InvalidInputError;
-      expect(err.details.some(d => d.path.join('.') === 'id')).toBe(true);
-    }
+  it('[POST] /tracks - Success', async () => {
+    const courseRes = await request(app.getHttpServer()).post('/courses').send({
+      slug: 'curso-para-trilha',
+      translations: [
+        { locale: 'pt', title: 'Curso PT', description: 'Desc PT' },
+        { locale: 'it', title: 'Corso IT', description: 'Desc IT' },
+        { locale: 'es', title: 'Curso ES', description: 'Desc ES' },
+      ],
+    });
+    expect(courseRes.status).toBe(201);
+    const courseId = courseRes.body.id;
+
+    const trackRes = await request(app.getHttpServer()).post('/tracks').send({
+      slug: 'trilha-exemplo',
+      courseIds: [courseId],
+      translations: [
+        { locale: 'pt', title: 'Trilha PT', description: 'Desc Trilha PT' },
+        { locale: 'it', title: 'Traccia IT', description: 'Desc Traccia IT' },
+        { locale: 'es', title: 'Pista ES', description: 'Desc Pista ES' },
+      ],
+    });
+    expect(trackRes.status).toBe(201);
+    expect(trackRes.body).toHaveProperty('id');
+    expect(trackRes.body.slug).toBe('trilha-exemplo');
   });
 
-  it('throws TrackNotFoundError when repository returns not found', async () => {
-    const id = '00000000-0000-0000-0000-000000000002';
-    const result = await useCase.execute({ id });
-    expect(result.isLeft()).toBe(true);
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(TrackNotFoundError);
-    }
+  it('[GET] /tracks/:id - Success', async () => {
+    const courseRes = await request(app.getHttpServer()).post('/courses').send({
+      slug: 'curso-pt',
+      translations: [
+        { locale: 'pt', title: 'Curso PT2', description: 'Desc PT2' },
+        { locale: 'it', title: 'Corso IT2', description: 'Desc IT2' },
+        { locale: 'es', title: 'Curso ES2', description: 'Desc ES2' },
+      ],
+    });
+    const courseId = courseRes.body.id;
+
+    const trackRes = await request(app.getHttpServer()).post('/tracks').send({
+      slug: 'trilha-detalhe',
+      courseIds: [courseId],
+      translations: [
+        { locale: 'pt', title: 'Detalhe PT', description: 'Desc Detalhe PT' },
+        { locale: 'it', title: 'Dettaglio IT', description: 'Desc Dettaglio IT' },
+        { locale: 'es', title: 'Detalle ES', description: 'Desc Detalle ES' },
+      ],
+    });
+    const trackId = trackRes.body.id;
+
+    const res = await request(app.getHttpServer()).get(`/tracks/${trackId}`);
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(trackId);
+    expect(Array.isArray(res.body.translations)).toBe(true);
+    expect(res.body.translations).toHaveLength(3);
   });
 
-  it('throws RepositoryError when repository throws', async () => {
-    const id = '00000000-0000-0000-0000-000000000003';
-    vi.spyOn(repo, 'findById').mockImplementationOnce(() => { throw new Error('DB crashed'); });
-    const result = await useCase.execute({ id });
-    expect(result.isLeft()).toBe(true);
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(RepositoryError);
-      expect((result.value as RepositoryError).message).toBe('DB crashed');
-    }
+  it('[GET] /tracks - List Success', async () => {
+    const res = await request(app.getHttpServer()).get('/tracks');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThanOrEqual(1);
+    res.body.forEach((t: any) => {
+      expect(t).toHaveProperty('id');
+      expect(t).toHaveProperty('slug');
+      expect(Array.isArray(t.translations)).toBe(true);
+    });
   });
 });
-

@@ -19,6 +19,7 @@ import { CreateTrackDto } from '@/domain/course-catalog/application/dtos/create-
 import { GetTrackUseCase } from '@/domain/course-catalog/application/use-cases/get-track.use-case';
 import { TrackNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/track-not-found-error';
 import { GetTrackDto } from '@/domain/course-catalog/application/dtos/get-track.dto';
+import { ListTracksUseCase } from '@/domain/course-catalog/application/use-cases/list-tracks.use-case';
 
 @Controller('tracks')
 export class TrackController {
@@ -27,6 +28,8 @@ export class TrackController {
     private readonly createTrackUseCase: CreateTrackUseCase,
     @Inject(GetTrackUseCase)
     private readonly getTrackUseCase: GetTrackUseCase,
+    @Inject(ListTracksUseCase)
+    private readonly listTracksUseCase: ListTracksUseCase,
   ) {}
 
   @Post()
@@ -71,5 +74,14 @@ export class TrackController {
       throw new InternalServerErrorException(error.message);
     }
     return (result.value as any).track;
+  }
+
+  @Get()
+  async list() {
+    const result = await this.listTracksUseCase.execute();
+    if (result.isLeft()) {
+      throw new InternalServerErrorException(result.value.message);
+    }
+    return (result.value as any).tracks;
   }
 }

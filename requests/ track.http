@@ -35,3 +35,8 @@ Content-Type: application/json
 
 GET {{BASE_URL}}/tracks/93408073-e497-4959-9ed4-67e873d5f25c
 Content-Type: application/json
+
+
+### List Tracks
+GET {{BASE_URL}}/tracks
+Content-Type: application/json

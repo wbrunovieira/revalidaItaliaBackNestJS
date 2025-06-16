@@ -5,6 +5,7 @@ import { CreateTrackUseCase } from '@/domain/course-catalog/application/use-case
 import { PrismaTrackRepository } from '@/infra/database/prisma/repositories/prisma-track-repository';
 import { TrackController } from '@/infra/controllers/track.controller';
 import { GetTrackUseCase } from './application/use-cases/get-track.use-case';
+import { ListTracksUseCase } from './application/use-cases/list-tracks.use-case';
 
 
 @Module({
@@ -13,6 +14,7 @@ import { GetTrackUseCase } from './application/use-cases/get-track.use-case';
   providers: [
     CreateTrackUseCase,
     GetTrackUseCase,
+    ListTracksUseCase,
     { provide: 'TrackRepository', useClass: PrismaTrackRepository },
   ],
   exports: ['TrackRepository'],
