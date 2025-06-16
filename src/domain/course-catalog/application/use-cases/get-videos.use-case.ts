@@ -41,7 +41,7 @@ export class GetVideosUseCase {
     const data: GetVideosSchema = parsed.data;
 
     try {
-      const found = await this.videoRepo.findByModule(data.moduleId);
+      const found = await this.videoRepo.findByLesson(data.moduleId);
       if (found.isLeft()) {
         return left(new RepositoryError(found.value.message));
       }

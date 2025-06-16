@@ -6,6 +6,8 @@ docker-compose exec backend npx prisma migrate dev --name init
 docker-compose exec backend npx prisma migrate reset --force
 
 
+sudo chown -R $(id -un):$(id -gn) prisma/migrations
+
 ## Prompts
 crie unit test para cobrir cenarios de erro, edge case e entradas invalidas. foque em comportamento, nao em implementacao.
 

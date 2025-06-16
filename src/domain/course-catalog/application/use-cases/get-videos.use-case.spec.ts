@@ -126,7 +126,7 @@ describe('GetVideosUseCase', () => {
   });
 
   it('propagates RepositoryError when repo fails', async () => {
-    vi.spyOn(repo, 'findByModule').mockRejectedValueOnce(new Error('DB failure'));
+    vi.spyOn(repo, 'findByLesson').mockRejectedValueOnce(new Error('DB failure'));
     const result = await sut.execute({ courseId: VALID_COURSE_ID, moduleId: VALID_MODULE_ID });
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {

@@ -41,6 +41,11 @@ describe('VideoController (E2E)', () => {
     // wipe and seed
     await prisma.videoTranslation.deleteMany();
     await prisma.video.deleteMany();
+
+    // remover as novas entidades antes de Module
+    await prisma.lessonDocument.deleteMany();
+    await prisma.lesson.deleteMany();
+
     await prisma.moduleTranslation.deleteMany();
     await prisma.module.deleteMany();
     await prisma.courseTranslation.deleteMany();
@@ -219,7 +224,6 @@ describe('VideoController (E2E)', () => {
 
   describe('[GET] list videos', () => {
     it('→ Success returns list of videos', async () => {
-      // create multiple video fixtures
       const payload1 = {
         slug: 'list-video-1',
         providerVideoId: realVideoId,

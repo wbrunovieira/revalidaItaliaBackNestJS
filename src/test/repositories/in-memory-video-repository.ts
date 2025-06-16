@@ -5,7 +5,7 @@ import { IVideoRepository } from '@/domain/course-catalog/application/repositori
 import { Video } from '@/domain/course-catalog/enterprise/entities/video.entity';
 
 interface StoredVideo {
-  moduleId: string;
+  lessonId: string;
   video: Video;
   translations: Array<{ locale: 'pt' | 'it' | 'es'; title: string; description: string }>;
 }
@@ -39,18 +39,18 @@ export class InMemoryVideoRepository implements IVideoRepository {
   }
 
   async create(
-    moduleId: string,
+    lessonId: string,
     video: Video,
     translations: Array<{ locale: 'pt' | 'it' | 'es'; title: string; description: string }>
   ): Promise<Either<Error, void>> {
-    this.items.push({ moduleId, video, translations });
+    this.items.push({ lessonId, video, translations });
     return right(undefined);
   }
 
-  async findByModule(
-    moduleId: string,
+  async findByLesson(
+    lessonId: string,
   ): Promise<Either<Error, Array<{ video: Video; translations: Array<{ locale: 'pt' | 'it' | 'es'; title: string; description: string }> }>>> {
-    const filtered = this.items.filter(item => item.moduleId === moduleId);
+    const filtered = this.items.filter(item => item.lessonId === lessonId);
     return right(filtered.map(item => ({ video: item.video, translations: item.translations })));
   }
 

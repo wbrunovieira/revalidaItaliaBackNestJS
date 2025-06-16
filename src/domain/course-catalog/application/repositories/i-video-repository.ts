@@ -26,8 +26,8 @@ export interface IVideoRepository {
     >
   >;
 
-  findByModule(
-    moduleId: string
+  findByLesson(
+    lessonId: string
   ): Promise<
     Either<
       Error,

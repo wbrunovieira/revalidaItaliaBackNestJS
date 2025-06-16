@@ -7,7 +7,7 @@ export interface TranslationDto {
 }
 
 export interface CreateVideoRequest {
-  moduleId: string;
+  lessonId: string;
   slug: string;
   providerVideoId: string;
   translations: TranslationDto[];
