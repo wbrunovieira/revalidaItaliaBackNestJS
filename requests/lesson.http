@@ -3,11 +3,11 @@
 
 
 ### Create Lesson
-POST {{BASE_URL}}/3788fa7b-e274-4fd6-8ca8-a8274067ba82/modules/6cab3e65-4e55-4169-aa94-5484ac078031/lessons
+POST {{BASE_URL}}/courses/841c38f9-57dd-47eb-a70c-c125a971ba3c/modules/ca25e631-efb5-448e-907e-4aa440646773/lessons
 Content-Type: application/json
 
 {
-  "moduleId": "6cab3e65-4e55-4169-aa94-5484ac078031",
+  "moduleId": "ca25e631-efb5-448e-907e-4aa440646773",
   "translations": [
     { "locale": "pt", "title": "Aula PT", "description": "Descrição PT" },
     { "locale": "it", "title": "Lezione IT", "description": "Descrizione IT" },

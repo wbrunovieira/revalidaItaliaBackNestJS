@@ -6,21 +6,28 @@ import { GetVideosRequest } from '../dtos/get-videos-request.dto';
 
 import { InvalidInputError } from './errors/invalid-input-error';
 import { RepositoryError } from './errors/repository-error';
-import { GetVideosSchema, getVideosSchema } from './validations/get-videos.schema';
+import {
+  GetVideosSchema,
+  getVideosSchema,
+} from './validations/get-videos.schema';
 
 export type GetVideosUseCaseResponse = Either<
-  | InvalidInputError
-  | RepositoryError
-  | Error,
-  { videos: Array<{
+  InvalidInputError | RepositoryError,
+  {
+    videos: Array<{
       id: string;
       slug: string;
       providerVideoId: string;
       durationInSeconds: number;
       createdAt: Date;
       updatedAt: Date;
-      translations: Array<{ locale: 'pt' | 'it' | 'es'; title: string; description: string }>;
-    }> }
+      translations: Array<{
+        locale: 'pt' | 'it' | 'es';
+        title: string;
+        description: string;
+      }>;
+    }>;
+  }
 >;
 
 @Injectable()
@@ -31,22 +38,26 @@ export class GetVideosUseCase {
   ) {}
 
   async execute(
-    request: GetVideosRequest,
+    request: GetVideosRequest, // now only { lessonId }
   ): Promise<GetVideosUseCaseResponse> {
     const parsed = getVideosSchema.safeParse(request);
     if (!parsed.success) {
-      const details = parsed.error.issues.map(i => ({ code: i.code, message: i.message, path: i.path }));
+      const details = parsed.error.issues.map((i) => ({
+        code: i.code,
+        message: i.message,
+        path: i.path,
+      }));
       return left(new InvalidInputError('Validation failed', details));
     }
-    const data: GetVideosSchema = parsed.data;
+    const { lessonId } = parsed.data;
 
-    try {
-      const found = await this.videoRepo.findByLesson(data.moduleId);
-      if (found.isLeft()) {
-        return left(new RepositoryError(found.value.message));
-      }
-      const list = found.value;
-      return right({ videos: list.map(({ video, translations }) => ({
+    const found = await this.videoRepo.findByLesson(lessonId);
+    if (found.isLeft()) {
+      return left(new RepositoryError(found.value.message));
+    }
+
+    return right({
+      videos: found.value.map(({ video, translations }) => ({
         id: video.id.toString(),
         slug: video.slug,
         providerVideoId: video.providerVideoId,
@@ -54,9 +65,7 @@ export class GetVideosUseCase {
         createdAt: video.createdAt,
         updatedAt: video.updatedAt,
         translations,
-      })) });
-    } catch(err: any) {
-      return left(new RepositoryError(err.message));
-    }
+      })),
+    });
   }
 }

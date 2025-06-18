@@ -1,11 +1,8 @@
-// src/domain/course-catalog/application/validations/get-videos.schema.ts
+// src/domain/course-catalog/application/use-cases/validations/get-videos.schema.ts
 import { z } from 'zod';
 
-export const getVideosSchema = z
-  .object({
-    courseId: z.string().uuid('Course ID must be a valid UUID'),
-    moduleId: z.string().uuid('Module ID must be a valid UUID'),
-  })
-  .strict();
+export const getVideosSchema = z.object({
+  lessonId: z.string().uuid(),
+});
 
-  export type GetVideosSchema = z.infer<typeof getVideosSchema>;
+export type GetVideosSchema = z.infer<typeof getVideosSchema>;

@@ -12,6 +12,7 @@ services:
     environment:
       NODE_ENV: development
       DATABASE_URL: postgres://postgres:docker@db:5432/revalida_postgres
+      PRISMA_CLI_QUERY_ENGINE_TYPE: binary
     ports:
       - '3333:3333'
     depends_on:
@@ -37,7 +38,7 @@ services:
       - db-data:/data/postgres
       - ./logs/db:/var/log/postgresql
     healthcheck:
-      test: [ 'CMD-SHELL', 'pg_isready -U postgres' ]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
       timeout: 5s
       retries: 5

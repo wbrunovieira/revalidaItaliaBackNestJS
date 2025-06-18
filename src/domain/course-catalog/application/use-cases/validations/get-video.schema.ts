@@ -1,3 +1,4 @@
+//src/domain/course-catalog/application/use-cases/validations/get-video.schema.ts
 import { z } from 'zod';
 
 export const getVideoSchema = z

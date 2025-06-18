@@ -2,7 +2,7 @@
 
 ###
 # @name create-video
-POST {{BASE_URL}}/courses/3788fa7b-e274-4fd6-8ca8-a8274067ba82/videos
+POST {{BASE_URL}}/courses/307a3302-3910-44f6-ac95-28033a0569a9/videos
 Content-Type: application/json
 
 {

@@ -44,6 +44,7 @@ CREATE TABLE "Video" (
     "slug" TEXT NOT NULL,
     "providerVideoId" TEXT NOT NULL,
     "durationInSeconds" INTEGER NOT NULL,
+    "isSeen" BOOLEAN NOT NULL DEFAULT false,
     "lessonId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,

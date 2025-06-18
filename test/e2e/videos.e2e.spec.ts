@@ -11,6 +11,7 @@ describe('VideoController (E2E)', () => {
   const realVideoId = 'any-video-id';
   let courseId: string;
   let moduleId: string;
+  let lessonId: string;
   let createdVideoId: string;
 
   beforeAll(async () => {
@@ -38,19 +39,20 @@ describe('VideoController (E2E)', () => {
   });
 
   beforeEach(async () => {
-    // wipe and seed
+    // limpa tudo na ordem certa
     await prisma.videoTranslation.deleteMany();
     await prisma.video.deleteMany();
 
-    // remover as novas entidades antes de Module
     await prisma.lessonDocument.deleteMany();
     await prisma.lesson.deleteMany();
 
     await prisma.moduleTranslation.deleteMany();
     await prisma.module.deleteMany();
+
     await prisma.courseTranslation.deleteMany();
     await prisma.course.deleteMany();
 
+    // cria curso
     const course = await prisma.course.create({
       data: {
         slug: 'test-course',
@@ -65,6 +67,7 @@ describe('VideoController (E2E)', () => {
     });
     courseId = course.id;
 
+    // cria módulo
     const module = await prisma.module.create({
       data: {
         slug: 'test-module',
@@ -80,9 +83,16 @@ describe('VideoController (E2E)', () => {
       },
     });
     moduleId = module.id;
+
+    // agora criamos a lesson vinculada ao módulo
+    const lesson = await prisma.lesson.create({
+      data: { moduleId },
+    });
+    lessonId = lesson.id;
   });
 
-  const endpoint = () => `/courses/${courseId}/modules/${moduleId}/videos`;
+  // monta a rota usando lessonId
+  const endpoint = () => `/courses/${courseId}/lessons/${lessonId}/videos`;
 
   describe('[POST] create video', () => {
     it('→ Success', async () => {
@@ -128,9 +138,7 @@ describe('VideoController (E2E)', () => {
         .send(payload);
       expect(res.status).toBe(201);
 
-      res = await request(app.getHttpServer())
-        .post(endpoint())
-        .send(payload);
+      res = await request(app.getHttpServer()).post(endpoint()).send(payload);
       expect(res.status).toBe(409);
     });
 
@@ -171,7 +179,6 @@ describe('VideoController (E2E)', () => {
 
   describe('[GET] get video', () => {
     beforeEach(async () => {
-      // create a video fixture
       const res = await request(app.getHttpServer())
         .post(endpoint())
         .send({
