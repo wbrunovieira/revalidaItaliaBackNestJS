@@ -1,8 +1,5 @@
-export interface TranslationDto {
-  locale: 'pt' | 'it' | 'es';
-  title: string;
-  description: string;
-}
+import { TranslationDto } from "./create-course.dto";
+
 
 export interface CreateCourseRequest {
   slug: string;

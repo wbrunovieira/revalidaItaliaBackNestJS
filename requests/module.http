@@ -2,11 +2,11 @@
 
 ###
 # @name create-module
-POST {{BASE_URL}}/courses/75cd5469-0047-4402-8360-e6288ef6cd66/modules
+POST {{BASE_URL}}/courses/3788fa7b-e274-4fd6-8ca8-a8274067ba82/modules
 Content-Type: application/json
 
 {
-  "slug": "modulo-calculo3",
+  "slug": "modulo-calculo4",
   "translations": [
     {
       "locale": "pt",
@@ -24,7 +24,7 @@ Content-Type: application/json
       "description": "Introducción al cálculo diferencial."
     }
   ],
-  "order": 1
+  "order": 2
 }
 
 ###

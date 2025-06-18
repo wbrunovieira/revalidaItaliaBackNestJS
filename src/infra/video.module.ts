@@ -1,6 +1,6 @@
 // src/infra/course-catalog/video.module.ts
 import { Module } from '@nestjs/common';
-import { CreateVideoUseCase } from '@/domain/course-catalog/application/use-cases/create-video.use-case';
+// import { CreateVideoUseCase } from '@/domain/course-catalog/application/use-cases/create-video.use-case';
 
 import { VideoController } from './controllers/video.controller';
 import { PrismaVideoRepository } from './database/prisma/repositories/prisma-video-repository';
@@ -16,13 +16,15 @@ import { GetVideosUseCase } from '@/domain/course-catalog/application/use-cases/
   imports: [DatabaseModule,AxiosHttpModule,ConfigModule,ModuleModule],
   controllers: [VideoController],
   providers: [
-    CreateVideoUseCase,
+    // CreateVideoUseCase,
     GetVideoUseCase,
     GetVideosUseCase,
 
     { provide: 'VideoRepository', useClass: PrismaVideoRepository },
     { provide: 'VideoHostProvider', useClass: PandaVideoProvider },
   ],
-  exports: [  CreateVideoUseCase,     GetVideoUseCase, GetVideosUseCase, 'VideoRepository'],
+  exports: [ 
+    //  CreateVideoUseCase,     
+    GetVideoUseCase, GetVideosUseCase, 'VideoRepository'],
 })
 export class VideoModule {}

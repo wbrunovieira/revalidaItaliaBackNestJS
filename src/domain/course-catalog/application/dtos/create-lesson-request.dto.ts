@@ -1,12 +1,7 @@
-export class CreateLessonRequest {
-  /** The module under which this lesson will live */
-  moduleId!: string;
+// src/domain/course-catalog/application/dtos/create-lesson-request.dto.ts
+import { TranslationDto } from './translation.dto';
 
-  /** Exactly three translations, one each for pt, it & es */
-  translations!: Array<{
-    locale: "pt" | "it" | "es";
-    title: string;
-    /** optional longer description */
-    description?: string;
-  }>;
+export interface CreateLessonRequest {
+  moduleId: string;            // comes from the route param
+  translations: TranslationDto[];
 }
