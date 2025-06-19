@@ -13,6 +13,7 @@ import { CreateLessonRequest } from '@/domain/course-catalog/application/dtos/cr
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { ModuleNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/module-not-found-error';
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
+import { VideoNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/video-not-found-error';
 
 @Controller('courses/:courseId/modules/:moduleId/lessons')
 export class LessonController {
@@ -26,35 +27,49 @@ export class LessonController {
     const result = await this.createLesson.execute({
       moduleId,
       translations: dto.translations,
+      videoId: dto.videoId,
     });
 
     if (result.isLeft()) {
       const err = result.value;
 
       if (err instanceof InvalidInputError) {
-        // Throw with the raw details array as the response
         const ex = new BadRequestException(err.details);
         (ex as any).response = err.details;
         throw ex;
       }
 
       if (err instanceof ModuleNotFoundError) {
-        // Throw with the raw message string as the response
         const ex = new NotFoundException(err.message);
         (ex as any).response = err.message;
         throw ex;
       }
 
+      if (err instanceof VideoNotFoundError) {
+        const ex = new BadRequestException(err.message);
+        (ex as any).response = err.message;
+        throw ex;
+      }
+
       if (err instanceof RepositoryError) {
-        // Throw with the raw message string as the response
         const ex = new InternalServerErrorException(err.message);
         (ex as any).response = err.message;
         throw ex;
       }
+
+      const ex = new InternalServerErrorException('Unknown error occurred');
+      (ex as any).response = 'Unknown error occurred';
+      throw ex;
     }
 
-    // At this point it's a Right, so we know value has a .lesson
-    const { lesson } = result.value as { lesson: { id: string; moduleId: string; translations: any[] } };
+    const { lesson } = result.value as {
+      lesson: {
+        id: string;
+        moduleId: string;
+        videoId?: string;
+        translations: any[];
+      };
+    };
     return lesson;
   }
 }

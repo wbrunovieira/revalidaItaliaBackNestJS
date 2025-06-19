@@ -3,14 +3,28 @@
 
 
 ### Create Lesson
-POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/modules/379fb12e-efb4-4e1c-9239-c4bb03af20af/lessons
+POST {{BASE_URL}}/courses/1fc39af9-534a-4020-bc6d-3f7f1c8dda90/modules/b4998d32-12b6-40e2-88eb-6c02c0f15333/lessons
 Content-Type: application/json
 
 {
-  "moduleId": "379fb12e-efb4-4e1c-9239-c4bb03af20af",
+  "moduleId": "b4998d32-12b6-40e2-88eb-6c02c0f15333",
   "translations": [
     { "locale": "pt", "title": "Aula PT", "description": "Descrição PT" },
     { "locale": "it", "title": "Lezione IT", "description": "Descrizione IT" },
     { "locale": "es", "title": "Lección ES", "description": "Descripción ES" }
+  ]
+}
+
+
+### Create Lesson (with video)
+POST {{BASE_URL}}/courses/1fc39af9-534a-4020-bc6d-3f7f1c8dda90/modules/b4998d32-12b6-40e2-88eb-6c02c0f15333/lessons
+Content-Type: application/json
+
+{
+  "videoId": "2683acb4-477e-4509-ad61-58ff06665394",
+  "translations": [
+    { "locale": "pt", "title": "Aula com Vídeo PT", "description": "Descrição PT" },
+    { "locale": "it", "title": "Lezione con Video IT", "description": "Descrizione IT" },
+    { "locale": "es", "title": "Lección con Video ES", "description": "Descripción ES" }
   ]
 }

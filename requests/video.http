@@ -2,11 +2,11 @@
 
 ###
 # @name create-video
-POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/22fae576-4bfd-41e9-83ee-3a32e82357d6/videos
+POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/videos
 Content-Type: application/json
 
 {
-  "slug": "intro-derivadas4",
+  "slug": "intro-derivadas",
   "providerVideoId": "5cbf2ba5-49e0-4319-8dd4-8944808fab5a",
   "translations": [
     {

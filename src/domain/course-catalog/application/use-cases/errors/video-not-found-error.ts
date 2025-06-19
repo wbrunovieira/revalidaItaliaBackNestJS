@@ -1,6 +1,6 @@
 export class VideoNotFoundError extends Error {
   constructor() {
-    super('Vídeo não encontrado');
+    super('Video not found');
     this.name = 'VideoNotFoundError';
   }
 }

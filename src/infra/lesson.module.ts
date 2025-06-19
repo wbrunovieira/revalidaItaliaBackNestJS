@@ -5,11 +5,10 @@ import { CreateLessonUseCase } from '@/domain/course-catalog/application/use-cas
 import { PrismaModuleRepository } from '@/infra/database/prisma/repositories/prisma-module-repository';
 import { PrismaLessonRepository } from '@/infra/database/prisma/repositories/prisma-lesson-repository';
 import { LessonController } from './controllers/lesson.controller';
+import { VideoModule } from './video.module';
 
 @Module({
-  imports: [
-    DatabaseModule,
-  ],
+  imports: [DatabaseModule, VideoModule],
   controllers: [LessonController],
   providers: [
     // Use‐case
@@ -25,9 +24,6 @@ import { LessonController } from './controllers/lesson.controller';
       useClass: PrismaLessonRepository,
     },
   ],
-  exports: [
-    'ModuleRepository',
-    'LessonRepository',
-  ],
+  exports: ['ModuleRepository', 'LessonRepository'],
 })
 export class LessonModule {}

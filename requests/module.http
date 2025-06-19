@@ -2,25 +2,25 @@
 
 ###
 # @name create-module
-POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/modules
+POST {{BASE_URL}}/courses/1fc39af9-534a-4020-bc6d-3f7f1c8dda90/modules
 Content-Type: application/json
 
 {
-  "slug": "modulo-calculo2",
+  "slug": "modulo-calculo",
   "translations": [
     {
       "locale": "pt",
-      "title": "Módulo Cálculo2",
+      "title": "Módulo Cálculo",
       "description": "Introdução ao cálculo diferencial."
     },
     {
       "locale": "it",
-      "title": "Modulo Calcolo2",
+      "title": "Modulo Calcolo",
       "description": "Introduzione al calcolo differenziale."
     },
     {
       "locale": "es",
-      "title": "Módulo Cálculo2",
+      "title": "Módulo Cálculo",
       "description": "Introducción al cálculo diferencial."
     }
   ],
@@ -30,10 +30,10 @@ Content-Type: application/json
 ###
 
 # @name list-modules
-GET {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/modules
+GET {{BASE_URL}}/courses/b4998d32-12b6-40e2-88eb-6c02c0f15333/modules
 Content-Type: application/json
 
 ###
 # @name get-module
-GET {{BASE_URL}}/courses/4e5a55db-40d0-4e6a-bbe4-c6bb5061666d/modules/d7a19ec3-f094-4f9b-84e5-990f42dcb55a
+GET {{BASE_URL}}/courses/b4998d32-12b6-40e2-88eb-6c02c0f15333/modules/d7a19ec3-f094-4f9b-84e5-990f42dcb55a
 Content-Type: application/json
