@@ -3,7 +3,6 @@ import swc from 'unplugin-swc';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig(async () => {
-  // Faz o import dinâmico do plugin ESM-only
   const tsConfigPaths = (await import('vite-tsconfig-paths')).default;
 
   return {
@@ -16,7 +15,6 @@ export default defineConfig(async () => {
       testTimeout: 120_000,
     },
     plugins: [
-      // Aqui usamos o plugin já carregado
       tsConfigPaths(),
       swc.vite({
         module: { type: 'es6' },

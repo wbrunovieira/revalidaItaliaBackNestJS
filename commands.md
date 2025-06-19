@@ -14,6 +14,10 @@ docker-compose exec backend npx prisma migrate reset --force
 
 docker exec -it ead-backend-dev sh -c "pnpm prisma db push --force-reset"
 
+# Mark the migration as already applied
+
+docker exec -it ead-backend-dev sh -c "pnpm prisma migrate resolve --applied 20250618140155_init"
+
 sudo chown -R $(id -un):$(id -gn) prisma/migrations
 
 ## Prompts
