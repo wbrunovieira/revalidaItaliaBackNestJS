@@ -1,4 +1,3 @@
-// src/infra/course-catalog/controllers/video.controller.spec.ts
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   BadRequestException,
@@ -12,13 +11,13 @@ import { DuplicateVideoError } from '@/domain/course-catalog/application/use-cas
 import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
 import { VideoNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/video-not-found-error';
 import { CreateVideoDto } from '@/domain/course-catalog/application/dtos/create-video.dto';
-import { CreateVideoUseCase } from '@/domain/course-catalog/application/use-cases/create-video.use-case';
-import { GetVideoUseCase } from '@/domain/course-catalog/application/use-cases/get-video.use-case';
-import { GetVideosUseCase } from '@/domain/course-catalog/application/use-cases/get-videos.use-case';
 import { VideoController } from './video.controller';
 
 type PrismaMock = {
   lesson: {
+    findUnique: ReturnType<typeof vi.fn>;
+  };
+  video: {
     findUnique: ReturnType<typeof vi.fn>;
   };
 };
@@ -29,7 +28,7 @@ class MockCreateVideoUseCase {
 class MockGetVideoUseCase {
   execute = vi.fn();
 }
-class MockGetVideosUseCase {
+class MockListVideosUseCase {
   execute = vi.fn();
 }
 
@@ -37,11 +36,10 @@ describe('VideoController', () => {
   let controller: VideoController;
   let createUc: MockCreateVideoUseCase;
   let getUc: MockGetVideoUseCase;
-  let listUc: MockGetVideosUseCase;
+  let listUc: MockListVideosUseCase;
   let prisma: PrismaMock;
 
   const courseId = 'course-1';
-  const moduleId = 'module-1';
   const lessonId = 'lesson-1';
 
   const dto: CreateVideoDto = {
@@ -57,14 +55,16 @@ describe('VideoController', () => {
   beforeEach(() => {
     createUc = new MockCreateVideoUseCase();
     getUc = new MockGetVideoUseCase();
-    listUc = new MockGetVideosUseCase();
+    listUc = new MockListVideosUseCase();
 
     prisma = {
       lesson: {
-        findUnique: vi.fn().mockResolvedValue({
-          id: lessonId,
-          module: { courseId: courseId },
-        }),
+        findUnique: vi
+          .fn()
+          .mockResolvedValue({ id: lessonId, module: { courseId } }),
+      },
+      video: {
+        findUnique: vi.fn().mockResolvedValue({ id: 'v1', lessonId }),
       },
     };
 
@@ -78,8 +78,18 @@ describe('VideoController', () => {
 
   describe('create()', () => {
     it('→ retorna o vídeo criado quando tudo OK', async () => {
-      const payload = { id: 'v1', lessonId, ...dto };
-      createUc.execute.mockResolvedValueOnce(right({ video: payload }));
+      const payload = {
+        id: 'v1',
+        slug: dto.slug,
+        providerVideoId: dto.providerVideoId,
+        durationInSeconds: 42,
+        isSeen: false,
+        translations: dto.translations,
+      };
+      // include translations in mock return
+      createUc.execute.mockResolvedValueOnce(
+        right({ video: payload, translations: dto.translations }),
+      );
 
       const res = await controller.create(courseId, lessonId, dto);
 
@@ -97,13 +107,11 @@ describe('VideoController', () => {
     });
 
     it('→ lança NotFoundException se a lesson não existir ou pertencer a outro curso', async () => {
-      // lesson não existe
       prisma.lesson.findUnique.mockResolvedValueOnce(null);
       await expect(
         controller.create(courseId, lessonId, dto),
       ).rejects.toBeInstanceOf(NotFoundException);
 
-      // lesson existe mas pertence a outro curso
       prisma.lesson.findUnique.mockResolvedValueOnce({
         id: lessonId,
         module: { courseId: 'outro-curso' },
@@ -150,11 +158,16 @@ describe('VideoController', () => {
         id: 'v1',
         slug: dto.slug,
         providerVideoId: dto.providerVideoId,
+        durationInSeconds: 42,
+        isSeen: false,
         translations: dto.translations,
       };
       getUc.execute.mockResolvedValueOnce(right({ video }));
 
       const out = await controller.findOne(courseId, lessonId, video.id);
+      expect(prisma.video.findUnique).toHaveBeenCalledWith({
+        where: { id: video.id },
+      });
       expect(getUc.execute).toHaveBeenCalledWith({ id: video.id });
       expect(out).toEqual(video);
     });
@@ -183,16 +196,15 @@ describe('VideoController', () => {
           id: 'v1',
           slug: 's',
           providerVideoId: 'p',
-          durationInSeconds: 10,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          durationInSeconds: 42,
+          isSeen: false,
           translations: dto.translations,
         },
       ];
       listUc.execute.mockResolvedValueOnce(right({ videos: list }));
 
       const out = await controller.findAll(courseId, lessonId);
-      expect(listUc.execute).toHaveBeenCalledWith({ courseId, lessonId });
+      expect(listUc.execute).toHaveBeenCalledWith({ lessonId });
       expect(out).toEqual(list);
     });
 

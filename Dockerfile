@@ -1,36 +1,49 @@
 # ───── builder ─────
-FROM node:18-bookworm-slim AS builder
+FROM --platform=linux/arm64 node:18-alpine AS builder
 WORKDIR /app
 
+# 1) Instala dependências necessárias
 COPY package.json pnpm-lock.yaml ./
+RUN apk add --no-cache openssl openssl-dev \
+  && npm install -g pnpm \
+  && pnpm install --frozen-lockfile
+
+# 2) Copia schema e gera o client do Prisma
 COPY prisma ./prisma
-
-# forçar o binary engine em vez do library
+# Para Mac M3 - força binary engine
 ENV PRISMA_CLI_QUERY_ENGINE_TYPE=binary
+ENV PRISMA_QUERY_ENGINE_TYPE=binary
+RUN pnpm exec prisma generate
 
-RUN apt-get update && \
-  apt-get install -y openssl libssl-dev && \
-  npm install -g pnpm && \
-  pnpm install --frozen-lockfile && \
-  pnpm exec prisma generate
-
+# 3) Compila o TypeScript
 COPY tsconfig*.json ./
 COPY src ./src
 RUN pnpm run build
 
 # ───── development ─────
-FROM builder AS dev
+FROM --platform=linux/arm64 node:18-alpine AS dev
+WORKDIR /app
+RUN npm install -g pnpm
+
+# Copia arquivos necessários do builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
+COPY package.json pnpm-lock.yaml ./
+COPY tsconfig*.json ./
+
 ENV NODE_ENV=development
 CMD ["pnpm", "run", "start:dev"]
 
 # ───── production ─────
-FROM node:18-alpine AS prod
+FROM --platform=linux/arm64 node:18-alpine AS prod
 WORKDIR /app
 RUN npm install -g pnpm
-COPY --from=builder /app/dist       ./dist
+
+COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma     ./prisma
-COPY package.json pnpm-lock.yaml    ./
+COPY --from=builder /app/prisma ./prisma
+COPY package.json pnpm-lock.yaml ./
 COPY tsconfig*.json ./
+
 ENV NODE_ENV=production
 CMD ["node", "-r", "tsconfig-paths/register", "dist/main"]

@@ -15,19 +15,20 @@ import {
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateVideoUseCase } from '@/domain/course-catalog/application/use-cases/create-video.use-case';
 import { GetVideoUseCase } from '@/domain/course-catalog/application/use-cases/get-video.use-case';
-import { GetVideosUseCase } from '@/domain/course-catalog/application/use-cases/get-videos.use-case';
+
 import { CreateVideoRequest } from '@/domain/course-catalog/application/dtos/create-video-request.dto';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
 import { DuplicateVideoError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-video-error';
 import { VideoNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/video-not-found-error';
+import { ListVideosUseCase } from '@/domain/course-catalog/application/use-cases/list-videos.use-case';
 
 @Controller('courses/:courseId/lessons/:lessonId/videos')
 export class VideoController {
   constructor(
     private readonly createVideo: CreateVideoUseCase,
     private readonly getVideo: GetVideoUseCase,
-    private readonly listVideos: GetVideosUseCase,
+    private readonly listVideos: ListVideosUseCase,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -90,16 +91,6 @@ export class VideoController {
     @Param('courseId') courseId: string,
     @Param('lessonId', ParseUUIDPipe) lessonId: string,
   ) {
-    // 1) verify that lesson exists under this course
-    const lesson = await this.prisma.lesson.findUnique({
-      where: { id: lessonId },
-      include: { module: { select: { courseId: true } } },
-    });
-    if (!lesson || lesson.module.courseId !== courseId) {
-      throw new NotFoundException('Lesson not found');
-    }
-
-    // 2) fetch videos for that lesson
     const result = await this.listVideos.execute({ lessonId });
     if (result.isLeft()) {
       const err = result.value;
@@ -108,8 +99,6 @@ export class VideoController {
       }
       throw new InternalServerErrorException(err.message);
     }
-
-    // 3) return the array of videos directly
     return result.value.videos;
   }
 
