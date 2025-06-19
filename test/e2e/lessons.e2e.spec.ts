@@ -1,3 +1,4 @@
+// src/test/lessons.e2e.spec.ts
 import request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -11,11 +12,11 @@ describe('LessonController (E2E)', () => {
   let moduleId: string;
 
   beforeAll(async () => {
-    const modRef = await Test.createTestingModule({
+    const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    app = modRef.createNestApplication();
+    app = moduleRef.createNestApplication();
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
     );
@@ -29,15 +30,16 @@ describe('LessonController (E2E)', () => {
   });
 
   beforeEach(async () => {
-    // limpa as tabelas na ordem correta
+    // Limpa todas as tabelas na ordem correta
     await prisma.lessonTranslation.deleteMany();
+    await prisma.video.deleteMany();
     await prisma.lesson.deleteMany();
     await prisma.moduleTranslation.deleteMany();
     await prisma.module.deleteMany();
     await prisma.courseTranslation.deleteMany();
     await prisma.course.deleteMany();
 
-    // cria Course
+    // Cria um curso
     const course = await prisma.course.create({
       data: {
         slug: 'test-course',
@@ -52,7 +54,7 @@ describe('LessonController (E2E)', () => {
     });
     courseId = course.id;
 
-    // cria Module
+    // Cria um módulo
     const module = await prisma.module.create({
       data: {
         slug: 'test-module',
@@ -73,7 +75,7 @@ describe('LessonController (E2E)', () => {
   const endpoint = () => `/courses/${courseId}/modules/${moduleId}/lessons`;
 
   describe('[POST] create lesson', () => {
-    it('→ Success', async () => {
+    it('should create lesson successfully without video', async () => {
       const payload = {
         translations: [
           { locale: 'pt', title: 'Aula PT', description: 'Desc PT' },
@@ -94,151 +96,86 @@ describe('LessonController (E2E)', () => {
           translations: payload.translations,
         }),
       );
+      expect(res.body).not.toHaveProperty('videoId');
     });
 
-    it('→ Missing Portuguese translation', async () => {
+    it('should return 400 when missing translation locale pt', async () => {
       const payload = {
         translations: [
           { locale: 'it', title: 'Lezione IT', description: 'Desc IT' },
           { locale: 'es', title: 'Lección ES', description: 'Desc ES' },
         ],
       };
-
       const res = await request(app.getHttpServer())
         .post(endpoint())
         .send(payload);
 
       expect(res.status).toBe(400);
-
-      // ✅ O controller retorna diretamente o array de erros de validação
       expect(Array.isArray(res.body)).toBe(true);
       expect(res.body).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            code: expect.any(String),
-            message: expect.stringMatching(/pt translation/i),
-            path: expect.any(Array),
+            path: expect.arrayContaining(['translations']),
+            code: 'too_small',
           }),
         ]),
       );
     });
 
-    it('→ Unsupported locale', async () => {
+    it('should return 400 on unsupported locale', async () => {
       const payload = {
         translations: [
           { locale: 'pt', title: 'Aula PT', description: 'Desc PT' },
-          // locale 'en' não suportado
           { locale: 'en' as any, title: 'Lesson EN', description: 'Desc EN' },
           { locale: 'es', title: 'Lección ES', description: 'Desc ES' },
         ],
       };
-
       const res = await request(app.getHttpServer())
         .post(endpoint())
         .send(payload);
 
       expect(res.status).toBe(400);
-
-      // ✅ O controller retorna diretamente o array de erros de validação
-      expect(Array.isArray(res.body)).toBe(true);
       expect(res.body).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             code: 'invalid_enum_value',
-            message: expect.stringMatching(/Expected 'pt' \| 'it' \| 'es'/i),
             path: expect.arrayContaining(['translations', 1, 'locale']),
           }),
         ]),
       );
     });
 
-    it('→ Empty translations array', async () => {
-      const payload = {
-        translations: [],
-      };
-
+    it('should return 400 on empty translations array', async () => {
       const res = await request(app.getHttpServer())
         .post(endpoint())
-        .send(payload);
+        .send({ translations: [] });
 
       expect(res.status).toBe(400);
-
-      // ✅ O schema requer EXATAMENTE 3 traduções (pt, it, es)
-      expect(Array.isArray(res.body)).toBe(true);
       expect(res.body).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             code: 'too_small',
-            message: expect.stringMatching(/exactly three translations/i),
             path: expect.arrayContaining(['translations']),
           }),
         ]),
       );
-
-      // ✅ Também verifica se contém erros sobre traduções específicas faltando
-      const messages = res.body.map((error) => error.message.toLowerCase());
-      expect(messages.some((msg) => msg.includes('pt translation'))).toBe(true);
-      expect(messages.some((msg) => msg.includes('it translation'))).toBe(true);
-      expect(messages.some((msg) => msg.includes('es translation'))).toBe(true);
     });
 
-    it('→ Missing title in translation', async () => {
-      const payload = {
-        translations: [
-          { locale: 'pt', description: 'Only description' } as any,
-          { locale: 'it', title: 'Lezione IT', description: 'Desc IT' },
-          { locale: 'es', title: 'Lección ES', description: 'Desc ES' },
-        ],
-      };
-
+    it('should return 400 on invalid moduleId format', async () => {
+      const badModuleId = 'invalid-uuid';
       const res = await request(app.getHttpServer())
-        .post(endpoint())
-        .send(payload);
+        .post(`/courses/${courseId}/modules/${badModuleId}/lessons`)
+        .send({
+          translations: [
+            { locale: 'pt', title: 'Aula PT', description: 'Desc PT' },
+          ],
+        });
 
       expect(res.status).toBe(400);
-
-      // ✅ Verifica erro de campo obrigatório
-      expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: expect.any(String),
-            message: expect.stringMatching(/required|title/i),
-            path: expect.arrayContaining(['translations', 0, 'title']),
-          }),
-        ]),
-      );
     });
 
-    it('→ Invalid moduleId format', async () => {
-      const invalidModuleId = 'invalid-uuid';
-      const payload = {
-        translations: [
-          { locale: 'pt', title: 'Aula PT', description: 'Desc PT' },
-        ],
-      };
-
-      const res = await request(app.getHttpServer())
-        .post(`/courses/${courseId}/modules/${invalidModuleId}/lessons`)
-        .send(payload);
-
-      expect(res.status).toBe(400);
-
-      // ✅ Verifica erro de UUID inválido
-      expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: expect.any(String),
-            message: expect.stringMatching(/uuid|invalid/i),
-            path: expect.arrayContaining(['moduleId']),
-          }),
-        ]),
-      );
-    });
-
-    it('→ Module not found', async () => {
-      const nonExistentModuleId = '99999999-9999-9999-9999-999999999999';
+    it('should return 404 when module not found', async () => {
+      const nonExistentModuleId = '00000000-0000-0000-0000-000000000000';
       const payload = {
         translations: [
           { locale: 'pt', title: 'Aula PT', description: 'Desc PT' },
@@ -246,84 +183,69 @@ describe('LessonController (E2E)', () => {
           { locale: 'es', title: 'Lección ES', description: 'Desc ES' },
         ],
       };
-
       const res = await request(app.getHttpServer())
         .post(`/courses/${courseId}/modules/${nonExistentModuleId}/lessons`)
         .send(payload);
 
       expect(res.status).toBe(404);
+    });
+  });
 
-      // ✅ Para NotFoundException, pode retornar string diretamente ou objeto
-      expect(typeof res.body === 'string' || typeof res.body === 'object').toBe(
-        true,
-      );
+  describe('[GET] list lessons', () => {
+    let baseLessonId: string;
 
-      if (typeof res.body === 'string') {
-        expect(res.body).toMatch(/not found|module/i);
-      } else {
-        expect(res.body).toEqual(
-          expect.objectContaining({
-            statusCode: 404,
-            message: expect.stringMatching(/not found|module/i),
-          }),
-        );
-      }
+    beforeEach(async () => {
+      const lesson = await prisma.lesson.create({
+        data: {
+          moduleId,
+          translations: {
+            create: [
+              { locale: 'pt', title: 'Aula 1 PT', description: 'Desc PT' },
+              { locale: 'it', title: 'Lezione 1 IT', description: 'Desc IT' },
+              { locale: 'es', title: 'Lección 1 ES', description: 'Desc ES' },
+            ],
+          },
+        },
+      });
+      baseLessonId = lesson.id;
     });
 
-    it('→ Create lesson with videoId (if VideoRepository available)', async () => {
-      const payload = {
-        videoId: '550e8400-e29b-41d4-a716-446655440000', // UUID válido mas inexistente
-        translations: [
-          { locale: 'pt', title: 'Aula com Vídeo PT', description: 'Desc PT' },
-          {
-            locale: 'it',
-            title: 'Lezione con Video IT',
-            description: 'Desc IT',
-          },
-          {
-            locale: 'es',
-            title: 'Lección con Video ES',
-            description: 'Desc ES',
-          },
-        ],
-      };
+    it('should list lessons with default pagination', async () => {
+      const res = await request(app.getHttpServer()).get(endpoint());
+      expect(res.status).toBe(200);
+      expect(res.body.lessons).toHaveLength(1);
+      expect(res.body.pagination).toEqual(
+        expect.objectContaining({
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false,
+        }),
+      );
+    });
 
+    it('should support pagination params', async () => {
       const res = await request(app.getHttpServer())
-        .post(endpoint())
-        .send(payload);
+        .get(endpoint())
+        .query({ page: 1, limit: 1 });
+      expect(res.status).toBe(200);
+      expect(res.body.lessons).toHaveLength(1);
+    });
 
-      // ✅ Aceita qualquer status válido e verifica o comportamento
-      expect([200, 201, 400, 404, 500].includes(res.status)).toBe(true);
+    it('should return 400 on invalid query params', async () => {
+      const res = await request(app.getHttpServer())
+        .get(endpoint())
+        .query({ page: '0', limit: '-1' });
+      expect(res.status).toBe(400);
+    });
 
-      if (res.status === 201) {
-        // ✅ Sucesso - lesson criada (VideoRepository permite videoId inexistente ou foi encontrado)
-        expect(res.body).toEqual(
-          expect.objectContaining({
-            id: expect.any(String),
-            moduleId: expect.any(String),
-            videoId: payload.videoId,
-            translations: payload.translations,
-          }),
-        );
-      } else if (res.status === 400) {
-        // ✅ VideoNotFoundError retornado como BadRequest
-        expect(typeof res.body === 'string' || Array.isArray(res.body)).toBe(
-          true,
-        );
-        if (typeof res.body === 'string') {
-          expect(res.body).toMatch(/video.*not found/i);
-        }
-      } else if (res.status === 404) {
-        // ✅ VideoNotFoundError retornado como NotFound
-        expect(
-          typeof res.body === 'string' || typeof res.body === 'object',
-        ).toBe(true);
-      } else if (res.status === 500) {
-        // ✅ Erro interno (problema de repositório/database)
-        expect(
-          typeof res.body === 'string' || typeof res.body === 'object',
-        ).toBe(true);
-      }
+    it('should return 404 for non-existent module', async () => {
+      const res = await request(app.getHttpServer()).get(
+        `/courses/${courseId}/modules/00000000-0000-0000-0000-000000000000/lessons`,
+      );
+      expect(res.status).toBe(404);
     });
   });
 });

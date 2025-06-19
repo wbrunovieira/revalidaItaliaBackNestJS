@@ -6,6 +6,7 @@ import { PrismaModuleRepository } from '@/infra/database/prisma/repositories/pri
 import { PrismaLessonRepository } from '@/infra/database/prisma/repositories/prisma-lesson-repository';
 import { LessonController } from './controllers/lesson.controller';
 import { VideoModule } from './video.module';
+import { ListLessonsUseCase } from '@/domain/course-catalog/application/use-cases/list-lessons.use-case';
 
 @Module({
   imports: [DatabaseModule, VideoModule],
@@ -13,6 +14,7 @@ import { VideoModule } from './video.module';
   providers: [
     // Use‐case
     CreateLessonUseCase,
+    ListLessonsUseCase,
 
     // Repositories
     {
