@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateDocumentUseCase } from '@/domain/course-catalog/application/use-cases/create-document.use-case';
+import { ListDocumentsUseCase } from '@/domain/course-catalog/application/use-cases/list-documents.use-case';
 import { CreateDocumentRequest } from '@/domain/course-catalog/application/dtos/create-document-request.dto';
 import { CreateDocumentDto } from '@/domain/course-catalog/application/dtos/create-document.dto';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
@@ -27,6 +28,7 @@ import { InvalidFileError } from '@/domain/course-catalog/application/use-cases/
 export class DocumentController {
   constructor(
     private readonly createDocument: CreateDocumentUseCase,
+    private readonly listDocuments: ListDocumentsUseCase,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -101,21 +103,22 @@ export class DocumentController {
   ) {
     await this.validateLesson(courseId, lessonId);
 
-    // TODO: Implementar ListDocumentsUseCase quando necessário
-    // const result = await this.listDocuments.execute({ lessonId });
-    // if (result.isLeft()) {
-    //   const err = result.value;
-    //   if (err instanceof InvalidInputError) {
-    //     throw new BadRequestException(err.details);
-    //   }
-    //   throw new InternalServerErrorException(err.message);
-    // }
-    // return result.value.documents;
+    const result = await this.listDocuments.execute({ lessonId });
+    if (result.isLeft()) {
+      const err = result.value;
+      if (err instanceof InvalidInputError) {
+        throw new BadRequestException({
+          message: err.message,
+          details: err.details,
+        });
+      }
+      if (err instanceof LessonNotFoundError) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException(err.message);
+    }
 
-    return {
-      message: 'List documents endpoint - to be implemented',
-      lessonId,
-    };
+    return result.value.documents;
   }
 
   // Get a single document by ID

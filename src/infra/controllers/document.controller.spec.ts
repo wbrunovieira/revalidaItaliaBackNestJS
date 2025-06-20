@@ -28,9 +28,14 @@ class MockCreateDocumentUseCase {
   execute = vi.fn();
 }
 
+class MockListDocumentsUseCase {
+  execute = vi.fn();
+}
+
 describe('DocumentController', () => {
   let controller: DocumentController;
   let createUc: MockCreateDocumentUseCase;
+  let listUc: MockListDocumentsUseCase;
   let prisma: PrismaMock;
 
   const courseId = 'course-1';
@@ -51,6 +56,7 @@ describe('DocumentController', () => {
 
   beforeEach(() => {
     createUc = new MockCreateDocumentUseCase();
+    listUc = new MockListDocumentsUseCase();
 
     prisma = {
       lesson: {
@@ -63,7 +69,11 @@ describe('DocumentController', () => {
       },
     };
 
-    controller = new DocumentController(createUc as any, prisma as any);
+    controller = new DocumentController(
+      createUc as any,
+      listUc as any,
+      prisma as any,
+    );
   });
 
   describe('create()', () => {
@@ -216,17 +226,67 @@ describe('DocumentController', () => {
   });
 
   describe('findAll()', () => {
-    it('→ retorna mensagem de endpoint não implementado quando tudo OK', async () => {
+    it('→ retorna lista de documentos quando tudo OK', async () => {
+      const mockDocuments = [
+        {
+          id: 'doc-1',
+          url: 'https://example.com/doc1.pdf',
+          filename: 'doc1.pdf',
+          title: 'Documento 1',
+          fileSize: 1024 * 1024,
+          fileSizeInMB: 1,
+          mimeType: 'application/pdf',
+          isDownloadable: true,
+          downloadCount: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          translations: [
+            { locale: 'pt', title: 'Doc 1 PT', description: 'Desc PT' },
+            { locale: 'it', title: 'Doc 1 IT', description: 'Desc IT' },
+            { locale: 'es', title: 'Doc 1 ES', description: 'Desc ES' },
+          ],
+        },
+        {
+          id: 'doc-2',
+          url: 'https://example.com/doc2.docx',
+          filename: 'doc2.docx',
+          title: 'Documento 2',
+          fileSize: 512 * 1024,
+          fileSizeInMB: 0.5,
+          mimeType:
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          isDownloadable: true,
+          downloadCount: 5,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          translations: [
+            { locale: 'pt', title: 'Doc 2 PT', description: 'Desc PT' },
+            { locale: 'it', title: 'Doc 2 IT', description: 'Desc IT' },
+            { locale: 'es', title: 'Doc 2 ES', description: 'Desc ES' },
+          ],
+        },
+      ];
+
+      listUc.execute.mockResolvedValueOnce(right({ documents: mockDocuments }));
+
       const result = await controller.findAll(courseId, lessonId);
 
       expect(prisma.lesson.findUnique).toHaveBeenCalledWith({
         where: { id: lessonId },
         include: { module: { select: { courseId: true } } },
       });
-      expect(result).toEqual({
-        message: 'List documents endpoint - to be implemented',
-        lessonId,
-      });
+      expect(listUc.execute).toHaveBeenCalledWith({ lessonId });
+      expect(result).toEqual(mockDocuments);
+      expect(result).toHaveLength(2);
+    });
+
+    it('→ retorna array vazio quando lesson não tem documentos', async () => {
+      listUc.execute.mockResolvedValueOnce(right({ documents: [] }));
+
+      const result = await controller.findAll(courseId, lessonId);
+
+      expect(listUc.execute).toHaveBeenCalledWith({ lessonId });
+      expect(result).toEqual([]);
     });
 
     it('→ lança NotFoundException se lesson não existir', async () => {
@@ -235,6 +295,35 @@ describe('DocumentController', () => {
       await expect(
         controller.findAll(courseId, lessonId),
       ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('→ lança BadRequestException em caso de InvalidInputError', async () => {
+      const error = new InvalidInputError('Validation failed', [
+        { path: ['lessonId'], message: 'Invalid UUID', code: 'invalid_string' },
+      ]);
+      listUc.execute.mockResolvedValueOnce(left(error));
+
+      await expect(
+        controller.findAll(courseId, lessonId),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('→ lança NotFoundException em caso de LessonNotFoundError', async () => {
+      listUc.execute.mockResolvedValueOnce(left(new LessonNotFoundError()));
+
+      await expect(
+        controller.findAll(courseId, lessonId),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('→ lança InternalServerErrorException em outros erros', async () => {
+      listUc.execute.mockResolvedValueOnce(
+        left(new Error('Database connection failed')),
+      );
+
+      await expect(
+        controller.findAll(courseId, lessonId),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
     });
   });
 

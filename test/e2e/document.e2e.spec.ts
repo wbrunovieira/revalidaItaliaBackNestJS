@@ -454,7 +454,7 @@ describe('DocumentController (E2E)', () => {
   });
 
   describe('[GET] list documents', () => {
-    it('→ Success returns placeholder message (not implemented)', async () => {
+    it('→ Success returns list of documents', async () => {
       const payload1 = {
         url: 'https://cdn.example.com/list-doc-1.pdf',
         filename: 'list-doc-1.pdf',
@@ -483,18 +483,54 @@ describe('DocumentController (E2E)', () => {
 
       const res = await request(app.getHttpServer()).get(endpoint()).send();
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveLength(2);
+
+      // Verificar estrutura dos documentos retornados
+      const doc1 = res.body.find((d: any) => d.filename === 'list-doc-1.pdf');
+      expect(doc1).toBeDefined();
+      expect(doc1).toEqual(
         expect.objectContaining({
-          message: 'List documents endpoint - to be implemented',
-          lessonId,
+          id: expect.any(String),
+          url: payload1.url,
+          filename: payload1.filename,
+          title: 'L1 PT', // título da tradução PT
+          fileSize: expect.any(Number), // Schema atual não tem esses campos, então podem ser 0
+          fileSizeInMB: expect.any(Number),
+          mimeType: expect.any(String), // Schema atual não tem esse campo, então pode ser string vazia
+          isDownloadable: expect.any(Boolean),
+          downloadCount: expect.any(Number),
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+          translations: expect.arrayContaining([
+            expect.objectContaining({ locale: 'pt', title: 'L1 PT' }),
+            expect.objectContaining({ locale: 'it', title: 'L1 IT' }),
+            expect.objectContaining({ locale: 'es', title: 'L1 ES' }),
+          ]),
         }),
       );
+
+      const doc2 = res.body.find((d: any) => d.filename === 'list-doc-2.docx');
+      expect(doc2).toBeDefined();
+      expect(doc2).toEqual(
+        expect.objectContaining({
+          filename: 'list-doc-2.docx',
+          mimeType: expect.any(String), // Flexível para schema atual
+          translations: expect.arrayContaining([
+            expect.objectContaining({ locale: 'pt' }),
+            expect.objectContaining({ locale: 'it' }),
+            expect.objectContaining({ locale: 'es' }),
+          ]),
+        }),
+      );
+      expect(doc2.translations).toHaveLength(3);
     });
 
-    it('→ Success returns placeholder when no documents', async () => {
+    it('→ Success returns empty array when no documents', async () => {
       const res = await request(app.getHttpServer()).get(endpoint()).send();
       expect(res.status).toBe(200);
-      expect(res.body.message).toContain('to be implemented');
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toEqual([]);
     });
   });
 
@@ -553,9 +589,24 @@ describe('DocumentController (E2E)', () => {
     let otherLessonId: string;
 
     beforeEach(async () => {
-      // Criar outra lesson no mesmo módulo
+      // Criar outro módulo e lesson
+      const otherModule = await prisma.module.create({
+        data: {
+          slug: 'test-module-doc-2',
+          order: 2,
+          courseId,
+          translations: {
+            create: [
+              { locale: 'pt', title: 'Módulo PT 2', description: 'Desc PT 2' },
+              { locale: 'it', title: 'Modulo IT 2', description: 'Desc IT 2' },
+              { locale: 'es', title: 'Modulo ES 2', description: 'Desc ES 2' },
+            ],
+          },
+        },
+      });
+
       const otherLesson = await prisma.lesson.create({
-        data: { moduleId },
+        data: { moduleId: otherModule.id },
       });
       otherLessonId = otherLesson.id;
 
@@ -574,6 +625,28 @@ describe('DocumentController (E2E)', () => {
           ],
         });
       createdDocumentId = res.body.id;
+    });
+
+    it('→ Cannot access document from different lesson', async () => {
+      const otherEndpoint = `/courses/${courseId}/lessons/${otherLessonId}/documents`;
+
+      const res = await request(app.getHttpServer())
+        .get(`${otherEndpoint}/${createdDocumentId}`)
+        .send();
+
+      expect(res.status).toBe(404);
+      expect(res.body.message).toContain('Document not found in this lesson');
+    });
+
+    it('→ Cannot increment download for document from different lesson', async () => {
+      const otherEndpoint = `/courses/${courseId}/lessons/${otherLessonId}/documents`;
+
+      const res = await request(app.getHttpServer())
+        .post(`${otherEndpoint}/${createdDocumentId}/download`)
+        .send();
+
+      expect(res.status).toBe(404);
+      expect(res.body.message).toContain('Document not found in this lesson');
     });
   });
 });

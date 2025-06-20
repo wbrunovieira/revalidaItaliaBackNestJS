@@ -1,6 +1,7 @@
 // src/infra/document.module.ts
 import { Module } from '@nestjs/common';
 import { CreateDocumentUseCase } from '@/domain/course-catalog/application/use-cases/create-document.use-case';
+import { ListDocumentsUseCase } from '@/domain/course-catalog/application/use-cases/list-documents.use-case';
 
 import { PrismaDocumentRepository } from '@/infra/database/prisma/repositories/prisma-document-repository';
 import { PrismaLessonRepository } from '@/infra/database/prisma/repositories/prisma-lesson-repository';
@@ -14,10 +15,10 @@ import { DocumentController } from './controllers/document.controller';
   controllers: [DocumentController],
   providers: [
     CreateDocumentUseCase,
+    ListDocumentsUseCase,
 
     // TODO: Adicionar quando implementados
     // GetDocumentUseCase,
-    // ListDocumentsUseCase,
     // DeleteDocumentUseCase,
     // IncrementDownloadUseCase,
 
@@ -26,12 +27,12 @@ import { DocumentController } from './controllers/document.controller';
   ],
   exports: [
     CreateDocumentUseCase,
+    ListDocumentsUseCase,
     'DocumentRepository',
     'LessonRepository',
 
     // TODO: Exportar quando implementados
     // GetDocumentUseCase,
-    // ListDocumentsUseCase,
     // DeleteDocumentUseCase,
     // IncrementDownloadUseCase,
   ],
