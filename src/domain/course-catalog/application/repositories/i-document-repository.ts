@@ -1,0 +1,49 @@
+// src/domain/course-catalog/application/repositories/i-document-repository.ts
+import { Either } from '@/core/either';
+import { Document } from '../../enterprise/entities/document.entity';
+
+export interface IDocumentRepository {
+  findByFilename(filename: string): Promise<Either<Error, Document>>;
+
+  create(
+    lessonId: string,
+    document: Document,
+    translations: Array<{
+      locale: 'pt' | 'it' | 'es';
+      title: string;
+      description: string;
+    }>,
+  ): Promise<Either<Error, void>>;
+
+  findById(id: string): Promise<
+    Either<
+      Error,
+      {
+        document: Document;
+        translations: Array<{
+          locale: 'pt' | 'it' | 'es';
+          title: string;
+          description: string;
+        }>;
+      }
+    >
+  >;
+
+  findByLesson(lessonId: string): Promise<
+    Either<
+      Error,
+      Array<{
+        document: Document;
+        translations: Array<{
+          locale: 'pt' | 'it' | 'es';
+          title: string;
+          description: string;
+        }>;
+      }>
+    >
+  >;
+
+  delete(id: string): Promise<Either<Error, void>>;
+
+  incrementDownloadCount(id: string): Promise<Either<Error, void>>;
+}
