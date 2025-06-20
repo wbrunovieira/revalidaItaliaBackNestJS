@@ -21,6 +21,7 @@ CREATE TABLE "TrackCourse" (
 CREATE TABLE "Course" (
     "id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
+    "imageUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -31,6 +32,7 @@ CREATE TABLE "Course" (
 CREATE TABLE "Module" (
     "id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
+    "imageUrl" TEXT,
     "order" INTEGER NOT NULL,
     "courseId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -43,6 +45,7 @@ CREATE TABLE "Module" (
 CREATE TABLE "Video" (
     "id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
+    "imageUrl" TEXT,
     "providerVideoId" TEXT NOT NULL,
     "durationInSeconds" INTEGER NOT NULL,
     "isSeen" BOOLEAN NOT NULL DEFAULT false,
@@ -179,6 +182,7 @@ CREATE TABLE "Address" (
 CREATE TABLE "Lesson" (
     "id" TEXT NOT NULL,
     "moduleId" TEXT NOT NULL,
+    "imageUrl" TEXT,
     "videoId" TEXT,
     "flashcardIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "quizIds" TEXT[] DEFAULT ARRAY[]::TEXT[],

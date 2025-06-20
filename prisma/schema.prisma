@@ -37,6 +37,7 @@ model TrackCourse {
 model Course {
   id        String   @id @default(uuid())
   slug      String   @unique
+  imageUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -49,9 +50,10 @@ model Course {
 }
 
 model Module {
-  id    String @id @default(uuid())
-  slug  String @unique
-  order Int
+  id       String  @id @default(uuid())
+  slug     String  @unique
+  imageUrl String?
+  order    Int
 
   course   Course @relation(fields: [courseId], references: [id])
   courseId String
@@ -69,6 +71,7 @@ model Module {
 model Video {
   id                String  @id @default(uuid())
   slug              String  @unique
+  imageUrl          String?
   providerVideoId   String
   durationInSeconds Int
   isSeen            Boolean @default(false)
@@ -227,10 +230,10 @@ model Address {
 }
 
 model Lesson {
-  id       String @id @default(uuid())
-  module   Module @relation(fields: [moduleId], references: [id])
-  moduleId String @unique
-
+  id           String   @id @default(uuid())
+  module       Module   @relation(fields: [moduleId], references: [id])
+  moduleId     String   @unique
+  imageUrl     String?
   videoId      String?
   flashcardIds String[] @default([])
   quizIds      String[] @default([])

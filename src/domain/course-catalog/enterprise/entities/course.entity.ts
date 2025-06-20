@@ -1,17 +1,18 @@
 // ─────────────────────────────────────────────────────────────────
 // src/domain/course-catalog/enterprise/entities/course.entity.ts
 // ─────────────────────────────────────────────────────────────────
-import { Entity } from "@/core/entity";
-import { UniqueEntityID } from "@/core/unique-entity-id";
+import { Entity } from '@/core/entity';
+import { UniqueEntityID } from '@/core/unique-entity-id';
 
 export interface CourseTranslationVO {
-  locale: "pt" | "it" | "es";
+  locale: 'pt' | 'it' | 'es';
   title: string;
   description: string;
 }
 
 export interface CourseProps {
   slug: string;
+  imageUrl?: string;
   translations: CourseTranslationVO[];
   createdAt: Date;
   updatedAt: Date;
@@ -26,17 +27,21 @@ export class Course extends Entity<CourseProps> {
     return this.props.slug;
   }
 
+  public get imageUrl(): string | undefined {
+    return this.props.imageUrl;
+  }
+
   public get translations(): CourseTranslationVO[] {
     return this.props.translations;
   }
 
   public get title(): string {
-    const pt = this.props.translations.find((t) => t.locale === "pt")!;
+    const pt = this.props.translations.find((t) => t.locale === 'pt')!;
     return pt.title;
   }
 
   public get description(): string {
-    const pt = this.props.translations.find((t) => t.locale === "pt")!;
+    const pt = this.props.translations.find((t) => t.locale === 'pt')!;
     return pt.description;
   }
 
@@ -48,20 +53,37 @@ export class Course extends Entity<CourseProps> {
     return this.props.updatedAt;
   }
 
-  public updateDetails(updates: { title?: string; description?: string; slug?: string }) {
+  public updateImageUrl(imageUrl: string): void {
+    this.props.imageUrl = imageUrl;
+    this.touch();
+  }
+
+  public removeImage(): void {
+    this.props.imageUrl = undefined;
+    this.touch();
+  }
+  public updateDetails(updates: {
+    title?: string;
+    description?: string;
+    slug?: string;
+  }) {
     if (updates.slug) {
       this.props.slug = updates.slug;
       this.touch();
     }
     if (updates.title) {
-      const ptIndex = this.props.translations.findIndex((t) => t.locale === "pt");
+      const ptIndex = this.props.translations.findIndex(
+        (t) => t.locale === 'pt',
+      );
       if (ptIndex >= 0) {
         this.props.translations[ptIndex].title = updates.title;
       }
       this.touch();
     }
     if (updates.description) {
-      const ptIndex = this.props.translations.findIndex((t) => t.locale === "pt");
+      const ptIndex = this.props.translations.findIndex(
+        (t) => t.locale === 'pt',
+      );
       if (ptIndex >= 0) {
         this.props.translations[ptIndex].description = updates.description;
       }
@@ -88,8 +110,8 @@ export class Course extends Entity<CourseProps> {
   }
 
   public static create(
-    props: Omit<CourseProps, "createdAt" | "updatedAt">,
-    id?: UniqueEntityID
+    props: Omit<CourseProps, 'createdAt' | 'updatedAt'>,
+    id?: UniqueEntityID,
   ): Course {
     const now = new Date();
     return new Course(
@@ -98,7 +120,7 @@ export class Course extends Entity<CourseProps> {
         createdAt: now,
         updatedAt: now,
       },
-      id
+      id,
     );
   }
 
