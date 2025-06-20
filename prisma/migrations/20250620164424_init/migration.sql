@@ -2,6 +2,7 @@
 CREATE TABLE "Track" (
     "id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
+    "imageUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

@@ -15,6 +15,7 @@ datasource db {
 model Track {
   id        String   @id @default(uuid())
   slug      String   @unique
+  imageUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
