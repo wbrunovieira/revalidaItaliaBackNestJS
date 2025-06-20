@@ -1,4 +1,3 @@
-
 // src/domain/course-catalog/application/use-cases/get-track.use-case.ts
 import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
@@ -16,6 +15,7 @@ export type GetTrackResponse = Either<
     track: {
       id: string;
       slug: string;
+      imageUrl?: string;
       courseIds: string[];
       translations: {
         locale: 'pt' | 'it' | 'es';
@@ -37,7 +37,7 @@ export class GetTrackUseCase {
     // Validate
     const parse = getTrackSchema.safeParse(request);
     if (!parse.success) {
-      const details = parse.error.issues.map(issue => ({
+      const details = parse.error.issues.map((issue) => ({
         code: issue.code,
         message: issue.message,
         path: issue.path,
@@ -69,9 +69,10 @@ export class GetTrackUseCase {
       track: {
         id: trackEntity.id.toString(),
         slug: trackEntity.slug,
+        imageUrl: trackEntity.imageUrl,
         courseIds: trackEntity.courseIds,
         // Exponha tudo:
-        translations: trackEntity.translations.map(t => ({
+        translations: trackEntity.translations.map((t) => ({
           locale: t.locale,
           title: t.title,
           description: t.description,
@@ -81,4 +82,3 @@ export class GetTrackUseCase {
     return right(payload);
   }
 }
-

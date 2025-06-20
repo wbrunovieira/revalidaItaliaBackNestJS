@@ -6,7 +6,19 @@ import { ITrackRepository } from '../repositories/i-track-repository';
 
 export type ListTracksResponse = Either<
   RepositoryError,
-  { tracks: { id: string; slug: string; courseIds: string[]; translations: { locale: 'pt' | 'it' | 'es'; title: string; description: string; }[]; }[] }
+  {
+    tracks: {
+      id: string;
+      slug: string;
+      imageUrl?: string;
+      courseIds: string[];
+      translations: {
+        locale: 'pt' | 'it' | 'es';
+        title: string;
+        description: string;
+      }[];
+    }[];
+  }
 >;
 
 @Injectable()
@@ -22,11 +34,12 @@ export class ListTracksUseCase {
       if (result.isLeft()) {
         return left(new RepositoryError(result.value.message));
       }
-      const tracks = result.value.map(t => ({
+      const tracks = result.value.map((t) => ({
         id: t.id.toString(),
         slug: t.slug,
+        imageUrl: t.imageUrl ? t.imageUrl.toString() : undefined,
         courseIds: t.courseIds,
-        translations: t.translations.map(tr => ({
+        translations: t.translations.map((tr) => ({
           locale: tr.locale,
           title: tr.title,
           description: tr.description,
