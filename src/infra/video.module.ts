@@ -1,5 +1,3 @@
-// ⚡ CORREÇÃO RÁPIDA - Substitua seu video.module.ts por este:
-
 // src/infra/course-catalog/video.module.ts
 import { Module } from '@nestjs/common';
 import { CreateVideoUseCase } from '@/domain/course-catalog/application/use-cases/create-video.use-case';

@@ -1,0 +1,186 @@
+# Document HTTP Requests
+@BASE_URL = http://localhost:3333
+
+###
+# @name create-document
+POST {{BASE_URL}}/courses/1fc39af9-534a-4020-bc6d-3f7f1c8dda90/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents
+Content-Type: application/json
+
+{
+  "url": "https://cdn.example.com/documents/material-curso-derivadas.pdf",
+  "filename": "material-curso-derivadas.pdf",
+  "fileSize": 2547890,
+  "mimeType": "application/pdf",
+  "isDownloadable": true,
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Material do Curso - Derivadas",
+      "description": "Apostila completa sobre cálculo diferencial e derivadas."
+    },
+    {
+      "locale": "it",
+      "title": "Materiale del Corso - Derivate",
+      "description": "Dispensa completa sul calcolo differenziale e derivate."
+    },
+    {
+      "locale": "es",
+      "title": "Material del Curso - Derivadas",
+      "description": "Apostilla completa sobre cálculo diferencial y derivadas."
+    }
+  ]
+}
+
+###
+# @name create-word-document
+POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents
+Content-Type: application/json
+
+{
+  "url": "https://cdn.example.com/documents/exercicios-praticos.docx",
+  "filename": "exercicios-praticos.docx",
+  "fileSize": 1234567,
+  "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "isDownloadable": true,
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Exercícios Práticos",
+      "description": "Lista de exercícios para praticar os conceitos aprendidos."
+    },
+    {
+      "locale": "it",
+      "title": "Esercizi Pratici",
+      "description": "Lista di esercizi per praticare i concetti appresi."
+    },
+    {
+      "locale": "es",
+      "title": "Ejercicios Prácticos",
+      "description": "Lista de ejercicios para practicar los conceptos aprendidos."
+    }
+  ]
+}
+
+###
+# @name create-excel-document
+POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents
+Content-Type: application/json
+
+{
+  "url": "https://cdn.example.com/documents/planilha-calculos.xlsx",
+  "filename": "planilha-calculos.xlsx",
+  "fileSize": 892345,
+  "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "isDownloadable": true,
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Planilha de Cálculos",
+      "description": "Planilha Excel com exemplos de cálculos de derivadas."
+    },
+    {
+      "locale": "it",
+      "title": "Foglio di Calcolo",
+      "description": "Foglio Excel con esempi di calcoli di derivate."
+    },
+    {
+      "locale": "es",
+      "title": "Hoja de Cálculo",
+      "description": "Hoja Excel con ejemplos de cálculos de derivadas."
+    }
+  ]
+}
+
+### 
+# @name get-document
+GET {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents/c3ed5a10-60b6-4a8c-8add-6770784a6553
+Accept: application/json
+
+### 
+# @name list-documents
+GET {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents
+Accept: application/json
+
+### 
+# @name increment-download
+POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents/c3ed5a10-60b6-4a8c-8add-6770784a6553/download
+
+###
+# @name error-invalid-file-size
+POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents
+Content-Type: application/json
+
+{
+  "url": "https://cdn.example.com/documents/arquivo-muito-grande.pdf",
+  "filename": "arquivo-muito-grande.pdf",
+  "fileSize": 60000000,
+  "mimeType": "application/pdf",
+  "isDownloadable": true,
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Arquivo Muito Grande",
+      "description": "Este arquivo excede o limite de 50MB."
+    },
+    {
+      "locale": "it",
+      "title": "File Troppo Grande",
+      "description": "Questo file supera il limite di 50MB."
+    },
+    {
+      "locale": "es",
+      "title": "Archivo Muy Grande",
+      "description": "Este archivo excede el límite de 50MB."
+    }
+  ]
+}
+
+###
+# @name error-mime-extension-mismatch
+POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents
+Content-Type: application/json
+
+{
+  "url": "https://cdn.example.com/documents/document.txt",
+  "filename": "document.txt",
+  "fileSize": 1024,
+  "mimeType": "application/pdf",
+  "isDownloadable": true,
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Extensão Incorreta",
+      "description": "Arquivo com extensão que não bate com o MIME type."
+    },
+    {
+      "locale": "it",
+      "title": "Estensione Errata",
+      "description": "File con estensione che non corrisponde al tipo MIME."
+    },
+    {
+      "locale": "es",
+      "title": "Extensión Incorrecta",
+      "description": "Archivo con extensión que no coincide con el tipo MIME."
+    }
+  ]
+}
+
+###
+# @name error-missing-translation
+POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents
+Content-Type: application/json
+
+{
+  "url": "https://cdn.example.com/documents/document.pdf",
+  "filename": "document.pdf",
+  "fileSize": 1024,
+  "mimeType": "application/pdf",
+  "isDownloadable": true,
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Documento",
+      "description": "Apenas uma tradução."
+    }
+  ]
+}
