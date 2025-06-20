@@ -1,13 +1,11 @@
-// ─────────────────────────────────────────────────────────────────
 // src/infra/database/prisma/repositories/prisma-course-repository.ts
-// ─────────────────────────────────────────────────────────────────
-import { Injectable } from "@nestjs/common";
-import { PrismaService } from "@/prisma/prisma.service";
-import { Either, left, right } from "@/core/either";
-import { ICourseRepository } from "@/domain/course-catalog/application/repositories/i-course-repository";
-import { Course } from "@/domain/course-catalog/enterprise/entities/course.entity";
-import { UniqueEntityID } from "@/core/unique-entity-id";
-import { Module } from "@/domain/course-catalog/enterprise/entities/module.entity";
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
+import { Either, left, right } from '@/core/either';
+import { ICourseRepository } from '@/domain/course-catalog/application/repositories/i-course-repository';
+import { Course } from '@/domain/course-catalog/enterprise/entities/course.entity';
+import { UniqueEntityID } from '@/core/unique-entity-id';
+import { Module } from '@/domain/course-catalog/enterprise/entities/module.entity';
 
 @Injectable()
 export class PrismaCourseRepository implements ICourseRepository {
@@ -19,29 +17,30 @@ export class PrismaCourseRepository implements ICourseRepository {
         where: {
           translations: {
             some: {
-              locale: "pt",
+              locale: 'pt',
               title,
             },
           },
         },
         include: {
           translations: {
-            where: { locale: "pt" },
+            where: { locale: 'pt' },
             take: 1,
           },
         },
       });
 
       if (!data) {
-        return left(new Error("Course not found"));
+        return left(new Error('Course not found'));
       }
 
       const courseTr = data.translations[0];
       const courseProps = {
         slug: data.slug,
+        imageUrl: data.imageUrl || undefined, // Converter null para undefined
         translations: [
           {
-            locale: courseTr.locale as "pt",
+            locale: courseTr.locale as 'pt',
             title: courseTr.title,
             description: courseTr.description,
           },
@@ -52,16 +51,51 @@ export class PrismaCourseRepository implements ICourseRepository {
 
       const courseEntity = Course.reconstruct(
         courseProps,
-        new UniqueEntityID(data.id)
+        new UniqueEntityID(data.id),
       );
 
       return right(courseEntity);
     } catch (err: any) {
-      return left(new Error("Database error"));
+      return left(new Error('Database error'));
     }
   }
 
- 
+  async findBySlug(slug: string): Promise<Either<Error, Course>> {
+    try {
+      const data = await this.prisma.course.findUnique({
+        where: { slug },
+        include: {
+          translations: true,
+        },
+      });
+
+      if (!data) {
+        return left(new Error('Course not found'));
+      }
+
+      const courseProps = {
+        slug: data.slug,
+        imageUrl: data.imageUrl || undefined, // Converter null para undefined
+        translations: data.translations.map((tr) => ({
+          locale: tr.locale as 'pt' | 'it' | 'es',
+          title: tr.title,
+          description: tr.description,
+        })),
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      };
+
+      const courseEntity = Course.reconstruct(
+        courseProps,
+        new UniqueEntityID(data.id),
+      );
+
+      return right(courseEntity);
+    } catch (err: any) {
+      return left(new Error('Database error'));
+    }
+  }
+
   async create(course: Course): Promise<Either<Error, void>> {
     try {
       const courseTranslations = course.translations;
@@ -70,6 +104,7 @@ export class PrismaCourseRepository implements ICourseRepository {
         data: {
           id: course.id.toString(),
           slug: course.slug,
+          imageUrl: course.imageUrl,
           createdAt: course.createdAt,
           updatedAt: course.updatedAt,
 
@@ -86,7 +121,7 @@ export class PrismaCourseRepository implements ICourseRepository {
 
       return right(undefined);
     } catch (err: any) {
-      return left(new Error("Failed to create course"));
+      return left(new Error('Failed to create course'));
     }
   }
 
@@ -94,8 +129,7 @@ export class PrismaCourseRepository implements ICourseRepository {
     try {
       const data = await this.prisma.course.findMany({
         include: {
-          translations: { where: { locale: "pt" }, take: 1 },
-        
+          translations: { where: { locale: 'pt' }, take: 1 },
         },
       });
 
@@ -103,8 +137,13 @@ export class PrismaCourseRepository implements ICourseRepository {
         const tr = item.translations[0];
         const props = {
           slug: item.slug,
+          imageUrl: item.imageUrl || undefined, // Converter null para undefined
           translations: [
-            { locale: tr.locale as "pt", title: tr.title, description: tr.description },
+            {
+              locale: tr.locale as 'pt',
+              title: tr.title,
+              description: tr.description,
+            },
           ],
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
@@ -113,7 +152,7 @@ export class PrismaCourseRepository implements ICourseRepository {
       });
       return right(courses);
     } catch (err: any) {
-      return left(new Error("Database error"));
+      return left(new Error('Database error'));
     }
   }
 
@@ -132,17 +171,17 @@ export class PrismaCourseRepository implements ICourseRepository {
           },
         },
       });
-  
+
       if (!data) {
-        return left(new Error("Course not found"));
+        return left(new Error('Course not found'));
       }
-  
 
       const modulesEntities: Module[] = data.modules.map((mod) => {
         const moduleProps = {
           slug: mod.slug,
+          imageUrl: mod.imageUrl || undefined, // Converter null para undefined
           translations: mod.translations.map((modTr) => ({
-            locale: modTr.locale as "pt" | "it" | "es",
+            locale: modTr.locale as 'pt' | 'it' | 'es',
             title: modTr.title,
             description: modTr.description,
           })),
@@ -153,12 +192,12 @@ export class PrismaCourseRepository implements ICourseRepository {
         };
         return Module.reconstruct(moduleProps, new UniqueEntityID(mod.id));
       });
-  
 
       const courseProps = {
         slug: data.slug,
+        imageUrl: data.imageUrl || undefined, // Converter null para undefined
         translations: data.translations.map((ctr) => ({
-          locale: ctr.locale as "pt" | "it" | "es",
+          locale: ctr.locale as 'pt' | 'it' | 'es',
           title: ctr.title,
           description: ctr.description,
         })),
@@ -166,14 +205,14 @@ export class PrismaCourseRepository implements ICourseRepository {
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
-  
+
       const courseEntity = Course.reconstruct(
         courseProps,
-        new UniqueEntityID(data.id)
+        new UniqueEntityID(data.id),
       );
       return right(courseEntity);
     } catch {
-      return left(new Error("Database error"));
+      return left(new Error('Database error'));
     }
   }
 }

@@ -35,6 +35,7 @@ export class CourseController {
   async create(@Body() dto: CreateCourseDto) {
     const request = {
       slug: dto.slug,
+      imageUrl: dto.imageUrl,
 
       translations: dto.translations.map((t) => ({
         locale: t.locale,

@@ -6,21 +6,22 @@ POST {{BASE_URL}}/courses
 Content-Type: application/json
 
 {
-  "slug": "matematica-avancada",
+  "slug": "matematica-avancada2222",
+   "imageUrl": "https://via.placeholder.com/600x400.png?text=Teste+de+Imagem",
   "translations": [
     {
       "locale": "pt",
-      "title": "Matemática Avançada",
+      "title": "Matemática Avançada22",
       "description": "Um mergulho profundo em tópicos avançados de matemática."
     },
     {
       "locale": "it",
-      "title": "Matematica Avanzata",
+      "title": "Matematica Avanzata22",
       "description": "Un'immersione approfondita in argomenti matematici avanzati."
     },
     {
       "locale": "es",
-      "title": "Matemáticas Avanzadas",
+      "title": "Matemáticas Avanzadas22",
       "description": "Una inmersión profunda en temas avanzados de matemáticas."
     }
   ]
@@ -35,5 +36,5 @@ Content-Type: application/json
 ###
 
 # @name get-course
-GET {{BASE_URL}}/courses/1fc39af9-534a-4020-bc6d-3f7f1c8dda90
+GET {{BASE_URL}}/courses/97e802fe-e521-4c88-a560-dbce045037c4
 Content-Type: application/json

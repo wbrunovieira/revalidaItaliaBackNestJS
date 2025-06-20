@@ -8,6 +8,7 @@ import {
   IsArray,
   ValidateNested,
   IsOptional,
+  IsUrl,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -29,10 +30,10 @@ export class CreateCourseDto {
   @MinLength(3)
   slug: string;
 
-  @IsString()
-  @MinLength(3)
   @IsOptional()
-  imageUrl: string;
+  @IsString()
+  @IsUrl({}, { message: 'imageUrl must be a valid URL' })
+  imageUrl?: string;
 
   @IsArray()
   @ValidateNested({ each: true })
