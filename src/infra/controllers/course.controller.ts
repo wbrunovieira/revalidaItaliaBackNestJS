@@ -28,13 +28,14 @@ export class CourseController {
     @Inject(ListCoursesUseCase)
     private readonly listCoursesUseCase: ListCoursesUseCase,
     @Inject(GetCourseUseCase)
-    private readonly getCourseUseCase: GetCourseUseCase
+    private readonly getCourseUseCase: GetCourseUseCase,
   ) {}
 
   @Post()
   async create(@Body() dto: CreateCourseDto) {
     const request = {
       slug: dto.slug,
+
       translations: dto.translations.map((t) => ({
         locale: t.locale,
         title: t.title,
@@ -68,8 +69,8 @@ export class CourseController {
     return (result.value as any).courses;
   }
 
-  @Get(":id")
-  async getById(@Param("id") id: string) {
+  @Get(':id')
+  async getById(@Param('id') id: string) {
     const result = await this.getCourseUseCase.execute({ id });
     if (result.isLeft()) {
       const err = result.value;

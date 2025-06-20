@@ -1,20 +1,20 @@
 // src/infra/course-catalog/controllers/course.controller.spec.ts
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   BadRequestException,
   ConflictException,
   InternalServerErrorException,
   NotFoundException,
-} from "@nestjs/common";
-import { left, right } from "@/core/either";
-import { InvalidInputError } from "@/domain/course-catalog/application/use-cases/errors/invalid-input-error";
-import { DuplicateCourseError } from "@/domain/course-catalog/application/use-cases/errors/duplicate-course-error";
-import { RepositoryError } from "@/domain/course-catalog/application/use-cases/errors/repository-error";
-import { CourseNotFoundError } from "@/domain/course-catalog/application/use-cases/errors/course-not-found-error";
-import { CourseController } from "./course.controller";
-import { CreateCourseDto } from "@/domain/course-catalog/application/dtos/create-course.dto";
-import { ListCoursesUseCase } from "@/domain/course-catalog/application/use-cases/list-courses.use-case";
-import { GetCourseUseCase } from "@/domain/course-catalog/application/use-cases/get-course.use-case";
+} from '@nestjs/common';
+import { left, right } from '@/core/either';
+import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
+import { DuplicateCourseError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-course-error';
+import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
+import { CourseNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/course-not-found-error';
+import { CourseController } from './course.controller';
+import { CreateCourseDto } from '@/domain/course-catalog/application/dtos/create-course.dto';
+import { ListCoursesUseCase } from '@/domain/course-catalog/application/use-cases/list-courses.use-case';
+import { GetCourseUseCase } from '@/domain/course-catalog/application/use-cases/get-course.use-case';
 
 class MockCreateUseCase {
   execute = vi.fn();
@@ -26,7 +26,7 @@ class MockGetUseCase {
   execute = vi.fn();
 }
 
-describe("CourseController", () => {
+describe('CourseController', () => {
   let controller: CourseController;
   let createUseCase: MockCreateUseCase;
   let listUseCase: MockListUseCase;
@@ -39,54 +39,66 @@ describe("CourseController", () => {
     controller = new CourseController(
       createUseCase as any,
       listUseCase as any,
-      getUseCase as any
+      getUseCase as any,
     );
   });
 
-
-
-  describe("getById()", () => {
-    it("returns course payload on success", async () => {
+  describe('getById()', () => {
+    it('returns course payload on success', async () => {
       const payload = {
         course: {
-          id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-          slug: "curso-exemplo",
-          title: "Curso Exemplo",
-          description: "Descrição Exemplo",
+          id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+          slug: 'curso-exemplo',
+          title: 'Curso Exemplo',
+          description: 'Descrição Exemplo',
         },
       };
       getUseCase.execute.mockResolvedValueOnce(right(payload));
 
-      const response = await controller.getById("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+      const response = await controller.getById(
+        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      );
       expect(response).toEqual(payload.course);
       expect(getUseCase.execute).toHaveBeenCalledWith({
-        id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
       });
     });
 
-    it("throws BadRequestException on InvalidInputError", async () => {
-      const details = [{ path: ["id"], message: "ID must be a valid UUID" }];
-      getUseCase.execute.mockResolvedValueOnce(left(new InvalidInputError("Val failed", details)));
+    it('throws BadRequestException on InvalidInputError', async () => {
+      const details = [{ path: ['id'], message: 'ID must be a valid UUID' }];
+      getUseCase.execute.mockResolvedValueOnce(
+        left(new InvalidInputError('Val failed', details)),
+      );
 
-      await expect(controller.getById("invalid-id")).rejects.toBeInstanceOf(BadRequestException);
+      await expect(controller.getById('invalid-id')).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
     });
 
-    it("throws NotFoundException on CourseNotFoundError", async () => {
+    it('throws NotFoundException on CourseNotFoundError', async () => {
       getUseCase.execute.mockResolvedValueOnce(left(new CourseNotFoundError()));
 
-      await expect(controller.getById("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")).rejects.toBeInstanceOf(NotFoundException);
+      await expect(
+        controller.getById('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it("throws InternalServerErrorException on RepositoryError", async () => {
-      getUseCase.execute.mockResolvedValueOnce(left(new RepositoryError("DB down")));
+    it('throws InternalServerErrorException on RepositoryError', async () => {
+      getUseCase.execute.mockResolvedValueOnce(
+        left(new RepositoryError('DB down')),
+      );
 
-      await expect(controller.getById("cccccccc-cccc-cccc-cccc-cccccccccccc")).rejects.toBeInstanceOf(InternalServerErrorException);
+      await expect(
+        controller.getById('cccccccc-cccc-cccc-cccc-cccccccccccc'),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
     });
 
-    it("throws InternalServerErrorException on generic Error", async () => {
-      getUseCase.execute.mockResolvedValueOnce(left(new Error("unexpected")));
+    it('throws InternalServerErrorException on generic Error', async () => {
+      getUseCase.execute.mockResolvedValueOnce(left(new Error('unexpected')));
 
-      await expect(controller.getById("dddddddd-dddd-dddd-dddd-dddddddddddd")).rejects.toBeInstanceOf(InternalServerErrorException);
+      await expect(
+        controller.getById('dddddddd-dddd-dddd-dddd-dddddddddddd'),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
     });
   });
 });

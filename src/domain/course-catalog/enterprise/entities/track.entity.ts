@@ -5,7 +5,7 @@ import { TrackTranslationVO } from '@/domain/course-catalog/enterprise/value-obj
 
 export interface TrackProps {
   slug: string;
-  imageUrl?: string;
+  imageUrl?: string; // Campo opcional para imagem de capa
   courseIds: string[];
   translations: TrackTranslationVO[];
   createdAt: Date;
@@ -49,11 +49,13 @@ export class Track extends Entity<TrackProps> {
     return this.props.updatedAt;
   }
 
+  // Método para atualizar a imagem
   public updateImageUrl(imageUrl: string): void {
     this.props.imageUrl = imageUrl;
     this.touch();
   }
 
+  // Método para remover a imagem
   public removeImage(): void {
     this.props.imageUrl = undefined;
     this.touch();
@@ -64,7 +66,14 @@ export class Track extends Entity<TrackProps> {
     id?: UniqueEntityID,
   ): Track {
     const now = new Date();
-    return new Track({ ...props, createdAt: now, updatedAt: now }, id);
+    return new Track(
+      {
+        ...props,
+        createdAt: now,
+        updatedAt: now,
+      },
+      id,
+    );
   }
 
   public static reconstruct(props: TrackProps, id: UniqueEntityID): Track {

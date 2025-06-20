@@ -7,6 +7,7 @@ import {
   MinLength,
   IsArray,
   ValidateNested,
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -27,6 +28,11 @@ export class CreateCourseDto {
   @IsString()
   @MinLength(3)
   slug: string;
+
+  @IsString()
+  @MinLength(3)
+  @IsOptional()
+  imageUrl: string;
 
   @IsArray()
   @ValidateNested({ each: true })

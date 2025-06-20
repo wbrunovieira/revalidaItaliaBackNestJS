@@ -1,5 +1,13 @@
 // src/infra/course-catalog/dtos/create-track.dto.ts
-import { IsEnum, IsString, MinLength, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsEnum,
+  IsString,
+  MinLength,
+  IsArray,
+  ValidateNested,
+  IsOptional,
+  IsUrl,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class TrackTranslationDto {
@@ -19,6 +27,11 @@ export class CreateTrackDto {
   @IsString()
   @MinLength(3)
   slug: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUrl({}, { message: 'imageUrl must be a valid URL' })
+  imageUrl?: string;
 
   @IsArray()
   @ValidateNested({ each: true })

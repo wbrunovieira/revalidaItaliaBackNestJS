@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   BadRequestException,
-
+  ConflictException,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,10 +12,11 @@ import { DuplicateTrackError } from '@/domain/course-catalog/application/use-cas
 import { TrackNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/track-not-found-error';
 import { CreateTrackUseCase } from '@/domain/course-catalog/application/use-cases/create-track.use-case';
 import { GetTrackUseCase } from '@/domain/course-catalog/application/use-cases/get-track.use-case';
+import { ListTracksUseCase } from '@/domain/course-catalog/application/use-cases/list-tracks.use-case';
 import { TrackController } from './track.controller';
-import { CreateTrackDto } from '@/domain/course-catalog/application/dtos/create-track.dto';
-import { GetTrackDto } from '@/domain/course-catalog/application/dtos/get-track.dto';
 
+import { GetTrackDto } from '@/domain/course-catalog/application/dtos/get-track.dto';
+import { CreateTrackDto } from '@/domain/course-catalog/application/dtos/create-track.dto';
 
 class MockCreateTrackUseCase {
   execute = vi.fn();
@@ -23,7 +24,9 @@ class MockCreateTrackUseCase {
 class MockGetTrackUseCase {
   execute = vi.fn();
 }
-class MockListTracksUseCase { execute = vi.fn(); }
+class MockListTracksUseCase {
+  execute = vi.fn();
+}
 
 describe('TrackController', () => {
   let controller: TrackController;
@@ -35,10 +38,14 @@ describe('TrackController', () => {
     createUseCase = new MockCreateTrackUseCase();
     getUseCase = new MockGetTrackUseCase();
     listUseCase = new MockListTracksUseCase();
-    controller = new TrackController(createUseCase as any, getUseCase as any, listUseCase as any);
+    controller = new TrackController(
+      createUseCase as any,
+      getUseCase as any,
+      listUseCase as any,
+    );
   });
 
-  const createDto: CreateTrackDto = {
+  const baseCreateDto: CreateTrackDto = {
     slug: 'minha-trilha',
     courseIds: ['uuid-1'],
     translations: [
@@ -48,57 +55,201 @@ describe('TrackController', () => {
     ],
   };
 
-  it('create() returns track on success', async () => {
-    const payload = { track: { id: '1', slug: 'minha-trilha', courseIds: ['uuid-1'], title: 'PT', description: 'Desc PT' } };
-    createUseCase.execute.mockResolvedValueOnce(right(payload));
-    const res = await controller.create(createDto);
-    expect(res).toEqual(payload.track);
+  describe('create()', () => {
+    it('creates track successfully without imageUrl', async () => {
+      const payload = {
+        track: {
+          id: '1',
+          slug: 'minha-trilha',
+          courseIds: ['uuid-1'],
+          title: 'PT',
+          description: 'Desc PT',
+          imageUrl: undefined,
+        },
+      };
+      createUseCase.execute.mockResolvedValueOnce(right(payload));
+
+      const res = await controller.create(baseCreateDto);
+      expect(res).toEqual(payload.track);
+      expect(res.imageUrl).toBeUndefined();
+      expect(createUseCase.execute).toHaveBeenCalledWith({
+        slug: baseCreateDto.slug,
+        imageUrl: undefined,
+        courseIds: baseCreateDto.courseIds,
+        translations: baseCreateDto.translations,
+      });
+    });
+
+    it('creates track successfully with imageUrl', async () => {
+      const createDtoWithImage = {
+        ...baseCreateDto,
+        imageUrl: 'https://example.com/track-image.jpg',
+      };
+      const payload = {
+        track: {
+          id: '1',
+          slug: 'minha-trilha',
+          courseIds: ['uuid-1'],
+          title: 'PT',
+          description: 'Desc PT',
+          imageUrl: 'https://example.com/track-image.jpg',
+        },
+      };
+      createUseCase.execute.mockResolvedValueOnce(right(payload));
+
+      const res = await controller.create(createDtoWithImage);
+      expect(res).toEqual(payload.track);
+      expect(res.imageUrl).toBe('https://example.com/track-image.jpg');
+      expect(createUseCase.execute).toHaveBeenCalledWith({
+        slug: createDtoWithImage.slug,
+        imageUrl: createDtoWithImage.imageUrl,
+        courseIds: createDtoWithImage.courseIds,
+        translations: createDtoWithImage.translations,
+      });
+    });
+
+    it('throws BadRequestException on InvalidInputError', async () => {
+      const details = [
+        { path: ['imageUrl'], message: 'imageUrl must be a valid URL' },
+      ];
+      createUseCase.execute.mockResolvedValueOnce(
+        left(new InvalidInputError('Validation failed', details)),
+      );
+
+      const invalidDto = {
+        ...baseCreateDto,
+        imageUrl: 'invalid-url',
+      };
+
+      await expect(controller.create(invalidDto)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+    });
+
+    it('throws ConflictException on DuplicateTrackError', async () => {
+      createUseCase.execute.mockResolvedValueOnce(
+        left(new DuplicateTrackError()),
+      );
+
+      await expect(controller.create(baseCreateDto)).rejects.toBeInstanceOf(
+        ConflictException,
+      );
+    });
+
+    it('throws InternalServerErrorException on generic error', async () => {
+      createUseCase.execute.mockResolvedValueOnce(
+        left(new Error('unexpected')),
+      );
+
+      await expect(controller.create(baseCreateDto)).rejects.toBeInstanceOf(
+        InternalServerErrorException,
+      );
+    });
   });
 
-  it('getById() returns track on success', async () => {
-    const payload = { track: { id: '1', slug: 'my-track', courseIds: ['uuid-1'], title: 'PT', description: 'Desc PT' } };
-    getUseCase.execute.mockResolvedValueOnce(right(payload));
-    const res = await controller.getById({ id: '1' } as GetTrackDto);
-    expect(res).toEqual(payload.track);
-    expect(getUseCase.execute).toHaveBeenCalledWith({ id: '1' });
+  describe('getById()', () => {
+    it('returns track without imageUrl on success', async () => {
+      const payload = {
+        track: {
+          id: '1',
+          slug: 'my-track',
+          courseIds: ['uuid-1'],
+          title: 'PT',
+          description: 'Desc PT',
+          imageUrl: undefined,
+        },
+      };
+      getUseCase.execute.mockResolvedValueOnce(right(payload));
+
+      const res = await controller.getById({ id: '1' } as GetTrackDto);
+      expect(res).toEqual(payload.track);
+      expect(res.imageUrl).toBeUndefined();
+      expect(getUseCase.execute).toHaveBeenCalledWith({ id: '1' });
+    });
+
+    it('returns track with imageUrl on success', async () => {
+      const payload = {
+        track: {
+          id: '1',
+          slug: 'my-track',
+          courseIds: ['uuid-1'],
+          title: 'PT',
+          description: 'Desc PT',
+          imageUrl: 'https://example.com/track-image.jpg',
+        },
+      };
+      getUseCase.execute.mockResolvedValueOnce(right(payload));
+
+      const res = await controller.getById({ id: '1' } as GetTrackDto);
+      expect(res).toEqual(payload.track);
+      expect(res.imageUrl).toBe('https://example.com/track-image.jpg');
+      expect(getUseCase.execute).toHaveBeenCalledWith({ id: '1' });
+    });
+
+    it('throws BadRequestException on InvalidInputError', async () => {
+      getUseCase.execute.mockResolvedValueOnce(
+        left(new InvalidInputError('fail', [])),
+      );
+
+      await expect(
+        controller.getById({ id: 'bad' } as any),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('throws NotFoundException on TrackNotFoundError', async () => {
+      getUseCase.execute.mockResolvedValueOnce(left(new TrackNotFoundError()));
+
+      await expect(
+        controller.getById({ id: '1' } as GetTrackDto),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('throws InternalServerErrorException on generic error', async () => {
+      getUseCase.execute.mockResolvedValueOnce(left(new Error('oops')));
+
+      await expect(
+        controller.getById({ id: '1' } as GetTrackDto),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
+    });
   });
 
-  it('getById() throws BadRequest on invalid input', async () => {
-    getUseCase.execute.mockResolvedValueOnce(left(new InvalidInputError('fail', [])));
-    await expect(controller.getById({ id: 'bad' } as any)).rejects.toBeInstanceOf(BadRequestException);
+  describe('list()', () => {
+    it('returns tracks with imageUrl support on success', async () => {
+      const tracks = [
+        {
+          id: '1',
+          slug: 't1',
+          courseIds: ['c1'],
+          title: 'Track 1',
+          description: 'Desc 1',
+          imageUrl: 'https://example.com/image1.jpg',
+          translations: [],
+        },
+        {
+          id: '2',
+          slug: 't2',
+          courseIds: ['c2'],
+          title: 'Track 2',
+          description: 'Desc 2',
+          imageUrl: undefined,
+          translations: [],
+        },
+      ];
+      listUseCase.execute.mockResolvedValueOnce(right({ tracks }));
+
+      const result = await controller.list();
+      expect(result).toEqual(tracks);
+      expect(result[0].imageUrl).toBe('https://example.com/image1.jpg');
+      expect(result[1].imageUrl).toBeUndefined();
+      expect(listUseCase.execute).toHaveBeenCalled();
+    });
+
+    it('throws InternalServerErrorException on error', async () => {
+      listUseCase.execute.mockResolvedValueOnce(left(new Error('fail')));
+
+      await expect(controller.list()).rejects.toBeInstanceOf(
+        InternalServerErrorException,
+      );
+    });
   });
-
-  it('getById() throws NotFound on TrackNotFoundError', async () => {
-    getUseCase.execute.mockResolvedValueOnce(left(new TrackNotFoundError()));
-    await expect(controller.getById({ id: '1' } as GetTrackDto)).rejects.toBeInstanceOf(NotFoundException);
-  });
-
-  it('getById() throws InternalServerError on generic error', async () => {
-    getUseCase.execute.mockResolvedValueOnce(left(new Error('oops')));
-    await expect(controller.getById({ id: '1' } as GetTrackDto)).rejects.toBeInstanceOf(InternalServerErrorException);
-  });
-
-  it('create() returns track on success', async () => {
-    const payload = { track: { id: '1', slug: 'minha-trilha', courseIds: ['uuid-1'], title: 'PT', description: 'Desc PT' } };
-    createUseCase.execute.mockResolvedValueOnce(right(payload));
-    expect(await controller.create(createDto)).toEqual(payload.track);
-  });
-
-  it('list() returns tracks on success', async () => {
-    const tracks = [
-      { id: '1', slug: 't1', courseIds: ['c1'], translations: [] },
-      { id: '2', slug: 't2', courseIds: ['c2'], translations: [] },
-    ];
-    listUseCase.execute.mockResolvedValueOnce(right({ tracks }));
-    expect(await controller.list()).toEqual(tracks);
-    expect(listUseCase.execute).toHaveBeenCalled();
-  });
-
-
-  it('list() throws InternalServerError on error', async () => {
-    listUseCase.execute.mockResolvedValueOnce(left(new Error('fail')));
-    await expect(controller.list()).rejects.toBeInstanceOf(InternalServerErrorException);
-  });
-
-
 });

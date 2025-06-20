@@ -7,8 +7,9 @@ Content-Type: application/json
 
 {
   "slug": "minha-trilha2",
+ "imageUrl": "https://via.placeholder.com/600x400.png?text=Teste+de+Imagem",
   "courseIds": [
-    "9c0196ec-3bdb-4f2d-a464-0b182b47636d"
+    "14f6baa1-7322-43db-a4a1-c3d004059a20"
   ],
   "translations": [
     {
@@ -33,7 +34,7 @@ Content-Type: application/json
 
 
 
-GET {{BASE_URL}}/tracks/93408073-e497-4959-9ed4-67e873d5f25c
+GET {{BASE_URL}}/tracks/18bc95ce-6692-4071-a50e-59d3e3d28211
 Content-Type: application/json
 
 

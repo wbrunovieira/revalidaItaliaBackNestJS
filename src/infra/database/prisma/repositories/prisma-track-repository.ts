@@ -1,11 +1,11 @@
 // src/infra/database/prisma/repositories/prisma-track-repository.ts
-import { Injectable } from "@nestjs/common";
-import { PrismaService } from "@/prisma/prisma.service";
-import { Either, left, right } from "@/core/either";
-import { ITrackRepository } from "@/domain/course-catalog/application/repositories/i-track-repository";
-import { Track } from "@/domain/course-catalog/enterprise/entities/track.entity";
-import { UniqueEntityID } from "@/core/unique-entity-id";
-import { TrackTranslationVO } from "@/domain/course-catalog/enterprise/value-objects/track-translation.vo";
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
+import { Either, left, right } from '@/core/either';
+import { ITrackRepository } from '@/domain/course-catalog/application/repositories/i-track-repository';
+import { Track } from '@/domain/course-catalog/enterprise/entities/track.entity';
+import { UniqueEntityID } from '@/core/unique-entity-id';
+import { TrackTranslationVO } from '@/domain/course-catalog/enterprise/value-objects/track-translation.vo';
 
 @Injectable()
 export class PrismaTrackRepository implements ITrackRepository {
@@ -20,20 +20,22 @@ export class PrismaTrackRepository implements ITrackRepository {
           trackCourses: { include: { course: true } },
         },
       });
-      if (!data) return left(new Error("Track not found"));
+      if (!data) return left(new Error('Track not found'));
 
-      const translations = data.translations.map(tr =>
-        new TrackTranslationVO(
-          tr.locale as "pt" | "it" | "es",
-          tr.title,
-          tr.description
-        )
+      const translations = data.translations.map(
+        (tr) =>
+          new TrackTranslationVO(
+            tr.locale as 'pt' | 'it' | 'es',
+            tr.title,
+            tr.description,
+          ),
       );
 
-      const courseIds = data.trackCourses.map(tc => tc.course.id);
+      const courseIds = data.trackCourses.map((tc) => tc.course.id);
 
       const props = {
         slug: data.slug,
+        imageUrl: data.imageUrl || undefined,
         courseIds,
         translations,
         createdAt: data.createdAt,
@@ -41,7 +43,7 @@ export class PrismaTrackRepository implements ITrackRepository {
       };
       return right(Track.reconstruct(props, new UniqueEntityID(data.id)));
     } catch (err: any) {
-      return left(new Error(err.message || "Database error"));
+      return left(new Error(err.message || 'Database error'));
     }
   }
 
@@ -54,20 +56,22 @@ export class PrismaTrackRepository implements ITrackRepository {
           trackCourses: { include: { course: true } },
         },
       });
-      if (!data) return left(new Error("Track not found"));
+      if (!data) return left(new Error('Track not found'));
 
-      const translations = data.translations.map(tr =>
-        new TrackTranslationVO(
-          tr.locale as "pt" | "it" | "es",
-          tr.title,
-          tr.description
-        )
+      const translations = data.translations.map(
+        (tr) =>
+          new TrackTranslationVO(
+            tr.locale as 'pt' | 'it' | 'es',
+            tr.title,
+            tr.description,
+          ),
       );
 
-      const courseIds = data.trackCourses.map(tc => tc.course.id);
+      const courseIds = data.trackCourses.map((tc) => tc.course.id);
 
       const props = {
         slug: data.slug,
+        imageUrl: data.imageUrl || undefined,
         courseIds,
         translations,
         createdAt: data.createdAt,
@@ -75,7 +79,7 @@ export class PrismaTrackRepository implements ITrackRepository {
       };
       return right(Track.reconstruct(props, new UniqueEntityID(data.id)));
     } catch (err: any) {
-      return left(new Error(err.message || "Database error"));
+      return left(new Error(err.message || 'Database error'));
     }
   }
 
@@ -85,8 +89,9 @@ export class PrismaTrackRepository implements ITrackRepository {
         data: {
           id: track.id.toString(),
           slug: track.slug,
+          imageUrl: track.imageUrl,
           translations: {
-            create: track.translations.map(tr => ({
+            create: track.translations.map((tr) => ({
               id: new UniqueEntityID().toString(),
               locale: tr.locale,
               title: tr.title,
@@ -94,7 +99,7 @@ export class PrismaTrackRepository implements ITrackRepository {
             })),
           },
           trackCourses: {
-            create: track.courseIds.map(courseId => ({
+            create: track.courseIds.map((courseId) => ({
               course: { connect: { id: courseId } },
             })),
           },
@@ -102,7 +107,7 @@ export class PrismaTrackRepository implements ITrackRepository {
       });
       return right(undefined);
     } catch (err: any) {
-      return left(new Error(err.message || "Failed to create track"));
+      return left(new Error(err.message || 'Failed to create track'));
     }
   }
 
@@ -114,18 +119,20 @@ export class PrismaTrackRepository implements ITrackRepository {
           trackCourses: { include: { course: true } },
         },
       });
-      const tracks = data.map(item => {
-        const translations = item.translations.map(tr =>
-          new TrackTranslationVO(
-            tr.locale as "pt" | "it" | "es",
-            tr.title,
-            tr.description
-          )
+      const tracks = data.map((item) => {
+        const translations = item.translations.map(
+          (tr) =>
+            new TrackTranslationVO(
+              tr.locale as 'pt' | 'it' | 'es',
+              tr.title,
+              tr.description,
+            ),
         );
-        const courseIds = item.trackCourses.map(tc => tc.course.id);
+        const courseIds = item.trackCourses.map((tc) => tc.course.id);
 
         const props = {
           slug: item.slug,
+          imageUrl: item.imageUrl || undefined,
           courseIds,
           translations,
           createdAt: item.createdAt,
@@ -135,7 +142,7 @@ export class PrismaTrackRepository implements ITrackRepository {
       });
       return right(tracks);
     } catch (err: any) {
-      return left(new Error(err.message || "Database error"));
+      return left(new Error(err.message || 'Database error'));
     }
   }
 }

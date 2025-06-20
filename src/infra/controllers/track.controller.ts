@@ -15,11 +15,12 @@ import { CreateTrackUseCase } from '@/domain/course-catalog/application/use-case
 
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { DuplicateTrackError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-track-error';
-import { CreateTrackDto } from '@/domain/course-catalog/application/dtos/create-track.dto';
+
 import { GetTrackUseCase } from '@/domain/course-catalog/application/use-cases/get-track.use-case';
 import { TrackNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/track-not-found-error';
 import { GetTrackDto } from '@/domain/course-catalog/application/dtos/get-track.dto';
 import { ListTracksUseCase } from '@/domain/course-catalog/application/use-cases/list-tracks.use-case';
+import { CreateTrackDto } from '@/domain/course-catalog/application/dtos/create-track.dto';
 
 @Controller('tracks')
 export class TrackController {
@@ -36,6 +37,7 @@ export class TrackController {
   async create(@Body() dto: CreateTrackDto) {
     const request = {
       slug: dto.slug,
+      imageUrl: dto.imageUrl,
       courseIds: dto.courseIds,
       translations: dto.translations.map((t) => ({
         locale: t.locale,
