@@ -9,6 +9,7 @@ import { DatabaseModule } from '@/infra/database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { ModuleModule } from './module.module';
 import { DocumentController } from './controllers/document.controller';
+import { GetDocumentUseCase } from '@/domain/course-catalog/application/use-cases/get-document.use-case';
 
 @Module({
   imports: [DatabaseModule, ConfigModule, ModuleModule],
@@ -16,6 +17,7 @@ import { DocumentController } from './controllers/document.controller';
   providers: [
     CreateDocumentUseCase,
     ListDocumentsUseCase,
+    GetDocumentUseCase,
 
     // TODO: Adicionar quando implementados
     // GetDocumentUseCase,

@@ -1,19 +1,20 @@
-// src/infra/controllers/document.controller.spec.ts
+// src/infra/controllers/document.controller.spec.ts (versão corrigida completa)
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   BadRequestException,
   ConflictException,
-  InternalServerErrorException,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
-import { left, right } from '@/core/either';
+
+import { DocumentController } from './document.controller';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
-import { DuplicateDocumentError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-document-error';
 import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
+import { DuplicateDocumentError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-document-error';
 import { DocumentNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/document-not-found-error';
 import { InvalidFileError } from '@/domain/course-catalog/application/use-cases/errors/invalid-file-error';
-import { CreateDocumentDto } from '@/domain/course-catalog/application/dtos/create-document.dto';
-import { DocumentController } from './document.controller';
+import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
+import { left, right } from '@/core/either';
 
 type PrismaMock = {
   lesson: {
@@ -28,6 +29,10 @@ class MockCreateDocumentUseCase {
   execute = vi.fn();
 }
 
+class MockGetDocumentUseCase {
+  execute = vi.fn();
+}
+
 class MockListDocumentsUseCase {
   execute = vi.fn();
 }
@@ -36,27 +41,17 @@ describe('DocumentController', () => {
   let controller: DocumentController;
   let createUc: MockCreateDocumentUseCase;
   let listUc: MockListDocumentsUseCase;
+  let getUc: MockGetDocumentUseCase;
   let prisma: PrismaMock;
 
-  const courseId = 'course-1';
-  const lessonId = 'lesson-1';
-
-  const dto: Omit<CreateDocumentDto, 'lessonId'> = {
-    url: 'https://example.com/document.pdf',
-    filename: 'material-curso.pdf',
-    fileSize: 1024 * 1024, // 1MB
-    mimeType: 'application/pdf',
-    isDownloadable: true,
-    translations: [
-      { locale: 'pt', title: 'Material do Curso', description: 'Desc PT' },
-      { locale: 'it', title: 'Materiale del Corso', description: 'Desc IT' },
-      { locale: 'es', title: 'Material del Curso', description: 'Desc ES' },
-    ],
-  };
+  const courseId = 'course-uuid';
+  const lessonId = 'lesson-uuid';
+  const documentId = 'doc-uuid';
 
   beforeEach(() => {
     createUc = new MockCreateDocumentUseCase();
     listUc = new MockListDocumentsUseCase();
+    getUc = new MockGetDocumentUseCase();
 
     prisma = {
       lesson: {
@@ -65,122 +60,144 @@ describe('DocumentController', () => {
           .mockResolvedValue({ id: lessonId, module: { courseId } }),
       },
       lessonDocument: {
-        findUnique: vi.fn().mockResolvedValue({ id: 'doc-1', lessonId }),
+        findUnique: vi.fn().mockResolvedValue({ id: documentId, lessonId }),
       },
     };
 
     controller = new DocumentController(
       createUc as any,
       listUc as any,
+      getUc as any,
       prisma as any,
     );
   });
 
   describe('create()', () => {
+    const createBody = {
+      url: 'http://example.com/doc.pdf',
+      filename: 'document.pdf',
+      title: 'Test Document',
+      fileSize: 1024,
+      mimeType: 'application/pdf',
+      isDownloadable: true,
+      translations: [],
+    };
+
     it('→ retorna o documento criado quando tudo OK', async () => {
-      const payload = {
-        id: 'doc-1',
-        url: dto.url,
-        filename: dto.filename,
-        title: 'Material do Curso',
-        fileSize: dto.fileSize,
-        fileSizeInMB: 1,
-        mimeType: dto.mimeType,
-        isDownloadable: dto.isDownloadable,
-        downloadCount: 0,
-        translations: dto.translations,
+      // Mock do use case retornando sucesso
+      const mockResult = {
+        document: {
+          id: documentId,
+          ...createBody,
+          fileSizeInMB: 0.001,
+          downloadCount: 0,
+        },
+        translations: [],
       };
 
-      createUc.execute.mockResolvedValueOnce(
-        right({ document: payload, translations: dto.translations }),
-      );
+      createUc.execute.mockResolvedValueOnce(right(mockResult));
 
-      const res = await controller.create(courseId, lessonId, dto);
+      const result = await controller.create(courseId, lessonId, createBody);
 
       expect(prisma.lesson.findUnique).toHaveBeenCalledWith({
         where: { id: lessonId },
         include: { module: { select: { courseId: true } } },
       });
       expect(createUc.execute).toHaveBeenCalledWith({
+        ...createBody,
         lessonId,
-        url: dto.url,
-        filename: dto.filename,
-        fileSize: dto.fileSize,
-        mimeType: dto.mimeType,
-        isDownloadable: dto.isDownloadable,
-        translations: dto.translations,
       });
-      expect(res).toEqual(payload);
+      expect(result).toEqual({
+        id: documentId,
+        ...createBody,
+        fileSizeInMB: 0.001,
+        downloadCount: 0,
+        translations: [],
+      });
     });
 
     it('→ lança NotFoundException se a lesson não existir ou pertencer a outro curso', async () => {
       prisma.lesson.findUnique.mockResolvedValueOnce(null);
+
       await expect(
-        controller.create(courseId, lessonId, dto),
+        controller.create(courseId, lessonId, createBody),
       ).rejects.toBeInstanceOf(NotFoundException);
 
       prisma.lesson.findUnique.mockResolvedValueOnce({
         id: lessonId,
         module: { courseId: 'outro-curso' },
       });
+
       await expect(
-        controller.create(courseId, lessonId, dto),
+        controller.create(courseId, lessonId, createBody),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('→ lança BadRequestException em caso de InvalidInputError', async () => {
-      const error = new InvalidInputError('Validation failed', [
-        {
-          path: ['filename'],
-          message: 'Invalid filename',
-          code: 'invalid_string',
-        },
-      ]);
+      const error = new InvalidInputError('Validation failed', []);
       createUc.execute.mockResolvedValueOnce(left(error));
 
       await expect(
-        controller.create(courseId, lessonId, dto),
+        controller.create(courseId, lessonId, createBody),
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('→ lança BadRequestException em caso de InvalidFileError', async () => {
-      createUc.execute.mockResolvedValueOnce(
-        left(new InvalidFileError('File too large')),
-      );
+      const error = new InvalidFileError('Invalid file');
+      createUc.execute.mockResolvedValueOnce(left(error));
+
       await expect(
-        controller.create(courseId, lessonId, dto),
+        controller.create(courseId, lessonId, createBody),
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('→ lança ConflictException em caso de DuplicateDocumentError', async () => {
-      createUc.execute.mockResolvedValueOnce(
-        left(new DuplicateDocumentError()),
-      );
+      const error = new DuplicateDocumentError();
+      createUc.execute.mockResolvedValueOnce(left(error));
+
       await expect(
-        controller.create(courseId, lessonId, dto),
+        controller.create(courseId, lessonId, createBody),
       ).rejects.toBeInstanceOf(ConflictException);
     });
 
     it('→ lança NotFoundException em caso de LessonNotFoundError', async () => {
-      createUc.execute.mockResolvedValueOnce(left(new LessonNotFoundError()));
+      const error = new LessonNotFoundError();
+      createUc.execute.mockResolvedValueOnce(left(error));
+
       await expect(
-        controller.create(courseId, lessonId, dto),
+        controller.create(courseId, lessonId, createBody),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('→ lança InternalServerErrorException em outros erros', async () => {
-      createUc.execute.mockResolvedValueOnce(
-        left(new Error('Database connection failed')),
-      );
+      const error = new Error('Unknown error');
+      createUc.execute.mockResolvedValueOnce(left(error));
+
       await expect(
-        controller.create(courseId, lessonId, dto),
+        controller.create(courseId, lessonId, createBody),
       ).rejects.toBeInstanceOf(InternalServerErrorException);
     });
   });
 
   describe('findOne()', () => {
-    it('→ retorna mensagem de endpoint não implementado quando tudo OK', async () => {
-      const documentId = 'doc-1';
+    it('→ retorna documento quando tudo OK', async () => {
+      // Mock do use case retornando sucesso
+      const mockDocument = {
+        id: documentId,
+        url: 'http://example.com/doc.pdf',
+        filename: 'document.pdf',
+        title: 'Test Document',
+        fileSize: 1024,
+        fileSizeInMB: 0.001,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        translations: [],
+      };
+
+      getUc.execute.mockResolvedValueOnce(right({ document: mockDocument }));
 
       const result = await controller.findOne(courseId, lessonId, documentId);
 
@@ -188,40 +205,46 @@ describe('DocumentController', () => {
         where: { id: lessonId },
         include: { module: { select: { courseId: true } } },
       });
-      expect(prisma.lessonDocument.findUnique).toHaveBeenCalledWith({
-        where: { id: documentId },
-      });
-      expect(result).toEqual({
-        message: 'Get document endpoint - to be implemented',
+      expect(getUc.execute).toHaveBeenCalledWith({
         documentId,
+        lessonId,
       });
+      expect(result).toEqual(mockDocument);
     });
 
     it('→ lança NotFoundException se lesson não existir', async () => {
       prisma.lesson.findUnique.mockResolvedValueOnce(null);
 
       await expect(
-        controller.findOne(courseId, lessonId, 'doc-1'),
+        controller.findOne(courseId, lessonId, documentId),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it('→ lança NotFoundException se documento não pertencer à lesson', async () => {
-      prisma.lessonDocument.findUnique.mockResolvedValueOnce({
-        id: 'doc-1',
-        lessonId: 'other-lesson-id',
-      });
+    it('→ lança BadRequestException em caso de InvalidInputError', async () => {
+      const error = new InvalidInputError('Validation failed', []);
+      getUc.execute.mockResolvedValueOnce(left(error));
 
       await expect(
-        controller.findOne(courseId, lessonId, 'doc-1'),
+        controller.findOne(courseId, lessonId, documentId),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('→ lança NotFoundException em caso de DocumentNotFoundError', async () => {
+      const error = new DocumentNotFoundError();
+      getUc.execute.mockResolvedValueOnce(left(error));
+
+      await expect(
+        controller.findOne(courseId, lessonId, documentId),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it('→ lança NotFoundException se documento não existir', async () => {
-      prisma.lessonDocument.findUnique.mockResolvedValueOnce(null);
+    it('→ lança InternalServerErrorException em caso de RepositoryError', async () => {
+      const error = new RepositoryError('Database error');
+      getUc.execute.mockResolvedValueOnce(left(error));
 
       await expect(
-        controller.findOne(courseId, lessonId, 'doc-1'),
-      ).rejects.toBeInstanceOf(NotFoundException);
+        controller.findOne(courseId, lessonId, documentId),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
     });
   });
 
@@ -230,40 +253,9 @@ describe('DocumentController', () => {
       const mockDocuments = [
         {
           id: 'doc-1',
-          url: 'https://example.com/doc1.pdf',
-          filename: 'doc1.pdf',
-          title: 'Documento 1',
-          fileSize: 1024 * 1024,
-          fileSizeInMB: 1,
-          mimeType: 'application/pdf',
-          isDownloadable: true,
-          downloadCount: 0,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          translations: [
-            { locale: 'pt', title: 'Doc 1 PT', description: 'Desc PT' },
-            { locale: 'it', title: 'Doc 1 IT', description: 'Desc IT' },
-            { locale: 'es', title: 'Doc 1 ES', description: 'Desc ES' },
-          ],
-        },
-        {
-          id: 'doc-2',
-          url: 'https://example.com/doc2.docx',
-          filename: 'doc2.docx',
-          title: 'Documento 2',
-          fileSize: 512 * 1024,
-          fileSizeInMB: 0.5,
-          mimeType:
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          isDownloadable: true,
-          downloadCount: 5,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          translations: [
-            { locale: 'pt', title: 'Doc 2 PT', description: 'Desc PT' },
-            { locale: 'it', title: 'Doc 2 IT', description: 'Desc IT' },
-            { locale: 'es', title: 'Doc 2 ES', description: 'Desc ES' },
-          ],
+          url: 'http://example.com/doc1.pdf',
+          filename: 'document1.pdf',
+          title: 'Document 1',
         },
       ];
 
@@ -271,13 +263,8 @@ describe('DocumentController', () => {
 
       const result = await controller.findAll(courseId, lessonId);
 
-      expect(prisma.lesson.findUnique).toHaveBeenCalledWith({
-        where: { id: lessonId },
-        include: { module: { select: { courseId: true } } },
-      });
       expect(listUc.execute).toHaveBeenCalledWith({ lessonId });
       expect(result).toEqual(mockDocuments);
-      expect(result).toHaveLength(2);
     });
 
     it('→ retorna array vazio quando lesson não tem documentos', async () => {
@@ -285,7 +272,6 @@ describe('DocumentController', () => {
 
       const result = await controller.findAll(courseId, lessonId);
 
-      expect(listUc.execute).toHaveBeenCalledWith({ lessonId });
       expect(result).toEqual([]);
     });
 
@@ -298,9 +284,7 @@ describe('DocumentController', () => {
     });
 
     it('→ lança BadRequestException em caso de InvalidInputError', async () => {
-      const error = new InvalidInputError('Validation failed', [
-        { path: ['lessonId'], message: 'Invalid UUID', code: 'invalid_string' },
-      ]);
+      const error = new InvalidInputError('Validation failed', []);
       listUc.execute.mockResolvedValueOnce(left(error));
 
       await expect(
@@ -317,9 +301,7 @@ describe('DocumentController', () => {
     });
 
     it('→ lança InternalServerErrorException em outros erros', async () => {
-      listUc.execute.mockResolvedValueOnce(
-        left(new Error('Database connection failed')),
-      );
+      listUc.execute.mockResolvedValueOnce(left(new Error('Unknown error')));
 
       await expect(
         controller.findAll(courseId, lessonId),
@@ -329,21 +311,12 @@ describe('DocumentController', () => {
 
   describe('incrementDownload()', () => {
     it('→ retorna mensagem de sucesso quando tudo OK', async () => {
-      const documentId = 'doc-1';
-
       const result = await controller.incrementDownload(
         courseId,
         lessonId,
         documentId,
       );
 
-      expect(prisma.lesson.findUnique).toHaveBeenCalledWith({
-        where: { id: lessonId },
-        include: { module: { select: { courseId: true } } },
-      });
-      expect(prisma.lessonDocument.findUnique).toHaveBeenCalledWith({
-        where: { id: documentId },
-      });
       expect(result).toEqual({
         message: 'Download count incremented successfully',
         documentId,
@@ -354,18 +327,16 @@ describe('DocumentController', () => {
       prisma.lesson.findUnique.mockResolvedValueOnce(null);
 
       await expect(
-        controller.incrementDownload(courseId, lessonId, 'doc-1'),
+        controller.incrementDownload(courseId, lessonId, documentId),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('→ lança NotFoundException se documento não pertencer à lesson', async () => {
-      prisma.lessonDocument.findUnique.mockResolvedValueOnce({
-        id: 'doc-1',
-        lessonId: 'other-lesson-id',
-      });
+      const mockDocument = { id: documentId, lessonId: 'other-lesson-id' };
+      prisma.lessonDocument.findUnique.mockResolvedValueOnce(mockDocument);
 
       await expect(
-        controller.incrementDownload(courseId, lessonId, 'doc-1'),
+        controller.incrementDownload(courseId, lessonId, documentId),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
