@@ -94,6 +94,7 @@ export class Course extends Entity<CourseProps> {
   public toResponseObject(): {
     id: string;
     slug: string;
+    imageUrl?: string;
     title: string;
     description: string;
     createdAt: Date;
@@ -102,6 +103,7 @@ export class Course extends Entity<CourseProps> {
     return {
       id: this.id.toString(),
       slug: this.slug,
+      imageUrl: this.imageUrl,
       title: this.title,
       description: this.description,
       createdAt: this.props.createdAt,

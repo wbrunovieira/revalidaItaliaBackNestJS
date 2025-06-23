@@ -1,18 +1,19 @@
 // ─────────────────────────────────────────────────────────────────
 // src/domain/course-catalog/enterprise/entities/module.entity.ts
 // ─────────────────────────────────────────────────────────────────
-import { Entity } from "@/core/entity";
-import { UniqueEntityID } from "@/core/unique-entity-id";
-import { Video } from "./video.entity";
+import { Entity } from '@/core/entity';
+import { UniqueEntityID } from '@/core/unique-entity-id';
+import { Video } from './video.entity';
 
 export interface ModuleTranslationVO {
-  locale: "pt" | "it" | "es";
+  locale: 'pt' | 'it' | 'es';
   title: string;
   description: string;
 }
 
 export interface ModuleProps {
   slug: string;
+  imageUrl?: string;
 
   translations: ModuleTranslationVO[];
 
@@ -31,12 +32,26 @@ export class Module extends Entity<ModuleProps> {
     return this.props.slug;
   }
 
+  public get imageUrl(): string | undefined {
+    return this.props.imageUrl;
+  }
+
+  public updateImageUrl(imageUrl: string): void {
+    this.props.imageUrl = imageUrl;
+    this.touch();
+  }
+
+  public removeImage(): void {
+    this.props.imageUrl = undefined;
+    this.touch();
+  }
+
   public get translations(): ModuleTranslationVO[] {
     return this.props.translations;
   }
 
   public get title(): string {
-    const pt = this.props.translations.find((t) => t.locale === "pt")!;
+    const pt = this.props.translations.find((t) => t.locale === 'pt')!;
     return pt.title;
   }
 
@@ -56,19 +71,25 @@ export class Module extends Entity<ModuleProps> {
     return this.props.updatedAt;
   }
 
-  public updateDetails(updates: { title?: string; order?: number; slug?: string }) {
+  public updateDetails(updates: {
+    title?: string;
+    order?: number;
+    slug?: string;
+  }) {
     if (updates.slug) {
       this.props.slug = updates.slug;
       this.touch();
     }
     if (updates.title) {
-      const ptIndex = this.props.translations.findIndex((t) => t.locale === "pt");
+      const ptIndex = this.props.translations.findIndex(
+        (t) => t.locale === 'pt',
+      );
       if (ptIndex >= 0) {
         this.props.translations[ptIndex].title = updates.title;
       }
       this.touch();
     }
-    if (typeof updates.order === "number") {
+    if (typeof updates.order === 'number') {
       this.props.order = updates.order;
       this.touch();
     }
@@ -80,13 +101,16 @@ export class Module extends Entity<ModuleProps> {
   }
 
   public removeVideo(videoId: string) {
-    this.props.videos = this.props.videos.filter((v) => v.id.toString() !== videoId);
+    this.props.videos = this.props.videos.filter(
+      (v) => v.id.toString() !== videoId,
+    );
     this.touch();
   }
 
   public toResponseObject(): {
     id: string;
     slug: string;
+    imageUrl?: string;
     title: string;
     order: number;
     videos: { id: string; title: string; isSeen: boolean }[];
@@ -101,6 +125,7 @@ export class Module extends Entity<ModuleProps> {
     return {
       id: this.id.toString(),
       slug: this.slug,
+      imageUrl: this.imageUrl,
       title: this.title,
       order: this.props.order,
       videos: videoSummaries,
@@ -110,8 +135,8 @@ export class Module extends Entity<ModuleProps> {
   }
 
   public static create(
-    props: Omit<ModuleProps, "createdAt" | "updatedAt">,
-    id?: UniqueEntityID
+    props: Omit<ModuleProps, 'createdAt' | 'updatedAt'>,
+    id?: UniqueEntityID,
   ): Module {
     const now = new Date();
     return new Module(
@@ -120,7 +145,7 @@ export class Module extends Entity<ModuleProps> {
         createdAt: now,
         updatedAt: now,
       },
-      id
+      id,
     );
   }
 
