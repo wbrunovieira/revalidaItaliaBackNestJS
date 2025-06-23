@@ -11,7 +11,14 @@ const translationSchema = z.object({
 
 export const createTrackSchema = z.object({
   slug: z.string().min(3, 'Slug must be at least 3 characters long'),
-  imageUrl: z.string().url('imageUrl must be a valid URL').optional(),
+  imageUrl: z
+    .union([
+      z.string().url('imageUrl must be a valid absolute URL'),
+      z
+        .string()
+        .regex(/^\/.+/, 'imageUrl must be an absolute path like "/images/..."'),
+    ])
+    .optional(),
   courseIds: z
     .array(z.string(), {
       invalid_type_error: 'Each courseId must be a string',

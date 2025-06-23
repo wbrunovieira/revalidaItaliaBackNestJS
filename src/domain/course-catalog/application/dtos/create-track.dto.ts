@@ -7,6 +7,8 @@ import {
   ValidateNested,
   IsOptional,
   IsUrl,
+  Matches,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -30,6 +32,16 @@ export class CreateTrackDto {
 
   @IsOptional()
   @IsString()
+  // Permite caminhos relativos no frontend (/images/...) ou URLs absolutas
+  @ValidateIf(
+    (o) => typeof o.imageUrl === 'string' && o.imageUrl.startsWith('/'),
+  )
+  @Matches(/^\/.*$/, {
+    message: 'imageUrl must be an absolute path like "/images/..."',
+  })
+  @ValidateIf(
+    (o) => typeof o.imageUrl === 'string' && !o.imageUrl.startsWith('/'),
+  )
   @IsUrl({}, { message: 'imageUrl must be a valid URL' })
   imageUrl?: string;
 

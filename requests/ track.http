@@ -7,9 +7,9 @@ Content-Type: application/json
 
 {
   "slug": "minha-trilha2",
- "imageUrl": "https://via.placeholder.com/600x400.png?text=Teste+de+Imagem",
+   "imageUrl": "/images/capa-track.avif",
   "courseIds": [
-    "14f6baa1-7322-43db-a4a1-c3d004059a20"
+    "76a06bfb-792c-4669-b060-8b62a2dfbfb5"
   ],
   "translations": [
     {
