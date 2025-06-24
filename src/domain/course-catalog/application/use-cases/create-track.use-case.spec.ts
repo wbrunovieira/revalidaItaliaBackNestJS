@@ -81,7 +81,10 @@ describe('CreateTrackUseCase', () => {
         expect(r.value.details).toEqual(
           expect.arrayContaining([
             expect.objectContaining({
-              message: expect.stringContaining('imageUrl must be a valid URL'),
+              // ✅ CORREÇÃO: Atualizar para a mensagem real retornada pelo schema
+              message: expect.stringContaining(
+                'imageUrl must be a valid absolute URL',
+              ),
             }),
           ]),
         );

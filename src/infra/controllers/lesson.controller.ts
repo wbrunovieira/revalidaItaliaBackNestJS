@@ -75,7 +75,6 @@ export class LessonController {
     @Query('limit') limit = '10',
     @Query('includeVideo') includeVideo = 'false',
   ) {
-    // Build request DTO
     const req: ListLessonsRequest = {
       moduleId,
       page: parseInt(page, 10),
@@ -106,7 +105,6 @@ export class LessonController {
       throw ex;
     }
 
-    // On success, return full response
     return result.value;
   }
 }
