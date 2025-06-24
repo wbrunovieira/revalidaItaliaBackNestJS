@@ -10,7 +10,10 @@ import { InvalidInputError } from './errors/invalid-input-error';
 import { RepositoryError } from './errors/repository-error';
 import { CourseNotFoundError } from './errors/course-not-found-error';
 import { DuplicateModuleOrderError } from './errors/duplicate-module-order-error';
-import { createModuleSchema, CreateModuleSchema } from './validations/create-module.schema';
+import {
+  createModuleSchema,
+  CreateModuleSchema,
+} from './validations/create-module.schema';
 import { IModuleRepository } from '../repositories/i-module-repository';
 
 type CreateModuleUseCaseResponse = Either<
@@ -23,6 +26,7 @@ type CreateModuleUseCaseResponse = Either<
     module: {
       id: string;
       slug: string;
+      imageUrl?: string;
       order: number;
       translations: Array<{
         locale: 'pt' | 'it' | 'es';
@@ -39,13 +43,15 @@ export class CreateModuleUseCase {
     @Inject('CourseRepository')
     private readonly courseRepository: ICourseRepository,
     @Inject('ModuleRepository')
-    private readonly moduleRepository: IModuleRepository
+    private readonly moduleRepository: IModuleRepository,
   ) {}
 
   async execute(
-    request: CreateModuleRequest
+    request: CreateModuleRequest,
   ): Promise<CreateModuleUseCaseResponse> {
-  
+    // ✅ DEBUG 1: Ver o que chega no request
+    console.log('🔍 DEBUG 1 - Raw request:', JSON.stringify(request, null, 2));
+
     const parseResult = createModuleSchema.safeParse(request);
     if (!parseResult.success) {
       const details = parseResult.error.issues.map((issue) => ({
@@ -57,6 +63,13 @@ export class CreateModuleUseCase {
     }
     const data: CreateModuleSchema = parseResult.data;
 
+    // ✅ DEBUG 2: Ver o que passou na validação Zod
+    console.log(
+      '🔍 DEBUG 2 - After Zod validation:',
+      JSON.stringify(data, null, 2),
+    );
+    console.log('🔍 DEBUG 2.1 - imageUrl specifically:', data.imageUrl);
+    console.log('🔍 DEBUG 2.2 - imageUrl type:', typeof data.imageUrl);
 
     try {
       const foundCourse = await this.courseRepository.findById(data.courseId);
@@ -67,11 +80,10 @@ export class CreateModuleUseCase {
       return left(new RepositoryError(err.message));
     }
 
-
     try {
       const existingModule = await this.moduleRepository.findByCourseIdAndOrder(
         data.courseId,
-        data.order
+        data.order,
       );
       if (existingModule.isRight()) {
         return left(new DuplicateModuleOrderError());
@@ -79,7 +91,6 @@ export class CreateModuleUseCase {
     } catch (err: any) {
       return left(new RepositoryError(err.message));
     }
-
 
     let slugVo: SlugVO;
     try {
@@ -89,18 +100,41 @@ export class CreateModuleUseCase {
       return left(new InvalidInputError('Invalid slug', details));
     }
 
-    const moduleEntity = Module.create({
+    // ✅ DEBUG 3: Ver os dados que vão para a entidade
+    const entityProps = {
       slug: slugVo.get(),
+      imageUrl: data.imageUrl,
       translations: data.translations,
       order: data.order,
       videos: [],
-    });
+    };
+    console.log(
+      '🔍 DEBUG 3 - Entity props:',
+      JSON.stringify(entityProps, null, 2),
+    );
 
- 
+    const moduleEntity = Module.create(entityProps);
+
+    // ✅ DEBUG 4: Ver o que a entidade retorna
+    console.log('🔍 DEBUG 4 - Created entity imageUrl:', moduleEntity.imageUrl);
+    console.log(
+      '🔍 DEBUG 4.1 - Entity props after creation:',
+      JSON.stringify(
+        {
+          id: moduleEntity.id.toString(),
+          slug: moduleEntity.slug,
+          imageUrl: moduleEntity.imageUrl,
+          order: moduleEntity.order,
+        },
+        null,
+        2,
+      ),
+    );
+
     try {
       const createdOrError = await this.moduleRepository.create(
         data.courseId,
-        moduleEntity
+        moduleEntity,
       );
       if (createdOrError.isLeft()) {
         return left(new RepositoryError(createdOrError.value.message));
@@ -109,11 +143,11 @@ export class CreateModuleUseCase {
       return left(new RepositoryError(err.message));
     }
 
- 
     const responsePayload = {
       module: {
         id: moduleEntity.id.toString(),
         slug: moduleEntity.slug,
+        imageUrl: moduleEntity.imageUrl,
         order: moduleEntity.order,
         translations: moduleEntity.translations.map((tr) => ({
           locale: tr.locale,
@@ -122,6 +156,13 @@ export class CreateModuleUseCase {
         })),
       },
     };
+
+    // ✅ DEBUG 5: Ver a resposta final
+    console.log(
+      '🔍 DEBUG 5 - Response payload:',
+      JSON.stringify(responsePayload, null, 2),
+    );
+
     return right(responsePayload);
   }
 }

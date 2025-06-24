@@ -57,6 +57,13 @@ export class PrismaModuleRepository implements IModuleRepository {
   async create(courseId: string, module: Module): Promise<Either<Error, void>> {
     try {
       const modTranslations = module.translations;
+
+      console.log('🔍 DEBUG - Module entity:');
+      console.log('ID:', module.id.toString());
+      console.log('Slug:', module.slug);
+      console.log('ImageURL:', module.imageUrl); // ← Verificar este valor
+      console.log('Order:', module.order);
+
       await this.prisma.module.create({
         data: {
           id: module.id.toString(),

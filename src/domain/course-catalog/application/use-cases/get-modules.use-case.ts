@@ -6,16 +6,18 @@ import { IModuleRepository } from '../repositories/i-module-repository';
 import { GetModulesRequest } from '../dtos/get-modules-request.dto';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { RepositoryError } from './errors/repository-error';
-import { GetModulesSchema, getModulesSchema } from './validations/get-modules.schema';
+import {
+  GetModulesSchema,
+  getModulesSchema,
+} from './validations/get-modules.schema';
 
 type GetModulesUseCaseResponse = Either<
-  | InvalidInputError
-  | RepositoryError
-  | Error,
+  InvalidInputError | RepositoryError | Error,
   {
     modules: Array<{
       id: string;
       slug: string;
+      imageUrl: string | null;
       order: number;
       translations: Array<{
         locale: 'pt' | 'it' | 'es';
@@ -30,13 +32,12 @@ type GetModulesUseCaseResponse = Either<
 export class GetModulesUseCase {
   constructor(
     @Inject('ModuleRepository')
-    private readonly moduleRepository: IModuleRepository
+    private readonly moduleRepository: IModuleRepository,
   ) {}
 
   async execute(
-    request: GetModulesRequest
+    request: GetModulesRequest,
   ): Promise<GetModulesUseCaseResponse> {
-
     const parseResult = getModulesSchema.safeParse(request);
     if (!parseResult.success) {
       const details = parseResult.error.issues.map((issue) => ({
@@ -49,21 +50,19 @@ export class GetModulesUseCase {
 
     const { courseId } = parseResult.data;
 
-    
     try {
       const allOrError = await this.moduleRepository.findByCourseId(courseId);
       if (allOrError.isLeft()) {
-      
         return left(new RepositoryError(allOrError.value.message));
       }
       const domainModules = allOrError.value as ModuleEntity[];
 
-
       const payloadModules = domainModules.map((mod) => ({
         id: mod.id.toString(),
         slug: mod.slug,
+        imageUrl: mod.imageUrl ? mod.imageUrl.toString() : null,
         order: mod.order,
-        translations: mod.translations, 
+        translations: mod.translations,
       }));
 
       return right({ modules: payloadModules });

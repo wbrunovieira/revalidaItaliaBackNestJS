@@ -81,10 +81,9 @@ export class CreateCourseUseCase {
       return left(new InvalidInputError('Invalid slug', details));
     }
 
-    // ✅ CORREÇÃO: Incluir imageUrl na criação do Course
     const course = Course.create({
       slug: slugVo.get(),
-      imageUrl: data.imageUrl, // ← Esta linha estava faltando
+      imageUrl: data.imageUrl,
       translations: data.translations,
     });
 
@@ -101,7 +100,7 @@ export class CreateCourseUseCase {
       course: {
         id: course.id.toString(),
         slug: course.slug,
-        imageUrl: course.imageUrl, // ← Agora vai retornar o imageUrl corretamente
+        imageUrl: course.imageUrl,
         title: course.title,
         description: course.description,
       },

@@ -35,11 +35,12 @@ export class ModuleController {
   @Post()
   async create(
     @Param('courseId') courseId: string,
-    @Body() dto: CreateModuleDto
+    @Body() dto: CreateModuleDto,
   ) {
     const request = {
       courseId,
       slug: dto.slug,
+      imageUrl: dto.imageUrl,
       translations: dto.translations.map((t) => ({
         locale: t.locale,
         title: t.title,
@@ -84,13 +85,15 @@ export class ModuleController {
   @Get(':moduleId')
   async findOne(
     @Param('courseId') courseId: string,
-    @Param('moduleId') moduleId: string
+    @Param('moduleId') moduleId: string,
   ) {
     const result = await this.getModuleUseCase.execute({ moduleId });
     if (result.isLeft()) {
       const err = result.value;
-      if (err instanceof InvalidInputError) throw new BadRequestException(err.details);
-      if (err instanceof ModuleNotFoundError) throw new NotFoundException(err.message);
+      if (err instanceof InvalidInputError)
+        throw new BadRequestException(err.details);
+      if (err instanceof ModuleNotFoundError)
+        throw new NotFoundException(err.message);
       throw new InternalServerErrorException(err.message);
     }
     return result.value.module;

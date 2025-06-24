@@ -7,6 +7,9 @@ import {
   ValidateNested,
   IsInt,
   Min,
+  ValidateIf,
+  Matches,
+  IsUrl,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -27,6 +30,18 @@ export class CreateModuleDto {
   @IsString()
   @MinLength(3)
   slug: string;
+
+  @ValidateIf(
+    (o) => typeof o.imageUrl === 'string' && o.imageUrl.startsWith('/'),
+  )
+  @Matches(/^\/.*$/, {
+    message: 'imageUrl must be an absolute path like "/images/..."',
+  })
+  @ValidateIf(
+    (o) => typeof o.imageUrl === 'string' && !o.imageUrl.startsWith('/'),
+  )
+  @IsUrl({}, { message: 'imageUrl must be a valid URL' })
+  imageUrl?: string;
 
   @IsArray()
   @ValidateNested({ each: true })
