@@ -1,3 +1,4 @@
+// src/infra/course-catalog/controllers/lesson.controller.ts
 import {
   Controller,
   Post,
@@ -11,10 +12,12 @@ import {
 } from '@nestjs/common';
 import { CreateLessonUseCase } from '@/domain/course-catalog/application/use-cases/create-lesson.use-case';
 import { ListLessonsUseCase } from '@/domain/course-catalog/application/use-cases/list-lessons.use-case';
+import { GetLessonUseCase } from '@/domain/course-catalog/application/use-cases/get-lesson.use-case';
 import { CreateLessonRequest } from '@/domain/course-catalog/application/dtos/create-lesson-request.dto';
 import { ListLessonsRequest } from '@/domain/course-catalog/application/dtos/list-lessons-request.dto';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { ModuleNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/module-not-found-error';
+import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 import { VideoNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/video-not-found-error';
 
@@ -23,6 +26,7 @@ export class LessonController {
   constructor(
     private readonly createLesson: CreateLessonUseCase,
     private readonly listLessons: ListLessonsUseCase,
+    private readonly getLesson: GetLessonUseCase,
   ) {}
 
   @Post()
@@ -106,5 +110,39 @@ export class LessonController {
     }
 
     return result.value;
+  }
+
+  // ✅ NOVA ROTA: GET específica lesson
+  @Get(':lessonId')
+  async get(
+    @Param('moduleId') moduleId: string,
+    @Param('lessonId') lessonId: string,
+  ) {
+    const result = await this.getLesson.execute({ id: lessonId });
+
+    if (result.isLeft()) {
+      const err = result.value;
+      if (err instanceof InvalidInputError) {
+        const ex = new BadRequestException(err.details);
+        (ex as any).response = err.details;
+        throw ex;
+      }
+      if (err instanceof LessonNotFoundError) {
+        const ex = new NotFoundException(err.message);
+        (ex as any).response = err.message;
+        throw ex;
+      }
+      if (err instanceof RepositoryError) {
+        const ex = new InternalServerErrorException(err.message);
+        (ex as any).response = err.message;
+        throw ex;
+      }
+      const ex = new InternalServerErrorException('Unknown error occurred');
+      (ex as any).response = 'Unknown error occurred';
+      throw ex;
+    }
+
+    const { lesson } = result.value;
+    return lesson;
   }
 }

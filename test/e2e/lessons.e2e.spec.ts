@@ -248,4 +248,355 @@ describe('LessonController (E2E)', () => {
       expect(res.status).toBe(404);
     });
   });
+
+  describe('[GET] get specific lesson', () => {
+    it('should return lesson successfully with all fields', async () => {
+      // Create lesson for this specific test
+      const lesson = await prisma.lesson.create({
+        data: {
+          moduleId,
+          imageUrl: '/images/lesson-test.jpg',
+          flashcardIds: ['flashcard-1', 'flashcard-2'],
+          quizIds: ['quiz-1'],
+          commentIds: ['comment-1', 'comment-2'],
+          translations: {
+            create: [
+              {
+                locale: 'pt',
+                title: 'Aula Específica PT',
+                description: 'Descrição detalhada PT',
+              },
+              {
+                locale: 'it',
+                title: 'Lezione Specifica IT',
+                description: 'Descrizione dettagliata IT',
+              },
+              {
+                locale: 'es',
+                title: 'Lección Específica ES',
+                description: 'Descripción detallada ES',
+              },
+            ],
+          },
+        },
+      });
+
+      const res = await request(app.getHttpServer()).get(
+        `${endpoint()}/${lesson.id}`,
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          id: lesson.id,
+          moduleId,
+          imageUrl: '/images/lesson-test.jpg',
+          flashcardIds: ['flashcard-1', 'flashcard-2'],
+          quizIds: ['quiz-1'],
+          commentIds: ['comment-1', 'comment-2'],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Aula Específica PT',
+              description: 'Descrição detalhada PT',
+            },
+            {
+              locale: 'it',
+              title: 'Lezione Specifica IT',
+              description: 'Descrizione dettagliata IT',
+            },
+            {
+              locale: 'es',
+              title: 'Lección Específica ES',
+              description: 'Descripción detallada ES',
+            },
+          ],
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        }),
+      );
+
+      expect(res.body).not.toHaveProperty('videoId');
+    });
+
+    it('should return lesson with video when videoId is present', async () => {
+      // Create a second module for this test to avoid unique constraint violation
+      const moduleForVideo = await prisma.module.create({
+        data: {
+          slug: 'test-module-video',
+          order: 2,
+          courseId,
+          translations: {
+            create: [
+              {
+                locale: 'pt',
+                title: 'Módulo Video PT',
+                description: 'Desc PT',
+              },
+            ],
+          },
+        },
+      });
+
+      const lessonWithVideo = await prisma.lesson.create({
+        data: {
+          moduleId: moduleForVideo.id, // Use the new module
+          videoId: 'video-123',
+          imageUrl: '/images/lesson-video.jpg',
+          flashcardIds: [],
+          quizIds: [],
+          commentIds: [],
+          translations: {
+            create: [
+              {
+                locale: 'pt',
+                title: 'Aula com Vídeo PT',
+                description: 'Com vídeo',
+              },
+            ],
+          },
+        },
+      });
+
+      const res = await request(app.getHttpServer()).get(
+        `/courses/${courseId}/modules/${moduleForVideo.id}/lessons/${lessonWithVideo.id}`,
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          id: lessonWithVideo.id,
+          moduleId: moduleForVideo.id,
+          videoId: 'video-123',
+          imageUrl: '/images/lesson-video.jpg',
+          flashcardIds: [],
+          quizIds: [],
+          commentIds: [],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Aula com Vídeo PT',
+              description: 'Com vídeo',
+            },
+          ],
+        }),
+      );
+    });
+
+    it('should return lesson with minimal data when optional fields are empty', async () => {
+      // Create lesson with minimal data
+      const minimalLesson = await prisma.lesson.create({
+        data: {
+          moduleId,
+          flashcardIds: [],
+          quizIds: [],
+          commentIds: [],
+          translations: {
+            create: [
+              { locale: 'pt', title: 'Aula Mínima' }, // sem description
+            ],
+          },
+        },
+      });
+
+      const res = await request(app.getHttpServer()).get(
+        `${endpoint()}/${minimalLesson.id}`,
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          id: minimalLesson.id,
+          moduleId,
+          flashcardIds: [],
+          quizIds: [],
+          commentIds: [],
+          translations: [{ locale: 'pt', title: 'Aula Mínima' }],
+        }),
+      );
+
+      // Verificar campos opcionais ausentes
+      expect(res.body.videoId).toBeUndefined();
+      expect(res.body.imageUrl).toBeUndefined();
+      expect(res.body.translations[0].description).toBeUndefined();
+    });
+
+    it('should return 404 when lesson not found', async () => {
+      const nonExistentLessonId = '00000000-0000-0000-0000-000000000000';
+      const res = await request(app.getHttpServer()).get(
+        `${endpoint()}/${nonExistentLessonId}`,
+      );
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          statusCode: 404,
+          message: 'Lesson not found',
+        }),
+      );
+    });
+
+    it('should return 400 when lessonId is not a valid UUID', async () => {
+      const invalidLessonId = 'invalid-uuid';
+      const res = await request(app.getHttpServer()).get(
+        `${endpoint()}/${invalidLessonId}`,
+      );
+
+      expect(res.status).toBe(400);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            path: ['id'],
+            message: expect.stringContaining('ID must be a valid UUID'),
+            code: 'invalid_string',
+          }),
+        ]),
+      );
+    });
+
+    it('should return lessons list when lessonId is empty', async () => {
+      const res = await request(app.getHttpServer()).get(`${endpoint()}/`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('lessons');
+      expect(res.body).toHaveProperty('pagination');
+    });
+
+    it('should return 404 when module exists but lesson belongs to different module', async () => {
+      const otherModule = await prisma.module.create({
+        data: {
+          slug: 'other-module',
+          order: 2,
+          courseId,
+          translations: {
+            create: [
+              { locale: 'pt', title: 'Outro Módulo', description: 'Desc' },
+            ],
+          },
+        },
+      });
+
+      const lessonInOtherModule = await prisma.lesson.create({
+        data: {
+          moduleId: otherModule.id,
+          flashcardIds: [],
+          quizIds: [],
+          commentIds: [],
+          translations: {
+            create: [
+              { locale: 'pt', title: 'Aula Outro Módulo', description: 'Desc' },
+            ],
+          },
+        },
+      });
+
+      const res = await request(app.getHttpServer()).get(
+        `${endpoint()}/${lessonInOtherModule.id}`,
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.body.moduleId).toBe(otherModule.id);
+    });
+
+    it('should return lesson with correct timestamps format', async () => {
+      const lesson = await prisma.lesson.create({
+        data: {
+          moduleId,
+          imageUrl: '/images/lesson-test.jpg',
+          flashcardIds: ['flashcard-1', 'flashcard-2'],
+          quizIds: ['quiz-1'],
+          commentIds: ['comment-1', 'comment-2'],
+          translations: {
+            create: [
+              {
+                locale: 'pt',
+                title: 'Aula Específica PT',
+                description: 'Descrição detalhada PT',
+              },
+              {
+                locale: 'it',
+                title: 'Lezione Specifica IT',
+                description: 'Descrizione dettagliata IT',
+              },
+              {
+                locale: 'es',
+                title: 'Lección Específica ES',
+                description: 'Descripción detallada ES',
+              },
+            ],
+          },
+        },
+      });
+
+      const res = await request(app.getHttpServer()).get(
+        `${endpoint()}/${lesson.id}`,
+      );
+
+      expect(res.status).toBe(200);
+
+      // Verificar formato ISO das datas
+      expect(res.body.createdAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+      );
+      expect(res.body.updatedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+      );
+
+      // Verificar que são datas válidas
+      expect(new Date(res.body.createdAt)).toBeInstanceOf(Date);
+      expect(new Date(res.body.updatedAt)).toBeInstanceOf(Date);
+    });
+
+    it('should verify all translation locales are returned', async () => {
+      // Create lesson for this test
+      const lesson = await prisma.lesson.create({
+        data: {
+          moduleId,
+          imageUrl: '/images/lesson-test.jpg',
+          flashcardIds: ['flashcard-1', 'flashcard-2'],
+          quizIds: ['quiz-1'],
+          commentIds: ['comment-1', 'comment-2'],
+          translations: {
+            create: [
+              {
+                locale: 'pt',
+                title: 'Aula Específica PT',
+                description: 'Descrição detalhada PT',
+              },
+              {
+                locale: 'it',
+                title: 'Lezione Specifica IT',
+                description: 'Descrizione dettagliata IT',
+              },
+              {
+                locale: 'es',
+                title: 'Lección Específica ES',
+                description: 'Descripción detallada ES',
+              },
+            ],
+          },
+        },
+      });
+
+      const res = await request(app.getHttpServer()).get(
+        `${endpoint()}/${lesson.id}`,
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.body.translations).toHaveLength(3);
+
+      const locales = res.body.translations.map((t: any) => t.locale);
+      expect(locales).toEqual(expect.arrayContaining(['pt', 'it', 'es']));
+
+      // Verificar estrutura de cada tradução
+      res.body.translations.forEach((translation: any) => {
+        expect(translation).toHaveProperty('locale');
+        expect(translation).toHaveProperty('title');
+        expect(['pt', 'it', 'es']).toContain(translation.locale);
+        expect(typeof translation.title).toBe('string');
+        expect(translation.title.length).toBeGreaterThan(0);
+      });
+    });
+  });
 });
