@@ -13,6 +13,17 @@ export const createLessonSchema = z
   .object({
     moduleId: z.string().uuid('Module ID must be a valid UUID'),
     videoId: z.string().uuid('Video ID must be a valid UUID').optional(),
+    imageUrl: z
+      .union([
+        z.string().url('imageUrl must be a valid absolute URL'),
+        z
+          .string()
+          .regex(
+            /^\/.+/,
+            'imageUrl must be an absolute path like "/images/..."',
+          ),
+      ])
+      .optional(),
     translations: z
       .array(lessonTranslationSchema)
       .length(3, 'Exactly three translations required (pt, it & es)')

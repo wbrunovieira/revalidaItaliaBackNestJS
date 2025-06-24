@@ -1,9 +1,9 @@
 // src/domain/course-catalog/enterprise/entities/lesson.entity.ts
-import { Entity } from "@/core/entity";
-import { UniqueEntityID } from "@/core/unique-entity-id";
+import { Entity } from '@/core/entity';
+import { UniqueEntityID } from '@/core/unique-entity-id';
 
 export interface LessonTranslationVO {
-  locale: "pt" | "it" | "es";
+  locale: 'pt' | 'it' | 'es';
   title: string;
   description?: string;
 }
@@ -14,6 +14,7 @@ export interface LessonProps {
   flashcardIds: string[];
   quizIds: string[];
   commentIds: string[];
+  imageUrl?: string;
   translations: LessonTranslationVO[];
   createdAt: Date;
   updatedAt: Date;
@@ -23,7 +24,6 @@ export class Lesson extends Entity<LessonProps> {
   private touch() {
     this.props.updatedAt = new Date();
   }
-
 
   public get moduleId(): string {
     return this.props.moduleId;
@@ -57,6 +57,20 @@ export class Lesson extends Entity<LessonProps> {
     return this.props.updatedAt;
   }
 
+  public get imageUrl(): string | undefined {
+    return this.props.imageUrl;
+  }
+
+  public updateImageUrl(imageUrl: string): void {
+    this.props.imageUrl = imageUrl;
+    this.touch();
+  }
+
+  public removeImage(): void {
+    this.props.imageUrl = undefined;
+    this.touch();
+  }
+
   public updateVideo(videoId: string) {
     this.props.videoId = videoId;
     this.touch();
@@ -66,8 +80,6 @@ export class Lesson extends Entity<LessonProps> {
     this.props.flashcardIds.push(flashcardId);
     this.touch();
   }
-
-
 
   public toResponseObject(): {
     id: string;
@@ -81,7 +93,7 @@ export class Lesson extends Entity<LessonProps> {
     updatedAt: Date;
   } {
     return {
-      id: this.id.toString(),            
+      id: this.id.toString(),
       moduleId: this.moduleId,
       videoId: this.videoId,
       flashcardIds: this.flashcardIds,
@@ -94,8 +106,8 @@ export class Lesson extends Entity<LessonProps> {
   }
 
   public static create(
-    props: Omit<LessonProps, "createdAt" | "updatedAt">,
-    id?: UniqueEntityID
+    props: Omit<LessonProps, 'createdAt' | 'updatedAt'>,
+    id?: UniqueEntityID,
   ): Lesson {
     const now = new Date();
     return new Lesson(
@@ -104,14 +116,11 @@ export class Lesson extends Entity<LessonProps> {
         createdAt: now,
         updatedAt: now,
       },
-      id
+      id,
     );
   }
 
-  public static reconstruct(
-    props: LessonProps,
-    id: UniqueEntityID
-  ): Lesson {
+  public static reconstruct(props: LessonProps, id: UniqueEntityID): Lesson {
     return new Lesson(props, id);
   }
 }

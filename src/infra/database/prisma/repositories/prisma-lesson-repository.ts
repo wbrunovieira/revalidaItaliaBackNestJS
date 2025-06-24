@@ -20,6 +20,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         data: {
           id: lesson.id.toString(),
           moduleId: lesson.moduleId,
+          imageUrl: lesson.imageUrl ?? undefined,
           videoId: lesson.videoId ?? null,
           flashcardIds: lesson.flashcardIds,
           quizIds: lesson.quizIds,
@@ -57,6 +58,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         {
           moduleId: row.moduleId,
           videoId: row.videoId ?? undefined,
+          imageUrl: row.imageUrl ?? undefined,
           flashcardIds: row.flashcardIds,
           quizIds: row.quizIds,
           commentIds: row.commentIds,
@@ -90,7 +92,7 @@ export class PrismaLessonRepository implements ILessonRepository {
           include: { translations: true },
           take: limit,
           skip: offset,
-          orderBy: { createdAt: 'asc' }, // or whatever ordering you prefer
+          orderBy: { createdAt: 'asc' },
         }),
         this.prisma.lesson.count({
           where: { moduleId },
@@ -102,6 +104,7 @@ export class PrismaLessonRepository implements ILessonRepository {
           {
             moduleId: row.moduleId,
             videoId: row.videoId ?? undefined,
+            imageUrl: row.imageUrl ?? undefined,
             flashcardIds: row.flashcardIds,
             quizIds: row.quizIds,
             commentIds: row.commentIds,

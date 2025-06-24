@@ -32,6 +32,7 @@ export class LessonController {
   ) {
     const result = await this.createLesson.execute({
       moduleId,
+      imageUrl: dto.imageUrl,
       translations: dto.translations,
       videoId: dto.videoId,
     });

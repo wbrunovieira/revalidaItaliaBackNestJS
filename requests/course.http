@@ -36,5 +36,5 @@ Content-Type: application/json
 ###
 
 # @name get-course
-GET {{BASE_URL}}/courses/97e802fe-e521-4c88-a560-dbce045037c4
+GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4
 Content-Type: application/json

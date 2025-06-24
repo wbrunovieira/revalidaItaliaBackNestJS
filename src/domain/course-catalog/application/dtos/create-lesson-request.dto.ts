@@ -2,7 +2,8 @@
 import { TranslationDto } from './translation.dto';
 
 export interface CreateLessonRequest {
-  moduleId: string; // comes from the route param
+  moduleId: string;
+  imageUrl?: string;
   translations: TranslationDto[];
   videoId?: string;
 }
