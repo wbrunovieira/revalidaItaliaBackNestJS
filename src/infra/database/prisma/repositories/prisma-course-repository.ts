@@ -129,27 +129,26 @@ export class PrismaCourseRepository implements ICourseRepository {
     try {
       const data = await this.prisma.course.findMany({
         include: {
-          translations: { where: { locale: 'pt' }, take: 1 },
+          translations: true,
         },
       });
 
       const courses = data.map((item) => {
-        const tr = item.translations[0];
         const props = {
           slug: item.slug,
-          imageUrl: item.imageUrl || undefined, // Converter null para undefined
-          translations: [
-            {
-              locale: tr.locale as 'pt',
-              title: tr.title,
-              description: tr.description,
-            },
-          ],
+          imageUrl: item.imageUrl || undefined,
+
+          translations: item.translations.map((tr) => ({
+            locale: tr.locale as 'pt' | 'it' | 'es',
+            title: tr.title,
+            description: tr.description,
+          })),
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
         };
         return Course.reconstruct(props, new UniqueEntityID(item.id));
       });
+
       return right(courses);
     } catch (err: any) {
       return left(new Error('Database error'));
@@ -161,11 +160,9 @@ export class PrismaCourseRepository implements ICourseRepository {
       const data = await this.prisma.course.findUnique({
         where: { id },
         include: {
-          // agora trazemos todas as traduções de curso (pt, it, es)
           translations: true,
           modules: {
             include: {
-              // todas as traduções de módulo (pt, it, es)
               translations: true,
             },
           },

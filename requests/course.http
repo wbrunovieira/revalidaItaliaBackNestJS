@@ -6,22 +6,22 @@ POST {{BASE_URL}}/courses
 Content-Type: application/json
 
 {
-  "slug": "matematica-avancada2222",
-   "imageUrl": "https://via.placeholder.com/600x400.png?text=Teste+de+Imagem",
+  "slug": "matematica-avancada3",
+   "imageUrl": "/images/capa-track.avif",
   "translations": [
     {
       "locale": "pt",
-      "title": "Matemática Avançada22",
+      "title": "Matemática Avançada3",
       "description": "Um mergulho profundo em tópicos avançados de matemática."
     },
     {
       "locale": "it",
-      "title": "Matematica Avanzata22",
+      "title": "Matematica Avanzata3",
       "description": "Un'immersione approfondita in argomenti matematici avanzati."
     },
     {
       "locale": "es",
-      "title": "Matemáticas Avanzadas22",
+      "title": "Matemáticas Avanzadas3",
       "description": "Una inmersión profunda en temas avanzados de matemáticas."
     }
   ]

@@ -6,10 +6,10 @@ POST {{BASE_URL}}/tracks
 Content-Type: application/json
 
 {
-  "slug": "minha-trilha2",
+  "slug": "minha-trilha1",
    "imageUrl": "/images/capa-track.avif",
   "courseIds": [
-    "76a06bfb-792c-4669-b060-8b62a2dfbfb5"
+    "1b183dde-064c-4d48-9bec-dacb8e4217e4"
   ],
   "translations": [
     {

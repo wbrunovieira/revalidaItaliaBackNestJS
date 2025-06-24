@@ -32,7 +32,6 @@ export class CreateTrackDto {
 
   @IsOptional()
   @IsString()
-  // Permite caminhos relativos no frontend (/images/...) ou URLs absolutas
   @ValidateIf(
     (o) => typeof o.imageUrl === 'string' && o.imageUrl.startsWith('/'),
   )

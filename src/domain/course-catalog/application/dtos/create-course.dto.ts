@@ -9,6 +9,8 @@ import {
   ValidateNested,
   IsOptional,
   IsUrl,
+  ValidateIf,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -30,8 +32,15 @@ export class CreateCourseDto {
   @MinLength(3)
   slug: string;
 
-  @IsOptional()
-  @IsString()
+  @ValidateIf(
+    (o) => typeof o.imageUrl === 'string' && o.imageUrl.startsWith('/'),
+  )
+  @Matches(/^\/.*$/, {
+    message: 'imageUrl must be an absolute path like "/images/..."',
+  })
+  @ValidateIf(
+    (o) => typeof o.imageUrl === 'string' && !o.imageUrl.startsWith('/'),
+  )
   @IsUrl({}, { message: 'imageUrl must be a valid URL' })
   imageUrl?: string;
 
