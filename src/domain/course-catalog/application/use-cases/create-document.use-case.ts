@@ -55,7 +55,6 @@ export class CreateDocumentUseCase {
   async execute(
     request: CreateDocumentRequest,
   ): Promise<CreateDocumentUseCaseResponse> {
-    // 1) Validate DTO
     const parseResult = createDocumentSchema.safeParse(request);
     if (!parseResult.success) {
       const details = parseResult.error.issues.map((iss) => ({
@@ -67,13 +66,11 @@ export class CreateDocumentUseCase {
     }
     const data = parseResult.data as CreateDocumentSchema;
 
-    // 2) Check that the lesson exists
     const lessonOrErr = await this.lessonRepo.findById(data.lessonId);
     if (lessonOrErr.isLeft()) {
       return left(new LessonNotFoundError());
     }
 
-    // 3) Check for duplicate filename
     const existingOrErr = await this.documentRepo.findByFilename(data.filename);
     if (existingOrErr.isRight()) {
       return left(new DuplicateDocumentError());
@@ -85,13 +82,11 @@ export class CreateDocumentUseCase {
       return left(new RepositoryError(existingOrErr.value.message));
     }
 
-    // 4) Additional file validation
     if (data.fileSize > 50 * 1024 * 1024) {
       // 50MB
       return left(new InvalidFileError('File size exceeds 50MB limit'));
     }
 
-    // 5) Build our domain Document
     const ptTr = data.translations.find((t) => t.locale === 'pt')!;
     const documentEntity = Document.create({
       url: data.url,
@@ -102,7 +97,6 @@ export class CreateDocumentUseCase {
       isDownloadable: data.isDownloadable ?? true,
     });
 
-    // 6) Persist under that lesson
     const saveOrErr = await this.documentRepo.create(
       data.lessonId,
       documentEntity,
@@ -112,7 +106,6 @@ export class CreateDocumentUseCase {
       return left(new RepositoryError(saveOrErr.value.message));
     }
 
-    // 7) Return DTO view including translations
     return right({
       document: {
         id: documentEntity.id.toString(),

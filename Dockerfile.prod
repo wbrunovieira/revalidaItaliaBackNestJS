@@ -1,0 +1,38 @@
+# ───── build stage ─────
+FROM  node:18-alpine AS builder
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml ./
+RUN apk add --no-cache openssl openssl-dev \
+  && npm install -g pnpm \
+  && pnpm install --frozen-lockfile
+
+COPY prisma ./prisma
+ENV PRISMA_CLI_QUERY_ENGINE_TYPE=binary \
+  PRISMA_QUERY_ENGINE_TYPE=binary
+RUN pnpm exec prisma generate
+
+COPY tsconfig*.json ./
+COPY src ./src
+RUN pnpm run build
+
+# ───── production stage ─────
+FROM  node:18-alpine AS prod
+WORKDIR /app
+
+# Instala o pnpm para o runtime (se você precisar dele em prod)
+RUN npm install -g pnpm
+
+# Copia apenas o que foi gerado no builder
+COPY --from=builder /app/dist        ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma      ./prisma
+
+# Metadados e artefatos de definição
+COPY package.json pnpm-lock.yaml ./
+COPY tsconfig*.json ./
+
+ENV NODE_ENV=production
+
+# Entrypoint de produção
+CMD ["node", "-r", "tsconfig-paths/register", "dist/main"]

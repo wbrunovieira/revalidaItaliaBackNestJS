@@ -13,6 +13,12 @@ all:
     NODE_ENV:        "${node_env}"
     PORT:            "${port}"
     DATABASE_URL:    "${database_url}"
+    storage_type: "${storage_type}"
+    s3_bucket_name: "${s3_bucket_name}"
+    s3_region: "${s3_region}"
+    s3_base_url: "${s3_base_url}"
+    max_file_size: "${max_file_size}"
+    allowed_file_types: "${allowed_file_types}"
 
     ## chaves PEM (multi-linha) corretamente indentadas abaixo
     JWT_PRIVATE_KEY: |

@@ -30,3 +30,6 @@ curl -s \
  -H "Authorization: panda-cdb205efa07ed9662761e12adf2b6aa8a97b79e9942ec7f9b4ad93c368cf411a" \
  -H "Accept: application/json" \
  "https://api-v2.pandavideo.com.br/videos" | jq '.videos[] | {id, title}'
+
+terraform import aws_key_pair.revalida revalida-key
+export AWS_PROFILE=bruno-admin-revalida-aws
