@@ -14,6 +14,14 @@ resource "local_file" "ansible_inventory" {
       database_url    = data.aws_ssm_parameter.database_url.value,
       jwt_private_key = data.aws_ssm_parameter.jwt_private_key.value,
       jwt_public_key  = data.aws_ssm_parameter.jwt_public_key.value,
+
+      # S3 Variables
+      storage_type       = data.aws_ssm_parameter.storage_type.value,
+      s3_bucket_name     = data.aws_ssm_parameter.s3_bucket_name.value,
+      s3_region          = data.aws_ssm_parameter.s3_region.value,
+      s3_base_url        = data.aws_ssm_parameter.s3_base_url.value,
+      max_file_size      = data.aws_ssm_parameter.max_file_size.value,
+      allowed_file_types = data.aws_ssm_parameter.allowed_file_types.value,
     }
   )
 }

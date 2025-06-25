@@ -84,3 +84,45 @@ variable "private_key_path" {
   description = "Absolute path to your private key"
   default     = "/Users/brunovieira/.ssh/revalida-key"
 }
+
+variable "enable_s3_storage" {
+  description = "Enable S3 storage for documents"
+  type        = bool
+  default     = true
+}
+
+variable "s3_bucket_prefix" {
+  description = "Prefix for S3 bucket name"
+  type        = string
+  default     = "revalida-documents"
+}
+
+variable "s3_versioning_enabled" {
+  description = "Enable S3 bucket versioning"
+  type        = bool
+  default     = true
+}
+
+variable "s3_lifecycle_ia_days" {
+  description = "Days to transition to IA storage class"
+  type        = number
+  default     = 30
+}
+
+variable "s3_lifecycle_glacier_days" {
+  description = "Days to transition to Glacier storage class"
+  type        = number
+  default     = 90
+}
+
+variable "max_file_size_mb" {
+  description = "Maximum file size in MB"
+  type        = number
+  default     = 50
+}
+
+variable "allowed_file_extensions" {
+  description = "Allowed file extensions for upload"
+  type        = list(string)
+  default     = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "csv"]
+}
