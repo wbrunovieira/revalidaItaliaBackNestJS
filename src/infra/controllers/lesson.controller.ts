@@ -112,7 +112,6 @@ export class LessonController {
     return result.value;
   }
 
-  // ✅ NOVA ROTA: GET específica lesson
   @Get(':lessonId')
   async get(
     @Param('moduleId') moduleId: string,

@@ -50,9 +50,36 @@ export class PrismaLessonRepository implements ILessonRepository {
     try {
       const row = await this.prisma.lesson.findUnique({
         where: { id },
-        include: { translations: true },
+        include: {
+          translations: true,
+          Video: {
+            include: {
+              translations: true,
+            },
+          },
+        },
       });
       if (!row) return left(new Error('Lesson not found'));
+
+      // Mapear os vídeos se existirem
+      const videoData =
+        row.Video.length > 0
+          ? {
+              id: row.Video[0].id,
+              slug: row.Video[0].slug,
+              imageUrl: row.Video[0].imageUrl ?? undefined,
+              providerVideoId: row.Video[0].providerVideoId,
+              durationInSeconds: row.Video[0].durationInSeconds,
+              isSeen: row.Video[0].isSeen,
+              translations: row.Video[0].translations.map((t) => ({
+                locale: t.locale as any,
+                title: t.title,
+                description: t.description ?? undefined,
+              })),
+              createdAt: row.Video[0].createdAt,
+              updatedAt: row.Video[0].updatedAt,
+            }
+          : undefined;
 
       const lesson = Lesson.reconstruct(
         {
@@ -67,6 +94,7 @@ export class PrismaLessonRepository implements ILessonRepository {
             title: t.title,
             description: t.description ?? undefined,
           })),
+          video: videoData,
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
         },
@@ -89,7 +117,14 @@ export class PrismaLessonRepository implements ILessonRepository {
       const [rows, total] = await Promise.all([
         this.prisma.lesson.findMany({
           where: { moduleId },
-          include: { translations: true },
+          include: {
+            translations: true,
+            Video: {
+              include: {
+                translations: true,
+              },
+            },
+          },
           take: limit,
           skip: offset,
           orderBy: { createdAt: 'asc' },
@@ -99,8 +134,28 @@ export class PrismaLessonRepository implements ILessonRepository {
         }),
       ]);
 
-      const lessons = rows.map((row) =>
-        Lesson.reconstruct(
+      const lessons = rows.map((row) => {
+        // Mapear os vídeos se existirem
+        const videoData =
+          row.Video.length > 0
+            ? {
+                id: row.Video[0].id,
+                slug: row.Video[0].slug,
+                imageUrl: row.Video[0].imageUrl ?? undefined,
+                providerVideoId: row.Video[0].providerVideoId,
+                durationInSeconds: row.Video[0].durationInSeconds,
+                isSeen: row.Video[0].isSeen,
+                translations: row.Video[0].translations.map((t) => ({
+                  locale: t.locale as any,
+                  title: t.title,
+                  description: t.description ?? undefined,
+                })),
+                createdAt: row.Video[0].createdAt,
+                updatedAt: row.Video[0].updatedAt,
+              }
+            : undefined;
+
+        return Lesson.reconstruct(
           {
             moduleId: row.moduleId,
             videoId: row.videoId ?? undefined,
@@ -113,12 +168,13 @@ export class PrismaLessonRepository implements ILessonRepository {
               title: t.title,
               description: t.description ?? undefined,
             })),
+            video: videoData,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
           },
           new UniqueEntityID(row.id),
-        ),
-      );
+        );
+      });
 
       return right({ lessons, total });
     } catch (err: any) {

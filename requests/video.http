@@ -2,7 +2,7 @@
 
 ###
 # @name create-video
-POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/videos
+POST {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/lessons/4eb7f594-a804-4567-b9c3-db21c6ef3bad/videos
 Content-Type: application/json
 
 {
@@ -32,5 +32,5 @@ GET {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/modules/5e0e2e06-a
 Accept: application/json
 
 ### list-videos
-GET http://localhost:3333/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/22fae576-4bfd-41e9-83ee-3a32e82357d6/videos
+GET http://localhost:3333/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/lessons/4eb7f594-a804-4567-b9c3-db21c6ef3bad/videos
 Accept: application/json

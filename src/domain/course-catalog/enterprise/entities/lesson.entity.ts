@@ -8,6 +8,24 @@ export interface LessonTranslationVO {
   description?: string;
 }
 
+export interface VideoTranslationVO {
+  locale: 'pt' | 'it' | 'es';
+  title: string;
+  description?: string;
+}
+
+export interface VideoVO {
+  id: string;
+  slug: string;
+  imageUrl?: string;
+  providerVideoId: string;
+  durationInSeconds: number;
+  isSeen: boolean;
+  translations: VideoTranslationVO[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface LessonProps {
   moduleId: string;
   videoId?: string;
@@ -16,6 +34,7 @@ export interface LessonProps {
   commentIds: string[];
   imageUrl?: string;
   translations: LessonTranslationVO[];
+  video?: VideoVO; // Incluir informações do vídeo
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +50,10 @@ export class Lesson extends Entity<LessonProps> {
 
   public get videoId(): string | undefined {
     return this.props.videoId;
+  }
+
+  public get video(): VideoVO | undefined {
+    return this.props.video;
   }
 
   public get flashcardIds(): string[] {
@@ -88,7 +111,19 @@ export class Lesson extends Entity<LessonProps> {
     flashcardIds: string[];
     quizIds: string[];
     commentIds: string[];
+    imageUrl?: string;
     translations: LessonTranslationVO[];
+    video?: {
+      id: string;
+      slug: string;
+      imageUrl?: string;
+      providerVideoId: string;
+      durationInSeconds: number;
+      isSeen: boolean;
+      translations: VideoTranslationVO[];
+      createdAt: Date;
+      updatedAt: Date;
+    };
     createdAt: Date;
     updatedAt: Date;
   } {
@@ -99,7 +134,9 @@ export class Lesson extends Entity<LessonProps> {
       flashcardIds: this.flashcardIds,
       quizIds: this.quizIds,
       commentIds: this.commentIds,
+      imageUrl: this.imageUrl,
       translations: this.translations,
+      video: this.video,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

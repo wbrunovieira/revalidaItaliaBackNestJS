@@ -29,6 +29,21 @@ type GetLessonUseCaseResponse = Either<
         title: string;
         description?: string;
       }>;
+      video?: {
+        id: string;
+        slug: string;
+        imageUrl?: string;
+        providerVideoId: string; // ID do Panda Video
+        durationInSeconds: number;
+        isSeen: boolean;
+        translations: Array<{
+          locale: 'pt' | 'it' | 'es';
+          title: string;
+          description?: string;
+        }>;
+        createdAt: Date;
+        updatedAt: Date;
+      };
       createdAt: Date;
       updatedAt: Date;
     };
@@ -63,7 +78,7 @@ export class GetLessonUseCase {
       }
       const lessonEntity = found.value as Lesson;
 
-      // Montar payload com todas as traduções
+      // Montar payload com todas as traduções e informações do vídeo
       const payload = {
         lesson: {
           id: lessonEntity.id.toString(),
@@ -78,6 +93,23 @@ export class GetLessonUseCase {
             title: tr.title,
             description: tr.description,
           })),
+          video: lessonEntity.video
+            ? {
+                id: lessonEntity.video.id,
+                slug: lessonEntity.video.slug,
+                imageUrl: lessonEntity.video.imageUrl,
+                providerVideoId: lessonEntity.video.providerVideoId, // Este é o ID do Panda Video
+                durationInSeconds: lessonEntity.video.durationInSeconds,
+                isSeen: lessonEntity.video.isSeen,
+                translations: lessonEntity.video.translations.map((tr) => ({
+                  locale: tr.locale,
+                  title: tr.title,
+                  description: tr.description,
+                })),
+                createdAt: lessonEntity.video.createdAt,
+                updatedAt: lessonEntity.video.updatedAt,
+              }
+            : undefined,
           createdAt: lessonEntity.createdAt,
           updatedAt: lessonEntity.updatedAt,
         },
