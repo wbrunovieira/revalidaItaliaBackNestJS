@@ -16,37 +16,35 @@ import {
 type GetLessonUseCaseResponse = Either<
   InvalidInputError | LessonNotFoundError | RepositoryError | Error,
   {
-    lesson: {
+    id: string;
+    moduleId: string;
+    videoId?: string;
+    imageUrl?: string;
+    flashcardIds: string[];
+    quizIds: string[];
+    commentIds: string[];
+    translations: Array<{
+      locale: 'pt' | 'it' | 'es';
+      title: string;
+      description?: string;
+    }>;
+    video?: {
       id: string;
-      moduleId: string;
-      videoId?: string;
+      slug: string;
       imageUrl?: string;
-      flashcardIds: string[];
-      quizIds: string[];
-      commentIds: string[];
+      providerVideoId: string; // ID do Panda Video
+      durationInSeconds: number;
+      isSeen: boolean;
       translations: Array<{
         locale: 'pt' | 'it' | 'es';
         title: string;
         description?: string;
       }>;
-      video?: {
-        id: string;
-        slug: string;
-        imageUrl?: string;
-        providerVideoId: string; // ID do Panda Video
-        durationInSeconds: number;
-        isSeen: boolean;
-        translations: Array<{
-          locale: 'pt' | 'it' | 'es';
-          title: string;
-          description?: string;
-        }>;
-        createdAt: Date;
-        updatedAt: Date;
-      };
       createdAt: Date;
       updatedAt: Date;
     };
+    createdAt: Date;
+    updatedAt: Date;
   }
 >;
 
@@ -80,39 +78,37 @@ export class GetLessonUseCase {
 
       // Montar payload com todas as traduções e informações do vídeo
       const payload = {
-        lesson: {
-          id: lessonEntity.id.toString(),
-          moduleId: lessonEntity.moduleId,
-          videoId: lessonEntity.videoId,
-          imageUrl: lessonEntity.imageUrl,
-          flashcardIds: lessonEntity.flashcardIds,
-          quizIds: lessonEntity.quizIds,
-          commentIds: lessonEntity.commentIds,
-          translations: lessonEntity.translations.map((tr) => ({
-            locale: tr.locale,
-            title: tr.title,
-            description: tr.description,
-          })),
-          video: lessonEntity.video
-            ? {
-                id: lessonEntity.video.id,
-                slug: lessonEntity.video.slug,
-                imageUrl: lessonEntity.video.imageUrl,
-                providerVideoId: lessonEntity.video.providerVideoId, // Este é o ID do Panda Video
-                durationInSeconds: lessonEntity.video.durationInSeconds,
-                isSeen: lessonEntity.video.isSeen,
-                translations: lessonEntity.video.translations.map((tr) => ({
-                  locale: tr.locale,
-                  title: tr.title,
-                  description: tr.description,
-                })),
-                createdAt: lessonEntity.video.createdAt,
-                updatedAt: lessonEntity.video.updatedAt,
-              }
-            : undefined,
-          createdAt: lessonEntity.createdAt,
-          updatedAt: lessonEntity.updatedAt,
-        },
+        id: lessonEntity.id.toString(),
+        moduleId: lessonEntity.moduleId,
+        videoId: lessonEntity.videoId,
+        imageUrl: lessonEntity.imageUrl,
+        flashcardIds: lessonEntity.flashcardIds,
+        quizIds: lessonEntity.quizIds,
+        commentIds: lessonEntity.commentIds,
+        translations: lessonEntity.translations.map((tr) => ({
+          locale: tr.locale,
+          title: tr.title,
+          description: tr.description,
+        })),
+        video: lessonEntity.video
+          ? {
+              id: lessonEntity.video.id,
+              slug: lessonEntity.video.slug,
+              imageUrl: lessonEntity.video.imageUrl,
+              providerVideoId: lessonEntity.video.providerVideoId, // Este é o ID do Panda Video
+              durationInSeconds: lessonEntity.video.durationInSeconds,
+              isSeen: lessonEntity.video.isSeen,
+              translations: lessonEntity.video.translations.map((tr) => ({
+                locale: tr.locale,
+                title: tr.title,
+                description: tr.description,
+              })),
+              createdAt: lessonEntity.video.createdAt,
+              updatedAt: lessonEntity.video.updatedAt,
+            }
+          : undefined,
+        createdAt: lessonEntity.createdAt,
+        updatedAt: lessonEntity.updatedAt,
       };
       return right(payload);
     } catch (err: any) {

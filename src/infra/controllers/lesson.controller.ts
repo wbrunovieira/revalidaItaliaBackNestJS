@@ -141,7 +141,7 @@ export class LessonController {
       throw ex;
     }
 
-    const { lesson } = result.value;
-    return lesson;
+    // Retornar o lesson diretamente, não dentro de um objeto wrapper
+    return result.value;
   }
 }
