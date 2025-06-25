@@ -1,7 +1,8 @@
+#inventory.tpl
+
 all:
   hosts:
     backend:
-      # conecta no IP que o Terraform passa
       ansible_host: "${public_ip}"
       ansible_user: ubuntu
       ansible_connection: ssh
@@ -9,15 +10,17 @@ all:
       ansible_ssh_private_key_file: "~/.ssh/${key_name}"
 
   vars:
-    NEXT_PUBLIC_URL: "${next_public_url}"
-    NODE_ENV:        "${node_env}"
-    PORT:            "${port}"
-    DATABASE_URL:    "${database_url}"
-    storage_type: "${storage_type}"
-    s3_bucket_name: "${s3_bucket_name}"
-    s3_region: "${s3_region}"
-    s3_base_url: "${s3_base_url}"
-    max_file_size: "${max_file_size}"
+    NEXT_PUBLIC_URL:    "${next_public_url}"
+    NODE_ENV:           "${node_env}"
+    PORT:               ${port}
+    DATABASE_URL:       "${database_url}"
+
+    storage_type:       "${storage_type}"
+    s3_bucket_name:     "${s3_bucket_name}"
+    s3_region:          "${s3_region}"
+    s3_base_url:        "${s3_base_url}"
+
+    max_file_size:      ${max_file_size}
     allowed_file_types: "${allowed_file_types}"
 
     ## chaves PEM (multi-linha) corretamente indentadas abaixo

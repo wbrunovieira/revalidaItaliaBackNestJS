@@ -9,4 +9,7 @@ services:
     env_file:
       - .env
     ports:
-      - '${PORT}:${PORT}'
+      - '${PORT:-3000}:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT}
