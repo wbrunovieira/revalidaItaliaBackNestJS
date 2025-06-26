@@ -29,6 +29,9 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+
 # ✅ Instalar apenas prod dependencies na imagem final
 COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm \
