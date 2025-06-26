@@ -45,6 +45,14 @@ RUN pnpm exec prisma generate
 # Copy tsconfig files for path resolution
 COPY tsconfig.base.json ./
 COPY tsconfig.prod.json ./tsconfig.json
+COPY private.pem ./private.pem
+COPY public.pem ./public.pem
+
+COPY private.pem ./private.pem
+COPY public.pem ./public.pem
+
+ENV JWT_PRIVATE_KEY_PATH=/app/private.pem
+ENV JWT_PUBLIC_KEY_PATH=/app/public.pem
 
 ENV NODE_ENV=production
 

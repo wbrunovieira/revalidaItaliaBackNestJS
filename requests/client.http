@@ -1,5 +1,5 @@
 @BASE_URL = http://localhost:3333
-# @BASE_URL = http://18.222.85.79:3333
+#@BASE_URL = http://3.131.246.201:3333
 
 ###
 # @name create-account
@@ -8,8 +8,8 @@ Content-Type: application/json
 
 {
   "name": "Walter Bruno Prado Vieira",
-  "email": "wbrunovieira54@yahoo.com.br",
-  "password": "123456aA@",
+  "email": "bruno@wbdigitalsolutions.com",
+  "password": "Senha123!",
   "role": "student",
   "cpf": "12145678900"
 }
@@ -21,8 +21,8 @@ POST {{BASE_URL}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "wbrunovieira54@yahoo.com.br",
-  "password": "123456aA@"
+  "email": "bruno@wbdigitalsolutions.com",
+  "password": "Senha123!"
 }
 ###
 
