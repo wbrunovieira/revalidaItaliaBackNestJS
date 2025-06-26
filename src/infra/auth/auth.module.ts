@@ -44,6 +44,7 @@ import { SignInService } from './strategies/sign-in.service';
           publicKey = envPublic;
         } else {
           const privatePath = config.get<string>('JWT_PRIVATE_KEY_PATH');
+
           const publicPath = config.get<string>('JWT_PUBLIC_KEY_PATH');
 
           if (!privatePath || !publicPath) {
