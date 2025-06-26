@@ -76,41 +76,8 @@ export class GetLessonUseCase {
       }
       const lessonEntity = found.value as Lesson;
 
-      // Montar payload com todas as traduções e informações do vídeo
-      const payload = {
-        id: lessonEntity.id.toString(),
-        moduleId: lessonEntity.moduleId,
-        videoId: lessonEntity.videoId,
-        imageUrl: lessonEntity.imageUrl,
-        flashcardIds: lessonEntity.flashcardIds,
-        quizIds: lessonEntity.quizIds,
-        commentIds: lessonEntity.commentIds,
-        translations: lessonEntity.translations.map((tr) => ({
-          locale: tr.locale,
-          title: tr.title,
-          description: tr.description,
-        })),
-        video: lessonEntity.video
-          ? {
-              id: lessonEntity.video.id,
-              slug: lessonEntity.video.slug,
-              imageUrl: lessonEntity.video.imageUrl,
-              providerVideoId: lessonEntity.video.providerVideoId, // Este é o ID do Panda Video
-              durationInSeconds: lessonEntity.video.durationInSeconds,
-              isSeen: lessonEntity.video.isSeen,
-              translations: lessonEntity.video.translations.map((tr) => ({
-                locale: tr.locale,
-                title: tr.title,
-                description: tr.description,
-              })),
-              createdAt: lessonEntity.video.createdAt,
-              updatedAt: lessonEntity.video.updatedAt,
-            }
-          : undefined,
-        createdAt: lessonEntity.createdAt,
-        updatedAt: lessonEntity.updatedAt,
-      };
-      return right(payload);
+      // Usar o método toResponseObject() da entidade para manter consistência
+      return right(lessonEntity.toResponseObject());
     } catch (err: any) {
       return left(new RepositoryError(err.message));
     }

@@ -193,51 +193,48 @@ describe('LessonController', () => {
     });
   });
 
-  // ✅ NOVOS TESTES: Get Lesson (GET /:lessonId)
+  // ✅ TESTES CORRIGIDOS: Get Lesson (GET /:lessonId)
   describe('Get Lesson (GET /:lessonId)', () => {
     const lessonResponse = {
-      lesson: {
-        id: lessonId,
-        moduleId,
-        videoId,
-        imageUrl: '/images/lesson.jpg',
-        flashcardIds: ['flash-1'],
-        quizIds: ['quiz-1'],
-        commentIds: ['comment-1'],
-        translations: validTranslations,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
+      id: lessonId,
+      moduleId,
+      videoId,
+      imageUrl: '/images/lesson.jpg',
+      flashcardIds: ['flash-1'],
+      quizIds: ['quiz-1'],
+      commentIds: ['comment-1'],
+      translations: validTranslations,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     it('returns lesson successfully', async () => {
+      // O GetLessonUseCase agora retorna diretamente o objeto lesson, não { lesson: ... }
       getLesson.execute.mockResolvedValueOnce(right(lessonResponse));
 
       const result = await controller.get(moduleId, lessonId);
 
       expect(getLesson.execute).toHaveBeenCalledWith({ id: lessonId });
-      expect(result).toEqual(lessonResponse.lesson);
+      expect(result).toEqual(lessonResponse);
     });
 
     it('returns lesson without optional fields', async () => {
       const minimalLessonResponse = {
-        lesson: {
-          id: lessonId,
-          moduleId,
-          flashcardIds: [],
-          quizIds: [],
-          commentIds: [],
-          translations: [validTranslations[0]], // só português
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
+        id: lessonId,
+        moduleId,
+        flashcardIds: [],
+        quizIds: [],
+        commentIds: [],
+        translations: [validTranslations[0]], // só português
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       getLesson.execute.mockResolvedValueOnce(right(minimalLessonResponse));
 
       const result = await controller.get(moduleId, lessonId);
 
       expect(getLesson.execute).toHaveBeenCalledWith({ id: lessonId });
-      expect(result).toEqual(minimalLessonResponse.lesson);
+      expect(result).toEqual(minimalLessonResponse);
       expect(result.videoId).toBeUndefined();
       expect(result.imageUrl).toBeUndefined();
     });

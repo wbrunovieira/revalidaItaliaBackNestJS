@@ -54,10 +54,13 @@ describe('GetLessonUseCase', () => {
     await repo.create(lesson);
 
     const result = await sut.execute({ id: lesson.id.toString() });
+
     expect(result.isRight()).toBe(true);
 
     if (result.isRight()) {
-      const { lesson: dto } = result.value;
+      const dto = result.value;
+
+      expect(dto).toBeDefined();
       expect(dto.id).toBe('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
       expect(dto.moduleId).toBe('module-123');
       expect(dto.videoId).toBe('video-456');
@@ -96,9 +99,7 @@ describe('GetLessonUseCase', () => {
         flashcardIds: [],
         quizIds: [],
         commentIds: [],
-        translations: [
-          { locale: 'pt', title: 'Aula Simples' }, // sem description
-        ],
+        translations: [{ locale: 'pt', title: 'Aula Simples' }],
       },
       new UniqueEntityID('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
     );
@@ -107,32 +108,40 @@ describe('GetLessonUseCase', () => {
     const result = await sut.execute({
       id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     });
+
     expect(result.isRight()).toBe(true);
 
     if (result.isRight()) {
-      const { lesson: dto } = result.value;
+      const dto = result.value;
+
+      expect(dto).toBeDefined();
       expect(dto.videoId).toBeUndefined();
       expect(dto.imageUrl).toBeUndefined();
       expect(dto.flashcardIds).toEqual([]);
       expect(dto.quizIds).toEqual([]);
       expect(dto.commentIds).toEqual([]);
+      expect(dto.translations).toHaveLength(1);
       expect(dto.translations[0].description).toBeUndefined();
     }
   });
 
   it('returns InvalidInputError when ID is not a valid UUID', async () => {
-    const result = await sut.execute({ id: 'not-a-uuid' as any });
+    const result = await sut.execute({ id: 'not-a-uuid' });
+
     expect(result.isLeft()).toBe(true);
 
     if (result.isLeft()) {
-      const err = result.value as InvalidInputError;
+      const err = result.value;
       expect(err).toBeInstanceOf(InvalidInputError);
-      expect(err.details[0].message).toMatch(/ID must be a valid UUID/);
+      if (err instanceof InvalidInputError) {
+        expect(err.details[0].message).toMatch(/ID must be a valid UUID/);
+      }
     }
   });
 
   it('returns InvalidInputError when ID is empty', async () => {
     const result = await sut.execute({ id: '' });
+
     expect(result.isLeft()).toBe(true);
 
     if (result.isLeft()) {
@@ -144,6 +153,7 @@ describe('GetLessonUseCase', () => {
     const result = await sut.execute({
       id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
     });
+
     expect(result.isLeft()).toBe(true);
 
     if (result.isLeft()) {
@@ -157,11 +167,14 @@ describe('GetLessonUseCase', () => {
     const result = await sut.execute({
       id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
     });
+
     expect(result.isLeft()).toBe(true);
 
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(RepositoryError);
-      expect((result.value as RepositoryError).message).toBe('DB down');
+      if (result.value instanceof RepositoryError) {
+        expect(result.value.message).toBe('DB down');
+      }
     }
   });
 
@@ -170,10 +183,13 @@ describe('GetLessonUseCase', () => {
     await repo.create(lesson);
 
     const result = await sut.execute({ id: lesson.id.toString() });
+
     expect(result.isRight()).toBe(true);
 
     if (result.isRight()) {
-      const { lesson: dto } = result.value;
+      const dto = result.value;
+
+      expect(dto).toBeDefined();
       expect(dto.translations).toHaveLength(3);
 
       const locales = dto.translations.map((t) => t.locale);
@@ -206,14 +222,48 @@ describe('GetLessonUseCase', () => {
     const result = await sut.execute({
       id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
     });
+
     expect(result.isRight()).toBe(true);
 
     if (result.isRight()) {
-      const { lesson: dto } = result.value;
+      const dto = result.value;
+
+      expect(dto).toBeDefined();
       expect(dto.moduleId).toBe('minimal-module');
       expect(dto.translations).toHaveLength(1);
       expect(dto.translations[0].locale).toBe('pt');
       expect(dto.translations[0].title).toBe('Título Mínimo');
+    }
+  });
+
+  it('handles arrays that might be undefined from entity', async () => {
+    // Test case para verificar como arrays undefined são tratados
+    const lessonWithNullArrays = Lesson.create(
+      {
+        moduleId: 'module-with-nulls',
+        flashcardIds: undefined as any,
+        quizIds: undefined as any,
+        commentIds: undefined as any,
+        translations: [{ locale: 'pt', title: 'Test Title' }],
+      },
+      new UniqueEntityID('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'),
+    );
+    await repo.create(lessonWithNullArrays);
+
+    const result = await sut.execute({
+      id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+    });
+
+    expect(result.isRight()).toBe(true);
+
+    if (result.isRight()) {
+      const dto = result.value;
+
+      expect(dto).toBeDefined();
+
+      expect(dto.flashcardIds).toBeUndefined();
+      expect(dto.quizIds).toBeUndefined();
+      expect(dto.commentIds).toBeUndefined();
     }
   });
 });
