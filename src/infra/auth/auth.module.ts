@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import * as fs from 'fs';
 
 import { DatabaseModule } from '@/infra/database/database.module';
@@ -26,13 +26,18 @@ import { SignInService } from './strategies/sign-in.service';
 
 @Module({
   imports: [
+    // Global configuration and validation
     ConfigModule.forRoot({ isGlobal: true }),
+    // Database (Prisma) provider
     DatabaseModule,
-    PassportModule,
+    // Passport for authentication
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    // JWT module configured asynchronously
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
+      useFactory: async (config: ConfigService): Promise<JwtModuleOptions> => {
+        // Try to read keys directly from environment values
         const envPrivate = config.get<string>('JWT_PRIVATE_KEY');
         const envPublic = config.get<string>('JWT_PUBLIC_KEY');
 
@@ -40,19 +45,26 @@ import { SignInService } from './strategies/sign-in.service';
         let publicKey: string;
 
         if (envPrivate && envPublic) {
+          // Keys provided as complete strings
           privateKey = envPrivate;
           publicKey = envPublic;
         } else {
+          // Fallback to file paths
           const privatePath = config.get<string>('JWT_PRIVATE_KEY_PATH');
-
           const publicPath = config.get<string>('JWT_PUBLIC_KEY_PATH');
 
-          if (!privatePath || !publicPath) {
+          if (!privatePath) {
             throw new Error(
-              'JWT_PRIVATE_KEY or JWT_PRIVATE_KEY_PATH (and PUBLIC) must be defined',
+              'Missing configuration: JWT_PRIVATE_KEY or JWT_PRIVATE_KEY_PATH must be defined',
+            );
+          }
+          if (!publicPath) {
+            throw new Error(
+              'Missing configuration: JWT_PUBLIC_KEY or JWT_PUBLIC_KEY_PATH must be defined',
             );
           }
 
+          // Synchronous file reads (UTF-8)
           privateKey = fs.readFileSync(privatePath, 'utf8');
           publicKey = fs.readFileSync(publicPath, 'utf8');
         }
@@ -69,11 +81,11 @@ import { SignInService } from './strategies/sign-in.service';
     }),
   ],
   providers: [
-    // Repositories
+    // Repository bindings
     { provide: IAccountRepository, useClass: PrismaAccountRepository },
     { provide: IAddressRepository, useClass: PrismaAddressRepository },
 
-    // Use Cases
+    // Domain use cases
     CreateAccountUseCase,
     AuthenticateUserUseCase,
     UpdateAccountUseCase,
@@ -82,23 +94,24 @@ import { SignInService } from './strategies/sign-in.service';
     UpdateAddressUseCase,
     DeleteAddressUseCase,
 
-    // Auth
+    // Authentication services and guards
     LocalStrategy,
     SignInService,
     JwtStrategy,
     JwtAuthGuard,
     RolesGuard,
 
-    // Config
+    // Miscellaneous providers
     { provide: 'SALT_ROUNDS', useValue: 8 },
   ],
   exports: [
+    // Export auth-related modules/services for other parts of the app
     JwtModule,
     JwtAuthGuard,
     RolesGuard,
     SignInService,
 
-    // Use Cases
+    // Use cases
     CreateAccountUseCase,
     AuthenticateUserUseCase,
     UpdateAccountUseCase,

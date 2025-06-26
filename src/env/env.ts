@@ -11,8 +11,10 @@ export const envSchema = z
     PORT: z.coerce.number().optional().default(3333),
 
     // JWT Configuration
-    JWT_PRIVATE_KEY: z.string().nonempty('JWT_PRIVATE_KEY cannot be empty'),
-    JWT_PUBLIC_KEY: z.string().nonempty('JWT_PUBLIC_KEY cannot be empty'),
+    JWT_PRIVATE_KEY: z.string().nonempty().optional(),
+    JWT_PUBLIC_KEY: z.string().nonempty().optional(),
+    JWT_PRIVATE_KEY_PATH: z.string().optional(),
+    JWT_PUBLIC_KEY_PATH: z.string().optional(),
 
     // Panda Video Configuration
     PANDA_API_BASE_URL: z
@@ -70,6 +72,21 @@ export const envSchema = z
         code: z.ZodIssueCode.custom,
         message: 'MAX_FILE_SIZE cannot exceed 100MB',
         path: ['MAX_FILE_SIZE'],
+      });
+    }
+
+    if (!data.JWT_PRIVATE_KEY && !data.JWT_PRIVATE_KEY_PATH) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['JWT_PRIVATE_KEY'],
+        message: 'Você deve definir JWT_PRIVATE_KEY ou JWT_PRIVATE_KEY_PATH',
+      });
+    }
+    if (!data.JWT_PUBLIC_KEY && !data.JWT_PUBLIC_KEY_PATH) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['JWT_PUBLIC_KEY'],
+        message: 'Você deve definir JWT_PUBLIC_KEY ou JWT_PUBLIC_KEY_PATH',
       });
     }
 
