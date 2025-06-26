@@ -6,9 +6,9 @@ export const envSchema = z
   .object({
     // Base Configuration
     NODE_ENV: z.enum(['development', 'production']),
-    DATABASE_URL: z.string().url(),
+    DATABASE_URL: z.string().nonempty('DATABASE_URL não pode ser vazio'),
     NEXT_PUBLIC_URL: z.string().url(),
-    PORT: z.coerce.number().optional().default(3333),
+    PORT: z.coerce.number().default(3333),
 
     // JWT Configuration
     JWT_PRIVATE_KEY: z.string().nonempty().optional(),
