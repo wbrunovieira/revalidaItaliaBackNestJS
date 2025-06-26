@@ -27,13 +27,16 @@ WORKDIR /app
 RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile \
-  && pnpm exec prisma generate \
   && pnpm add tsconfig-paths \
   && pnpm store prune \
   && npm cache clean --force
 
 # 5) Copia a aplicação compilada
 COPY --from=builder /app/dist ./dist
+
+# copia o Prisma Client já gerado no builder (binários + query engine)
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=builder /app/node_modules/.prisma      ./node_modules/.prisma
 
 
 
