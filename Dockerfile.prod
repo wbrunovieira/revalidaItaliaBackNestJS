@@ -2,58 +2,55 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
+# 1) Instala pnpm e dependências (inclui @prisma/client e prisma CLI)
 COPY package.json pnpm-lock.yaml ./
 RUN apk add --no-cache openssl openssl-dev \
   && npm install -g pnpm \
   && pnpm install --frozen-lockfile
 
+# 2) Copia schema e gera o client prisma
 COPY prisma ./prisma
 ENV PRISMA_CLI_QUERY_ENGINE_TYPE=binary \
   PRISMA_QUERY_ENGINE_TYPE=binary
 RUN pnpm exec prisma generate
 
+# 3) Copia código TS e faz build
 COPY tsconfig*.json ./
 COPY src ./src
-RUN echo "=== Debug tsconfig ===" && \
-  ls -la tsconfig* && \
-  echo "=== Content tsconfig.build.json ===" && \
-  cat tsconfig.build.json && \
-  echo "=== Building ===" && \
-  pnpm run build
+RUN pnpm run build
 
 # ───── production stage ─────
 FROM node:18-alpine AS prod
 WORKDIR /app
 
-# Install pnpm first
+# 4) Instala pnpm e deps de produção (inclui tsconfig-paths)
 RUN npm install -g pnpm
-
-# Copy package files and install production dependencies INCLUDING tsconfig-paths
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile \
   && pnpm add tsconfig-paths \
   && pnpm store prune \
   && npm cache clean --force
 
-# Copy built application
+# 5) Copia a aplicação compilada
 COPY --from=builder /app/dist ./dist
 
-# Copy Prisma schema and generate client in production stage
-COPY --from=builder /app/prisma ./prisma
-RUN pnpm exec prisma generate
+# 6) Copia todo o client prisma já gerado
+#    — binários + query engine dentro de node_modules 
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-# Copy tsconfig files for path resolution
+# 7) Copia configs de TS para resolver paths no runtime
 COPY tsconfig.base.json ./
 COPY tsconfig.prod.json ./tsconfig.json
-COPY private.pem ./private.pem
-COPY public.pem ./public.pem
 
+# 8) Copia chaves JWT
 COPY private.pem ./private.pem
-COPY public.pem ./public.pem
+COPY public.pem  ./public.pem
 
+# 9) Expõe variáveis de ambiente pra sua config
+ENV NODE_ENV=production
 ENV JWT_PRIVATE_KEY_PATH=/app/private.pem
 ENV JWT_PUBLIC_KEY_PATH=/app/public.pem
 
-ENV NODE_ENV=production
-
+# 10) Comando final
 CMD ["node", "-r", "tsconfig-paths/register", "dist/main"]
