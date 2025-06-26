@@ -27,7 +27,7 @@ import { SignInService } from './strategies/sign-in.service';
 @Module({
   imports: [
     // Global configuration and validation
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     // Database (Prisma) provider
     DatabaseModule,
     // Passport for authentication
@@ -40,6 +40,7 @@ import { SignInService } from './strategies/sign-in.service';
         // Try to read keys directly from environment values
         const envPrivate = config.get<string>('JWT_PRIVATE_KEY');
         const envPublic = config.get<string>('JWT_PUBLIC_KEY');
+        console.log('NEXT_PUBLIC_URL:', config.get('NEXT_PUBLIC_URL'));
 
         let privateKey: string;
         let publicKey: string;

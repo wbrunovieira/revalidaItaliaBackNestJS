@@ -7,6 +7,7 @@ export const envSchema = z
     // Base Configuration
     NODE_ENV: z.enum(['development', 'production']),
     DATABASE_URL: z.string().nonempty('DATABASE_URL não pode ser vazio'),
+
     NEXT_PUBLIC_URL: z.string().url(),
     PORT: z.coerce.number().default(3333),
 
