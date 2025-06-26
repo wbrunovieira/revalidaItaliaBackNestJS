@@ -2,56 +2,58 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# 1) Instala pnpm e dependências (inclui @prisma/client e prisma CLI)
+# Instala PNPM e configura para hoisted node_modules
+RUN npm install -g pnpm \
+  && pnpm config set node-linker hoisted
+
+# 1) Instala dependências (inclui @prisma/client e Prisma CLI)
 COPY package.json pnpm-lock.yaml ./
 RUN apk add --no-cache openssl openssl-dev \
-  && npm install -g pnpm \
   && pnpm install --frozen-lockfile
 
-# 2) Copia schema e gera o client prisma
+# 2) Gera Prisma Client
 COPY prisma ./prisma
 ENV PRISMA_CLI_QUERY_ENGINE_TYPE=binary \
   PRISMA_QUERY_ENGINE_TYPE=binary
 RUN pnpm exec prisma generate
 
-# 3) Copia código TS e faz build
+# 3) Compila o código TypeScript
 COPY tsconfig*.json ./
 COPY src ./src
 RUN pnpm run build
+
 
 # ───── production stage ─────
 FROM node:18-alpine AS prod
 WORKDIR /app
 
-# 4) Instala pnpm e deps de produção (inclui tsconfig-paths)
+# Instala PNPM para produção
 RUN npm install -g pnpm
+
+# 4) Instala apenas deps de produção + tsconfig-paths
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile \
   && pnpm add tsconfig-paths \
   && pnpm store prune \
   && npm cache clean --force
 
-# 5) Copia a aplicação compilada
+# 5) Copia build e Prisma Client
 COPY --from=builder /app/dist ./dist
-
-# copia o Prisma Client já gerado no builder (binários + query engine)
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/node_modules/.prisma      ./node_modules/.prisma
 
-
-
-# 7) Copia configs de TS para resolver paths no runtime
+# 6) Copia configs de TS para runtime path resolution
 COPY tsconfig.base.json ./
 COPY tsconfig.prod.json ./tsconfig.json
 
-# 8) Copia chaves JWT
+# 7) Copia chaves JWT
 COPY private.pem ./private.pem
 COPY public.pem  ./public.pem
 
-# 9) Expõe variáveis de ambiente pra sua config
+# 8) Variáveis de ambiente
 ENV NODE_ENV=production
 ENV JWT_PRIVATE_KEY_PATH=/app/private.pem
 ENV JWT_PUBLIC_KEY_PATH=/app/public.pem
 
-# 10) Comando final
+# 9) Comando de start
 CMD ["node", "-r", "tsconfig-paths/register", "dist/main"]
