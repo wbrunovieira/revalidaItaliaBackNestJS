@@ -32,7 +32,10 @@ COPY --from=builder /app/prisma ./prisma
 # ✅ Instalar apenas prod dependencies na imagem final
 COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm \
-  && pnpm install --prod --frozen-lockfile
+  && pnpm install --prod --frozen-lockfile \
+  && pnpm add tsconfig-paths \
+  && pnpm store prune \
+  && npm cache clean --force
 
 # metadados mínimos pro tsconfig-paths
 COPY tsconfig.base.json tsconfig.prod.json ./
