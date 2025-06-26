@@ -26,25 +26,34 @@ import { SignInService } from './strategies/sign-in.service';
 
 @Module({
   imports: [
-    ConfigModule,
+    ConfigModule.forRoot({ isGlobal: true }),
     PassportModule,
-    DatabaseModule,
-
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const privateKeyPath = config.get<string>('JWT_PRIVATE_KEY_PATH');
-        const publicKeyPath = config.get<string>('JWT_PUBLIC_KEY_PATH');
+        const envPrivate = config.get<string>('JWT_PRIVATE_KEY');
+        const envPublic = config.get<string>('JWT_PUBLIC_KEY');
 
-        if (!privateKeyPath || !publicKeyPath) {
-          throw new Error(
-            'JWT_PRIVATE_KEY_PATH or JWT_PUBLIC_KEY_PATH is not defined',
-          );
+        let privateKey: string;
+        let publicKey: string;
+
+        if (envPrivate && envPublic) {
+          privateKey = envPrivate;
+          publicKey = envPublic;
+        } else {
+          const privatePath = config.get<string>('JWT_PRIVATE_KEY_PATH');
+          const publicPath = config.get<string>('JWT_PUBLIC_KEY_PATH');
+
+          if (!privatePath || !publicPath) {
+            throw new Error(
+              'JWT_PRIVATE_KEY or JWT_PRIVATE_KEY_PATH (and PUBLIC) must be defined',
+            );
+          }
+
+          privateKey = fs.readFileSync(privatePath, 'utf8');
+          publicKey = fs.readFileSync(publicPath, 'utf8');
         }
-
-        const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
-        const publicKey = fs.readFileSync(publicKeyPath, 'utf8');
 
         return {
           privateKey,
