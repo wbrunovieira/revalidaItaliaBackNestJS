@@ -25,10 +25,14 @@ RUN echo "=== Debug tsconfig ===" && \
 FROM node:18-alpine AS prod
 WORKDIR /app
 
-# copia artefatos do builder
-COPY --from=builder /app/dist        ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma      ./prisma
+# ✅ Copiar apenas os artefatos necessários primeiro
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+
+# ✅ Instalar apenas prod dependencies na imagem final
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm \
+  && pnpm install --prod --frozen-lockfile
 
 # metadados mínimos pro tsconfig-paths
 COPY tsconfig.base.json tsconfig.prod.json ./
