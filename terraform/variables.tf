@@ -126,3 +126,4 @@ variable "allowed_file_extensions" {
   type        = list(string)
   default     = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "csv"]
 }
+

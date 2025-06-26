@@ -1,6 +1,6 @@
 # terraform/instance.tf
 
-# Dados dos parâmetros existentes
+
 data "aws_ssm_parameter" "next_public_url" {
   name = aws_ssm_parameter.next_public_url.name
 }
@@ -22,7 +22,7 @@ data "aws_ssm_parameter" "jwt_public_key" {
   name = aws_ssm_parameter.jwt_public_key.name
 }
 
-# Dados dos novos parâmetros S3
+
 data "aws_ssm_parameter" "storage_type" {
   name = aws_ssm_parameter.storage_type.name
 }
@@ -42,10 +42,7 @@ data "aws_ssm_parameter" "allowed_file_types" {
   name = aws_ssm_parameter.allowed_file_types.name
 }
 
-data "aws_ssm_parameter" "panda_api_key" {
-  name            = "/revalida/PANDA_API_KEY"
-  with_decryption = true
-}
+
 
 resource "aws_instance" "backend" {
   ami                         = var.ami_id

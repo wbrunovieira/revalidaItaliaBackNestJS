@@ -46,6 +46,7 @@ data "aws_iam_policy_document" "allow_ssm_read" {
       aws_ssm_parameter.s3_base_url.arn,
       aws_ssm_parameter.max_file_size.arn,
       aws_ssm_parameter.allowed_file_types.arn,
+      aws_ssm_parameter.panda_api_key.arn,
     ]
   }
 }

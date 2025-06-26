@@ -45,3 +45,10 @@ resource "aws_ssm_parameter" "jwt_public_key" {
   value       = local.jwt_public_key
 }
 
+resource "aws_ssm_parameter" "panda_api_key" {
+  name        = "/revalida/PANDA_API_KEY"
+  description = "Panda Video API Key"
+  type        = "SecureString"
+  value       = local.panda_api_key
+}
+

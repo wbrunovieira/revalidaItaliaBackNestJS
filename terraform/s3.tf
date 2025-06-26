@@ -209,3 +209,6 @@ resource "aws_ssm_parameter" "allowed_file_types" {
   type        = "String"
   value       = "pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv"
 }
+
+
+
