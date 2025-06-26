@@ -12,9 +12,14 @@ ENV PRISMA_CLI_QUERY_ENGINE_TYPE=binary \
   PRISMA_QUERY_ENGINE_TYPE=binary
 RUN pnpm exec prisma generate
 
-COPY tsconfig.base.json tsconfig.build.json ./
+COPY tsconfig*.json ./
 COPY src ./src
-RUN pnpm run build
+RUN echo "=== Debug tsconfig ===" && \
+  ls -la tsconfig* && \
+  echo "=== Content tsconfig.build.json ===" && \
+  cat tsconfig.build.json && \
+  echo "=== Building ===" && \
+  pnpm run build
 
 # ───── production stage ─────
 FROM node:18-alpine AS prod
