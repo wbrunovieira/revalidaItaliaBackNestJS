@@ -25,25 +25,26 @@ RUN echo "=== Debug tsconfig ===" && \
 FROM node:18-alpine AS prod
 WORKDIR /app
 
-# ✅ Copiar apenas os artefatos necessários primeiro
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
+# Install pnpm first
+RUN npm install -g pnpm
 
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
-
-# ✅ Instalar apenas prod dependencies na imagem final
+# Copy package files and install production dependencies INCLUDING tsconfig-paths
 COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm \
-  && pnpm install --prod --frozen-lockfile \
+RUN pnpm install --prod --frozen-lockfile \
   && pnpm add tsconfig-paths \
   && pnpm store prune \
   && npm cache clean --force
 
-# metadados mínimos pro tsconfig-paths
-COPY tsconfig.base.json tsconfig.prod.json ./
-# renomeia o prod para tsconfig.json
-RUN mv tsconfig.prod.json tsconfig.json
+# Copy built application
+COPY --from=builder /app/dist ./dist
+
+# Copy Prisma schema and generate client in production stage
+COPY --from=builder /app/prisma ./prisma
+RUN pnpm exec prisma generate
+
+# Copy tsconfig files for path resolution
+COPY tsconfig.base.json ./
+COPY tsconfig.prod.json ./tsconfig.json
 
 ENV NODE_ENV=production
 
