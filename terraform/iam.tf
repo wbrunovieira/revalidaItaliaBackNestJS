@@ -1,3 +1,4 @@
+#terraform/iam.tf
 data "aws_iam_policy_document" "ssm_assume" {
   statement {
     principals {

@@ -1,4 +1,3 @@
-// src/env/env.ts
 import { z } from 'zod';
 
 const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/;
@@ -33,7 +32,7 @@ export const envSchema = z
       .optional()
       .default('http://localhost:3000'),
 
-    // S3 Configuration (required only when STORAGE_TYPE = 's3')
+    // S3 Configuration (optional - can use IAM roles)
     AWS_REGION: z.string().optional(),
     AWS_ACCESS_KEY_ID: z.string().optional(),
     AWS_SECRET_ACCESS_KEY: z.string().optional(),
@@ -49,12 +48,9 @@ export const envSchema = z
   .superRefine((data, ctx) => {
     // Validate S3 configuration when STORAGE_TYPE is 's3'
     if (data.STORAGE_TYPE === 's3') {
-      const requiredS3Fields = [
-        'AWS_REGION',
-        'AWS_ACCESS_KEY_ID',
-        'AWS_SECRET_ACCESS_KEY',
-        'S3_BUCKET_NAME',
-      ] as const;
+      // ✅ Só exigir AWS_REGION e S3_BUCKET_NAME
+      // AWS_ACCESS_KEY_ID e AWS_SECRET_ACCESS_KEY são opcionais (IAM roles)
+      const requiredS3Fields = ['AWS_REGION', 'S3_BUCKET_NAME'] as const;
 
       for (const field of requiredS3Fields) {
         if (!data[field]) {

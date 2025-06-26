@@ -14,6 +14,7 @@ all:
     NODE_ENV:           "${node_env}"
     PORT:               ${port}
     DATABASE_URL:       "${database_url}"
+    panda_api_key:      "${panda_api_key}"
 
     storage_type:       "${storage_type}"
     s3_bucket_name:     "${s3_bucket_name}"

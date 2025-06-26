@@ -42,6 +42,11 @@ data "aws_ssm_parameter" "allowed_file_types" {
   name = aws_ssm_parameter.allowed_file_types.name
 }
 
+data "aws_ssm_parameter" "panda_api_key" {
+  name            = "/revalida/PANDA_API_KEY"
+  with_decryption = true
+}
+
 resource "aws_instance" "backend" {
   ami                         = var.ami_id
   instance_type               = var.instance_type
