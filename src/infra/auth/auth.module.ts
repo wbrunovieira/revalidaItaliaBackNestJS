@@ -27,6 +27,7 @@ import { SignInService } from './strategies/sign-in.service';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    DatabaseModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
