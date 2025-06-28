@@ -28,7 +28,7 @@ Content-Type: application/json
 }
 
 ### get-video
-GET {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/modules/5e0e2e06-a74e-4553-ab9e-d1925be934e5/videos/c3ed5a10-60b6-4a8c-8add-6770784a6553
+GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/5e0e2e06-a74e-4553-ab9e-d1925be934e5/videos/c3ed5a10-60b6-4a8c-8add-6770784a6553
 Accept: application/json
 
 ### list-videos
