@@ -24,6 +24,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { SignInService } from './strategies/sign-in.service';
 import { ListUsersUseCase } from '@/domain/auth/application/use-cases/list-users.use-case';
+import { DeleteUserUseCase } from '@/domain/auth/application/use-cases/delete-user.use-case';
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { ListUsersUseCase } from '@/domain/auth/application/use-cases/list-users
     UpdateAddressUseCase,
     DeleteAddressUseCase,
     ListUsersUseCase,
+    DeleteUserUseCase,
 
     // Authentication services and guards
     LocalStrategy,
@@ -123,6 +125,7 @@ import { ListUsersUseCase } from '@/domain/auth/application/use-cases/list-users
     UpdateAddressUseCase,
     DeleteAddressUseCase,
     ListUsersUseCase,
+    DeleteUserUseCase,
   ],
 })
 export class AuthModule {}

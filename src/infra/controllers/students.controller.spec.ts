@@ -5,11 +5,13 @@ import { StudentsController } from './students.controller';
 import { CreateAccountUseCase } from '@/domain/auth/application/use-cases/create-account.use-case';
 import { UpdateAccountUseCase } from '@/domain/auth/application/use-cases/update-account.use-case';
 import { ListUsersUseCase } from '@/domain/auth/application/use-cases/list-users.use-case';
+import { DeleteUserUseCase } from '@/domain/auth/application/use-cases/delete-user.use-case';
 import { left, right } from '@/core/either';
 import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error';
 import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
 import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error';
 import { RepositoryError } from '@/domain/auth/application/use-cases/errors/repository-error';
+import { UnauthorizedError } from '@/domain/auth/application/use-cases/errors/unauthorized-error';
 import { CreateAccountRequest } from '@/domain/auth/application/dtos/create-account-request.dto';
 
 class MockCreateAccountUseCase {
@@ -24,11 +26,16 @@ class MockListUsersUseCase {
   execute = vi.fn();
 }
 
+class MockDeleteUserUseCase {
+  execute = vi.fn();
+}
+
 describe('StudentsController', () => {
   let controller: StudentsController;
   let createAccountUseCase: MockCreateAccountUseCase;
   let updateAccountUseCase: MockUpdateAccountUseCase;
   let listUsersUseCase: MockListUsersUseCase;
+  let deleteUserUseCase: MockDeleteUserUseCase;
 
   const mockUser = {
     id: 'user-id-123',
@@ -44,11 +51,13 @@ describe('StudentsController', () => {
     createAccountUseCase = new MockCreateAccountUseCase();
     updateAccountUseCase = new MockUpdateAccountUseCase();
     listUsersUseCase = new MockListUsersUseCase();
+    deleteUserUseCase = new MockDeleteUserUseCase();
 
     controller = new StudentsController(
       createAccountUseCase as any,
       updateAccountUseCase as any,
       listUsersUseCase as any,
+      deleteUserUseCase as any,
     );
 
     // Reset all mocks before each test
@@ -334,6 +343,72 @@ describe('StudentsController', () => {
         pageSize: 20,
       });
       expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('delete', () => {
+    const mockDeleteResponse = {
+      message: 'User deleted successfully',
+    };
+
+    it('should delete a user successfully as admin', async () => {
+      deleteUserUseCase.execute.mockResolvedValue(right(mockDeleteResponse));
+
+      const result = await controller.delete('user-id-123');
+
+      expect(deleteUserUseCase.execute).toHaveBeenCalledWith({
+        id: 'user-id-123',
+      });
+      expect(deleteUserUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockDeleteResponse);
+    });
+
+    it('should throw NotFound when user does not exist', async () => {
+      const notFoundError = new ResourceNotFoundError('User not found');
+      deleteUserUseCase.execute.mockResolvedValue(left(notFoundError));
+
+      await expect(controller.delete('user-id-123')).rejects.toThrow(
+        new HttpException('User not found', HttpStatus.NOT_FOUND),
+      );
+
+      expect(deleteUserUseCase.execute).toHaveBeenCalledWith({
+        id: 'user-id-123',
+      });
+      expect(deleteUserUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw InternalServerError for generic errors', async () => {
+      const genericError = new Error('Database error');
+      deleteUserUseCase.execute.mockResolvedValue(left(genericError));
+
+      await expect(controller.delete('user-id-123')).rejects.toThrow(
+        new HttpException(
+          'Failed to delete user',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+
+      expect(deleteUserUseCase.execute).toHaveBeenCalledWith({
+        id: 'user-id-123',
+      });
+      expect(deleteUserUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw InternalServerError for repository errors', async () => {
+      const repositoryError = new RepositoryError('Database connection failed');
+      deleteUserUseCase.execute.mockResolvedValue(left(repositoryError));
+
+      await expect(controller.delete('user-id-123')).rejects.toThrow(
+        new HttpException(
+          'Failed to delete user',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+
+      expect(deleteUserUseCase.execute).toHaveBeenCalledWith({
+        id: 'user-id-123',
+      });
+      expect(deleteUserUseCase.execute).toHaveBeenCalledTimes(1);
     });
   });
 });

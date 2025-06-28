@@ -91,3 +91,13 @@ Authorization: Bearer {{adminToken}}
 # @name listUsersPage2
 GET {{BASE_URL}}/students?page=2&pageSize=2
 Authorization: Bearer {{adminToken}}
+
+
+### ====================================
+### DELETE USER TESTS
+### ====================================
+
+### 6. Admin Delete User - Success
+# @name adminDeleteUser
+DELETE {{BASE_URL}}/students/c7e0851f-b53a-4794-a182-b8f600b934ba
+Authorization: Bearer {{adminToken}}

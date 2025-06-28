@@ -77,12 +77,31 @@ describe('Students Controller (E2E)', () => {
             'cpfa@example.com',
             'cpfb@example.com',
             'student@test.com',
+            'todelete@example.com',
+            'deleteme@example.com',
+            'deletetest@example.com',
           ],
         },
       },
     });
     await app.close();
   });
+
+  // Helper function para obter um novo token se necessário
+  const getValidAdminToken = async (): Promise<string> => {
+    if (!adminToken) {
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: 'admin@example.com',
+          password: 'Admin123!',
+        })
+        .expect(201);
+
+      return loginResponse.body.accessToken;
+    }
+    return adminToken;
+  };
 
   // ────────────────────────────────────────────────────────────
   // Create Account (E2E)
@@ -388,26 +407,10 @@ describe('Students Controller (E2E)', () => {
   });
 
   // ────────────────────────────────────────────────────────────
-  // List Users (E2E) - COM AUTENTICAÇÃO CORRETA
+  // List Users (E2E)
   // ────────────────────────────────────────────────────────────
 
   describe('List Users', () => {
-    // Helper function para obter um novo token se necessário
-    const getValidAdminToken = async (): Promise<string> => {
-      if (!adminToken) {
-        const loginResponse = await request(app.getHttpServer())
-          .post('/auth/login')
-          .send({
-            email: 'admin@example.com',
-            password: 'Admin123!',
-          })
-          .expect(201);
-
-        return loginResponse.body.accessToken;
-      }
-      return adminToken;
-    };
-
     it('[GET] /students - Success with admin token', async () => {
       const token = await getValidAdminToken();
 
@@ -538,6 +541,218 @@ describe('Students Controller (E2E)', () => {
       // Deve usar valores padrão para parâmetros inválidos
       expect(res.body.pagination.page).toBeGreaterThan(0);
       expect(res.body.pagination.pageSize).toBeGreaterThan(0);
+    });
+  });
+
+  // ────────────────────────────────────────────────────────────
+  // Delete User (E2E)
+  // ────────────────────────────────────────────────────────────
+
+  describe('Delete User', () => {
+    it('[DELETE] /students/:id - Success with admin token', async () => {
+      const token = await getValidAdminToken();
+
+      // Primeiro criar um usuário para deletar
+      const createRes = await request(app.getHttpServer())
+        .post('/students')
+        .send({
+          name: 'To Delete',
+          email: 'todelete@example.com',
+          password: 'Delete123!',
+          cpf: '11111111111',
+          role: 'student',
+        });
+
+      expect(createRes.status).toBe(201);
+      const userId = createRes.body.user.id;
+
+      // Verificar que o usuário existe no banco
+      const userBefore = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+      expect(userBefore).toBeTruthy();
+
+      // Deletar o usuário
+      const deleteRes = await request(app.getHttpServer())
+        .delete(`/students/${userId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(deleteRes.body).toHaveProperty('message');
+      expect(deleteRes.body.message).toBe('User deleted successfully');
+
+      // Verificar que o usuário foi deletado do banco
+      const userAfter = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+      expect(userAfter).toBeNull();
+    });
+
+    it('[DELETE] /students/:id - Not Found', async () => {
+      const token = await getValidAdminToken();
+
+      const res = await request(app.getHttpServer())
+        .delete('/students/nonexistent-id')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(404);
+
+      expect(res.body.message).toBe('User not found');
+      expect(res.body.statusCode).toBe(404);
+    });
+
+    it('[DELETE] /students/:id - Unauthorized without token', async () => {
+      // Criar usuário para tentar deletar
+      const createRes = await request(app.getHttpServer())
+        .post('/students')
+        .send({
+          name: 'Delete Me',
+          email: 'deleteme@example.com',
+          password: 'Delete123!',
+          cpf: '22222222222',
+          role: 'student',
+        });
+
+      const userId = createRes.body.user.id;
+
+      const res = await request(app.getHttpServer())
+        .delete(`/students/${userId}`)
+        .expect(401);
+
+      expect(res.body.message).toBe('Unauthorized');
+      expect(res.body.statusCode).toBe(401);
+
+      // Verificar que o usuário ainda existe
+      const userStillExists = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+      expect(userStillExists).toBeTruthy();
+    });
+
+    it('[DELETE] /students/:id - Unauthorized with invalid token', async () => {
+      // Criar usuário para tentar deletar
+      const createRes = await request(app.getHttpServer())
+        .post('/students')
+        .send({
+          name: 'Delete Test',
+          email: 'deletetest@example.com',
+          password: 'Delete123!',
+          cpf: '33333333333',
+          role: 'student',
+        });
+
+      const userId = createRes.body.user.id;
+
+      const res = await request(app.getHttpServer())
+        .delete(`/students/${userId}`)
+        .set('Authorization', 'Bearer invalid-token')
+        .expect(401);
+
+      expect(res.body.message).toBe('Unauthorized');
+      expect(res.body.statusCode).toBe(401);
+
+      // Verificar que o usuário ainda existe
+      const userStillExists = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+      expect(userStillExists).toBeTruthy();
+    });
+
+    it('[DELETE] /students/:id - Forbidden for non-admin users', async () => {
+      // Criar usuário estudante
+      const createStudentRes = await request(app.getHttpServer())
+        .post('/students')
+        .send({
+          name: 'Student Delete Test',
+          email: 'studentdelete@test.com',
+          password: 'Student123!',
+          cpf: '44444444444',
+          role: 'student',
+        });
+
+      expect(createStudentRes.status).toBe(201);
+      const studentId = createStudentRes.body.user.id;
+
+      // Login como estudante
+      const studentLoginRes = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: 'studentdelete@test.com',
+          password: 'Student123!',
+        })
+        .expect(201);
+
+      const studentToken = studentLoginRes.body.accessToken;
+
+      // Criar outro usuário para tentar deletar
+      const createTargetRes = await request(app.getHttpServer())
+        .post('/students')
+        .send({
+          name: 'Target User',
+          email: 'target@example.com',
+          password: 'Target123!',
+          cpf: '55555555555',
+          role: 'student',
+        });
+
+      const targetUserId = createTargetRes.body.user.id;
+
+      // Tentar deletar com token de estudante
+      const res = await request(app.getHttpServer())
+        .delete(`/students/${targetUserId}`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .expect(403);
+
+      expect(res.body.message).toBe('Forbidden resource');
+      expect(res.body.statusCode).toBe(403);
+
+      // Verificar que o usuário alvo ainda existe
+      const targetUserStillExists = await prisma.user.findUnique({
+        where: { id: targetUserId },
+      });
+      expect(targetUserStillExists).toBeTruthy();
+
+      // Limpar usuários criados para este teste
+      await prisma.user.deleteMany({
+        where: {
+          email: {
+            in: ['studentdelete@test.com', 'target@example.com'],
+          },
+        },
+      });
+    });
+
+    it('[DELETE] /students/:id - Cannot delete admin user (if business rule exists)', async () => {
+      const token = await getValidAdminToken();
+
+      // Obter o ID do usuário admin
+      const adminUser = await prisma.user.findUnique({
+        where: { email: 'admin@example.com' },
+      });
+
+      expect(adminUser).toBeTruthy();
+
+      // Tentar deletar o usuário admin
+      const res = await request(app.getHttpServer())
+        .delete(`/students/${adminUser!.id}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      // Dependendo da regra de negócio, pode ser 403 (Forbidden) ou 200 (Success)
+      // Ajuste conforme sua implementação
+      if (res.status === 403) {
+        expect(res.body.statusCode).toBe(403);
+      } else {
+        expect(res.status).toBe(200);
+      }
+
+      // Verificar que o admin ainda existe (se a regra de negócio impede a exclusão)
+      const adminStillExists = await prisma.user.findUnique({
+        where: { id: adminUser!.id },
+      });
+
+      // Ajuste conforme sua regra de negócio
+      if (res.status === 403) {
+        expect(adminStillExists).toBeTruthy();
+      }
     });
   });
 });

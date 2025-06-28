@@ -8,8 +8,6 @@ import { UnauthorizedError } from './errors/unauthorized-error';
 
 export interface DeleteUserRequest {
   id: string;
-  requesterId: string; // ID do usuário que está fazendo a requisição
-  requesterRole: 'admin' | 'tutor' | 'student';
 }
 
 export interface DeleteUserResponse {
@@ -32,17 +30,7 @@ export class DeleteUserUseCase {
     request: DeleteUserRequest,
   ): Promise<DeleteUserUseCaseResponse> {
     try {
-      const { id, requesterId, requesterRole } = request;
-
-      // Only admins can delete users
-      if (requesterRole !== 'admin') {
-        // Exception: users can delete their own account
-        if (id !== requesterId) {
-          return left(
-            new UnauthorizedError('Only admins can delete other users'),
-          );
-        }
-      }
+      const { id } = request;
 
       // Check if user exists
       const userResult = await this.accountRepo.findById(id);
@@ -52,14 +40,6 @@ export class DeleteUserUseCase {
       }
 
       const user = userResult.value;
-
-      // Prevent deleting the last admin
-      if (user.role === 'admin' && id !== requesterId) {
-        // Optional: Check if this is the last admin
-        // This would require a countByRole method in the repository
-        // For now, we'll allow it but log a warning
-        console.warn(`Admin user ${id} is being deleted by ${requesterId}`);
-      }
 
       // Delete the user
       const deleteResult = await this.accountRepo.delete(user);

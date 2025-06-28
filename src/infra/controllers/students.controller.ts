@@ -11,6 +11,8 @@ import {
   HttpException,
   HttpStatus,
   UseGuards,
+  Request,
+  Delete,
 } from '@nestjs/common';
 import { CreateAccountUseCase } from '@/domain/auth/application/use-cases/create-account.use-case';
 import { UpdateAccountUseCase } from '@/domain/auth/application/use-cases/update-account.use-case';
@@ -26,6 +28,9 @@ import { ListUsersDto } from '@/domain/auth/application/dtos/list-users.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UnauthorizedError } from '@/domain/auth/application/use-cases/errors/unauthorized-error';
+import { DeleteUserUseCase } from '@/domain/auth/application/use-cases/delete-user.use-case';
+import { DeleteUserRequestDto } from '@/domain/auth/application/dtos/delete-user-request.dto';
 
 @Controller('students')
 export class StudentsController {
@@ -33,6 +38,7 @@ export class StudentsController {
     private readonly createAccount: CreateAccountUseCase,
     private readonly updateAccount: UpdateAccountUseCase,
     private readonly listUsers: ListUsersUseCase,
+    private readonly deleteUser: DeleteUserUseCase,
   ) {}
 
   @Post()
@@ -113,6 +119,35 @@ export class StudentsController {
     if (result.isLeft()) {
       throw new HttpException(
         'Failed to list users',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return result.value;
+  }
+
+  @Delete(':id')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async delete(@Param('id') id: string) {
+    const result = await this.deleteUser.execute({
+      id,
+    });
+
+    if (result.isLeft()) {
+      const err = result.value;
+
+      if (err instanceof ResourceNotFoundError) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (err instanceof UnauthorizedError) {
+        throw new HttpException(err.message, HttpStatus.FORBIDDEN);
+      }
+
+      throw new HttpException(
+        'Failed to delete user',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
