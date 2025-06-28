@@ -77,3 +77,17 @@ Content-Type: application/json
 # @name listUsersSuccess
 GET {{BASE_URL}}/students
 Authorization: Bearer {{adminToken}}
+
+###
+
+### 7. List Users with Pagination
+# @name listUsersPaginated
+GET {{BASE_URL}}/students?page=1&pageSize=2
+Authorization: Bearer {{adminToken}}
+
+
+
+### 8. List Users - Page 2
+# @name listUsersPage2
+GET {{BASE_URL}}/students?page=2&pageSize=2
+Authorization: Bearer {{adminToken}}
