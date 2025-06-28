@@ -1,12 +1,20 @@
 import { Either } from '@/core/either';
 import { PaginationParams } from '@/core/repositories/pagination-params';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import {
+  IAccountRepository,
+  SearchFilters,
+} from '@/domain/auth/application/repositories/i-account-repository';
 import { User } from '@/domain/auth/enterprise/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class AccountRepository implements IAccountRepository {
+  findUsers(
+    filters: SearchFilters,
+    params: PaginationParams,
+  ): Promise<Either<Error, User[]>> {
+    throw new Error('Method not implemented.');
+  }
   findById(id: string): Promise<Either<Error, User>> {
     throw new Error('Method not implemented.');
   }
@@ -39,7 +47,10 @@ export class AccountRepository implements IAccountRepository {
     throw new Error('Method not implemented.');
   }
 
-  updatePassword(userId: string, password: string): Promise<Either<Error, void>> {
+  updatePassword(
+    userId: string,
+    password: string,
+  ): Promise<Either<Error, void>> {
     throw new Error('Method not implemented.');
   }
 }

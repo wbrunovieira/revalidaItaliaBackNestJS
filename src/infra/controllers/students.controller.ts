@@ -17,8 +17,10 @@ import {
 import { CreateAccountUseCase } from '@/domain/auth/application/use-cases/create-account.use-case';
 import { UpdateAccountUseCase } from '@/domain/auth/application/use-cases/update-account.use-case';
 import { ListUsersUseCase } from '@/domain/auth/application/use-cases/list-users.use-case';
+import { FindUsersUseCase } from '@/domain/auth/application/use-cases/find-users.use-case'; // Adicionar
 import { CreateAccountRequest } from '@/domain/auth/application/dtos/create-account-request.dto';
 import { UpdateAccountRequest } from '@/domain/auth/application/dtos/update-account-request.dto';
+import { FindUsersRequestDto } from '@/domain/auth/application/dtos/find-users-request.dto'; // Adicionar
 
 import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error';
 import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
@@ -38,6 +40,7 @@ export class StudentsController {
     private readonly createAccount: CreateAccountUseCase,
     private readonly updateAccount: UpdateAccountUseCase,
     private readonly listUsers: ListUsersUseCase,
+    private readonly findUsers: FindUsersUseCase, // Adicionar
     private readonly deleteUser: DeleteUserUseCase,
   ) {}
 
@@ -119,6 +122,33 @@ export class StudentsController {
     if (result.isLeft()) {
       throw new HttpException(
         'Failed to list users',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return result.value;
+  }
+
+  // Nova rota de busca com filtros
+  @Get('search')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async find(@Query() query: FindUsersRequestDto) {
+    const result = await this.findUsers.execute(query);
+
+    if (result.isLeft()) {
+      const err = result.value;
+
+      if (err instanceof RepositoryError) {
+        throw new HttpException(
+          'Failed to search users',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      throw new HttpException(
+        err.message || 'Failed to search users',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
