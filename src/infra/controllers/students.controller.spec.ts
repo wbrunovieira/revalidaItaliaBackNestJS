@@ -1,124 +1,339 @@
-import { compare } from 'bcryptjs'
-import { left } from '@/core/either'
-import { InMemoryAccountRepository } from '@/test/repositories/in-memory-account-repository'
-import { CreateAccountUseCase } from '@/domain/auth/application/use-cases/create-account.use-case'
-import { CreateAccountRequest } from '@/domain/auth/application/dtos/create-account-request.dto'
-import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error'
-import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error'
-import { RepositoryError } from '@/domain/auth/application/use-cases/errors/repository-error'
-import { vi } from 'vitest'
+// src/infra/http/controllers/students.controller.spec.ts
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { HttpException, HttpStatus } from '@nestjs/common';
+import { StudentsController } from './students.controller';
+import { CreateAccountUseCase } from '@/domain/auth/application/use-cases/create-account.use-case';
+import { UpdateAccountUseCase } from '@/domain/auth/application/use-cases/update-account.use-case';
+import { ListUsersUseCase } from '@/domain/auth/application/use-cases/list-users.use-case';
+import { left, right } from '@/core/either';
+import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error';
+import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
+import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error';
+import { RepositoryError } from '@/domain/auth/application/use-cases/errors/repository-error';
+import { CreateAccountRequest } from '@/domain/auth/application/dtos/create-account-request.dto';
 
+class MockCreateAccountUseCase {
+  execute = vi.fn();
+}
 
+class MockUpdateAccountUseCase {
+  execute = vi.fn();
+}
 
+class MockListUsersUseCase {
+  execute = vi.fn();
+}
 
-let repo: InMemoryAccountRepository
-let sut: CreateAccountUseCase
-let defaultDto: CreateAccountRequest
+describe('StudentsController', () => {
+  let controller: StudentsController;
+  let createAccountUseCase: MockCreateAccountUseCase;
+  let updateAccountUseCase: MockUpdateAccountUseCase;
+  let listUsersUseCase: MockListUsersUseCase;
 
-describe('CreateAccountUseCase', () => {
+  const mockUser = {
+    id: 'user-id-123',
+    name: 'John Doe',
+    email: 'john@example.com',
+    cpf: '12345678900',
+    role: 'student' as const,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
   beforeEach(() => {
-    repo = new InMemoryAccountRepository()
-    sut  = new CreateAccountUseCase(repo, 8)
-    defaultDto = {
-      name:     'John Doe',
-      email:    'john@example.com',
+    createAccountUseCase = new MockCreateAccountUseCase();
+    updateAccountUseCase = new MockUpdateAccountUseCase();
+    listUsersUseCase = new MockListUsersUseCase();
 
+    controller = new StudentsController(
+      createAccountUseCase as any,
+      updateAccountUseCase as any,
+      listUsersUseCase as any,
+    );
+
+    // Reset all mocks before each test
+    vi.clearAllMocks();
+  });
+
+  describe('create', () => {
+    const createDto: CreateAccountRequest = {
+      name: 'John Doe',
+      email: 'john@example.com',
       password: 'Secure1@',
-      role:     'student',
-      cpf:      '12345678900',
-    }
-  })
+      role: 'student',
+      cpf: '12345678900',
+    };
 
-  it('should be able to create an account', async () => {
-    const result = await sut.execute(defaultDto)
-    expect(result.isRight()).toBe(true)
-    if (result.isRight()) {
-      expect(repo.items[0].toResponseObject()).toEqual(result.value.user)
-    }
-  })
+    it('should create an account successfully', async () => {
+      createAccountUseCase.execute.mockResolvedValue(right({ user: mockUser }));
 
-  it('should hash the password before storing', async () => {
-    const result = await sut.execute(defaultDto)
-    expect(result.isRight()).toBe(true)
-    if (result.isRight()) {
-      const stored = repo.items[0] as any
-      const hashed = stored.props.password
-      expect(await compare(defaultDto.password, hashed)).toBe(true)
-    }
-  })
+      const result = await controller.create(createDto);
 
-  it('should allow name with exactly 3 characters', async () => {
-    const dto = { ...defaultDto, name: 'Tom' }
-    const result = await sut.execute(dto)
-    expect(result.isRight()).toBe(true)
-  })
+      expect(createAccountUseCase.execute).toHaveBeenCalledWith(createDto);
+      expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({ user: mockUser });
+    });
 
-  it('should allow password with exactly 6 characters', async () => {
-    const dto = { ...defaultDto, password: 'Ab1@c2' }
-    const result = await sut.execute(dto)
-    expect(result.isRight()).toBe(true)
-  })
+    it('should throw BadRequest when validation fails', async () => {
+      const validationError = new InvalidInputError('Validation failed', [
+        { field: 'email', message: 'Invalid email format' },
+      ]);
 
-  it('should reject invalid email format', async () => {
-    const dto = { ...defaultDto, email: 'foo@' }
-    const result = await sut.execute(dto)
-    expect(result.isLeft()).toBe(true)
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(InvalidInputError)
-      expect(result.value.message).toBe('Validation failed')
-    }
-  })
+      createAccountUseCase.execute.mockResolvedValue(left(validationError));
 
-  it('should reject invalid CPF format', async () => {
-    const dto = { ...defaultDto, cpf: '123' }
-    const result = await sut.execute(dto)
-    expect(result.isLeft()).toBe(true)
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(InvalidInputError)
-      expect(result.value.message).toBe('Validation failed')
-    }
-  })
+      await expect(controller.create(createDto)).rejects.toThrow(
+        new HttpException(
+          {
+            message: 'Validation failed',
+            errors: {
+              details: [{ field: 'email', message: 'Invalid email format' }],
+            },
+          },
+          HttpStatus.BAD_REQUEST,
+        ),
+      );
 
-  it('should reject invalid role value', async () => {
-    const dto = { ...defaultDto, role: 'manager' as any }
-    const result = await sut.execute(dto as any)
-    expect(result.isLeft()).toBe(true)
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(InvalidInputError)
-      expect(result.value.message).toBe('Validation failed')
-    }
-  })
+      expect(createAccountUseCase.execute).toHaveBeenCalledWith(createDto);
+      expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
+    });
 
-  it('should not be able to create an account with a duplicate email', async () => {
-    // first creation
-    await sut.execute(defaultDto)
-    const result = await sut.execute(defaultDto)
-    expect(result.isLeft()).toBe(true)
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(DuplicateEmailError)
-      expect(result.value.message).toBe('User already exists')
-    }
-  })
+    it('should throw Conflict when email already exists', async () => {
+      const duplicateEmailError = new DuplicateEmailError();
+      createAccountUseCase.execute.mockResolvedValue(left(duplicateEmailError));
 
-  it('should handle repository create returning Left', async () => {
-    vi.spyOn(repo, 'create').mockResolvedValueOnce(left(new Error('DB down')))
-    const result = await sut.execute(defaultDto)
-    expect(result.isLeft()).toBe(true)
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(RepositoryError)
-      expect(result.value.message).toBe('DB down')
-    }
-  })
+      await expect(controller.create(createDto)).rejects.toThrow(
+        new HttpException(
+          duplicateEmailError.message || 'Failed to create account',
+          HttpStatus.CONFLICT,
+        ),
+      );
 
-  it('should handle errors thrown by the repository', async () => {
-    vi.spyOn(repo, 'create').mockImplementationOnce(() => {
-      throw new Error('Repository thrown')
-    })
-    const result = await sut.execute(defaultDto)
-    expect(result.isLeft()).toBe(true)
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(RepositoryError)
-      expect(result.value.message).toBe('Repository thrown')
-    }
-  })
-})
+      expect(createAccountUseCase.execute).toHaveBeenCalledWith(createDto);
+      expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw Conflict for generic errors', async () => {
+      const genericError = new Error('Unknown error');
+      createAccountUseCase.execute.mockResolvedValue(left(genericError));
+
+      await expect(controller.create(createDto)).rejects.toThrow(
+        new HttpException('Unknown error', HttpStatus.CONFLICT),
+      );
+
+      expect(createAccountUseCase.execute).toHaveBeenCalledWith(createDto);
+      expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw Conflict with default message when error has no message', async () => {
+      const errorWithoutMessage = new Error('');
+      createAccountUseCase.execute.mockResolvedValue(left(errorWithoutMessage));
+
+      await expect(controller.create(createDto)).rejects.toThrow(
+        new HttpException('Failed to create account', HttpStatus.CONFLICT),
+      );
+
+      expect(createAccountUseCase.execute).toHaveBeenCalledWith(createDto);
+      expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('update', () => {
+    const updateDto = {
+      name: 'John Updated',
+      email: 'john.updated@example.com',
+    };
+
+    it('should update an account successfully', async () => {
+      const updatedUser = { ...mockUser, ...updateDto };
+      updateAccountUseCase.execute.mockResolvedValue(
+        right({ user: updatedUser }),
+      );
+
+      const result = await controller.update('user-id-123', updateDto);
+
+      expect(updateAccountUseCase.execute).toHaveBeenCalledWith({
+        id: 'user-id-123',
+        ...updateDto,
+      });
+      expect(updateAccountUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({ user: updatedUser });
+    });
+
+    it('should throw BadRequest when no fields provided', async () => {
+      await expect(controller.update('user-id-123', {})).rejects.toThrow(
+        new HttpException(
+          {
+            message: 'At least one field to update must be provided',
+            errors: { details: [] },
+          },
+          HttpStatus.BAD_REQUEST,
+        ),
+      );
+
+      expect(updateAccountUseCase.execute).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequest when validation fails', async () => {
+      const validationError = new InvalidInputError('Validation failed', [
+        { field: 'email', message: 'Invalid email format' },
+      ]);
+
+      updateAccountUseCase.execute.mockResolvedValue(left(validationError));
+
+      await expect(controller.update('user-id-123', updateDto)).rejects.toThrow(
+        new HttpException(
+          {
+            message: 'Validation failed',
+            errors: {
+              details: [{ field: 'email', message: 'Invalid email format' }],
+            },
+          },
+          HttpStatus.BAD_REQUEST,
+        ),
+      );
+
+      expect(updateAccountUseCase.execute).toHaveBeenCalledWith({
+        id: 'user-id-123',
+        ...updateDto,
+      });
+      expect(updateAccountUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw BadRequest when user not found', async () => {
+      const notFoundError = new ResourceNotFoundError('User not found');
+      updateAccountUseCase.execute.mockResolvedValue(left(notFoundError));
+
+      await expect(controller.update('user-id-123', updateDto)).rejects.toThrow(
+        new HttpException('User not found', HttpStatus.BAD_REQUEST),
+      );
+
+      expect(updateAccountUseCase.execute).toHaveBeenCalledWith({
+        id: 'user-id-123',
+        ...updateDto,
+      });
+      expect(updateAccountUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw Conflict for generic errors', async () => {
+      const genericError = new Error('Database error');
+      updateAccountUseCase.execute.mockResolvedValue(left(genericError));
+
+      await expect(controller.update('user-id-123', updateDto)).rejects.toThrow(
+        new HttpException('Database error', HttpStatus.CONFLICT),
+      );
+
+      expect(updateAccountUseCase.execute).toHaveBeenCalledWith({
+        id: 'user-id-123',
+        ...updateDto,
+      });
+      expect(updateAccountUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw Conflict with default message when error has no message', async () => {
+      const errorWithoutMessage = new Error('');
+      updateAccountUseCase.execute.mockResolvedValue(left(errorWithoutMessage));
+
+      await expect(controller.update('user-id-123', updateDto)).rejects.toThrow(
+        new HttpException('Failed to update account', HttpStatus.CONFLICT),
+      );
+
+      expect(updateAccountUseCase.execute).toHaveBeenCalledWith({
+        id: 'user-id-123',
+        ...updateDto,
+      });
+      expect(updateAccountUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('list', () => {
+    const listQuery = { page: 1, pageSize: 20 };
+    const mockListResponse = {
+      users: [mockUser],
+      pagination: {
+        page: 1,
+        pageSize: 20,
+        total: 1,
+      },
+    };
+
+    it('should list users successfully', async () => {
+      listUsersUseCase.execute.mockResolvedValue(right(mockListResponse));
+
+      const result = await controller.list(listQuery);
+
+      expect(listUsersUseCase.execute).toHaveBeenCalledWith({
+        page: 1,
+        pageSize: 20,
+      });
+      expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockListResponse);
+    });
+
+    it('should handle default pagination values', async () => {
+      listUsersUseCase.execute.mockResolvedValue(right(mockListResponse));
+
+      const result = await controller.list({});
+
+      expect(listUsersUseCase.execute).toHaveBeenCalledWith({
+        page: undefined,
+        pageSize: undefined,
+      });
+      expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockListResponse);
+    });
+
+    it('should throw InternalServerError when repository fails', async () => {
+      const repositoryError = new RepositoryError('Database connection failed');
+      listUsersUseCase.execute.mockResolvedValue(left(repositoryError));
+
+      await expect(controller.list(listQuery)).rejects.toThrow(
+        new HttpException(
+          'Failed to list users',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+
+      expect(listUsersUseCase.execute).toHaveBeenCalledWith({
+        page: 1,
+        pageSize: 20,
+      });
+      expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw InternalServerError for generic errors', async () => {
+      const genericError = new Error('Unknown error');
+      listUsersUseCase.execute.mockResolvedValue(left(genericError));
+
+      await expect(controller.list(listQuery)).rejects.toThrow(
+        new HttpException(
+          'Failed to list users',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+
+      expect(listUsersUseCase.execute).toHaveBeenCalledWith({
+        page: 1,
+        pageSize: 20,
+      });
+      expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw InternalServerError when error has no message', async () => {
+      const errorWithoutMessage = new Error('');
+      listUsersUseCase.execute.mockResolvedValue(left(errorWithoutMessage));
+
+      await expect(controller.list(listQuery)).rejects.toThrow(
+        new HttpException(
+          'Failed to list users',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+
+      expect(listUsersUseCase.execute).toHaveBeenCalledWith({
+        page: 1,
+        pageSize: 20,
+      });
+      expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+  });
+});

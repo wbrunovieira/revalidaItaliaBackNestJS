@@ -16,6 +16,8 @@ docker-compose exec backend npx prisma migrate reset --force
 
 docker exec -it ead-backend-dev sh -c "pnpm prisma db push --force-reset"
 
+docker compose -f compose.dev.yaml down && docker compose -f compose.dev.yaml build --no-cache && docker compose -f compose.dev.yaml up -d && docker compose -f compose.dev.yaml logs -f
+
 # Mark the migration as already applied
 
 docker exec -it ead-backend-dev sh -c "pnpm prisma migrate resolve --applied 20250618140155_init"

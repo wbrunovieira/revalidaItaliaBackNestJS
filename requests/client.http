@@ -15,6 +15,22 @@ Content-Type: application/json
 }
 ###
 
+
+### 1. Create Admin Account
+# @name createAdmin
+POST {{BASE_URL}}/students
+Content-Type: application/json
+
+{
+  "name": "Admin User",
+  "email": "admin@example.com",
+  "password": "Admin123!",
+  "role": "admin",
+  "cpf": "99999999999"
+}
+
+###
+
 ###
 # @name login
 POST {{BASE_URL}}/auth/login
@@ -25,6 +41,20 @@ Content-Type: application/json
   "password": "Senha123!"
 }
 ###
+@token = {{login.response.body.access_token}}
+
+### 4. Login as Admin
+# @name adminLogin
+POST {{BASE_URL}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "Admin123!"
+}
+
+###
+@adminToken = {{adminLogin.response.body.accessToken}}
 
 ###
 # @name update-account
@@ -38,3 +68,12 @@ Content-Type: application/json
   "role": "student"
 }
 ###
+
+### ====================================
+### LIST USERS TESTS
+### ====================================
+
+### 5. List Users (Admin only)
+# @name listUsersSuccess
+GET {{BASE_URL}}/students
+Authorization: Bearer {{adminToken}}

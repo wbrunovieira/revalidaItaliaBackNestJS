@@ -23,6 +23,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { SignInService } from './strategies/sign-in.service';
+import { ListUsersUseCase } from '@/domain/auth/application/use-cases/list-users.use-case';
 
 @Module({
   imports: [
@@ -94,6 +95,7 @@ import { SignInService } from './strategies/sign-in.service';
     FindAddressByUserUseCase,
     UpdateAddressUseCase,
     DeleteAddressUseCase,
+    ListUsersUseCase,
 
     // Authentication services and guards
     LocalStrategy,
@@ -120,6 +122,7 @@ import { SignInService } from './strategies/sign-in.service';
     FindAddressByUserUseCase,
     UpdateAddressUseCase,
     DeleteAddressUseCase,
+    ListUsersUseCase,
   ],
 })
 export class AuthModule {}

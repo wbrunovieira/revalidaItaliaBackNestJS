@@ -11,7 +11,7 @@ export interface ListUsersRequest {
 }
 
 export type ListUsersResponse = Either<
-  RepositoryError,
+  RepositoryError | Error,
   {
     users: {
       id: string;
@@ -35,14 +35,12 @@ export type ListUsersResponse = Either<
 @Injectable()
 export class ListUsersUseCase {
   constructor(
-    @Inject('AccountRepository')
+    @Inject(IAccountRepository)
     private readonly accountRepo: IAccountRepository,
   ) {}
 
   async execute(request: ListUsersRequest = {}): Promise<ListUsersResponse> {
     try {
-      // Validate and normalize pagination parameters
-      // Use defaults if values are invalid (undefined, null, <= 0)
       const page =
         request.page && request.page > 0 ? Math.floor(request.page) : 1;
 
