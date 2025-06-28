@@ -5,7 +5,10 @@ import { PaginationParams } from '@/core/repositories/pagination-params';
 import { Injectable } from '@nestjs/common';
 
 import { Either, left, right } from '@/core/either';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import {
+  IAccountRepository,
+  SearchFilters,
+} from '@/domain/auth/application/repositories/i-account-repository';
 
 import { User } from '@/domain/auth/enterprise/entities/user.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
@@ -24,6 +27,66 @@ export class PrismaAccountRepository implements IAccountRepository {
       },
       user.id,
     );
+  }
+
+  async findUsers(
+    filters: SearchFilters,
+    params: PaginationParams,
+  ): Promise<Either<Error, User[]>> {
+    try {
+      const { page, pageSize } = params;
+      const skip = (page - 1) * pageSize;
+
+      // Construir condições de busc
+      const whereConditions: any[] = [];
+
+      if (filters.name) {
+        whereConditions.push({
+          name: {
+            contains: filters.name,
+            mode: 'insensitive', // Case insensitive
+          },
+        });
+      }
+
+      if (filters.email) {
+        whereConditions.push({
+          email: {
+            contains: filters.email,
+            mode: 'insensitive',
+          },
+        });
+      }
+
+      if (filters.cpf) {
+        whereConditions.push({
+          cpf: {
+            contains: filters.cpf,
+          },
+        });
+      }
+
+      const users = await this.prisma.user.findMany({
+        where:
+          whereConditions.length > 0
+            ? {
+                OR: whereConditions, // Busca por qualquer um dos critérios
+              }
+            : {},
+        skip,
+        take: pageSize,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      // Converter cada usuário do Prisma para a entidade User do domínio
+      const domainUsers = users.map((user) => this.toDomain(user));
+
+      return right(domainUsers);
+    } catch (error) {
+      return left(new Error(`Failed to search users: ${error.message}`));
+    }
   }
 
   async findByCpf(cpf: string): Promise<Either<Error, User>> {
@@ -172,7 +235,6 @@ export class PrismaAccountRepository implements IAccountRepository {
     try {
       const { page, pageSize } = params;
 
-      // Validate parameters (defensive programming)
       if (page < 1 || pageSize < 1) {
         return left(new Error('Invalid pagination parameters'));
       }

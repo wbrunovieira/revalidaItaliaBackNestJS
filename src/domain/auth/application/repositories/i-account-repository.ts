@@ -3,6 +3,12 @@ import { Either } from '@/core/either';
 import { User } from '../../enterprise/entities/user.entity';
 import { PaginationParams } from '@/core/repositories/pagination-params';
 
+export interface SearchFilters {
+  name?: string;
+  email?: string;
+  cpf?: string;
+}
+
 export abstract class IAccountRepository {
   abstract findById(id: string): Promise<Either<Error, User>>;
   abstract create(account: User): Promise<Either<Error, void>>;
@@ -11,6 +17,10 @@ export abstract class IAccountRepository {
   abstract findAll(params: PaginationParams): Promise<Either<Error, User[]>>;
   abstract delete(account: User): Promise<Either<Error, void>>;
   abstract save(account: User): Promise<Either<Error, void>>;
+  abstract findUsers(
+    filters: SearchFilters,
+    params: PaginationParams,
+  ): Promise<Either<Error, User[]>>;
 
   abstract updatePassword(
     userId: string,

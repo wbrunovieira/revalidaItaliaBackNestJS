@@ -1,7 +1,10 @@
 // src/test/repositories/in-memory-account-repository.ts
 import { Either, left, right } from '@/core/either';
 import { PaginationParams } from '@/core/repositories/pagination-params';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import {
+  IAccountRepository,
+  SearchFilters,
+} from '@/domain/auth/application/repositories/i-account-repository';
 import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
 import { User } from '@/domain/auth/enterprise/entities/user.entity';
 
@@ -76,6 +79,80 @@ export class InMemoryAccountRepository implements IAccountRepository {
       return right(paginatedItems);
     } catch (error) {
       return left(new Error('Failed to retrieve users'));
+    }
+  }
+
+  async findUsers(
+    filters: SearchFilters,
+    params: PaginationParams,
+  ): Promise<Either<Error, User[]>> {
+    try {
+      const { page, pageSize } = params;
+
+      // Validate parameters
+      if (page < 1 || pageSize < 1) {
+        return left(new Error('Invalid pagination parameters'));
+      }
+
+      // Filter users based on search criteria
+      let filteredUsers = [...this.items];
+
+      // Se não há filtros, retorna todos os usuários
+      if (!filters || Object.keys(filters).length === 0) {
+        // Apply pagination
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+
+        const sortedUsers = filteredUsers.sort(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+        );
+
+        const paginatedUsers = sortedUsers.slice(startIndex, endIndex);
+        return right(paginatedUsers);
+      }
+
+      // Apply OR logic: user matches if ANY filter condition is met
+      filteredUsers = filteredUsers.filter((user) => {
+        // Check if user matches any of the filter conditions (OR logic)
+        let matches = false;
+
+        // Apply name filter (case insensitive partial match)
+        if (
+          filters.name &&
+          user.name.toLowerCase().includes(filters.name.toLowerCase())
+        ) {
+          matches = true;
+        }
+
+        // Apply email filter (case insensitive partial match)
+        if (
+          filters.email &&
+          user.email.toLowerCase().includes(filters.email.toLowerCase())
+        ) {
+          matches = true;
+        }
+
+        // Apply CPF filter (partial match)
+        if (filters.cpf && user.cpf?.includes(filters.cpf)) {
+          matches = true;
+        }
+
+        return matches;
+      });
+
+      // Sort by createdAt descending (newest first)
+      const sortedUsers = filteredUsers.sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      );
+
+      // Apply pagination
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedUsers = sortedUsers.slice(startIndex, endIndex);
+
+      return right(paginatedUsers);
+    } catch (error) {
+      return left(new Error('Failed to search users'));
     }
   }
 
