@@ -21,6 +21,10 @@ class MockCreateAccountUseCase {
   execute = vi.fn();
 }
 
+class MockGetUserByIdUseCase {
+  execute = vi.fn();
+}
+
 class MockUpdateAccountUseCase {
   execute = vi.fn();
 }
@@ -44,6 +48,7 @@ describe('StudentsController', () => {
   let listUsersUseCase: MockListUsersUseCase;
   let findUsersUseCase: MockFindUsersUseCase;
   let deleteUserUseCase: MockDeleteUserUseCase;
+  let getUserByIdUseCase: MockGetUserByIdUseCase;
 
   // Mock data
   const mockUser = {
@@ -77,6 +82,7 @@ describe('StudentsController', () => {
     listUsersUseCase = new MockListUsersUseCase();
     findUsersUseCase = new MockFindUsersUseCase();
     deleteUserUseCase = new MockDeleteUserUseCase();
+    getUserByIdUseCase = new MockGetUserByIdUseCase();
 
     // Create controller instance
     controller = new StudentsController(
@@ -84,6 +90,7 @@ describe('StudentsController', () => {
       updateAccountUseCase as any,
       listUsersUseCase as any,
       findUsersUseCase as any,
+      getUserByIdUseCase as any, // Adicionar
       deleteUserUseCase as any,
     );
 
@@ -667,6 +674,168 @@ describe('StudentsController', () => {
         id: 'user-id-123',
       });
       expect(deleteUserUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    describe('GET /students/:id - Get User By Id', () => {
+      const mockGetUserResponse = {
+        user: mockUser,
+      };
+
+      it('should get a user by id successfully', async () => {
+        getUserByIdUseCase.execute.mockResolvedValue(
+          right(mockGetUserResponse),
+        );
+
+        const result = await controller.findById('user-id-123');
+
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
+          id: 'user-id-123',
+        });
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
+        expect(result).toEqual(mockGetUserResponse);
+      });
+
+      it('should throw BadRequest when validation fails', async () => {
+        const validationError = new InvalidInputError('Validation failed', [
+          { field: 'id', message: 'ID must be a valid UUID' },
+        ]);
+
+        getUserByIdUseCase.execute.mockResolvedValue(left(validationError));
+
+        await expect(controller.findById('invalid-id')).rejects.toThrow(
+          new HttpException(
+            {
+              message: 'Validation failed',
+              errors: {
+                details: [{ field: 'id', message: 'ID must be a valid UUID' }],
+              },
+            },
+            HttpStatus.BAD_REQUEST,
+          ),
+        );
+
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
+          id: 'invalid-id',
+        });
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
+      });
+
+      it('should throw NotFound when user does not exist', async () => {
+        const notFoundError = new ResourceNotFoundError('User not found');
+        getUserByIdUseCase.execute.mockResolvedValue(left(notFoundError));
+
+        await expect(controller.findById('user-id-123')).rejects.toThrow(
+          new HttpException('User not found', HttpStatus.NOT_FOUND),
+        );
+
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
+          id: 'user-id-123',
+        });
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
+      });
+
+      it('should throw InternalServerError when repository fails', async () => {
+        const repositoryError = new RepositoryError(
+          'Database connection failed',
+        );
+        getUserByIdUseCase.execute.mockResolvedValue(left(repositoryError));
+
+        await expect(controller.findById('user-id-123')).rejects.toThrow(
+          new HttpException(
+            'Failed to get user',
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          ),
+        );
+
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
+          id: 'user-id-123',
+        });
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
+      });
+
+      it('should throw InternalServerError for generic errors', async () => {
+        const genericError = new Error('Unknown error');
+        getUserByIdUseCase.execute.mockResolvedValue(left(genericError));
+
+        await expect(controller.findById('user-id-123')).rejects.toThrow(
+          new HttpException('Unknown error', HttpStatus.INTERNAL_SERVER_ERROR),
+        );
+
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
+          id: 'user-id-123',
+        });
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
+      });
+
+      it('should throw InternalServerError with default message when error has no message', async () => {
+        const errorWithoutMessage = new Error('');
+        getUserByIdUseCase.execute.mockResolvedValue(left(errorWithoutMessage));
+
+        await expect(controller.findById('user-id-123')).rejects.toThrow(
+          new HttpException(
+            'Failed to get user',
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          ),
+        );
+
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
+          id: 'user-id-123',
+        });
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
+      });
+
+      it('should handle different user roles', async () => {
+        const adminUser = {
+          ...mockUser,
+          id: 'admin-id-123',
+          role: 'admin' as const,
+        };
+
+        const adminResponse = {
+          user: adminUser,
+        };
+
+        getUserByIdUseCase.execute.mockResolvedValue(right(adminResponse));
+
+        const result = await controller.findById('admin-id-123');
+
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
+          id: 'admin-id-123',
+        });
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
+        expect(result).toEqual(adminResponse);
+        expect(result.user.role).toBe('admin');
+      });
+
+      it('should handle user with all optional fields populated', async () => {
+        const fullUser = {
+          ...mockUser,
+          phone: '+5511999999999',
+          birthDate: new Date('1990-01-01'),
+          profileImageUrl: 'https://example.com/avatar.jpg',
+          lastLogin: new Date(),
+        };
+
+        const fullUserResponse = {
+          user: fullUser,
+        };
+
+        getUserByIdUseCase.execute.mockResolvedValue(right(fullUserResponse));
+
+        const result = await controller.findById('user-id-123');
+
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
+          id: 'user-id-123',
+        });
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
+        expect(result).toEqual(fullUserResponse);
+        expect(result.user.phone).toBe('+5511999999999');
+        expect(result.user.birthDate).toEqual(new Date('1990-01-01'));
+        expect(result.user.profileImageUrl).toBe(
+          'https://example.com/avatar.jpg',
+        );
+        expect(result.user.lastLogin).toBeDefined();
+      });
     });
   });
 });

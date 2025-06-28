@@ -26,6 +26,7 @@ import { SignInService } from './strategies/sign-in.service';
 import { ListUsersUseCase } from '@/domain/auth/application/use-cases/list-users.use-case';
 import { DeleteUserUseCase } from '@/domain/auth/application/use-cases/delete-user.use-case';
 import { FindUsersUseCase } from '@/domain/auth/application/use-cases/find-users.use-case';
+import { GetUserByIdUseCase } from '@/domain/auth/application/use-cases/get-user-by-id.use-case';
 
 @Module({
   imports: [
@@ -100,6 +101,7 @@ import { FindUsersUseCase } from '@/domain/auth/application/use-cases/find-users
     ListUsersUseCase,
     DeleteUserUseCase,
     FindUsersUseCase,
+    GetUserByIdUseCase,
 
     // Authentication services and guards
     LocalStrategy,
@@ -129,6 +131,7 @@ import { FindUsersUseCase } from '@/domain/auth/application/use-cases/find-users
     ListUsersUseCase,
     DeleteUserUseCase,
     FindUsersUseCase,
+    GetUserByIdUseCase,
   ],
 })
 export class AuthModule {}

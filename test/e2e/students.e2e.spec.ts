@@ -722,7 +722,6 @@ describe('Students Controller (E2E)', () => {
           expect(johnDoe).toBeDefined();
           expect(johnDoe.name).toBe('John Doe');
         } else {
-          // Se todos atendem ambos os critérios, pode haver duplicatas
           expect(res.body.users.length).toBe(1);
           expect(res.body.users[0].name).toBe('John Doe');
           expect(res.body.users[0].email).toBe('john.doe@example.com');
@@ -1156,6 +1155,437 @@ describe('Students Controller (E2E)', () => {
       if (res.status === 403) {
         expect(adminStillExists).toBeTruthy();
       }
+    });
+  });
+
+  describe('Get User By Id', () => {
+    let testUserId: string;
+    let testUser2Id: string;
+
+    beforeAll(async () => {
+      // Criar usuários específicos para testes de busca por ID
+      const createRes1 = await request(app.getHttpServer())
+        .post('/students')
+        .send({
+          name: 'Get By ID Test User',
+          email: 'getbyid@example.com',
+          password: 'GetById123!',
+          cpf: '12345678901',
+          role: 'student',
+          phone: '+5511999999999',
+        });
+
+      expect(createRes1.status).toBe(201);
+      testUserId = createRes1.body.user.id;
+
+      const createRes2 = await request(app.getHttpServer())
+        .post('/students')
+        .send({
+          name: 'Admin Test User',
+          email: 'admintest@example.com',
+          password: 'AdminTest123!',
+          cpf: '98765432100',
+          role: 'admin',
+        });
+
+      expect(createRes2.status).toBe(201);
+      testUser2Id = createRes2.body.user.id;
+    });
+
+    afterAll(async () => {
+      // Limpar dados de teste
+      await prisma.user.deleteMany({
+        where: {
+          email: {
+            in: [
+              'getbyid@example.com',
+              'admintest@example.com',
+              'getbyidstudent@test.com',
+              'selfaccess@test.com',
+            ],
+          },
+        },
+      });
+    });
+
+    it('[GET] /students/:id - Success with admin token', async () => {
+      const token = await getValidAdminToken();
+
+      const res = await request(app.getHttpServer())
+        .get(`/students/${testUserId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(res.body).toHaveProperty('user');
+      expect(res.body.user).toHaveProperty('id');
+      expect(res.body.user).toHaveProperty('name');
+      expect(res.body.user).toHaveProperty('email');
+      expect(res.body.user).toHaveProperty('cpf');
+      expect(res.body.user).toHaveProperty('role');
+      expect(res.body.user).toHaveProperty('createdAt');
+      expect(res.body.user).toHaveProperty('updatedAt');
+
+      // Verificar valores específicos
+      expect(res.body.user.id).toBe(testUserId);
+      expect(res.body.user.name).toBe('Get By ID Test User');
+      expect(res.body.user.email).toBe('getbyid@example.com');
+      expect(res.body.user.cpf).toBe('12345678901');
+      expect(res.body.user.role).toBe('student');
+
+      // Verificar campos opcionais - podem estar presentes ou não
+      if (res.body.user.hasOwnProperty('phone')) {
+        expect(res.body.user.phone).toBe('+5511999999999');
+      }
+
+      // Verificar que password não está exposta
+      expect(res.body.user).not.toHaveProperty('password');
+    });
+
+    it('[GET] /students/:id - Success with admin user', async () => {
+      const token = await getValidAdminToken();
+
+      const res = await request(app.getHttpServer())
+        .get(`/students/${testUser2Id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(res.body).toHaveProperty('user');
+      expect(res.body.user.id).toBe(testUser2Id);
+      expect(res.body.user.name).toBe('Admin Test User');
+      expect(res.body.user.email).toBe('admintest@example.com');
+      expect(res.body.user.cpf).toBe('98765432100');
+      expect(res.body.user.role).toBe('admin');
+
+      // Verificar campos opcionais - aceitar tanto null quanto undefined
+      if (res.body.user.hasOwnProperty('phone')) {
+        expect([null, undefined]).toContain(res.body.user.phone);
+      }
+    });
+
+    it('[GET] /students/:id - Success with user that has all optional fields null/undefined', async () => {
+      const token = await getValidAdminToken();
+
+      const res = await request(app.getHttpServer())
+        .get(`/students/${testUser2Id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(res.body).toHaveProperty('user');
+
+      // Verificar campos opcionais - aceitar tanto null quanto undefined ou ausência da propriedade
+      const optionalFields = [
+        'phone',
+        'profileImageUrl',
+        'birthDate',
+        'lastLogin',
+      ];
+
+      optionalFields.forEach((field) => {
+        if (res.body.user.hasOwnProperty(field)) {
+          expect([null, undefined]).toContain(res.body.user[field]);
+        }
+      });
+    });
+
+    it('[GET] /students/:id - Not Found for non-existent ID', async () => {
+      const token = await getValidAdminToken();
+
+      const res = await request(app.getHttpServer())
+        .get('/students/nonexistent-id-123456789')
+        .set('Authorization', `Bearer ${token}`);
+
+      // Aceitar tanto 400 (Bad Request para ID inválido) quanto 404 (Not Found)
+      expect([400, 404]).toContain(res.status);
+
+      if (res.status === 400) {
+        // Se for 400, pode ser erro de validação do ID
+        expect(res.body).toHaveProperty('message');
+      } else {
+        // Se for 404, é usuário não encontrado
+        expect(res.body.message).toBe('User not found');
+        expect(res.body.statusCode).toBe(404);
+      }
+    });
+
+    it('[GET] /students/:id - Not Found for valid UUID that does not exist', async () => {
+      const token = await getValidAdminToken();
+
+      // Usar um UUID válido mas que não existe no banco
+      const nonExistentValidUUID = '550e8400-e29b-41d4-a716-446655440000';
+
+      const res = await request(app.getHttpServer())
+        .get(`/students/${nonExistentValidUUID}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(404);
+
+      expect(res.body.message).toBe('User not found');
+      expect(res.body.statusCode).toBe(404);
+    });
+
+    it('[GET] /students/:id - Bad Request for malformed UUID', async () => {
+      const token = await getValidAdminToken();
+
+      const res = await request(app.getHttpServer())
+        .get('/students/invalid-uuid-format')
+        .set('Authorization', `Bearer ${token}`);
+
+      // Deve ser 400 (BadRequest) para UUID inválido
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+
+      // Pode ter estrutura de erro de validação
+      if (res.body.errors) {
+        expect(res.body.errors).toHaveProperty('details');
+      }
+    });
+
+    it('[GET] /students/:id - Unauthorized without token', async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/students/${testUserId}`)
+        .expect(401);
+
+      expect(res.body.message).toBe('Unauthorized');
+      expect(res.body.statusCode).toBe(401);
+    });
+
+    it('[GET] /students/:id - Unauthorized with invalid token', async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/students/${testUserId}`)
+        .set('Authorization', 'Bearer invalid-token-here')
+        .expect(401);
+
+      expect(res.body.message).toBe('Unauthorized');
+      expect(res.body.statusCode).toBe(401);
+    });
+
+    it('[GET] /students/:id - Forbidden for non-admin users', async () => {
+      // Criar usuário estudante
+      const createStudentRes = await request(app.getHttpServer())
+        .post('/students')
+        .send({
+          name: 'Get By ID Student',
+          email: 'getbyidstudent@test.com',
+          password: 'Student123!',
+          cpf: '55555555555',
+          role: 'student',
+        });
+
+      expect(createStudentRes.status).toBe(201);
+
+      // Login como estudante
+      const studentLoginRes = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: 'getbyidstudent@test.com',
+          password: 'Student123!',
+        })
+        .expect(201);
+
+      const studentToken = studentLoginRes.body.accessToken;
+
+      // Tentar acessar endpoint com token de estudante
+      const res = await request(app.getHttpServer())
+        .get(`/students/${testUserId}`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .expect(403);
+
+      expect(res.body.message).toBe('Forbidden resource');
+      expect(res.body.statusCode).toBe(403);
+    });
+
+    it('[GET] /students/:id - Student cannot access their own data through this endpoint', async () => {
+      // Criar usuário estudante
+      const createStudentRes = await request(app.getHttpServer())
+        .post('/students')
+        .send({
+          name: 'Self Access Student',
+          email: 'selfaccess@test.com',
+          password: 'Student123!',
+          cpf: '66666666666',
+          role: 'student',
+        });
+
+      expect(createStudentRes.status).toBe(201);
+      const studentId = createStudentRes.body.user.id;
+
+      // Login como estudante
+      const studentLoginRes = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: 'selfaccess@test.com',
+          password: 'Student123!',
+        })
+        .expect(201);
+
+      const studentToken = studentLoginRes.body.accessToken;
+
+      // Tentar acessar próprios dados
+      const res = await request(app.getHttpServer())
+        .get(`/students/${studentId}`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .expect(403);
+
+      expect(res.body.message).toBe('Forbidden resource');
+      expect(res.body.statusCode).toBe(403);
+
+      // Cleanup será feito no afterAll
+    });
+
+    it('[GET] /students/:id - Success with different date formats in response', async () => {
+      const token = await getValidAdminToken();
+
+      const res = await request(app.getHttpServer())
+        .get(`/students/${testUserId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(res.body.user.createdAt).toBeDefined();
+      expect(res.body.user.updatedAt).toBeDefined();
+
+      // Verificar que são strings de data válidas
+      expect(new Date(res.body.user.createdAt).toString()).not.toBe(
+        'Invalid Date',
+      );
+      expect(new Date(res.body.user.updatedAt).toString()).not.toBe(
+        'Invalid Date',
+      );
+    });
+
+    it('[GET] /students/:id - Response structure matches expected format', async () => {
+      const token = await getValidAdminToken();
+
+      const res = await request(app.getHttpServer())
+        .get(`/students/${testUserId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      // Verificar estrutura básica da resposta
+      expect(Object.keys(res.body)).toEqual(['user']);
+
+      const userKeys = Object.keys(res.body.user).sort();
+
+      // Campos obrigatórios que sempre devem estar presentes
+      const requiredKeys = [
+        'id',
+        'name',
+        'email',
+        'cpf',
+        'role',
+        'createdAt',
+        'updatedAt',
+      ];
+
+      // Verificar que todos os campos obrigatórios estão presentes
+      requiredKeys.forEach((key) => {
+        expect(userKeys).toContain(key);
+      });
+
+      // Campos opcionais que podem ou não estar presentes
+      const optionalKeys = [
+        'phone',
+        'birthDate',
+        'profileImageUrl',
+        'lastLogin',
+      ];
+
+      // Verificar que nenhum campo inesperado está presente
+      userKeys.forEach((key) => {
+        expect([...requiredKeys, ...optionalKeys]).toContain(key);
+      });
+
+      // Verificar que password não está presente
+      expect(userKeys).not.toContain('password');
+    });
+
+    it('[GET] /students/:id - Performance test with valid ID', async () => {
+      const token = await getValidAdminToken();
+
+      const startTime = Date.now();
+
+      const res = await request(app.getHttpServer())
+        .get(`/students/${testUserId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+
+      // Verificar que a resposta foi rápida (menos de 1000ms)
+      expect(responseTime).toBeLessThan(1000);
+      expect(res.body.user.id).toBe(testUserId);
+    });
+
+    it('[GET] /students/:id - Success with user containing all optional fields', async () => {
+      const token = await getValidAdminToken();
+
+      // Criar usuário com todos os campos preenchidos via atualização
+      const createRes = await request(app.getHttpServer())
+        .post('/students')
+        .send({
+          name: 'Full User',
+          email: 'fulluser@example.com',
+          password: 'FullUser123!',
+          cpf: '77777777777',
+          role: 'student',
+        });
+
+      expect(createRes.status).toBe(201);
+      const fullUserId = createRes.body.user.id;
+
+      // Atualizar com campos opcionais
+      await request(app.getHttpServer()).patch(`/students/${fullUserId}`).send({
+        phone: '+5511888888888',
+        // birthDate seria necessário adicionar no update se suportado
+      });
+
+      const res = await request(app.getHttpServer())
+        .get(`/students/${fullUserId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(res.body.user.id).toBe(fullUserId);
+      expect(res.body.user.name).toBe('Full User');
+
+      // Verificar campos opcionais se estiverem presentes
+      if (res.body.user.hasOwnProperty('phone')) {
+        expect(res.body.user.phone).toBe('+5511888888888');
+      }
+
+      // Cleanup
+      await prisma.user.delete({
+        where: { id: fullUserId },
+      });
+    });
+
+    it('[GET] /students/:id - Verify response does not contain sensitive information', async () => {
+      const token = await getValidAdminToken();
+
+      const res = await request(app.getHttpServer())
+        .get(`/students/${testUserId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      // Lista de campos sensíveis que não devem estar na resposta
+      const sensitiveFields = [
+        'password',
+        'passwordHash',
+        'hashedPassword',
+        'salt',
+        'refreshToken',
+        'resetToken',
+      ];
+
+      const userKeys = Object.keys(res.body.user);
+
+      sensitiveFields.forEach((sensitiveField) => {
+        expect(userKeys).not.toContain(sensitiveField);
+      });
+
+      // Verificar que campos essenciais estão presentes
+      expect(res.body.user).toHaveProperty('id');
+      expect(res.body.user).toHaveProperty('email');
+      expect(res.body.user).toHaveProperty('name');
+      expect(res.body.user).toHaveProperty('role');
     });
   });
 });

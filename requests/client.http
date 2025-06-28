@@ -189,3 +189,36 @@ GET {{BASE_URL}}/students/search?name=Bruno
 Authorization: Bearer {{token}}
 
 ###
+
+### ====================================
+### ADDITIONAL DYNAMIC TESTS
+### ====================================
+
+### 30. Create Test User for ID Testing
+# @name createTestUser
+POST {{BASE_URL}}/students
+Content-Type: application/json
+
+{
+  "name": "Test User for ID",
+  "email": "testuser@example.com",
+  "password": "Test123!",
+  "role": "student",
+  "cpf": "98765432100"
+}
+
+###
+
+### 31. Get Test User By ID (using dynamic ID)
+# @name getTestUserById
+GET {{BASE_URL}}/students/{{createTestUser.response.body.user.id}}
+Authorization: Bearer {{adminToken}}
+
+###
+
+### 32. Delete Test User (cleanup)
+# @name deleteTestUser
+DELETE {{BASE_URL}}/students/{{createTestUser.response.body.user.id}}
+Authorization: Bearer {{adminToken}}
+
+###
