@@ -149,18 +149,23 @@ export class PrismaTrackRepository implements ITrackRepository {
 
   async delete(id: string): Promise<Either<Error, void>> {
     try {
-      // Primeiro deletar as traduções e as relações com cursos
-      await this.prisma.$transaction([
-        this.prisma.trackTranslation.deleteMany({
+      await this.prisma.$transaction(async (tx) => {
+        // Deletar traduções
+        await tx.trackTranslation.deleteMany({
           where: { trackId: id },
-        }),
-        this.prisma.trackCourse.deleteMany({
+        });
+
+        // Deletar relações com cursos
+        await tx.trackCourse.deleteMany({
           where: { trackId: id },
-        }),
-        this.prisma.track.delete({
+        });
+
+        // Deletar o track
+        await tx.track.delete({
           where: { id },
-        }),
-      ]);
+        });
+      });
+
       return right(undefined);
     } catch (err: any) {
       return left(new Error(err.message || 'Failed to delete track'));

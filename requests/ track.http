@@ -42,3 +42,12 @@ Content-Type: application/json
 ### List Tracks
 GET {{BASE_URL}}/tracks
 Content-Type: application/json
+
+
+### Delete Track
+DELETE {{BASE_URL}}/tracks/33c1c961-c6d9-45a2-92a5-b9d36d89bd71
+Content-Type: application/json
+
+### Delete Track - Example with different ID
+DELETE {{BASE_URL}}/tracks/ddb811e6-5420-439e-997a-426539784bae
+Content-Type: application/json

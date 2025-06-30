@@ -1,6 +1,6 @@
 // src/domain/course-catalog/application/use-cases/delete-track.use-case.ts
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Either, left, right } from '@/core/either';
 import { ITrackRepository } from '../repositories/i-track-repository';
 import { DeleteTrackRequest } from '../dtos/delete-track-request.dto';
@@ -9,20 +9,20 @@ import { deleteTrackSchema } from './validations/delete-track.schema';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { RepositoryError } from './errors/repository-error';
 import { TrackNotFoundError } from './errors/track-not-found-error';
-import { TrackHasDependenciesError } from './errors/track-has-dependencies-error';
+// REMOVIDO: import { TrackHasDependenciesError } from './errors/track-has-dependencies-error';
 
 @Injectable()
 export class DeleteTrackUseCase {
-  constructor(private readonly trackRepository: ITrackRepository) {}
+  constructor(
+    @Inject('TrackRepository')
+    private readonly trackRepository: ITrackRepository,
+  ) {}
 
   async execute(
     request: DeleteTrackRequest,
   ): Promise<
     Either<
-      | InvalidInputError
-      | TrackNotFoundError
-      | TrackHasDependenciesError
-      | RepositoryError,
+      InvalidInputError | TrackNotFoundError | RepositoryError,
       DeleteTrackResponse
     >
   > {
@@ -39,19 +39,6 @@ export class DeleteTrackUseCase {
       const trackResult = await this.trackRepository.findById(request.id);
       if (trackResult.isLeft()) {
         return left(new TrackNotFoundError());
-      }
-
-      // Verificar dependências
-      const dependenciesResult =
-        await this.trackRepository.checkTrackDependencies(request.id);
-      if (dependenciesResult.isLeft()) {
-        return left(new RepositoryError(dependenciesResult.value.message));
-      }
-
-      const dependencyInfo = dependenciesResult.value;
-      if (!dependencyInfo.canDelete) {
-        const courseNames = dependencyInfo.dependencies.map((d) => d.name);
-        return left(new TrackHasDependenciesError(courseNames, dependencyInfo));
       }
 
       // Deletar o track

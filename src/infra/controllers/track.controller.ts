@@ -10,6 +10,7 @@ import {
   Get,
   Param,
   NotFoundException,
+  Delete,
 } from '@nestjs/common';
 import { CreateTrackUseCase } from '@/domain/course-catalog/application/use-cases/create-track.use-case';
 
@@ -21,6 +22,7 @@ import { TrackNotFoundError } from '@/domain/course-catalog/application/use-case
 import { GetTrackDto } from '@/domain/course-catalog/application/dtos/get-track.dto';
 import { ListTracksUseCase } from '@/domain/course-catalog/application/use-cases/list-tracks.use-case';
 import { CreateTrackDto } from '@/domain/course-catalog/application/dtos/create-track.dto';
+import { DeleteTrackUseCase } from '@/domain/course-catalog/application/use-cases/delete-track.use-case';
 
 @Controller('tracks')
 export class TrackController {
@@ -31,6 +33,8 @@ export class TrackController {
     private readonly getTrackUseCase: GetTrackUseCase,
     @Inject(ListTracksUseCase)
     private readonly listTracksUseCase: ListTracksUseCase,
+    @Inject(DeleteTrackUseCase) // Adicionar esta injeção
+    private readonly deleteTrackUseCase: DeleteTrackUseCase,
   ) {}
 
   @Post()
@@ -85,5 +89,24 @@ export class TrackController {
       throw new InternalServerErrorException(result.value.message);
     }
     return (result.value as any).tracks;
+  }
+
+  @Delete(':id')
+  async delete(@Param() params: GetTrackDto) {
+    const result = await this.deleteTrackUseCase.execute({ id: params.id });
+
+    if (result.isLeft()) {
+      const error = result.value;
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException(error.details);
+      }
+      if (error instanceof TrackNotFoundError) {
+        throw new NotFoundException(error.message);
+      }
+
+      throw new InternalServerErrorException(error.message);
+    }
+
+    return result.value;
   }
 }

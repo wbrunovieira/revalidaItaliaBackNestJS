@@ -10,9 +10,11 @@ import { left, right } from '@/core/either';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { DuplicateTrackError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-track-error';
 import { TrackNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/track-not-found-error';
+import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 import { CreateTrackUseCase } from '@/domain/course-catalog/application/use-cases/create-track.use-case';
 import { GetTrackUseCase } from '@/domain/course-catalog/application/use-cases/get-track.use-case';
 import { ListTracksUseCase } from '@/domain/course-catalog/application/use-cases/list-tracks.use-case';
+import { DeleteTrackUseCase } from '@/domain/course-catalog/application/use-cases/delete-track.use-case';
 import { TrackController } from './track.controller';
 
 import { GetTrackDto } from '@/domain/course-catalog/application/dtos/get-track.dto';
@@ -27,21 +29,27 @@ class MockGetTrackUseCase {
 class MockListTracksUseCase {
   execute = vi.fn();
 }
+class MockDeleteTrackUseCase {
+  execute = vi.fn();
+}
 
 describe('TrackController', () => {
   let controller: TrackController;
   let createUseCase: MockCreateTrackUseCase;
   let getUseCase: MockGetTrackUseCase;
   let listUseCase: MockListTracksUseCase;
+  let deleteUseCase: MockDeleteTrackUseCase;
 
   beforeEach(() => {
     createUseCase = new MockCreateTrackUseCase();
     getUseCase = new MockGetTrackUseCase();
     listUseCase = new MockListTracksUseCase();
+    deleteUseCase = new MockDeleteTrackUseCase();
     controller = new TrackController(
       createUseCase as any,
       getUseCase as any,
       listUseCase as any,
+      deleteUseCase as any,
     );
   });
 
@@ -250,6 +258,82 @@ describe('TrackController', () => {
       await expect(controller.list()).rejects.toBeInstanceOf(
         InternalServerErrorException,
       );
+    });
+  });
+
+  describe('delete()', () => {
+    const validTrackId = 'valid-track-id-uuid';
+    const deleteParams = { id: validTrackId } as GetTrackDto;
+
+    it('deletes track successfully', async () => {
+      const successResponse = {
+        message: 'Track deleted successfully',
+        deletedAt: new Date('2025-06-30T15:00:00.000Z'),
+      };
+      deleteUseCase.execute.mockResolvedValueOnce(right(successResponse));
+
+      const result = await controller.delete(deleteParams);
+
+      expect(result).toEqual(successResponse);
+      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: validTrackId });
+      expect(deleteUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws BadRequestException on InvalidInputError', async () => {
+      const invalidInputError = new InvalidInputError('Invalid ID format', [
+        { path: ['id'], message: 'ID must be a valid UUID' },
+      ]);
+      deleteUseCase.execute.mockResolvedValueOnce(left(invalidInputError));
+
+      await expect(controller.delete(deleteParams)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: validTrackId });
+    });
+
+    it('throws NotFoundException on TrackNotFoundError', async () => {
+      const trackNotFoundError = new TrackNotFoundError();
+      deleteUseCase.execute.mockResolvedValueOnce(left(trackNotFoundError));
+
+      await expect(controller.delete(deleteParams)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: validTrackId });
+    });
+
+    it('throws InternalServerErrorException on RepositoryError', async () => {
+      const repositoryError = new RepositoryError('Database connection failed');
+      deleteUseCase.execute.mockResolvedValueOnce(left(repositoryError));
+
+      await expect(controller.delete(deleteParams)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: validTrackId });
+    });
+
+    it('throws InternalServerErrorException on generic error', async () => {
+      const genericError = new Error('Unexpected error occurred');
+      deleteUseCase.execute.mockResolvedValueOnce(left(genericError));
+
+      await expect(controller.delete(deleteParams)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: validTrackId });
+    });
+
+    it('calls deleteUseCase with correct parameters', async () => {
+      const customTrackId = 'custom-track-id-123';
+      const customParams = { id: customTrackId } as GetTrackDto;
+      const successResponse = {
+        message: 'Track deleted successfully',
+        deletedAt: new Date(),
+      };
+      deleteUseCase.execute.mockResolvedValueOnce(right(successResponse));
+
+      await controller.delete(customParams);
+
+      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: customTrackId });
+      expect(deleteUseCase.execute).toHaveBeenCalledTimes(1);
     });
   });
 });
