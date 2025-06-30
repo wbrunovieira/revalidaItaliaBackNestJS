@@ -233,6 +233,629 @@ describe('Track API (E2E)', () => {
     );
   });
 
+  describe('[PUT] /tracks/:id', () => {
+    it('should update track successfully with all fields', async () => {
+      // Criar cursos
+      const course1Res = await request(app.getHttpServer())
+        .post('/courses')
+        .send({
+          slug: 'curso-update-1',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Curso Update 1 PT',
+              description: 'Desc Update 1 PT',
+            },
+            {
+              locale: 'it',
+              title: 'Corso Update 1 IT',
+              description: 'Desc Update 1 IT',
+            },
+            {
+              locale: 'es',
+              title: 'Curso Update 1 ES',
+              description: 'Desc Update 1 ES',
+            },
+          ],
+        });
+      const course1Id = course1Res.body.id;
+
+      const course2Res = await request(app.getHttpServer())
+        .post('/courses')
+        .send({
+          slug: 'curso-update-2',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Curso Update 2 PT',
+              description: 'Desc Update 2 PT',
+            },
+            {
+              locale: 'it',
+              title: 'Corso Update 2 IT',
+              description: 'Desc Update 2 IT',
+            },
+            {
+              locale: 'es',
+              title: 'Curso Update 2 ES',
+              description: 'Desc Update 2 ES',
+            },
+          ],
+        });
+      const course2Id = course2Res.body.id;
+
+      // Criar track inicial
+      const trackRes = await request(app.getHttpServer())
+        .post('/tracks')
+        .send({
+          slug: 'trilha-original',
+          imageUrl: 'https://example.com/original-image.jpg',
+          courseIds: [course1Id],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Original PT',
+              description: 'Desc Original PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Originale IT',
+              description: 'Desc Originale IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Original ES',
+              description: 'Desc Original ES',
+            },
+          ],
+        });
+      const trackId = trackRes.body.id;
+
+      // Atualizar track
+      const updateRes = await request(app.getHttpServer())
+        .put(`/tracks/${trackId}`)
+        .send({
+          slug: 'trilha-atualizada',
+          imageUrl: 'https://example.com/updated-image.jpg',
+          courseIds: [course1Id, course2Id],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Atualizada PT',
+              description: 'Desc Atualizada PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Aggiornata IT',
+              description: 'Desc Aggiornata IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Actualizada ES',
+              description: 'Desc Actualizada ES',
+            },
+          ],
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.slug).toBe('trilha-atualizada');
+      expect(updateRes.body.imageUrl).toBe(
+        'https://example.com/updated-image.jpg',
+      );
+      expect(updateRes.body.courseIds).toEqual(
+        expect.arrayContaining([course1Id, course2Id]),
+      );
+      expect(updateRes.body.title).toBe('Trilha Atualizada PT');
+      expect(updateRes.body.updatedAt).toBeDefined();
+
+      // Verificar se foi realmente atualizado
+      const getRes = await request(app.getHttpServer()).get(
+        `/tracks/${trackId}`,
+      );
+      expect(getRes.status).toBe(200);
+      expect(getRes.body.slug).toBe('trilha-atualizada');
+    });
+
+    it('should update track with empty courseIds array', async () => {
+      // Criar curso
+      const courseRes = await request(app.getHttpServer())
+        .post('/courses')
+        .send({
+          slug: 'curso-empty-test',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Curso Empty PT',
+              description: 'Desc Empty PT',
+            },
+            {
+              locale: 'it',
+              title: 'Corso Empty IT',
+              description: 'Desc Empty IT',
+            },
+            {
+              locale: 'es',
+              title: 'Curso Empty ES',
+              description: 'Desc Empty ES',
+            },
+          ],
+        });
+      const courseId = courseRes.body.id;
+
+      // Criar track inicial
+      const trackRes = await request(app.getHttpServer())
+        .post('/tracks')
+        .send({
+          slug: 'trilha-com-curso',
+          courseIds: [courseId],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Com Curso PT',
+              description: 'Desc Com Curso PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Con Corso IT',
+              description: 'Desc Con Corso IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Con Curso ES',
+              description: 'Desc Con Curso ES',
+            },
+          ],
+        });
+      const trackId = trackRes.body.id;
+
+      // Atualizar para remover todos os cursos
+      const updateRes = await request(app.getHttpServer())
+        .put(`/tracks/${trackId}`)
+        .send({
+          slug: 'trilha-sem-curso',
+          courseIds: [],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Sem Curso PT',
+              description: 'Desc Sem Curso PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Senza Corso IT',
+              description: 'Desc Senza Corso IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Sin Curso ES',
+              description: 'Desc Sin Curso ES',
+            },
+          ],
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.courseIds).toEqual([]);
+      expect(updateRes.body.slug).toBe('trilha-sem-curso');
+
+      // Verificar que associações foram removidas do banco
+      const associations = await prisma.trackCourse.findMany({
+        where: { trackId: trackId },
+      });
+      expect(associations).toHaveLength(0);
+    });
+
+    it('should update track removing imageUrl', async () => {
+      // Criar curso
+      const courseRes = await request(app.getHttpServer())
+        .post('/courses')
+        .send({
+          slug: 'curso-image-test',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Curso Image PT',
+              description: 'Desc Image PT',
+            },
+            {
+              locale: 'it',
+              title: 'Corso Image IT',
+              description: 'Desc Image IT',
+            },
+            {
+              locale: 'es',
+              title: 'Curso Image ES',
+              description: 'Desc Image ES',
+            },
+          ],
+        });
+      const courseId = courseRes.body.id;
+
+      // Criar track com imagem
+      const trackRes = await request(app.getHttpServer())
+        .post('/tracks')
+        .send({
+          slug: 'trilha-com-imagem',
+          imageUrl: 'https://example.com/image-to-remove.jpg',
+          courseIds: [courseId],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Com Imagem PT',
+              description: 'Desc Com Imagem PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Con Immagine IT',
+              description: 'Desc Con Immagine IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Con Imagen ES',
+              description: 'Desc Con Imagen ES',
+            },
+          ],
+        });
+      const trackId = trackRes.body.id;
+
+      // Atualizar removendo a imagem
+      const updateRes = await request(app.getHttpServer())
+        .put(`/tracks/${trackId}`)
+        .send({
+          slug: 'trilha-sem-imagem',
+          imageUrl: '',
+          courseIds: [courseId],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Sem Imagem PT',
+              description: 'Desc Sem Imagem PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Senza Immagine IT',
+              description: 'Desc Senza Immagine IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Sin Imagen ES',
+              description: 'Desc Sin Imagen ES',
+            },
+          ],
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.imageUrl).toBe('');
+      expect(updateRes.body.slug).toBe('trilha-sem-imagem');
+    });
+
+    it('should return 404 when trying to update non-existent track', async () => {
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+      const updateRes = await request(app.getHttpServer())
+        .put(`/tracks/${nonExistentId}`)
+        .send({
+          slug: 'trilha-inexistente',
+          courseIds: [],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Inexistente PT',
+              description: 'Desc Inexistente PT',
+            },
+          ],
+        });
+
+      expect(updateRes.status).toBe(404);
+    });
+
+    it('should return 400 for invalid track ID format', async () => {
+      const invalidId = 'invalid-uuid-format';
+
+      const updateRes = await request(app.getHttpServer())
+        .put(`/tracks/${invalidId}`)
+        .send({
+          slug: 'trilha-id-invalido',
+          courseIds: [],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha ID Inválido PT',
+              description: 'Desc ID Inválido PT',
+            },
+          ],
+        });
+
+      expect(updateRes.status).toBe(400);
+    });
+
+    it('should return 409 when trying to update with existing slug', async () => {
+      // Criar curso
+      const courseRes = await request(app.getHttpServer())
+        .post('/courses')
+        .send({
+          slug: 'curso-conflict-test',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Curso Conflict PT',
+              description: 'Desc Conflict PT',
+            },
+            {
+              locale: 'it',
+              title: 'Corso Conflict IT',
+              description: 'Desc Conflict IT',
+            },
+            {
+              locale: 'es',
+              title: 'Curso Conflict ES',
+              description: 'Desc Conflict ES',
+            },
+          ],
+        });
+      const courseId = courseRes.body.id;
+
+      // Criar primeiro track
+      await request(app.getHttpServer())
+        .post('/tracks')
+        .send({
+          slug: 'trilha-existente',
+          courseIds: [courseId],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Existente PT',
+              description: 'Desc Existente PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Esistente IT',
+              description: 'Desc Esistente IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Existente ES',
+              description: 'Desc Existente ES',
+            },
+          ],
+        });
+
+      // Criar segundo track
+      const track2Res = await request(app.getHttpServer())
+        .post('/tracks')
+        .send({
+          slug: 'trilha-segunda',
+          courseIds: [courseId],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Segunda PT',
+              description: 'Desc Segunda PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Seconda IT',
+              description: 'Desc Seconda IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Segunda ES',
+              description: 'Desc Segunda ES',
+            },
+          ],
+        });
+      const track2Id = track2Res.body.id;
+
+      // Tentar atualizar segundo track com slug do primeiro
+      const updateRes = await request(app.getHttpServer())
+        .put(`/tracks/${track2Id}`)
+        .send({
+          slug: 'trilha-existente', // Slug já existe
+          courseIds: [courseId],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Conflito PT',
+              description: 'Desc Conflito PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Conflitto IT',
+              description: 'Desc Conflitto IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Conflicto ES',
+              description: 'Desc Conflicto ES',
+            },
+          ],
+        });
+
+      expect(updateRes.status).toBe(409);
+    });
+
+    it('should return 400 for invalid input data', async () => {
+      // Criar curso
+      const courseRes = await request(app.getHttpServer())
+        .post('/courses')
+        .send({
+          slug: 'curso-validation-test',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Curso Validation PT',
+              description: 'Desc Validation PT',
+            },
+            {
+              locale: 'it',
+              title: 'Corso Validation IT',
+              description: 'Desc Validation IT',
+            },
+            {
+              locale: 'es',
+              title: 'Curso Validation ES',
+              description: 'Desc Validation ES',
+            },
+          ],
+        });
+      const courseId = courseRes.body.id;
+
+      // Criar track
+      const trackRes = await request(app.getHttpServer())
+        .post('/tracks')
+        .send({
+          slug: 'trilha-validation',
+          courseIds: [courseId],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Validation PT',
+              description: 'Desc Validation PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Validation IT',
+              description: 'Desc Validation IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Validation ES',
+              description: 'Desc Validation ES',
+            },
+          ],
+        });
+      const trackId = trackRes.body.id;
+
+      // Tentar atualizar com dados inválidos
+      const updateRes = await request(app.getHttpServer())
+        .put(`/tracks/${trackId}`)
+        .send({
+          slug: '', // Slug vazio é inválido
+          courseIds: ['invalid-uuid'], // UUID inválido
+          translations: [
+            { locale: 'invalid', title: 'Title', description: 'Description' }, // Locale inválido
+          ],
+        });
+
+      expect(updateRes.status).toBe(400);
+    });
+
+    it('should preserve courses when updating track', async () => {
+      // Criar cursos
+      const course1Res = await request(app.getHttpServer())
+        .post('/courses')
+        .send({
+          slug: 'curso-preserve-1',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Curso Preserve 1 PT',
+              description: 'Desc Preserve 1 PT',
+            },
+            {
+              locale: 'it',
+              title: 'Corso Preserve 1 IT',
+              description: 'Desc Preserve 1 IT',
+            },
+            {
+              locale: 'es',
+              title: 'Curso Preserve 1 ES',
+              description: 'Desc Preserve 1 ES',
+            },
+          ],
+        });
+      const course1Id = course1Res.body.id;
+
+      const course2Res = await request(app.getHttpServer())
+        .post('/courses')
+        .send({
+          slug: 'curso-preserve-2',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Curso Preserve 2 PT',
+              description: 'Desc Preserve 2 PT',
+            },
+            {
+              locale: 'it',
+              title: 'Corso Preserve 2 IT',
+              description: 'Desc Preserve 2 IT',
+            },
+            {
+              locale: 'es',
+              title: 'Curso Preserve 2 ES',
+              description: 'Desc Preserve 2 ES',
+            },
+          ],
+        });
+      const course2Id = course2Res.body.id;
+
+      // Criar track
+      const trackRes = await request(app.getHttpServer())
+        .post('/tracks')
+        .send({
+          slug: 'trilha-preserve',
+          courseIds: [course1Id, course2Id],
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Preserve PT',
+              description: 'Desc Preserve PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Preserve IT',
+              description: 'Desc Preserve IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Preserve ES',
+              description: 'Desc Preserve ES',
+            },
+          ],
+        });
+      const trackId = trackRes.body.id;
+
+      // Atualizar track removendo um curso
+      const updateRes = await request(app.getHttpServer())
+        .put(`/tracks/${trackId}`)
+        .send({
+          slug: 'trilha-preserve-updated',
+          courseIds: [course1Id], // Remover course2Id
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Trilha Preserve Updated PT',
+              description: 'Desc Preserve Updated PT',
+            },
+            {
+              locale: 'it',
+              title: 'Traccia Preserve Updated IT',
+              description: 'Desc Preserve Updated IT',
+            },
+            {
+              locale: 'es',
+              title: 'Pista Preserve Updated ES',
+              description: 'Desc Preserve Updated ES',
+            },
+          ],
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.courseIds).toEqual([course1Id]);
+
+      // Verificar que ambos os cursos ainda existem
+      const course1StillExists = await request(app.getHttpServer()).get(
+        `/courses/${course1Id}`,
+      );
+      expect(course1StillExists.status).toBe(200);
+
+      const course2StillExists = await request(app.getHttpServer()).get(
+        `/courses/${course2Id}`,
+      );
+      expect(course2StillExists.status).toBe(200);
+    });
+  });
+
   describe('[DELETE] /tracks/:id', () => {
     it('should delete track successfully', async () => {
       // Criar curso

@@ -4,6 +4,7 @@ import { Either, left, right } from '@/core/either';
 import { ITrackRepository } from '@/domain/course-catalog/application/repositories/i-track-repository';
 import { Track } from '@/domain/course-catalog/enterprise/entities/track.entity';
 import { TrackDependencyInfo } from '@/domain/course-catalog/application/dtos/track-dependencies.dto';
+import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 
 export class InMemoryTrackRepository implements ITrackRepository {
   public items: Track[] = [];
@@ -86,5 +87,19 @@ export class InMemoryTrackRepository implements ITrackRepository {
       },
       dependencies,
     });
+  }
+
+  async update(track: Track): Promise<Either<RepositoryError, void>> {
+    const index = this.items.findIndex(
+      (t) => t.id.toString() === track.id.toString(),
+    );
+
+    if (index === -1) {
+      return left(new RepositoryError('Track not found'));
+    }
+
+    // Substituir o track existente pelo atualizado
+    this.items[index] = track;
+    return right(undefined);
   }
 }

@@ -11,6 +11,7 @@ import {
   Param,
   NotFoundException,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { CreateTrackUseCase } from '@/domain/course-catalog/application/use-cases/create-track.use-case';
 
@@ -23,6 +24,8 @@ import { GetTrackDto } from '@/domain/course-catalog/application/dtos/get-track.
 import { ListTracksUseCase } from '@/domain/course-catalog/application/use-cases/list-tracks.use-case';
 import { CreateTrackDto } from '@/domain/course-catalog/application/dtos/create-track.dto';
 import { DeleteTrackUseCase } from '@/domain/course-catalog/application/use-cases/delete-track.use-case';
+import { UpdateTrackUseCase } from '@/domain/course-catalog/application/use-cases/update-track.use-case';
+import { UpdateTrackDto } from '@/domain/course-catalog/application/dtos/update-track.dto';
 
 @Controller('tracks')
 export class TrackController {
@@ -35,6 +38,8 @@ export class TrackController {
     private readonly listTracksUseCase: ListTracksUseCase,
     @Inject(DeleteTrackUseCase) // Adicionar esta injeção
     private readonly deleteTrackUseCase: DeleteTrackUseCase,
+    @Inject(UpdateTrackUseCase) // Adicionar esta injeção
+    private readonly updateTrackUseCase: UpdateTrackUseCase,
   ) {}
 
   @Post()
@@ -108,5 +113,34 @@ export class TrackController {
     }
 
     return result.value;
+  }
+
+  @Put(':id')
+  async update(@Param() params: GetTrackDto, @Body() dto: UpdateTrackDto) {
+    const request = {
+      id: params.id,
+      slug: dto.slug,
+      imageUrl: dto.imageUrl,
+      courseIds: dto.courseIds,
+      translations: dto.translations,
+    };
+
+    const result = await this.updateTrackUseCase.execute(request);
+
+    if (result.isLeft()) {
+      const error = result.value;
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException(error.details);
+      }
+      if (error instanceof TrackNotFoundError) {
+        throw new NotFoundException(error.message);
+      }
+      if (error instanceof DuplicateTrackError) {
+        throw new ConflictException(error.message);
+      }
+      throw new InternalServerErrorException(error.message);
+    }
+
+    return result.value.track;
   }
 }

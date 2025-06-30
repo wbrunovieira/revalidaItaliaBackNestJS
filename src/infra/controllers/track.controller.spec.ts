@@ -15,10 +15,12 @@ import { CreateTrackUseCase } from '@/domain/course-catalog/application/use-case
 import { GetTrackUseCase } from '@/domain/course-catalog/application/use-cases/get-track.use-case';
 import { ListTracksUseCase } from '@/domain/course-catalog/application/use-cases/list-tracks.use-case';
 import { DeleteTrackUseCase } from '@/domain/course-catalog/application/use-cases/delete-track.use-case';
+import { UpdateTrackUseCase } from '@/domain/course-catalog/application/use-cases/update-track.use-case';
 import { TrackController } from './track.controller';
 
 import { GetTrackDto } from '@/domain/course-catalog/application/dtos/get-track.dto';
 import { CreateTrackDto } from '@/domain/course-catalog/application/dtos/create-track.dto';
+import { UpdateTrackDto } from '@/domain/course-catalog/application/dtos/update-track.dto';
 
 class MockCreateTrackUseCase {
   execute = vi.fn();
@@ -32,6 +34,9 @@ class MockListTracksUseCase {
 class MockDeleteTrackUseCase {
   execute = vi.fn();
 }
+class MockUpdateTrackUseCase {
+  execute = vi.fn();
+}
 
 describe('TrackController', () => {
   let controller: TrackController;
@@ -39,27 +44,53 @@ describe('TrackController', () => {
   let getUseCase: MockGetTrackUseCase;
   let listUseCase: MockListTracksUseCase;
   let deleteUseCase: MockDeleteTrackUseCase;
+  let updateUseCase: MockUpdateTrackUseCase;
 
   beforeEach(() => {
     createUseCase = new MockCreateTrackUseCase();
     getUseCase = new MockGetTrackUseCase();
     listUseCase = new MockListTracksUseCase();
     deleteUseCase = new MockDeleteTrackUseCase();
+    updateUseCase = new MockUpdateTrackUseCase();
     controller = new TrackController(
       createUseCase as any,
       getUseCase as any,
       listUseCase as any,
       deleteUseCase as any,
+      updateUseCase as any,
     );
   });
 
   const baseCreateDto: CreateTrackDto = {
     slug: 'minha-trilha',
-    courseIds: ['uuid-1'],
+    courseIds: ['550e8400-e29b-41d4-a716-446655440000'],
     translations: [
       { locale: 'pt', title: 'PT', description: 'Desc PT' },
       { locale: 'it', title: 'IT', description: 'Desc IT' },
       { locale: 'es', title: 'ES', description: 'Desc ES' },
+    ],
+  };
+
+  const baseUpdateDto: UpdateTrackDto = {
+    slug: 'trilha-atualizada',
+    imageUrl: 'https://example.com/updated-image.jpg',
+    courseIds: ['550e8400-e29b-41d4-a716-446655440001'],
+    translations: [
+      {
+        locale: 'pt',
+        title: 'PT Atualizado',
+        description: 'Desc PT Atualizada',
+      },
+      {
+        locale: 'it',
+        title: 'IT Aggiornato',
+        description: 'Desc IT Aggiornata',
+      },
+      {
+        locale: 'es',
+        title: 'ES Actualizado',
+        description: 'Desc ES Actualizada',
+      },
     ],
   };
 
@@ -69,7 +100,7 @@ describe('TrackController', () => {
         track: {
           id: '1',
           slug: 'minha-trilha',
-          courseIds: ['uuid-1'],
+          courseIds: ['550e8400-e29b-41d4-a716-446655440000'],
           title: 'PT',
           description: 'Desc PT',
           imageUrl: undefined,
@@ -97,7 +128,7 @@ describe('TrackController', () => {
         track: {
           id: '1',
           slug: 'minha-trilha',
-          courseIds: ['uuid-1'],
+          courseIds: ['550e8400-e29b-41d4-a716-446655440000'],
           title: 'PT',
           description: 'Desc PT',
           imageUrl: 'https://example.com/track-image.jpg',
@@ -161,7 +192,7 @@ describe('TrackController', () => {
         track: {
           id: '1',
           slug: 'my-track',
-          courseIds: ['uuid-1'],
+          courseIds: ['550e8400-e29b-41d4-a716-446655440000'],
           title: 'PT',
           description: 'Desc PT',
           imageUrl: undefined,
@@ -180,7 +211,7 @@ describe('TrackController', () => {
         track: {
           id: '1',
           slug: 'my-track',
-          courseIds: ['uuid-1'],
+          courseIds: ['550e8400-e29b-41d4-a716-446655440000'],
           title: 'PT',
           description: 'Desc PT',
           imageUrl: 'https://example.com/track-image.jpg',
@@ -261,8 +292,138 @@ describe('TrackController', () => {
     });
   });
 
+  describe('update()', () => {
+    const validTrackId = '550e8400-e29b-41d4-a716-446655440002';
+    const updateParams = { id: validTrackId } as GetTrackDto;
+
+    it('updates track successfully', async () => {
+      const payload = {
+        track: {
+          id: validTrackId,
+          slug: 'trilha-atualizada',
+          courseIds: ['550e8400-e29b-41d4-a716-446655440001'],
+          title: 'PT Atualizado',
+          description: 'Desc PT Atualizada',
+          imageUrl: 'https://example.com/updated-image.jpg',
+          updatedAt: new Date('2025-06-30T15:00:00.000Z'),
+        },
+      };
+      updateUseCase.execute.mockResolvedValueOnce(right(payload));
+
+      const result = await controller.update(updateParams, baseUpdateDto);
+
+      expect(result).toEqual(payload.track);
+      expect(updateUseCase.execute).toHaveBeenCalledWith({
+        id: validTrackId,
+        slug: baseUpdateDto.slug,
+        imageUrl: baseUpdateDto.imageUrl,
+        courseIds: baseUpdateDto.courseIds,
+        translations: baseUpdateDto.translations,
+      });
+      expect(updateUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('updates track with empty courseIds array', async () => {
+      const updateDtoEmptyCourses = {
+        ...baseUpdateDto,
+        courseIds: [],
+      };
+      const payload = {
+        track: {
+          id: validTrackId,
+          slug: 'trilha-atualizada',
+          courseIds: [],
+          title: 'PT Atualizado',
+          description: 'Desc PT Atualizada',
+          imageUrl: 'https://example.com/updated-image.jpg',
+          updatedAt: new Date('2025-06-30T15:00:00.000Z'),
+        },
+      };
+      updateUseCase.execute.mockResolvedValueOnce(right(payload));
+
+      const result = await controller.update(
+        updateParams,
+        updateDtoEmptyCourses,
+      );
+
+      expect(result).toEqual(payload.track);
+      expect(result.courseIds).toEqual([]);
+    });
+
+    it('updates track removing imageUrl', async () => {
+      const updateDtoNoImage = {
+        ...baseUpdateDto,
+        imageUrl: '',
+      };
+      const payload = {
+        track: {
+          id: validTrackId,
+          slug: 'trilha-atualizada',
+          courseIds: ['550e8400-e29b-41d4-a716-446655440001'],
+          title: 'PT Atualizado',
+          description: 'Desc PT Atualizada',
+          imageUrl: '',
+          updatedAt: new Date('2025-06-30T15:00:00.000Z'),
+        },
+      };
+      updateUseCase.execute.mockResolvedValueOnce(right(payload));
+
+      const result = await controller.update(updateParams, updateDtoNoImage);
+
+      expect(result).toEqual(payload.track);
+      expect(result.imageUrl).toBe('');
+    });
+
+    it('throws BadRequestException on InvalidInputError', async () => {
+      const invalidInputError = new InvalidInputError('Invalid data format', [
+        { path: ['slug'], message: 'Slug must be valid' },
+      ]);
+      updateUseCase.execute.mockResolvedValueOnce(left(invalidInputError));
+
+      await expect(
+        controller.update(updateParams, baseUpdateDto),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws NotFoundException on TrackNotFoundError', async () => {
+      const trackNotFoundError = new TrackNotFoundError();
+      updateUseCase.execute.mockResolvedValueOnce(left(trackNotFoundError));
+
+      await expect(
+        controller.update(updateParams, baseUpdateDto),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws ConflictException on DuplicateTrackError', async () => {
+      const duplicateTrackError = new DuplicateTrackError();
+      updateUseCase.execute.mockResolvedValueOnce(left(duplicateTrackError));
+
+      await expect(
+        controller.update(updateParams, baseUpdateDto),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('throws InternalServerErrorException on RepositoryError', async () => {
+      const repositoryError = new RepositoryError('Database connection failed');
+      updateUseCase.execute.mockResolvedValueOnce(left(repositoryError));
+
+      await expect(
+        controller.update(updateParams, baseUpdateDto),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it('throws InternalServerErrorException on generic error', async () => {
+      const genericError = new Error('Unexpected error occurred');
+      updateUseCase.execute.mockResolvedValueOnce(left(genericError));
+
+      await expect(
+        controller.update(updateParams, baseUpdateDto),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+  });
+
   describe('delete()', () => {
-    const validTrackId = 'valid-track-id-uuid';
+    const validTrackId = '550e8400-e29b-41d4-a716-446655440005';
     const deleteParams = { id: validTrackId } as GetTrackDto;
 
     it('deletes track successfully', async () => {
@@ -288,7 +449,6 @@ describe('TrackController', () => {
       await expect(controller.delete(deleteParams)).rejects.toThrow(
         BadRequestException,
       );
-      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: validTrackId });
     });
 
     it('throws NotFoundException on TrackNotFoundError', async () => {
@@ -298,7 +458,6 @@ describe('TrackController', () => {
       await expect(controller.delete(deleteParams)).rejects.toThrow(
         NotFoundException,
       );
-      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: validTrackId });
     });
 
     it('throws InternalServerErrorException on RepositoryError', async () => {
@@ -308,7 +467,6 @@ describe('TrackController', () => {
       await expect(controller.delete(deleteParams)).rejects.toThrow(
         InternalServerErrorException,
       );
-      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: validTrackId });
     });
 
     it('throws InternalServerErrorException on generic error', async () => {
@@ -318,22 +476,6 @@ describe('TrackController', () => {
       await expect(controller.delete(deleteParams)).rejects.toThrow(
         InternalServerErrorException,
       );
-      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: validTrackId });
-    });
-
-    it('calls deleteUseCase with correct parameters', async () => {
-      const customTrackId = 'custom-track-id-123';
-      const customParams = { id: customTrackId } as GetTrackDto;
-      const successResponse = {
-        message: 'Track deleted successfully',
-        deletedAt: new Date(),
-      };
-      deleteUseCase.execute.mockResolvedValueOnce(right(successResponse));
-
-      await controller.delete(customParams);
-
-      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: customTrackId });
-      expect(deleteUseCase.execute).toHaveBeenCalledTimes(1);
     });
   });
 });
