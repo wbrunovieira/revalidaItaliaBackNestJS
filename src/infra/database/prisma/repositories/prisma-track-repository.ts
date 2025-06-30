@@ -6,6 +6,7 @@ import { ITrackRepository } from '@/domain/course-catalog/application/repositori
 import { Track } from '@/domain/course-catalog/enterprise/entities/track.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { TrackTranslationVO } from '@/domain/course-catalog/enterprise/value-objects/track-translation.vo';
+import { TrackDependencyInfo } from '@/domain/course-catalog/application/dtos/track-dependencies.dto';
 
 @Injectable()
 export class PrismaTrackRepository implements ITrackRepository {
@@ -143,6 +144,72 @@ export class PrismaTrackRepository implements ITrackRepository {
       return right(tracks);
     } catch (err: any) {
       return left(new Error(err.message || 'Database error'));
+    }
+  }
+
+  async delete(id: string): Promise<Either<Error, void>> {
+    try {
+      // Primeiro deletar as traduções e as relações com cursos
+      await this.prisma.$transaction([
+        this.prisma.trackTranslation.deleteMany({
+          where: { trackId: id },
+        }),
+        this.prisma.trackCourse.deleteMany({
+          where: { trackId: id },
+        }),
+        this.prisma.track.delete({
+          where: { id },
+        }),
+      ]);
+      return right(undefined);
+    } catch (err: any) {
+      return left(new Error(err.message || 'Failed to delete track'));
+    }
+  }
+
+  async checkTrackDependencies(
+    id: string,
+  ): Promise<Either<Error, TrackDependencyInfo>> {
+    try {
+      const track = await this.prisma.track.findUnique({
+        where: { id },
+        include: {
+          trackCourses: {
+            include: {
+              course: {
+                include: {
+                  translations: {
+                    where: { locale: 'pt' },
+                    take: 1,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!track) {
+        return left(new Error('Track not found'));
+      }
+
+      const dependencies = track.trackCourses.map((tc) => ({
+        type: 'course' as const,
+        id: tc.course.id,
+        slug: tc.course.slug,
+        name: tc.course.translations[0]?.title || tc.course.slug,
+      }));
+
+      return right({
+        canDelete: dependencies.length === 0,
+        totalDependencies: dependencies.length,
+        summary: {
+          courses: dependencies.length,
+        },
+        dependencies,
+      });
+    } catch (err: any) {
+      return left(new Error(err.message || 'Failed to check dependencies'));
     }
   }
 }

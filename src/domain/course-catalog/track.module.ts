@@ -6,7 +6,7 @@ import { PrismaTrackRepository } from '@/infra/database/prisma/repositories/pris
 import { TrackController } from '@/infra/controllers/track.controller';
 import { GetTrackUseCase } from './application/use-cases/get-track.use-case';
 import { ListTracksUseCase } from './application/use-cases/list-tracks.use-case';
-
+import { DeleteTrackUseCase } from './application/use-cases/delete-track.use-case';
 
 @Module({
   imports: [DatabaseModule],
@@ -15,6 +15,7 @@ import { ListTracksUseCase } from './application/use-cases/list-tracks.use-case'
     CreateTrackUseCase,
     GetTrackUseCase,
     ListTracksUseCase,
+    DeleteTrackUseCase,
     { provide: 'TrackRepository', useClass: PrismaTrackRepository },
   ],
   exports: ['TrackRepository'],
