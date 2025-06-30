@@ -6,6 +6,10 @@ import { ICourseRepository } from '@/domain/course-catalog/application/repositor
 import { Course } from '@/domain/course-catalog/enterprise/entities/course.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { Module } from '@/domain/course-catalog/enterprise/entities/module.entity';
+import {
+  CourseDependency,
+  CourseDependencyInfo,
+} from '@/domain/course-catalog/application/dtos/course-dependencies.dto';
 
 @Injectable()
 export class PrismaCourseRepository implements ICourseRepository {
@@ -210,6 +214,137 @@ export class PrismaCourseRepository implements ICourseRepository {
       return right(courseEntity);
     } catch {
       return left(new Error('Database error'));
+    }
+  }
+
+  async delete(id: string): Promise<Either<Error, void>> {
+    try {
+      await this.prisma.course.delete({
+        where: { id },
+      });
+
+      return right(undefined);
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        return left(new Error('Course not found'));
+      }
+      return left(new Error('Failed to delete course'));
+    }
+  }
+
+  async checkCourseDependencies(
+    courseId: string,
+  ): Promise<Either<Error, CourseDependencyInfo>> {
+    try {
+      // Buscar todas as dependências em paralelo para performance
+      const [modules, trackCourses, lessonsCount, videosCount] =
+        await Promise.all([
+          // Modules com contagem de lessons e videos
+          this.prisma.module.findMany({
+            where: { courseId },
+            include: {
+              translations: {
+                where: { locale: 'pt' },
+                take: 1,
+                select: { title: true, description: true },
+              },
+              lessons: {
+                include: {
+                  Video: true, // Contar videos por lesson
+                },
+              },
+            },
+          }),
+
+          // Track associations
+          this.prisma.trackCourse.findMany({
+            where: { courseId },
+            include: {
+              track: {
+                include: {
+                  translations: {
+                    where: { locale: 'pt' },
+                    take: 1,
+                    select: { title: true, description: true },
+                  },
+                },
+              },
+            },
+          }),
+
+          // Total lessons count
+          this.prisma.lesson.count({
+            where: {
+              module: {
+                courseId,
+              },
+            },
+          }),
+
+          // Total videos count
+          this.prisma.video.count({
+            where: {
+              lesson: {
+                module: {
+                  courseId,
+                },
+              },
+            },
+          }),
+        ]);
+
+      const dependencies: CourseDependency[] = [];
+
+      // Processar módulos
+      modules.forEach((module) => {
+        const moduleTranslation = module.translations[0];
+        const lessonsInModule = module.lessons.length;
+        const videosInModule = module.lessons.reduce(
+          (acc, lesson) => acc + lesson.Video.length,
+          0,
+        );
+
+        dependencies.push({
+          type: 'module',
+          id: module.id,
+          name: moduleTranslation?.title || module.slug,
+          description: moduleTranslation?.description,
+          actionRequired: `Delete module "${moduleTranslation?.title || module.slug}" and all its content first`,
+          relatedEntities: {
+            lessons: lessonsInModule,
+            videos: videosInModule,
+          },
+        });
+      });
+
+      // Processar track associations
+      trackCourses.forEach((trackCourse) => {
+        const trackTranslation = trackCourse.track.translations[0];
+
+        dependencies.push({
+          type: 'track',
+          id: trackCourse.track.id,
+          name: trackTranslation?.title || trackCourse.track.slug,
+          description: trackTranslation?.description,
+          actionRequired: `Remove course from track "${trackTranslation?.title || trackCourse.track.slug}" first`,
+        });
+      });
+
+      const result: CourseDependencyInfo = {
+        canDelete: dependencies.length === 0,
+        dependencies,
+        totalDependencies: dependencies.length,
+        summary: {
+          modules: modules.length,
+          tracks: trackCourses.length,
+          lessons: lessonsCount,
+          videos: videosCount,
+        },
+      };
+
+      return right(result);
+    } catch (err: any) {
+      return left(new Error('Failed to check course dependencies'));
     }
   }
 }

@@ -7,7 +7,7 @@ POST {{BASE_URL}}/addresses
 Content-Type: application/json
 
 {
-  "userId":     "b0997302-513c-4d6f-8fe5-502ccb9c859a",
+  "userId":     "45348fe3-9683-4101-aaf2-e4483ffabcf5",
   "street":     "123 Main St",
   "number":     "42A",
   "complement": "Apt. 7",
@@ -20,7 +20,7 @@ Content-Type: application/json
 
 ###
 # @name find-addresses-by-user
-GET {{BASE_URL}}/addresses?userId=b0997302-513c-4d6f-8fe5-502ccb9c859a
+GET {{BASE_URL}}/addresses?userId=45348fe3-9683-4101-aaf2-e4483ffabcf5
 Content-Type: application/json
 
 ###
