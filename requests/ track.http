@@ -7,7 +7,7 @@ POST {{BASE_URL}}/tracks
 Content-Type: application/json
 
 {
-  "slug": "minha-trilha1",
+  "slug": "minha-trilha2",
    "imageUrl": "/images/capa-track.avif",
   "courseIds": [
     "1b183dde-064c-4d48-9bec-dacb8e4217e4"
@@ -15,17 +15,17 @@ Content-Type: application/json
   "translations": [
     {
       "locale": "pt",
-      "title": "Trilha de Exemplo PT",
+      "title": "Trilha de Exemplo PT2",
       "description": "Uma descrição em português para a trilha."
     },
     {
       "locale": "it",
-      "title": "Traccia di Esempio IT",
+      "title": "Traccia di Esempio IT2",
       "description": "Una descrizione in italiano per la traccia."
     },
     {
       "locale": "es",
-      "title": "Pista de Ejemplo ES",
+      "title": "Pista de Ejemplo ES2",
       "description": "Una descripción en español para la pista."
     }
   ]

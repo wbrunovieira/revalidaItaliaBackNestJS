@@ -7,6 +7,7 @@ import { Track } from '@/domain/course-catalog/enterprise/entities/track.entity'
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { TrackTranslationVO } from '@/domain/course-catalog/enterprise/value-objects/track-translation.vo';
 import { TrackDependencyInfo } from '@/domain/course-catalog/application/dtos/track-dependencies.dto';
+import { RepositoryError } from '@/domain/auth/application/use-cases/errors/repository-error';
 
 @Injectable()
 export class PrismaTrackRepository implements ITrackRepository {
@@ -215,6 +216,58 @@ export class PrismaTrackRepository implements ITrackRepository {
       });
     } catch (err: any) {
       return left(new Error(err.message || 'Failed to check dependencies'));
+    }
+  }
+
+  async update(track: Track): Promise<Either<RepositoryError, void>> {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        // 1. Atualizar dados básicos do track
+        await tx.track.update({
+          where: { id: track.id.toString() },
+          data: {
+            slug: track.slug,
+            imageUrl: track.imageUrl,
+            updatedAt: track.updatedAt,
+          },
+        });
+
+        // 2. Remover associações de cursos existentes
+        await tx.trackCourse.deleteMany({
+          where: { trackId: track.id.toString() },
+        });
+
+        // 3. Criar novas associações de cursos (se houver)
+        if (track.courseIds.length > 0) {
+          await tx.trackCourse.createMany({
+            data: track.courseIds.map((courseId) => ({
+              trackId: track.id.toString(),
+              courseId,
+            })),
+          });
+        }
+
+        // 4. Remover traduções existentes
+        await tx.trackTranslation.deleteMany({
+          where: { trackId: track.id.toString() },
+        });
+
+        // 5. Criar novas traduções
+        await tx.trackTranslation.createMany({
+          data: track.translations.map((translation) => ({
+            trackId: track.id.toString(),
+            locale: translation.locale,
+            title: translation.title,
+            description: translation.description,
+          })),
+        });
+      });
+
+      return right(undefined);
+    } catch (error) {
+      return left(
+        new RepositoryError(`Failed to update track: ${error.message}`),
+      );
     }
   }
 }
