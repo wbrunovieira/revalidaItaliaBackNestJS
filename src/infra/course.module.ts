@@ -11,6 +11,7 @@ import { GetCourseUseCase } from '@/domain/course-catalog/application/use-cases/
 import { PandaVideoProvider } from './video/panda-video.provider';
 import { HttpModule } from '@nestjs/axios';
 import { DeleteCourseUseCase } from '@/domain/course-catalog/application/use-cases/delete-course.use-case';
+import { UpdateCourseUseCase } from '@/domain/course-catalog/application/use-cases/update-course.use-case';
 
 @Module({
   imports: [DatabaseModule, HttpModule],
@@ -21,6 +22,7 @@ import { DeleteCourseUseCase } from '@/domain/course-catalog/application/use-cas
     ListCoursesUseCase,
     GetCourseUseCase,
     DeleteCourseUseCase,
+    UpdateCourseUseCase,
     {
       provide: 'CourseRepository',
       useClass: PrismaCourseRepository,

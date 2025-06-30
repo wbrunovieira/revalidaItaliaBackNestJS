@@ -117,4 +117,51 @@ export class InMemoryCourseRepository implements ICourseRepository {
       return left(new Error('Failed to check course dependencies'));
     }
   }
+
+  async update(course: Course): Promise<Either<Error, void>> {
+    try {
+      const index = this.items.findIndex(
+        (item) => item.id.toString() === course.id.toString(),
+      );
+
+      if (index === -1) {
+        return left(new Error('Course not found'));
+      }
+
+      this.items[index] = course;
+      return right(undefined);
+    } catch (err: any) {
+      return left(new Error('Failed to update course'));
+    }
+  }
+
+  async findBySlugExcludingId(
+    slug: string,
+    excludeId: string,
+  ): Promise<Either<Error, Course>> {
+    const found = this.items.find(
+      (course) => course.slug === slug && course.id.toString() !== excludeId,
+    );
+
+    if (found) {
+      return right(found);
+    }
+
+    return left(new Error('Course not found'));
+  }
+
+  async findByTitleExcludingId(
+    title: string,
+    excludeId: string,
+  ): Promise<Either<Error, Course>> {
+    const found = this.items.find(
+      (course) => course.title === title && course.id.toString() !== excludeId,
+    );
+
+    if (found) {
+      return right(found);
+    }
+
+    return left(new Error('Course not found'));
+  }
 }

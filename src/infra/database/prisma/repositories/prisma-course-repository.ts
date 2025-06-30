@@ -370,4 +370,133 @@ export class PrismaCourseRepository implements ICourseRepository {
       return left(new Error('Failed to check course dependencies'));
     }
   }
+
+  async update(course: Course): Promise<Either<Error, void>> {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        // Atualizar o curso
+        await tx.course.update({
+          where: { id: course.id.toString() },
+          data: {
+            slug: course.slug,
+            imageUrl: course.imageUrl,
+            updatedAt: course.updatedAt,
+          },
+        });
+
+        // Deletar traduções existentes
+        await tx.courseTranslation.deleteMany({
+          where: { courseId: course.id.toString() },
+        });
+
+        // Criar novas traduções
+        await tx.courseTranslation.createMany({
+          data: course.translations.map((translation) => ({
+            id: new UniqueEntityID().toString(),
+            locale: translation.locale,
+            title: translation.title,
+            description: translation.description,
+            courseId: course.id.toString(),
+          })),
+        });
+      });
+
+      return right(undefined);
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        return left(new Error('Course not found'));
+      }
+      if (err.code === 'P2002') {
+        return left(new Error('Duplicate course data'));
+      }
+      return left(new Error('Failed to update course'));
+    }
+  }
+
+  async findBySlugExcludingId(
+    slug: string,
+    excludeId: string,
+  ): Promise<Either<Error, Course>> {
+    try {
+      const data = await this.prisma.course.findFirst({
+        where: {
+          slug,
+          id: { not: excludeId },
+        },
+        include: {
+          translations: true,
+        },
+      });
+
+      if (!data) {
+        return left(new Error('Course not found'));
+      }
+
+      const courseProps = {
+        slug: data.slug,
+        imageUrl: data.imageUrl || undefined,
+        translations: data.translations.map((tr) => ({
+          locale: tr.locale as 'pt' | 'it' | 'es',
+          title: tr.title,
+          description: tr.description,
+        })),
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      };
+
+      const courseEntity = Course.reconstruct(
+        courseProps,
+        new UniqueEntityID(data.id),
+      );
+      return right(courseEntity);
+    } catch (err: any) {
+      return left(new Error('Database error'));
+    }
+  }
+
+  async findByTitleExcludingId(
+    title: string,
+    excludeId: string,
+  ): Promise<Either<Error, Course>> {
+    try {
+      const data = await this.prisma.course.findFirst({
+        where: {
+          translations: {
+            some: {
+              locale: 'pt',
+              title,
+            },
+          },
+          id: { not: excludeId },
+        },
+        include: {
+          translations: true,
+        },
+      });
+
+      if (!data) {
+        return left(new Error('Course not found'));
+      }
+
+      const courseProps = {
+        slug: data.slug,
+        imageUrl: data.imageUrl || undefined,
+        translations: data.translations.map((tr) => ({
+          locale: tr.locale as 'pt' | 'it' | 'es',
+          title: tr.title,
+          description: tr.description,
+        })),
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      };
+
+      const courseEntity = Course.reconstruct(
+        courseProps,
+        new UniqueEntityID(data.id),
+      );
+      return right(courseEntity);
+    } catch (err: any) {
+      return left(new Error('Database error'));
+    }
+  }
 }

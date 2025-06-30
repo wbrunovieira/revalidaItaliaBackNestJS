@@ -13,7 +13,20 @@ export abstract class ICourseRepository {
 
   abstract findAll(): Promise<Either<Error, Course[]>>;
 
-  // abstract save(course: Course): Promise<Either<Error, void>>
+  // Atualizar um curso existente
+  abstract update(course: Course): Promise<Either<Error, void>>;
+
+  // Verificar se slug já existe (excluindo o curso atual)
+  abstract findBySlugExcludingId(
+    slug: string,
+    excludeId: string,
+  ): Promise<Either<Error, Course>>;
+
+  // Verificar se título já existe (excluindo o curso atual)
+  abstract findByTitleExcludingId(
+    title: string,
+    excludeId: string,
+  ): Promise<Either<Error, Course>>;
 
   abstract delete(id: string): Promise<Either<Error, void>>;
 
