@@ -11,6 +11,7 @@ import {
   Param,
   NotFoundException,
   Delete,
+  Put,
 } from '@nestjs/common';
 
 import { CreateCourseUseCase } from '@/domain/course-catalog/application/use-cases/create-course.use-case';
@@ -22,6 +23,9 @@ import { GetCourseUseCase } from '@/domain/course-catalog/application/use-cases/
 import { CourseNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/course-not-found-error';
 import { CourseHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/course-has-dependencies-error';
 import { DeleteCourseUseCase } from '@/domain/course-catalog/application/use-cases/delete-course.use-case';
+import { UpdateCourseUseCase } from '@/domain/course-catalog/application/use-cases/update-course.use-case';
+import { CourseNotModifiedError } from '@/domain/course-catalog/application/use-cases/errors/course-not-modified-error';
+import { UpdateCourseDto } from '@/domain/course-catalog/application/dtos/update-course.dto';
 
 @Controller('courses')
 export class CourseController {
@@ -34,6 +38,8 @@ export class CourseController {
     private readonly getCourseUseCase: GetCourseUseCase,
     @Inject(DeleteCourseUseCase)
     private readonly deleteCourseUseCase: DeleteCourseUseCase,
+    @Inject(UpdateCourseUseCase)
+    private readonly updateCourseUseCase: UpdateCourseUseCase,
   ) {}
 
   @Post()
@@ -140,6 +146,66 @@ export class CourseController {
       success: true,
       message: result.value.message,
       deletedAt: result.value.deletedAt,
+    };
+  }
+
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() dto: UpdateCourseDto) {
+    const request = {
+      id,
+      slug: dto.slug,
+      imageUrl: dto.imageUrl,
+      translations: dto.translations?.map((t) => ({
+        locale: t.locale,
+        title: t.title,
+        description: t.description,
+      })),
+    };
+
+    const result = await this.updateCourseUseCase.execute(request);
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof CourseNotFoundError) {
+        throw new NotFoundException({
+          error: 'COURSE_NOT_FOUND',
+          message: error.message,
+        });
+      }
+
+      if (error instanceof DuplicateCourseError) {
+        throw new ConflictException({
+          error: 'DUPLICATE_COURSE',
+          message: error.message,
+        });
+      }
+
+      if (error instanceof CourseNotModifiedError) {
+        throw new BadRequestException({
+          error: 'COURSE_NOT_MODIFIED',
+          message: error.message,
+        });
+      }
+
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: error.message,
+      });
+    }
+
+    // Sucesso
+    return {
+      success: true,
+      course: result.value.course,
     };
   }
 }

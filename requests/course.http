@@ -60,3 +60,33 @@ Content-Type: application/json
 # Este ID deve ser um curso que tem módulos ou está em tracks
 DELETE {{BASE_URL}}/courses/curso-com-dependencias-id
 Content-Type: application/json
+
+
+
+### 
+# @name update-course-complete
+PUT {{BASE_URL}}/courses/fe4e10c5-7279-4622-9b98-4503037f4640
+Content-Type: application/json
+
+{
+  "slug": "curso-atualizado-completo2ww2",
+  "imageUrl": "/images/nova-capa.jpg",
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Curso Completamente Atualizado",
+      "description": "Nova descrição do curso com todas as informações atualizadas."
+    },
+    {
+      "locale": "it",
+      "title": "Corso Completamente Aggiornato",
+      "description": "Nuova descrizione del corso con tutte le informazioni aggiornate."
+    },
+    {
+      "locale": "es",
+      "title": "Curso Completamente Actualizado",
+      "description": "Nueva descripción del curso con toda la información actualizada."
+    }
+  ]
+}
+
