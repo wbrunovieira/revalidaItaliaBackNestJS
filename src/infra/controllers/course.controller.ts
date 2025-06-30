@@ -10,6 +10,7 @@ import {
   InternalServerErrorException,
   Param,
   NotFoundException,
+  Delete,
 } from '@nestjs/common';
 
 import { CreateCourseUseCase } from '@/domain/course-catalog/application/use-cases/create-course.use-case';
@@ -19,6 +20,8 @@ import { InvalidInputError } from '@/domain/course-catalog/application/use-cases
 import { CreateCourseDto } from '@/domain/course-catalog/application/dtos/create-course.dto';
 import { GetCourseUseCase } from '@/domain/course-catalog/application/use-cases/get-course.use-case';
 import { CourseNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/course-not-found-error';
+import { CourseHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/course-has-dependencies-error';
+import { DeleteCourseUseCase } from '@/domain/course-catalog/application/use-cases/delete-course.use-case';
 
 @Controller('courses')
 export class CourseController {
@@ -29,6 +32,8 @@ export class CourseController {
     private readonly listCoursesUseCase: ListCoursesUseCase,
     @Inject(GetCourseUseCase)
     private readonly getCourseUseCase: GetCourseUseCase,
+    @Inject(DeleteCourseUseCase)
+    private readonly deleteCourseUseCase: DeleteCourseUseCase,
   ) {}
 
   @Post()
@@ -84,5 +89,57 @@ export class CourseController {
       throw new InternalServerErrorException(err.message);
     }
     return (result.value as any).course;
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    const result = await this.deleteCourseUseCase.execute({ id });
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid course ID format',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof CourseNotFoundError) {
+        throw new NotFoundException({
+          error: 'COURSE_NOT_FOUND',
+          message: error.message,
+        });
+      }
+
+      if (error instanceof CourseHasDependenciesError) {
+        // Resposta especial para dependências com informações para o frontend
+        const errorWithInfo = error as any;
+        throw new BadRequestException({
+          error: 'COURSE_HAS_DEPENDENCIES',
+          message: error.message,
+          canDelete: false,
+          dependencies: errorWithInfo.dependencyInfo?.dependencies || [],
+          summary: errorWithInfo.dependencyInfo?.summary || {},
+          totalDependencies:
+            errorWithInfo.dependencyInfo?.totalDependencies || 0,
+          actionRequired:
+            'Please resolve the dependencies before deleting this course',
+        });
+      }
+
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: error.message,
+      });
+    }
+
+    // Sucesso
+    return {
+      success: true,
+      message: result.value.message,
+      deletedAt: result.value.deletedAt,
+    };
   }
 }

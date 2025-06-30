@@ -219,14 +219,37 @@ export class PrismaCourseRepository implements ICourseRepository {
 
   async delete(id: string): Promise<Either<Error, void>> {
     try {
-      await this.prisma.course.delete({
-        where: { id },
+      await this.prisma.$transaction(async (tx) => {
+        // 1. Deletar CourseTranslation primeiro
+        await tx.courseTranslation.deleteMany({
+          where: { courseId: id },
+        });
+
+        // 2. Deletar CourseVideoLink
+        await tx.courseVideoLink.deleteMany({
+          where: { courseId: id },
+        });
+
+        // 3. Deletar TrackCourse (relacionamentos N:N)
+        await tx.trackCourse.deleteMany({
+          where: { courseId: id },
+        });
+
+        // 4. Deletar o curso por último
+        await tx.course.delete({
+          where: { id },
+        });
       });
 
       return right(undefined);
     } catch (err: any) {
       if (err.code === 'P2025') {
         return left(new Error('Course not found'));
+      }
+      if (err.code === 'P2003') {
+        return left(
+          new Error('Cannot delete course due to existing dependencies'),
+        );
       }
       return left(new Error('Failed to delete course'));
     }
