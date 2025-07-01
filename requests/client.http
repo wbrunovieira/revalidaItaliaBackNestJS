@@ -7,11 +7,24 @@ POST {{BASE_URL}}/students
 Content-Type: application/json
 
 {
-  "name": "Walter Bruno Prado Vieira",
-  "email": "bruno@wbdigitalsolutions.com",
+  "name": "admin Super",
+  "email": "admin@revalidaitalia.com.br",
   "password": "Senha123!",
-  "role": "student",
-  "cpf": "12145678900"
+  "role": "admin",
+  "cpf": "12145678912"
+}
+###
+###
+# @name create-account-tutor
+POST {{BASE_URL}}/students
+Content-Type: application/json
+
+{
+  "name": "Professor 2",
+  "email": "professor2@revalidaitalia.com.br",
+  "password": "Senha123!",
+  "role": "tutor",
+  "cpf": "78655443456"
 }
 ###
 

@@ -58,7 +58,7 @@ Content-Type: application/json
 ### 
 # @name delete-course-with-dependencies
 # Este ID deve ser um curso que tem módulos ou está em tracks
-DELETE {{BASE_URL}}/courses/curso-com-dependencias-id
+DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4
 Content-Type: application/json
 
 
