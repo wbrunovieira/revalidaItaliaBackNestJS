@@ -1,25 +1,28 @@
 // src/domain/course-catalog/application/repositories/i-module-repository.ts
 import { Either } from '@/core/either';
 import { Module as ModuleEntity } from '@/domain/course-catalog/enterprise/entities/module.entity';
+import { ModuleDependencyInfo } from '../dtos/module-dependencies.dto';
 
-export  abstract class IModuleRepository {
- 
+export abstract class IModuleRepository {
   abstract findByCourseId(
-    courseId: string
+    courseId: string,
   ): Promise<Either<Error, ModuleEntity[]>>;
 
   abstract findByCourseIdAndOrder(
     courseId: string,
-    order: number
+    order: number,
   ): Promise<Either<Error, ModuleEntity>>;
-
 
   abstract create(
     courseId: string,
-    module: ModuleEntity
+    module: ModuleEntity,
   ): Promise<Either<Error, void>>;
 
-  abstract findById(
-    moduleId: string
-  ): Promise<Either<Error, ModuleEntity>>;
+  abstract findById(moduleId: string): Promise<Either<Error, ModuleEntity>>;
+
+  abstract checkModuleDependencies(
+    moduleId: string,
+  ): Promise<Either<Error, ModuleDependencyInfo>>;
+
+  abstract delete(moduleId: string): Promise<Either<Error, void>>;
 }

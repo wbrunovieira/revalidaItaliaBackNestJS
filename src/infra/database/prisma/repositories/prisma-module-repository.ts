@@ -4,6 +4,10 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { Either, left, right } from '@/core/either';
 import { IModuleRepository } from '@/domain/course-catalog/application/repositories/i-module-repository';
 import { Module } from '@/domain/course-catalog/enterprise/entities/module.entity';
+import {
+  ModuleDependencyInfo,
+  ModuleDependency,
+} from '@/domain/course-catalog/application/dtos/module-dependencies.dto';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 
 @Injectable()
@@ -50,7 +54,7 @@ export class PrismaModuleRepository implements IModuleRepository {
 
       return right(moduleEntity);
     } catch (err: any) {
-      return left(new Error('Database error'));
+      return left(new Error(`Database error: ${err.message}`));
     }
   }
 
@@ -58,17 +62,11 @@ export class PrismaModuleRepository implements IModuleRepository {
     try {
       const modTranslations = module.translations;
 
-      console.log('🔍 DEBUG - Module entity:');
-      console.log('ID:', module.id.toString());
-      console.log('Slug:', module.slug);
-      console.log('ImageURL:', module.imageUrl); // ← Verificar este valor
-      console.log('Order:', module.order);
-
       await this.prisma.module.create({
         data: {
           id: module.id.toString(),
           slug: module.slug,
-          imageUrl: module.imageUrl || undefined,
+          imageUrl: module.imageUrl || null,
           order: module.order,
           courseId,
           createdAt: module.createdAt,
@@ -85,7 +83,7 @@ export class PrismaModuleRepository implements IModuleRepository {
       });
       return right(undefined);
     } catch (err: any) {
-      return left(new Error('Failed to create module'));
+      return left(new Error(`Failed to create module: ${err.message}`));
     }
   }
 
@@ -122,7 +120,7 @@ export class PrismaModuleRepository implements IModuleRepository {
 
       return right(modules);
     } catch (err: any) {
-      return left(new Error('Database error'));
+      return left(new Error(`Database error: ${err.message}`));
     }
   }
 
@@ -132,18 +130,23 @@ export class PrismaModuleRepository implements IModuleRepository {
         where: { id: moduleId },
         include: { translations: true },
       });
-      if (!mod) return left(new Error('Module not found'));
-      const vos = mod.translations.map((tr) => ({
+
+      if (!mod) {
+        return left(new Error('Module not found'));
+      }
+
+      const translationsVO = mod.translations.map((tr) => ({
         locale: tr.locale as 'pt' | 'it' | 'es',
         title: tr.title,
         description: tr.description,
       }));
+
       return right(
         Module.reconstruct(
           {
             slug: mod.slug,
             imageUrl: mod.imageUrl || undefined,
-            translations: vos,
+            translations: translationsVO,
             order: mod.order,
             videos: [],
             createdAt: mod.createdAt,
@@ -152,8 +155,112 @@ export class PrismaModuleRepository implements IModuleRepository {
           new UniqueEntityID(mod.id),
         ),
       );
-    } catch {
-      return left(new Error('Database error'));
+    } catch (err: any) {
+      return left(new Error(`Database error: ${err.message}`));
+    }
+  }
+
+  async checkModuleDependencies(
+    moduleId: string,
+  ): Promise<Either<Error, ModuleDependencyInfo>> {
+    try {
+      // Verificar se o módulo existe e buscar suas dependências
+      const module = await this.prisma.module.findUnique({
+        where: { id: moduleId },
+        include: {
+          lessons: {
+            include: {
+              translations: true,
+              Video: true,
+              documents: true,
+            },
+          },
+        },
+      });
+
+      if (!module) {
+        return left(new Error('Module not found'));
+      }
+
+      const dependencies: ModuleDependency[] = [];
+
+      // Adicionar lições como dependências
+      for (const lesson of module.lessons) {
+        const ptTranslation = lesson.translations.find(
+          (t) => t.locale === 'pt',
+        );
+        const lessonName = ptTranslation?.title || `Lesson ${lesson.id}`;
+
+        dependencies.push({
+          type: 'lesson',
+          id: lesson.id,
+          name: lessonName,
+          relatedEntities: {
+            videos: lesson.Video.length,
+            documents: lesson.documents.length,
+            flashcards: lesson.flashcardIds.length,
+            quizzes: lesson.quizIds.length,
+          },
+        });
+      }
+
+      // Contar vídeos totais (através das lições)
+      const totalVideos = module.lessons.reduce(
+        (sum, lesson) => sum + lesson.Video.length,
+        0,
+      );
+
+      const canDelete = dependencies.length === 0;
+
+      return right({
+        canDelete,
+        totalDependencies: dependencies.length,
+        summary: {
+          lessons: module.lessons.length,
+          videos: totalVideos,
+        },
+        dependencies,
+      });
+    } catch (err: any) {
+      return left(new Error(`Failed to check dependencies: ${err.message}`));
+    }
+  }
+
+  async delete(moduleId: string): Promise<Either<Error, void>> {
+    try {
+      // Usar transação para garantir atomicidade
+      await this.prisma.$transaction(async (tx) => {
+        // Verificar se o módulo existe
+        const moduleExists = await tx.module.findUnique({
+          where: { id: moduleId },
+        });
+
+        if (!moduleExists) {
+          throw new Error('Module not found');
+        }
+
+        // Deletar traduções do módulo
+        await tx.moduleTranslation.deleteMany({
+          where: { moduleId },
+        });
+
+        // Deletar video links do módulo
+        await tx.moduleVideoLink.deleteMany({
+          where: { moduleId },
+        });
+
+        // Deletar o módulo
+        await tx.module.delete({
+          where: { id: moduleId },
+        });
+      });
+
+      return right(undefined);
+    } catch (err: any) {
+      if (err.message === 'Module not found') {
+        return left(new Error('Module not found'));
+      }
+      return left(new Error(`Failed to delete module: ${err.message}`));
     }
   }
 }
