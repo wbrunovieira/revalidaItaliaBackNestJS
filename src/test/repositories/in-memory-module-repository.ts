@@ -122,6 +122,53 @@ export class InMemoryModuleRepository implements IModuleRepository {
     }
   }
 
+  async findBySlug(slug: string): Promise<Either<Error, Module | null>> {
+    try {
+      const found = this.items.find((entry) => entry.module.slug === slug);
+      return right(found ? found.module : null);
+    } catch (err: any) {
+      return left(new Error(err.message));
+    }
+  }
+
+  async update(module: Module): Promise<Either<Error, void>> {
+    try {
+      const index = this.items.findIndex(
+        (entry) => entry.module.id.toString() === module.id.toString(),
+      );
+
+      if (index === -1) {
+        return left(new Error('Module not found'));
+      }
+
+      // Manter o courseId original
+      const courseId = this.items[index].courseId;
+      this.items[index] = {
+        ...this.items[index],
+        module,
+        courseId,
+      };
+
+      return right(undefined);
+    } catch (err: any) {
+      return left(new Error(err.message));
+    }
+  }
+
+  async findCourseIdByModuleId(
+    moduleId: string,
+  ): Promise<Either<Error, string>> {
+    try {
+      const found = this.items.find((e) => e.module.id.toString() === moduleId);
+      if (!found) {
+        return left(new Error('Module not found'));
+      }
+      return right(found.courseId);
+    } catch (err: any) {
+      return left(new Error(err.message));
+    }
+  }
+
   // Método auxiliar para testes - adicionar dependências simuladas
   public addDependenciesToModule(
     moduleId: string,

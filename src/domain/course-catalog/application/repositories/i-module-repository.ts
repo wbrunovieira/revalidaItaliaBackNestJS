@@ -25,4 +25,14 @@ export abstract class IModuleRepository {
   ): Promise<Either<Error, ModuleDependencyInfo>>;
 
   abstract delete(moduleId: string): Promise<Either<Error, void>>;
+
+  abstract findBySlug(
+    slug: string,
+  ): Promise<Either<Error, ModuleEntity | null>>;
+
+  abstract update(module: ModuleEntity): Promise<Either<Error, void>>;
+
+  abstract findCourseIdByModuleId(
+    moduleId: string,
+  ): Promise<Either<Error, string>>;
 }

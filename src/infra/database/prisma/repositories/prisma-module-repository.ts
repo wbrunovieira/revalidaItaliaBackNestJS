@@ -263,4 +263,96 @@ export class PrismaModuleRepository implements IModuleRepository {
       return left(new Error(`Failed to delete module: ${err.message}`));
     }
   }
+
+  async findBySlug(slug: string): Promise<Either<Error, Module | null>> {
+    try {
+      const module = await this.prisma.module.findUnique({
+        where: { slug },
+        include: { translations: true },
+      });
+
+      if (!module) {
+        return right(null);
+      }
+
+      const translationsVO = module.translations.map((tr) => ({
+        locale: tr.locale as 'pt' | 'it' | 'es',
+        title: tr.title,
+        description: tr.description,
+      }));
+
+      return right(
+        Module.reconstruct(
+          {
+            slug: module.slug,
+            imageUrl: module.imageUrl || undefined,
+            translations: translationsVO,
+            order: module.order,
+            videos: [],
+            createdAt: module.createdAt,
+            updatedAt: module.updatedAt,
+          },
+          new UniqueEntityID(module.id),
+        ),
+      );
+    } catch (err: any) {
+      return left(new Error(`Database error: ${err.message}`));
+    }
+  }
+
+  async update(module: Module): Promise<Either<Error, void>> {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        // Atualizar o módulo principal
+        await tx.module.update({
+          where: { id: module.id.toString() },
+          data: {
+            slug: module.slug,
+            imageUrl: module.imageUrl || null,
+            order: module.order,
+            updatedAt: module.updatedAt,
+          },
+        });
+
+        // Deletar traduções existentes
+        await tx.moduleTranslation.deleteMany({
+          where: { moduleId: module.id.toString() },
+        });
+
+        // Criar novas traduções
+        await tx.moduleTranslation.createMany({
+          data: module.translations.map((tr) => ({
+            id: new UniqueEntityID().toString(),
+            moduleId: module.id.toString(),
+            locale: tr.locale,
+            title: tr.title,
+            description: tr.description,
+          })),
+        });
+      });
+
+      return right(undefined);
+    } catch (err: any) {
+      return left(new Error(`Failed to update module: ${err.message}`));
+    }
+  }
+
+  async findCourseIdByModuleId(
+    moduleId: string,
+  ): Promise<Either<Error, string>> {
+    try {
+      const module = await this.prisma.module.findUnique({
+        where: { id: moduleId },
+        select: { courseId: true },
+      });
+
+      if (!module) {
+        return left(new Error('Module not found'));
+      }
+
+      return right(module.courseId);
+    } catch (err: any) {
+      return left(new Error(`Database error: ${err.message}`));
+    }
+  }
 }
