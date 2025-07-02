@@ -280,4 +280,348 @@ describe('Create Module (E2E)', () => {
       ]),
     );
   });
+
+  describe('Delete Module (E2E)', () => {
+    it('[DELETE] /courses/:courseId/modules/:moduleId - Success', async () => {
+      // Create a module to delete
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'modulo-para-deletar',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Módulo Para Deletar',
+              description: 'Este módulo será deletado',
+            },
+            {
+              locale: 'it',
+              title: 'Modulo da Cancellare',
+              description: 'Questo modulo sarà cancellato',
+            },
+            {
+              locale: 'es',
+              title: 'Módulo Para Eliminar',
+              description: 'Este módulo será eliminado',
+            },
+          ],
+          order: 10,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Delete the module
+      const deleteRes = await request(app.getHttpServer()).delete(
+        `/courses/${courseId}/modules/${moduleId}`,
+      );
+
+      expect(deleteRes.status).toBe(200);
+      expect(deleteRes.body).toHaveProperty(
+        'message',
+        'Module deleted successfully',
+      );
+      expect(deleteRes.body).toHaveProperty('deletedAt');
+      expect(new Date(deleteRes.body.deletedAt)).toBeInstanceOf(Date);
+
+      // Verify module was deleted
+      const getRes = await request(app.getHttpServer()).get(
+        `/courses/${courseId}/modules/${moduleId}`,
+      );
+
+      expect(getRes.status).toBe(404);
+    });
+
+    it('[DELETE] /courses/:courseId/modules/:moduleId - Module Not Found', async () => {
+      const nonExistentModuleId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+
+      const res = await request(app.getHttpServer()).delete(
+        `/courses/${courseId}/modules/${nonExistentModuleId}`,
+      );
+
+      expect(res.status).toBe(404);
+      expect(res.body).toHaveProperty('message', 'Module not found');
+    });
+
+    it('[DELETE] /courses/:courseId/modules/:moduleId - Invalid Module ID', async () => {
+      const invalidModuleId = 'invalid-uuid-format';
+
+      const res = await request(app.getHttpServer()).delete(
+        `/courses/${courseId}/modules/${invalidModuleId}`,
+      );
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            message: 'Module ID must be a valid UUID',
+            path: ['id'],
+          }),
+        ]),
+      );
+    });
+
+    it('[DELETE] /courses/:courseId/modules/:moduleId - Module with Dependencies', async () => {
+      // Create a module
+      const moduleRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'modulo-com-licoes',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Módulo com Lições',
+              description: 'Este módulo tem lições',
+            },
+            {
+              locale: 'it',
+              title: 'Modulo con Lezioni',
+              description: 'Questo modulo ha lezioni',
+            },
+            {
+              locale: 'es',
+              title: 'Módulo con Lecciones',
+              description: 'Este módulo tiene lecciones',
+            },
+          ],
+          order: 20,
+        });
+
+      const moduleId = moduleRes.body.id;
+
+      // Create a lesson for this module
+      await prisma.lesson.create({
+        data: {
+          id: 'lesson-1',
+          moduleId: moduleId,
+          translations: {
+            create: [
+              {
+                locale: 'pt',
+                title: 'Lição 1',
+                description: 'Primeira lição',
+              },
+            ],
+          },
+        },
+      });
+
+      // Try to delete the module with dependencies
+      const deleteRes = await request(app.getHttpServer()).delete(
+        `/courses/${courseId}/modules/${moduleId}`,
+      );
+
+      expect(deleteRes.status).toBe(409);
+      expect(deleteRes.body).toHaveProperty('message');
+      expect(deleteRes.body.message).toContain(
+        'Cannot delete module because it has dependencies',
+      );
+      expect(deleteRes.body).toHaveProperty('dependencyInfo');
+      expect(deleteRes.body.dependencyInfo).toMatchObject({
+        canDelete: false,
+        totalDependencies: 1,
+        summary: {
+          lessons: 1,
+          videos: 0,
+        },
+      });
+
+      // Clean up the lesson
+      await prisma.lessonTranslation.deleteMany({
+        where: { lessonId: 'lesson-1' },
+      });
+      await prisma.lesson.delete({ where: { id: 'lesson-1' } });
+    });
+
+    it('[DELETE] /courses/:courseId/modules/:moduleId - Empty Module ID', async () => {
+      const res = await request(app.getHttpServer()).delete(
+        `/courses/${courseId}/modules/`,
+      );
+
+      // This should return 404 because the route won't match
+      expect(res.status).toBe(404);
+    });
+
+    it('[DELETE] /courses/:courseId/modules/:moduleId - SQL Injection Attempt', async () => {
+      const maliciousId = "'; DROP TABLE modules; --";
+
+      const res = await request(app.getHttpServer()).delete(
+        `/courses/${courseId}/modules/${encodeURIComponent(maliciousId)}`,
+      );
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+    });
+
+    it('[DELETE] /courses/:courseId/modules/:moduleId - Concurrent Deletion', async () => {
+      // Create a module
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'modulo-concorrente',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Módulo Concorrente',
+              description: 'Teste concorrência',
+            },
+            {
+              locale: 'it',
+              title: 'Modulo Concorrente',
+              description: 'Test concorrenza',
+            },
+            {
+              locale: 'es',
+              title: 'Módulo Concurrente',
+              description: 'Prueba concurrencia',
+            },
+          ],
+          order: 30,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // First deletion should succeed
+      const firstDelete = await request(app.getHttpServer()).delete(
+        `/courses/${courseId}/modules/${moduleId}`,
+      );
+
+      expect(firstDelete.status).toBe(200);
+
+      // Second deletion should fail with 404
+      const secondDelete = await request(app.getHttpServer()).delete(
+        `/courses/${courseId}/modules/${moduleId}`,
+      );
+
+      expect(secondDelete.status).toBe(404);
+    });
+
+    it('[DELETE] /courses/:courseId/modules/:moduleId - Very Long Module ID', async () => {
+      const veryLongId = 'a'.repeat(1000);
+
+      const res = await request(app.getHttpServer()).delete(
+        `/courses/${courseId}/modules/${veryLongId}`,
+      );
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+    });
+
+    it('[DELETE] /courses/:courseId/modules/:moduleId - Module from Different Course', async () => {
+      // Create a second course
+      const secondCourseRes = await request(app.getHttpServer())
+        .post('/courses')
+        .send({
+          slug: 'curso-diferente',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Curso Diferente',
+              description: 'Outro curso',
+            },
+            {
+              locale: 'it',
+              title: 'Corso Diverso',
+              description: 'Altro corso',
+            },
+            {
+              locale: 'es',
+              title: 'Curso Diferente',
+              description: 'Otro curso',
+            },
+          ],
+        });
+
+      const secondCourseId = secondCourseRes.body.id;
+
+      // Create a module in the second course
+      const moduleRes = await request(app.getHttpServer())
+        .post(`/courses/${secondCourseId}/modules`)
+        .send({
+          slug: 'modulo-outro-curso',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Módulo Outro Curso',
+              description: 'Módulo de outro curso',
+            },
+            {
+              locale: 'it',
+              title: 'Modulo Altro Corso',
+              description: 'Modulo di altro corso',
+            },
+            {
+              locale: 'es',
+              title: 'Módulo Otro Curso',
+              description: 'Módulo de otro curso',
+            },
+          ],
+          order: 40,
+        });
+
+      const moduleId = moduleRes.body.id;
+
+      // Try to delete the module using the first course ID (different from where it was created)
+      // The API should still allow this since the module ID is unique
+      const deleteRes = await request(app.getHttpServer()).delete(
+        `/courses/${courseId}/modules/${moduleId}`,
+      );
+
+      expect(deleteRes.status).toBe(200);
+
+      // Clean up
+      await prisma.courseTranslation.deleteMany({
+        where: { courseId: secondCourseId },
+      });
+      await prisma.course.delete({ where: { id: secondCourseId } });
+    });
+
+    it('[DELETE] /courses/:courseId/modules/:moduleId - Verify Cascade Deletion', async () => {
+      // Create a module with translations
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'modulo-cascade',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Módulo Cascade',
+              description: 'Teste de cascade',
+            },
+            {
+              locale: 'it',
+              title: 'Modulo Cascade',
+              description: 'Test di cascade',
+            },
+            {
+              locale: 'es',
+              title: 'Módulo Cascade',
+              description: 'Prueba de cascade',
+            },
+          ],
+          order: 50,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Verify translations exist
+      const translationsBefore = await prisma.moduleTranslation.findMany({
+        where: { moduleId },
+      });
+      expect(translationsBefore).toHaveLength(3);
+
+      // Delete the module
+      const deleteRes = await request(app.getHttpServer()).delete(
+        `/courses/${courseId}/modules/${moduleId}`,
+      );
+
+      expect(deleteRes.status).toBe(200);
+
+      // Verify translations were also deleted
+      const translationsAfter = await prisma.moduleTranslation.findMany({
+        where: { moduleId },
+      });
+      expect(translationsAfter).toHaveLength(0);
+    });
+  });
 });

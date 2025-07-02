@@ -6,26 +6,26 @@ POST {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules
 Content-Type: application/json
 
 {
-  "slug": "modulo-calculo5",
+  "slug": "modulo-calculo522",
    "imageUrl": "/images/capa-track.avif",
   "translations": [
     {
       "locale": "pt",
-      "title": "Módulo Cálculo5",
+      "title": "Módulo Cálculo522",
       "description": "Introdução ao cálculo diferencial."
     },
     {
       "locale": "it",
-      "title": "Modulo Calcolo5",
+      "title": "Modulo Calcolo522",
       "description": "Introduzione al calcolo differenziale."
     },
     {
       "locale": "es",
-      "title": "Módulo Cálculo5",
+      "title": "Módulo Cálculo522",
       "description": "Introducción al cálculo diferencial."
     }
   ],
-  "order": 6
+  "order": 7
 }
 
 ###
@@ -37,4 +37,16 @@ Content-Type: application/json
 ###
 # @name get-module
 GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72
+Content-Type: application/json
+
+
+###
+# @name delete-module
+DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/554d257b-1b37-40ce-9a2c-4240be4be4ac
+Content-Type: application/json
+
+###
+# @name delete-module-with-dependencies
+# Este exemplo testa a exclusão de um módulo que tem dependências (deve retornar erro 409)
+DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/module-id-with-dependencies
 Content-Type: application/json

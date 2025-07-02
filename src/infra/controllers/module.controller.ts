@@ -10,6 +10,7 @@ import {
   NotFoundException,
   ConflictException,
   InternalServerErrorException,
+  Delete,
 } from '@nestjs/common';
 import { CreateModuleUseCase } from '@/domain/course-catalog/application/use-cases/create-module.use-case';
 import { GetModulesUseCase } from '@/domain/course-catalog/application/use-cases/get-modules.use-case';
@@ -20,6 +21,8 @@ import { DuplicateModuleOrderError } from '@/domain/course-catalog/application/u
 import { CreateModuleDto } from '@/domain/course-catalog/application/dtos/create-module.dto';
 import { GetModuleUseCase } from '@/domain/course-catalog/application/use-cases/get-module.use-case';
 import { ModuleNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/module-not-found-error';
+import { DeleteModuleUseCase } from '@/domain/course-catalog/application/use-cases/delete-module.use-case';
+import { ModuleHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/module-has-dependencies-error';
 
 @Controller('courses/:courseId/modules')
 export class ModuleController {
@@ -30,6 +33,8 @@ export class ModuleController {
     private readonly getModulesUseCase: GetModulesUseCase,
     @Inject(GetModuleUseCase)
     private readonly getModuleUseCase: GetModuleUseCase,
+    @Inject(DeleteModuleUseCase)
+    private readonly deleteModuleUseCase: DeleteModuleUseCase,
   ) {}
 
   @Post()
@@ -97,5 +102,40 @@ export class ModuleController {
       throw new InternalServerErrorException(err.message);
     }
     return result.value.module;
+  }
+
+  @Delete(':moduleId')
+  async delete(
+    @Param('courseId') courseId: string,
+    @Param('moduleId') moduleId: string,
+  ) {
+    const result = await this.deleteModuleUseCase.execute({ id: moduleId });
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException(error.details);
+      }
+
+      if (error instanceof ModuleNotFoundError) {
+        throw new NotFoundException(error.message);
+      }
+
+      if (error instanceof ModuleHasDependenciesError) {
+        // Incluir informações detalhadas sobre as dependências na resposta de erro
+        const errorWithInfo = error as any;
+        throw new ConflictException({
+          message: error.message,
+          statusCode: 409,
+          error: 'Conflict',
+          dependencyInfo: errorWithInfo.dependencyInfo,
+        });
+      }
+
+      throw new InternalServerErrorException(error.message);
+    }
+
+    return result.value;
   }
 }
