@@ -167,4 +167,44 @@ export class Lesson extends Entity<LessonProps> {
   public static reconstruct(props: LessonProps, id: UniqueEntityID): Lesson {
     return new Lesson(props, id);
   }
+
+  // Adicionar estes métodos na classe Lesson
+  // src/domain/course-catalog/enterprise/entities/lesson.entity.ts
+
+  public updateDetails(details: { order?: number }): void {
+    if (details.order !== undefined) {
+      this.props.order = details.order;
+    }
+    this.touch();
+  }
+
+  public updateVideoId(videoId: string | undefined): void {
+    this.props.videoId = videoId;
+    this.touch();
+  }
+
+  public removeVideo(): void {
+    this.props.videoId = undefined;
+    this.touch();
+  }
+
+  public updateFlashcardIds(flashcardIds: string[]): void {
+    this.props.flashcardIds = flashcardIds;
+    this.touch();
+  }
+
+  public updateQuizIds(quizIds: string[]): void {
+    this.props.quizIds = quizIds;
+    this.touch();
+  }
+
+  public updateCommentIds(commentIds: string[]): void {
+    this.props.commentIds = commentIds;
+    this.touch();
+  }
+
+  public updateTranslations(translations: LessonTranslationVO[]): void {
+    this.props.translations = translations;
+    this.touch();
+  }
 }

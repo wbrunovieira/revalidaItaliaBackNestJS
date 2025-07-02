@@ -204,4 +204,44 @@ export class InMemoryLessonRepository implements ILessonRepository {
       }
     }
   }
+
+  async update(lesson: Lesson): Promise<Either<Error, undefined>> {
+    try {
+      const stored = this.byId.get(lesson.id.toString());
+      if (!stored) {
+        return left(new Error('Lesson not found'));
+      }
+
+      // Update the lesson in byId map
+      stored.lesson = lesson;
+
+      // Update in byModule map
+      const moduleLessons = this.byModule.get(lesson.moduleId) || [];
+      const lessonIndex = moduleLessons.findIndex(
+        (l) => l.id.toString() === lesson.id.toString(),
+      );
+
+      if (lessonIndex >= 0) {
+        moduleLessons[lessonIndex] = lesson;
+        this.byModule.set(lesson.moduleId, moduleLessons);
+      }
+
+      return right(undefined);
+    } catch (err: any) {
+      return left(new Error(err.message));
+    }
+  }
+
+  async findByModuleIdAndOrder(
+    moduleId: string,
+    order: number,
+  ): Promise<Either<Error, Lesson | null>> {
+    try {
+      const moduleLessons = this.byModule.get(moduleId) || [];
+      const lesson = moduleLessons.find((l) => l.order === order);
+      return right(lesson || null);
+    } catch (err: any) {
+      return left(new Error(err.message));
+    }
+  }
 }

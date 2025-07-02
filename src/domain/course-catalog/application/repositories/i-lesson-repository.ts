@@ -39,4 +39,14 @@ export abstract class ILessonRepository {
    * Deletes a lesson.
    */
   abstract delete(lessonId: string): Promise<Either<Error, void>>;
+
+  abstract update(lesson: Lesson): Promise<Either<Error, undefined>>;
+
+  /**
+   * Finds a lesson by module ID and order.
+   */
+  abstract findByModuleIdAndOrder(
+    moduleId: string,
+    order: number,
+  ): Promise<Either<Error, Lesson | null>>;
 }

@@ -336,4 +336,116 @@ export class PrismaLessonRepository implements ILessonRepository {
       return left(new Error(`Failed to delete lesson: ${err.message}`));
     }
   }
+
+  async update(lesson: Lesson): Promise<Either<Error, undefined>> {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        // Update lesson
+        await tx.lesson.update({
+          where: { id: lesson.id.toString() },
+          data: {
+            order: lesson.order,
+            imageUrl: lesson.imageUrl ?? null,
+            videoId: lesson.videoId ?? null,
+            flashcardIds: lesson.flashcardIds,
+            quizIds: lesson.quizIds,
+            commentIds: lesson.commentIds,
+            updatedAt: lesson.updatedAt,
+          },
+        });
+
+        // Delete existing translations
+        await tx.lessonTranslation.deleteMany({
+          where: { lessonId: lesson.id.toString() },
+        });
+
+        // Create new translations
+        if (lesson.translations.length > 0) {
+          await tx.lessonTranslation.createMany({
+            data: lesson.translations.map((t) => ({
+              id: new UniqueEntityID().toString(),
+              lessonId: lesson.id.toString(),
+              locale: t.locale,
+              title: t.title,
+              description: t.description ?? null,
+            })),
+          });
+        }
+      });
+
+      return right(undefined);
+    } catch (err: any) {
+      return left(new Error(`Failed to update lesson: ${err.message}`));
+    }
+  }
+
+  async findByModuleIdAndOrder(
+    moduleId: string,
+    order: number,
+  ): Promise<Either<Error, Lesson | null>> {
+    try {
+      const row = await this.prisma.lesson.findFirst({
+        where: {
+          moduleId,
+          order,
+        },
+        include: {
+          translations: true,
+          Video: {
+            include: {
+              translations: true,
+            },
+          },
+        },
+      });
+
+      if (!row) {
+        return right(null);
+      }
+
+      const videoData =
+        row.Video.length > 0
+          ? {
+              id: row.Video[0].id,
+              slug: row.Video[0].slug,
+              imageUrl: row.Video[0].imageUrl ?? undefined,
+              providerVideoId: row.Video[0].providerVideoId,
+              durationInSeconds: row.Video[0].durationInSeconds,
+              isSeen: row.Video[0].isSeen,
+              translations: row.Video[0].translations.map((t) => ({
+                locale: t.locale as any,
+                title: t.title,
+                description: t.description ?? undefined,
+              })),
+              createdAt: row.Video[0].createdAt,
+              updatedAt: row.Video[0].updatedAt,
+            }
+          : undefined;
+
+      const lesson = Lesson.reconstruct(
+        {
+          moduleId: row.moduleId,
+          order: row.order,
+          videoId: row.videoId ?? undefined,
+          imageUrl: row.imageUrl ?? undefined,
+          flashcardIds: row.flashcardIds,
+          quizIds: row.quizIds,
+          commentIds: row.commentIds,
+          translations: row.translations.map((t) => ({
+            locale: t.locale as any,
+            title: t.title,
+            description: t.description ?? undefined,
+          })),
+          video: videoData,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+        },
+        new UniqueEntityID(row.id),
+      );
+
+      return right(lesson);
+    } catch (err: any) {
+      return left(new Error(err.message));
+    }
+  }
 }
