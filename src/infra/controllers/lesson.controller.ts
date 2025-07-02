@@ -11,6 +11,7 @@ import {
   InternalServerErrorException,
   Delete,
   ConflictException,
+  Put,
 } from '@nestjs/common';
 import { CreateLessonUseCase } from '@/domain/course-catalog/application/use-cases/create-lesson.use-case';
 import { ListLessonsUseCase } from '@/domain/course-catalog/application/use-cases/list-lessons.use-case';
@@ -24,6 +25,9 @@ import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cas
 import { LessonHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/lesson-has-dependencies-error';
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 import { VideoNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/video-not-found-error';
+import { UpdateLessonUseCase } from '@/domain/course-catalog/application/use-cases/update-lesson.use-case';
+import { UpdateLessonRequest } from '@/domain/course-catalog/application/dtos/update-lesson-request.dto';
+import { DuplicateLessonOrderError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-lesson-order-error';
 
 @Controller('courses/:courseId/modules/:moduleId/lessons')
 export class LessonController {
@@ -32,6 +36,7 @@ export class LessonController {
     private readonly listLessons: ListLessonsUseCase,
     private readonly getLesson: GetLessonUseCase,
     private readonly deleteLesson: DeleteLessonUseCase,
+    private readonly updateLesson: UpdateLessonUseCase,
   ) {}
 
   @Post()
@@ -189,5 +194,51 @@ export class LessonController {
     }
 
     return result.value;
+  }
+
+  @Put(':lessonId')
+  async update(
+    @Param('lessonId') lessonId: string,
+    @Body() dto: Omit<UpdateLessonRequest, 'id'>,
+  ) {
+    const result = await this.updateLesson.execute({
+      id: lessonId,
+      imageUrl: dto.imageUrl,
+      translations: dto.translations,
+      order: dto.order,
+      videoId: dto.videoId,
+      flashcardIds: dto.flashcardIds,
+      quizIds: dto.quizIds,
+      commentIds: dto.commentIds,
+    });
+
+    if (result.isLeft()) {
+      const err = result.value;
+      if (err instanceof InvalidInputError) {
+        const ex = new BadRequestException(err.details);
+        (ex as any).response = err.details;
+        throw ex;
+      }
+      if (err instanceof LessonNotFoundError) {
+        const ex = new NotFoundException(err.message);
+        (ex as any).response = err.message;
+        throw ex;
+      }
+      if (err instanceof DuplicateLessonOrderError) {
+        const ex = new ConflictException(err.message);
+        (ex as any).response = err.message;
+        throw ex;
+      }
+      if (err instanceof RepositoryError) {
+        const ex = new InternalServerErrorException(err.message);
+        (ex as any).response = err.message;
+        throw ex;
+      }
+      const ex = new InternalServerErrorException('Unknown error occurred');
+      (ex as any).response = 'Unknown error occurred';
+      throw ex;
+    }
+
+    return result.value.lesson.toResponseObject();
   }
 }

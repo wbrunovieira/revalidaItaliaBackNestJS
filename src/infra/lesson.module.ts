@@ -9,6 +9,7 @@ import { VideoModule } from './video.module';
 import { ListLessonsUseCase } from '@/domain/course-catalog/application/use-cases/list-lessons.use-case';
 import { GetLessonUseCase } from '@/domain/course-catalog/application/use-cases/get-lesson.use-case';
 import { DeleteLessonUseCase } from '@/domain/course-catalog/application/use-cases/delete-lesson.use-case';
+import { UpdateLessonUseCase } from '@/domain/course-catalog/application/use-cases/update-lesson.use-case';
 
 @Module({
   imports: [DatabaseModule, VideoModule],
@@ -19,6 +20,7 @@ import { DeleteLessonUseCase } from '@/domain/course-catalog/application/use-cas
     ListLessonsUseCase,
     GetLessonUseCase,
     DeleteLessonUseCase,
+    UpdateLessonUseCase,
 
     // Repositories
     {

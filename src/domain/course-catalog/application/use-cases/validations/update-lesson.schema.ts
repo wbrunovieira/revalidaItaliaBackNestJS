@@ -25,7 +25,22 @@ export const updateLessonSchema = z
       ),
     imageUrl: z
       .union([
-        z.string().url('Image URL must be a valid URL').nullable(),
+        z
+          .string()
+          .min(1, 'Image URL cannot be empty')
+          .refine(
+            (value) => {
+              // Accept full URLs (http/https) or relative paths starting with /
+              const urlPattern = /^https?:\/\/.+/;
+              const pathPattern = /^\/[^\s]*$/;
+              return urlPattern.test(value) || pathPattern.test(value);
+            },
+            {
+              message:
+                'Image URL must be a valid URL or a valid path starting with /',
+            },
+          )
+          .nullable(),
         z.null(),
       ])
       .optional(),
@@ -55,7 +70,11 @@ export const updateLessonSchema = z
       .optional(),
     videoId: z
       .union([
-        z.string().min(1, 'Video ID cannot be empty').nullable(),
+        z
+          .string()
+          .min(1, 'Video ID cannot be empty')
+          .max(255, 'Video ID must be at most 255 characters')
+          .nullable(),
         z.null(),
       ])
       .optional(),
