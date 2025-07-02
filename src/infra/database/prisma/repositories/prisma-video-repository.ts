@@ -10,6 +10,7 @@ import { IVideoRepository } from '@/domain/course-catalog/application/repositori
 import { Video } from '@/domain/course-catalog/enterprise/entities/video.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { DuplicateVideoError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-video-error';
+import { VideoDependencyInfo } from '@/domain/course-catalog/application/dtos/video-dependencies.dto';
 
 @Injectable()
 export class PrismaVideoRepository implements IVideoRepository {
@@ -180,6 +181,137 @@ export class PrismaVideoRepository implements IVideoRepository {
       return right(result);
     } catch (err: any) {
       return left(new Error(`Database error: ${err.message}`));
+    }
+  }
+
+  async checkVideoDependencies(
+    id: string,
+  ): Promise<Either<Error, VideoDependencyInfo>> {
+    try {
+      // Buscar todas as dependências do vídeo
+      const [videosSeen, translations, videoLinks] = await Promise.all([
+        // VideoSeen - usuários que já viram o vídeo
+        this.prisma.videoSeen.findMany({
+          where: { videoId: id },
+          include: {
+            user: {
+              select: { id: true, name: true },
+            },
+          },
+        }),
+
+        // VideoTranslation - traduções do vídeo
+        this.prisma.videoTranslation.findMany({
+          where: { videoId: id },
+        }),
+
+        // VideoLink - links do vídeo por idioma
+        this.prisma.videoLink.findMany({
+          where: { videoId: id },
+        }),
+      ]);
+
+      const dependencies: VideoDependencyInfo['dependencies'] = [];
+
+      // Processar VideoSeen
+      videosSeen.forEach((seen) => {
+        dependencies.push({
+          type: 'video_seen',
+          id: seen.id,
+          name: `Viewed by ${seen.user.name}`,
+          relatedEntities: {
+            userId: seen.userId,
+            userName: seen.user.name,
+          },
+        });
+      });
+
+      // Processar VideoTranslation
+      translations.forEach((translation) => {
+        dependencies.push({
+          type: 'translation',
+          id: translation.id,
+          name: `Translation (${translation.locale}): ${translation.title}`,
+          relatedEntities: {
+            locale: translation.locale,
+          },
+        });
+      });
+
+      // Processar VideoLink
+      videoLinks.forEach((link) => {
+        dependencies.push({
+          type: 'video_link',
+          id: link.id,
+          name: `Video Link (${link.locale})`,
+          relatedEntities: {
+            locale: link.locale,
+          },
+        });
+      });
+
+      const info: VideoDependencyInfo = {
+        canDelete: dependencies.length === 0,
+        totalDependencies: dependencies.length,
+        summary: {
+          videosSeen: videosSeen.length,
+          translations: translations.length,
+          videoLinks: videoLinks.length,
+        },
+        dependencies,
+      };
+
+      return right(info);
+    } catch (err: any) {
+      return left(
+        new Error(`Failed to check video dependencies: ${err.message}`),
+      );
+    }
+  }
+
+  async delete(id: string): Promise<Either<Error, void>> {
+    try {
+      // Use transaction para garantir integridade
+      await this.prisma.$transaction(async (tx) => {
+        // Verificar se o vídeo existe
+        const existingVideo = await tx.video.findUnique({
+          where: { id },
+        });
+
+        if (!existingVideo) {
+          throw new Error('Video not found');
+        }
+
+        // Deletar todas as entidades relacionadas primeiro
+        await Promise.all([
+          // Deletar VideoSeen
+          tx.videoSeen.deleteMany({
+            where: { videoId: id },
+          }),
+
+          // Deletar VideoTranslation
+          tx.videoTranslation.deleteMany({
+            where: { videoId: id },
+          }),
+
+          // Deletar VideoLink
+          tx.videoLink.deleteMany({
+            where: { videoId: id },
+          }),
+        ]);
+
+        // Por último, deletar o próprio vídeo
+        await tx.video.delete({
+          where: { id },
+        });
+      });
+
+      return right(undefined);
+    } catch (err: any) {
+      if (err.message === 'Video not found') {
+        return left(new Error('Video not found'));
+      }
+      return left(new Error(`Failed to delete video: ${err.message}`));
     }
   }
 }

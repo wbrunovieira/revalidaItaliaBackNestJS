@@ -1,5 +1,6 @@
-import { Either } from "@/core/either";
-import { Video } from "../../enterprise/entities/video.entity";
+import { Either } from '@/core/either';
+import { Video } from '../../enterprise/entities/video.entity';
+import { VideoDependencyInfo } from '../dtos/video-dependencies.dto';
 
 // src/domain/course-catalog/application/repositories/i-video-repository.ts
 export interface IVideoRepository {
@@ -7,18 +8,20 @@ export interface IVideoRepository {
   create(
     moduleId: string,
     video: Video,
-    translations: Array<{ locale: "pt"|"it"|"es"; title: string; description: string }>
+    translations: Array<{
+      locale: 'pt' | 'it' | 'es';
+      title: string;
+      description: string;
+    }>,
   ): Promise<Either<Error, void>>;
-  
-  findById(
-    id: string
-  ): Promise<
+
+  findById(id: string): Promise<
     Either<
       Error,
       {
         video: Video;
         translations: Array<{
-          locale: "pt" | "it" | "es";
+          locale: 'pt' | 'it' | 'es';
           title: string;
           description: string;
         }>;
@@ -26,13 +29,22 @@ export interface IVideoRepository {
     >
   >;
 
-  findByLesson(
-    lessonId: string
-  ): Promise<
+  findByLesson(lessonId: string): Promise<
     Either<
       Error,
-      Array<{ video: Video; translations: Array<{ locale: 'pt' | 'it' | 'es'; title: string; description: string }> }>
+      Array<{
+        video: Video;
+        translations: Array<{
+          locale: 'pt' | 'it' | 'es';
+          title: string;
+          description: string;
+        }>;
+      }>
     >
   >;
-}
 
+  checkVideoDependencies(
+    id: string,
+  ): Promise<Either<Error, VideoDependencyInfo>>;
+  delete(id: string): Promise<Either<Error, void>>;
+}
