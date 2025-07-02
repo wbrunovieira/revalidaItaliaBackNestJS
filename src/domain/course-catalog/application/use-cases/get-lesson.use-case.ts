@@ -18,6 +18,7 @@ type GetLessonUseCaseResponse = Either<
   {
     id: string;
     moduleId: string;
+    order: number;
     videoId?: string;
     imageUrl?: string;
     flashcardIds: string[];

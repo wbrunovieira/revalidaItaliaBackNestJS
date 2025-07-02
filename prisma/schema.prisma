@@ -232,8 +232,9 @@ model Address {
 model Lesson {
   id           String   @id @default(uuid())
   module       Module   @relation(fields: [moduleId], references: [id])
-  moduleId     String   @unique
+  moduleId     String
   imageUrl     String?
+  order        Int      @default(1)
   videoId      String?
   flashcardIds String[] @default([])
   quizIds      String[] @default([])

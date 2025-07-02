@@ -18,6 +18,7 @@ export interface VideoVO {
   id: string;
   slug: string;
   imageUrl?: string;
+
   providerVideoId: string;
   durationInSeconds: number;
   isSeen: boolean;
@@ -28,13 +29,14 @@ export interface VideoVO {
 
 export interface LessonProps {
   moduleId: string;
+  order: number;
   videoId?: string;
   flashcardIds: string[];
   quizIds: string[];
   commentIds: string[];
   imageUrl?: string;
   translations: LessonTranslationVO[];
-  video?: VideoVO; // Incluir informações do vídeo
+  video?: VideoVO;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +48,9 @@ export class Lesson extends Entity<LessonProps> {
 
   public get moduleId(): string {
     return this.props.moduleId;
+  }
+  public get order(): number {
+    return this.props.order;
   }
 
   public get videoId(): string | undefined {
@@ -107,6 +112,7 @@ export class Lesson extends Entity<LessonProps> {
   public toResponseObject(): {
     id: string;
     moduleId: string;
+    order: number;
     videoId?: string;
     flashcardIds: string[];
     quizIds: string[];
@@ -130,6 +136,7 @@ export class Lesson extends Entity<LessonProps> {
     return {
       id: this.id.toString(),
       moduleId: this.moduleId,
+      order: this.order,
       videoId: this.videoId,
       flashcardIds: this.flashcardIds,
       quizIds: this.quizIds,

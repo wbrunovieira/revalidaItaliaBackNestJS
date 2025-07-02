@@ -2,60 +2,60 @@
 
 ###
 # @name create-module
-POST {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules
+POST {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules
 Content-Type: application/json
 
 {
-  "slug": "modulo-calculo522",
+  "slug": "modulo-calculo",
    "imageUrl": "/images/capa-track.avif",
   "translations": [
     {
       "locale": "pt",
-      "title": "Módulo Cálculo522",
+      "title": "Módulo Cálculo",
       "description": "Introdução ao cálculo diferencial."
     },
     {
       "locale": "it",
-      "title": "Modulo Calcolo522",
+      "title": "Modulo Calcolo",
       "description": "Introduzione al calcolo differenziale."
     },
     {
       "locale": "es",
-      "title": "Módulo Cálculo522",
+      "title": "Módulo Cálculo",
       "description": "Introducción al cálculo diferencial."
     }
   ],
-  "order": 7
+  "order": 1
 }
 
 ###
 
 # @name list-modules
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules
+GET {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules
 Content-Type: application/json
 
 ###
 # @name get-module
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72
+GET {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c
 Content-Type: application/json
 
 
 ###
 # @name delete-module
-DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/554d257b-1b37-40ce-9a2c-4240be4be4ac
+DELETE {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/554d257b-1b37-40ce-9a2c-4240be4be4ac
 Content-Type: application/json
 
 ###
 # @name delete-module-with-dependencies
 # Este exemplo testa a exclusão de um módulo que tem dependências (deve retornar erro 409)
-DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/module-id-with-dependencies
+DELETE {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/module-id-with-dependencies
 Content-Type: application/json
 
 
 
 ###
 # @name update-module
-PATCH {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
+PATCH {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
 Content-Type: application/json
 
 {
@@ -66,7 +66,7 @@ Content-Type: application/json
 ###
 # @name update-module-full
 # Exemplo atualizando todos os campos
-PATCH {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
+PATCH {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
 Content-Type: application/json
 
 {
@@ -95,7 +95,7 @@ Content-Type: application/json
 ###
 # @name update-module-remove-image
 # Remove a imagem do módulo
-PATCH {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
+PATCH {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
 Content-Type: application/json
 
 {
@@ -105,7 +105,7 @@ Content-Type: application/json
 ###
 # @name update-module-only-translations
 # Atualiza apenas as traduções
-PATCH {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
+PATCH {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
 Content-Type: application/json
 
 {

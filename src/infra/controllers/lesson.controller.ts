@@ -9,15 +9,19 @@ import {
   BadRequestException,
   NotFoundException,
   InternalServerErrorException,
+  Delete,
+  ConflictException,
 } from '@nestjs/common';
 import { CreateLessonUseCase } from '@/domain/course-catalog/application/use-cases/create-lesson.use-case';
 import { ListLessonsUseCase } from '@/domain/course-catalog/application/use-cases/list-lessons.use-case';
 import { GetLessonUseCase } from '@/domain/course-catalog/application/use-cases/get-lesson.use-case';
+import { DeleteLessonUseCase } from '@/domain/course-catalog/application/use-cases/delete-lesson.use-case';
 import { CreateLessonRequest } from '@/domain/course-catalog/application/dtos/create-lesson-request.dto';
 import { ListLessonsRequest } from '@/domain/course-catalog/application/dtos/list-lessons-request.dto';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { ModuleNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/module-not-found-error';
 import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
+import { LessonHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/lesson-has-dependencies-error';
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 import { VideoNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/video-not-found-error';
 
@@ -27,6 +31,7 @@ export class LessonController {
     private readonly createLesson: CreateLessonUseCase,
     private readonly listLessons: ListLessonsUseCase,
     private readonly getLesson: GetLessonUseCase,
+    private readonly deleteLesson: DeleteLessonUseCase,
   ) {}
 
   @Post()
@@ -36,6 +41,7 @@ export class LessonController {
   ) {
     const result = await this.createLesson.execute({
       moduleId,
+      order: dto.order,
       imageUrl: dto.imageUrl,
       translations: dto.translations,
       videoId: dto.videoId,
@@ -68,8 +74,7 @@ export class LessonController {
       throw ex;
     }
 
-    const { lesson } = result.value;
-    return lesson;
+    return result.value.lesson;
   }
 
   @Get()
@@ -113,10 +118,7 @@ export class LessonController {
   }
 
   @Get(':lessonId')
-  async get(
-    @Param('moduleId') moduleId: string,
-    @Param('lessonId') lessonId: string,
-  ) {
+  async get(@Param('lessonId') lessonId: string) {
     const result = await this.getLesson.execute({ id: lessonId });
 
     if (result.isLeft()) {
@@ -141,7 +143,51 @@ export class LessonController {
       throw ex;
     }
 
-    // Retornar o lesson diretamente, não dentro de um objeto wrapper
+    return result.value;
+  }
+
+  @Delete(':lessonId')
+  async delete(@Param('lessonId') lessonId: string) {
+    const result = await this.deleteLesson.execute({ id: lessonId });
+
+    if (result.isLeft()) {
+      const err = result.value;
+      if (err instanceof InvalidInputError) {
+        const ex = new BadRequestException(err.details);
+        (ex as any).response = err.details;
+        throw ex;
+      }
+      if (err instanceof LessonNotFoundError) {
+        const ex = new NotFoundException(err.message);
+        (ex as any).response = err.message;
+        throw ex;
+      }
+      if (err instanceof LessonHasDependenciesError) {
+        const errorWithInfo = err as any;
+        const ex = new ConflictException({
+          message: err.message,
+          statusCode: 409,
+          error: 'Conflict',
+          dependencyInfo: errorWithInfo.dependencyInfo,
+        });
+        (ex as any).response = {
+          message: err.message,
+          statusCode: 409,
+          error: 'Conflict',
+          dependencyInfo: errorWithInfo.dependencyInfo,
+        };
+        throw ex;
+      }
+      if (err instanceof RepositoryError) {
+        const ex = new InternalServerErrorException(err.message);
+        (ex as any).response = err.message;
+        throw ex;
+      }
+      const ex = new InternalServerErrorException('Unknown error occurred');
+      (ex as any).response = 'Unknown error occurred';
+      throw ex;
+    }
+
     return result.value;
   }
 }

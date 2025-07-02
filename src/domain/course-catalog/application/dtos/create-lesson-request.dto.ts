@@ -3,6 +3,7 @@ import { TranslationDto } from './translation.dto';
 
 export interface CreateLessonRequest {
   moduleId: string;
+  order: number;
   imageUrl?: string;
   translations: TranslationDto[];
   videoId?: string;

@@ -12,6 +12,7 @@ const lessonTranslationSchema = z.object({
 export const createLessonSchema = z
   .object({
     moduleId: z.string().uuid('Module ID must be a valid UUID'),
+    order: z.number(),
     videoId: z.string().uuid('Video ID must be a valid UUID').optional(),
     imageUrl: z
       .union([

@@ -8,6 +8,7 @@ import { LessonController } from './controllers/lesson.controller';
 import { VideoModule } from './video.module';
 import { ListLessonsUseCase } from '@/domain/course-catalog/application/use-cases/list-lessons.use-case';
 import { GetLessonUseCase } from '@/domain/course-catalog/application/use-cases/get-lesson.use-case';
+import { DeleteLessonUseCase } from '@/domain/course-catalog/application/use-cases/delete-lesson.use-case';
 
 @Module({
   imports: [DatabaseModule, VideoModule],
@@ -17,6 +18,7 @@ import { GetLessonUseCase } from '@/domain/course-catalog/application/use-cases/
     CreateLessonUseCase,
     ListLessonsUseCase,
     GetLessonUseCase,
+    DeleteLessonUseCase,
 
     // Repositories
     {

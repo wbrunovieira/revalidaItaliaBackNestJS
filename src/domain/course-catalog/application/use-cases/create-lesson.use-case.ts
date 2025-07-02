@@ -24,6 +24,7 @@ export type CreateLessonUseCaseResponse = Either<
     lesson: {
       id: string;
       moduleId: string;
+      order: number;
       videoId?: string;
       imageUrl?: string;
       translations: Array<{
@@ -83,6 +84,7 @@ export class CreateLessonUseCase {
     // 4) monta entidade
     const lessonEntity = Lesson.create({
       moduleId: data.moduleId,
+      order: data.order,
       videoId: data.videoId,
       imageUrl: data.imageUrl,
       flashcardIds: [],
@@ -102,6 +104,7 @@ export class CreateLessonUseCase {
       lesson: {
         id: lessonEntity.id.toString(),
         moduleId: lessonEntity.moduleId,
+        order: lessonEntity.order,
         imageUrl: lessonEntity.imageUrl,
 
         videoId: lessonEntity.videoId,

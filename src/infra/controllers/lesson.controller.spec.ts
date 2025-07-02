@@ -4,9 +4,11 @@ import { LessonController } from './lesson.controller';
 import { CreateLessonUseCase } from '@/domain/course-catalog/application/use-cases/create-lesson.use-case';
 import { ListLessonsUseCase } from '@/domain/course-catalog/application/use-cases/list-lessons.use-case';
 import { GetLessonUseCase } from '@/domain/course-catalog/application/use-cases/get-lesson.use-case';
+import { DeleteLessonUseCase } from '@/domain/course-catalog/application/use-cases/delete-lesson.use-case';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { ModuleNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/module-not-found-error';
 import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
+import { LessonHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/lesson-has-dependencies-error';
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 import { VideoNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/video-not-found-error';
 import { left, right } from '@/core/either';
@@ -17,6 +19,7 @@ describe('LessonController', () => {
   let createLesson: { execute: ReturnType<typeof vi.fn> };
   let listLessons: { execute: ReturnType<typeof vi.fn> };
   let getLesson: { execute: ReturnType<typeof vi.fn> };
+  let deleteLesson: { execute: ReturnType<typeof vi.fn> };
 
   const moduleId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
   const lessonId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
@@ -31,16 +34,18 @@ describe('LessonController', () => {
     createLesson = { execute: vi.fn() };
     listLessons = { execute: vi.fn() };
     getLesson = { execute: vi.fn() };
+    deleteLesson = { execute: vi.fn() };
     controller = new LessonController(
       createLesson as any,
       listLessons as any,
       getLesson as any,
+      deleteLesson as any,
     );
   });
 
   describe('Create Lesson (POST)', () => {
     it('creates lesson without video successfully', async () => {
-      const dto = { translations: validTranslations };
+      const dto = { order: 1, translations: validTranslations };
       const expected = {
         lesson: { id: 'lesson-1', moduleId, translations: validTranslations },
       };
@@ -50,14 +55,40 @@ describe('LessonController', () => {
 
       expect(createLesson.execute).toHaveBeenCalledWith({
         moduleId,
+        order: 1,
+        imageUrl: undefined,
         translations: validTranslations,
         videoId: undefined,
       });
       expect(result).toEqual(expected.lesson);
     });
 
+    it('creates lesson with video successfully', async () => {
+      const dto = { order: 2, translations: validTranslations, videoId };
+      const expected = {
+        lesson: {
+          id: 'lesson-2',
+          moduleId,
+          translations: validTranslations,
+          videoId,
+        },
+      };
+      createLesson.execute.mockResolvedValueOnce(right(expected));
+
+      const result = await controller.create(moduleId, dto);
+
+      expect(createLesson.execute).toHaveBeenCalledWith({
+        moduleId,
+        order: 2,
+        imageUrl: undefined,
+        translations: validTranslations,
+        videoId,
+      });
+      expect(result).toEqual(expected.lesson);
+    });
+
     it('throws 400 on invalid input', async () => {
-      const dto = { translations: [] };
+      const dto = { order: 1, translations: [] };
       const details = [
         { path: ['translations'], message: 'Invalid', code: 'too_small' },
       ];
@@ -72,7 +103,7 @@ describe('LessonController', () => {
     });
 
     it('throws 404 when module not found', async () => {
-      const dto = { translations: validTranslations };
+      const dto = { order: 1, translations: validTranslations };
       createLesson.execute.mockResolvedValueOnce(
         left(new ModuleNotFoundError('Module not found')),
       );
@@ -84,7 +115,7 @@ describe('LessonController', () => {
     });
 
     it('throws 400 when video not found', async () => {
-      const dto = { translations: validTranslations, videoId };
+      const dto = { order: 1, translations: validTranslations, videoId };
       createLesson.execute.mockResolvedValueOnce(
         left(new VideoNotFoundError()),
       );
@@ -96,7 +127,7 @@ describe('LessonController', () => {
     });
 
     it('throws 500 on repository error', async () => {
-      const dto = { translations: validTranslations };
+      const dto = { order: 1, translations: validTranslations };
       createLesson.execute.mockResolvedValueOnce(
         left(new RepositoryError('DB failed')),
       );
@@ -126,9 +157,9 @@ describe('LessonController', () => {
 
       const result = await controller.list(
         moduleId,
-        undefined,
-        undefined,
-        undefined,
+        undefined as any,
+        undefined as any,
+        undefined as any,
       );
 
       expect(listLessons.execute).toHaveBeenCalledWith({
@@ -193,7 +224,6 @@ describe('LessonController', () => {
     });
   });
 
-  // ✅ TESTES CORRIGIDOS: Get Lesson (GET /:lessonId)
   describe('Get Lesson (GET /:lessonId)', () => {
     const lessonResponse = {
       id: lessonId,
@@ -209,10 +239,9 @@ describe('LessonController', () => {
     };
 
     it('returns lesson successfully', async () => {
-      // O GetLessonUseCase agora retorna diretamente o objeto lesson, não { lesson: ... }
       getLesson.execute.mockResolvedValueOnce(right(lessonResponse));
 
-      const result = await controller.get(moduleId, lessonId);
+      const result = await controller.get(lessonId);
 
       expect(getLesson.execute).toHaveBeenCalledWith({ id: lessonId });
       expect(result).toEqual(lessonResponse);
@@ -225,13 +254,13 @@ describe('LessonController', () => {
         flashcardIds: [],
         quizIds: [],
         commentIds: [],
-        translations: [validTranslations[0]], // só português
+        translations: [validTranslations[0]],
         createdAt: new Date(),
         updatedAt: new Date(),
       };
       getLesson.execute.mockResolvedValueOnce(right(minimalLessonResponse));
 
-      const result = await controller.get(moduleId, lessonId);
+      const result = await controller.get(lessonId);
 
       expect(getLesson.execute).toHaveBeenCalledWith({ id: lessonId });
       expect(result).toEqual(minimalLessonResponse);
@@ -251,9 +280,7 @@ describe('LessonController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(
-        controller.get(moduleId, 'invalid-id'),
-      ).rejects.toMatchObject({
+      await expect(controller.get('invalid-id')).rejects.toMatchObject({
         status: 400,
         response: details,
       });
@@ -262,7 +289,7 @@ describe('LessonController', () => {
     it('throws 404 when lesson not found', async () => {
       getLesson.execute.mockResolvedValueOnce(left(new LessonNotFoundError()));
 
-      await expect(controller.get(moduleId, lessonId)).rejects.toMatchObject({
+      await expect(controller.get(lessonId)).rejects.toMatchObject({
         status: 404,
         response: 'Lesson not found',
       });
@@ -273,7 +300,7 @@ describe('LessonController', () => {
         left(new RepositoryError('Database connection failed')),
       );
 
-      await expect(controller.get(moduleId, lessonId)).rejects.toMatchObject({
+      await expect(controller.get(lessonId)).rejects.toMatchObject({
         status: 500,
         response: 'Database connection failed',
       });
@@ -282,7 +309,7 @@ describe('LessonController', () => {
     it('throws 500 on unknown error', async () => {
       getLesson.execute.mockResolvedValueOnce(left(new Error('Unknown error')));
 
-      await expect(controller.get(moduleId, lessonId)).rejects.toMatchObject({
+      await expect(controller.get(lessonId)).rejects.toMatchObject({
         status: 500,
         response: 'Unknown error occurred',
       });
@@ -292,10 +319,84 @@ describe('LessonController', () => {
       const differentLessonId = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
       getLesson.execute.mockResolvedValueOnce(right(lessonResponse));
 
-      await controller.get(moduleId, differentLessonId);
+      await controller.get(differentLessonId);
 
       expect(getLesson.execute).toHaveBeenCalledWith({ id: differentLessonId });
       expect(getLesson.execute).not.toHaveBeenCalledWith({ id: lessonId });
+    });
+  });
+
+  describe('Delete Lesson (DELETE /:lessonId)', () => {
+    it('deletes lesson successfully', async () => {
+      const expected = { success: true };
+      deleteLesson.execute.mockResolvedValueOnce(right(expected));
+
+      const result = await controller.delete(lessonId);
+
+      expect(deleteLesson.execute).toHaveBeenCalledWith({ id: lessonId });
+      expect(result).toEqual(expected);
+    });
+
+    it('throws 400 on invalid lesson ID', async () => {
+      const details = [
+        { path: ['id'], message: 'Invalid UUID', code: 'invalid_string' },
+      ];
+      deleteLesson.execute.mockResolvedValueOnce(
+        left(new InvalidInputError('Validation failed', details)),
+      );
+
+      await expect(controller.delete('invalid-id')).rejects.toMatchObject({
+        status: 400,
+        response: details,
+      });
+    });
+
+    it('throws 404 when lesson not found', async () => {
+      deleteLesson.execute.mockResolvedValueOnce(
+        left(new LessonNotFoundError()),
+      );
+
+      await expect(controller.delete(lessonId)).rejects.toMatchObject({
+        status: 404,
+        response: 'Lesson not found',
+      });
+    });
+
+    it('throws 409 when lesson has dependencies', async () => {
+      const deps = {
+        canDelete: false,
+        totalDependencies: 1,
+        summary: {
+          videos: 0,
+          documents: 0,
+          flashcards: 0,
+          quizzes: 1,
+          comments: 0,
+        },
+        dependencies: ['quiz'],
+      } as any;
+      deleteLesson.execute.mockResolvedValueOnce(
+        left(new LessonHasDependenciesError(['quiz'], deps)),
+      );
+
+      await expect(controller.delete(lessonId)).rejects.toMatchObject({
+        status: 409,
+        response: expect.objectContaining({
+          message: 'Cannot delete lesson because it has dependencies: quiz',
+          dependencyInfo: deps,
+        }),
+      });
+    });
+  });
+
+  it('throws 500 on repository error', async () => {
+    deleteLesson.execute.mockResolvedValueOnce(
+      left(new RepositoryError('DB error')),
+    );
+
+    await expect(controller.delete(lessonId)).rejects.toMatchObject({
+      status: 500,
+      response: 'DB error',
     });
   });
 });

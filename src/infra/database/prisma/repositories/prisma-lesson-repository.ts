@@ -24,6 +24,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         data: {
           id: lesson.id.toString(),
           moduleId: lesson.moduleId,
+          order: lesson.order,
           imageUrl: lesson.imageUrl ?? undefined,
           videoId: lesson.videoId ?? null,
           flashcardIds: lesson.flashcardIds,
@@ -88,6 +89,7 @@ export class PrismaLessonRepository implements ILessonRepository {
       const lesson = Lesson.reconstruct(
         {
           moduleId: row.moduleId,
+          order: row.order,
           videoId: row.videoId ?? undefined,
           imageUrl: row.imageUrl ?? undefined,
           flashcardIds: row.flashcardIds,
@@ -162,6 +164,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         return Lesson.reconstruct(
           {
             moduleId: row.moduleId,
+            order: row.order,
             videoId: row.videoId ?? undefined,
             imageUrl: row.imageUrl ?? undefined,
             flashcardIds: row.flashcardIds,

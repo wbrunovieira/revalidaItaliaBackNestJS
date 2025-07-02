@@ -6,23 +6,23 @@ POST {{BASE_URL}}/courses
 Content-Type: application/json
 
 {
-  "slug": "matematica-avancada1212112111",
+  "slug": "curso-teste",
    "imageUrl": "/images/capa-track.avif",
   "translations": [
     {
       "locale": "pt",
-      "title": "Matemática Avançada121211212121111",
-      "description": "Um mergulho profundo em tópicos avançados de matemática."
+      "title": "Titulo Curso pt",
+      "description": "Descricao curso pt."
     },
     {
       "locale": "it",
-      "title": "Matematica Avanzata12121212111",
-      "description": "Un'immersione approfondita in argomenti matematici avanzati."
+      "title": "Titulo Curso it",
+      "description": "Descricao curso it."
     },
     {
       "locale": "es",
-      "title": "Matemáticas Avanzadas1211212122111",
-      "description": "Una inmersión profunda en temas avanzados de matemáticas."
+      "title": "Titulo Curso pt",
+      "description": "Descricao curso es."
     }
   ]
 }
@@ -36,7 +36,7 @@ Content-Type: application/json
 ###
 
 # @name get-course
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4
+GET {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8
 Content-Type: application/json
 
 
@@ -65,7 +65,7 @@ Content-Type: application/json
 
 ### 
 # @name update-course-complete
-PUT {{BASE_URL}}/courses/fe4e10c5-7279-4622-9b98-4503037f4640
+PUT {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8
 Content-Type: application/json
 
 {

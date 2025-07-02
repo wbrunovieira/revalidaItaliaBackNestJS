@@ -1,21 +1,22 @@
 @BASE_URL = http://localhost:3333
 
 ### Create Lesson
-POST {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons
+POST {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons
 Content-Type: application/json
 
 {
-  "moduleId": "c1542c84-49b8-4787-807b-97d9a36caa72", 
+  "moduleId": "dbe40109-2277-4586-a2d5-dfbe26d45c5c", 
   "imageUrl": "/images/capa-track.avif",
   "translations": [
-    { "locale": "pt", "title": "Aula PT", "description": "Descrição PT" },
-    { "locale": "it", "title": "Lezione IT", "description": "Descrizione IT" },
-    { "locale": "es", "title": "Lección ES", "description": "Descripción ES" }
-  ]
+    { "locale": "pt", "title": "Aula PT3", "description": "Descrição PT" },
+    { "locale": "it", "title": "Lezione IT3", "description": "Descrizione IT" },
+    { "locale": "es", "title": "Lección ES3", "description": "Descripción ES" }
+  ],
+   "order": 4
 }
 
 ### Create Lesson (with video)
-POST {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons
+POST {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons
 Content-Type: application/json
 
 {
@@ -28,16 +29,30 @@ Content-Type: application/json
 }
 
 ### List Lessons
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons
+GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons
 
 ### List Lessons (with pagination)
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons?page=1&limit=5&includeVideo=true
+GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons?page=1&limit=5&includeVideo=true
 
 ### ✅ NEW: Get Specific Lesson
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons/4eb7f594-a804-4567-b9c3-db21c6ef3bad
+GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons/9c053337-ba52-48e7-8b28-6ba2c8884fd9
 
 ### ✅ NEW: Get Lesson - Not Found (example)
 GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons/00000000-0000-0000-0000-000000000000
 
 ### ✅ NEW: Get Lesson - Invalid UUID (example)
 GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons/invalid-uuid
+
+
+### 🗑️ Delete Lesson
+DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons/5bb2ed75-7920-469b-a91e-4f406d44e62d
+
+### 🗑️ Delete Lesson - Not Found
+DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons/00000000-0000-0000-0000-000000000000
+
+### 🗑️ Delete Lesson - Invalid UUID
+DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons/invalid-uuid
+
+### 🗑️ Delete Lesson - With Dependencies (should return 409)
+# Este exemplo testa a exclusão de uma lição que tem dependências (deve retornar erro 409)
+DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons/lesson-id-with-dependencies

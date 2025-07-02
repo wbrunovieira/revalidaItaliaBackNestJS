@@ -183,6 +183,7 @@ CREATE TABLE "Lesson" (
     "id" TEXT NOT NULL,
     "moduleId" TEXT NOT NULL,
     "imageUrl" TEXT,
+    "order" INTEGER NOT NULL DEFAULT 1,
     "videoId" TEXT,
     "flashcardIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "quizIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
@@ -267,9 +268,6 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_cpf_key" ON "User"("cpf");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Lesson_moduleId_key" ON "Lesson"("moduleId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "LessonTranslation_lessonId_locale_key" ON "LessonTranslation"("lessonId", "locale");
