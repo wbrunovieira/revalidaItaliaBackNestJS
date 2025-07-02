@@ -1,17 +1,32 @@
-//src/test/repositories/in-memory-lesson-repository.ts
+// src/test/repositories/in-memory-lesson-repository.ts
 import { Either, left, right } from '@/core/either';
 import {
   ILessonRepository,
   PaginatedLessonsResult,
 } from '@/domain/course-catalog/application/repositories/i-lesson-repository';
 import { Lesson } from '@/domain/course-catalog/enterprise/entities/lesson.entity';
+import {
+  LessonDependencyInfo,
+  LessonDependency,
+} from '@/domain/course-catalog/application/dtos/lesson-dependencies.dto';
+import { UniqueEntityID } from '@/core/unique-entity-id';
+
+interface StoredLesson {
+  lesson: Lesson;
+  // Simulação de dependências para testes
+  videos?: any[];
+  documents?: any[];
+  flashcards?: any[];
+  quizzes?: any[];
+  comments?: any[];
+}
 
 export class InMemoryLessonRepository implements ILessonRepository {
-  private byId = new Map<string, Lesson>();
+  private byId = new Map<string, StoredLesson>();
   private byModule = new Map<string, Lesson[]>();
 
   async create(lesson: Lesson): Promise<Either<Error, undefined>> {
-    this.byId.set(lesson.id.toString(), lesson);
+    this.byId.set(lesson.id.toString(), { lesson });
 
     // Store multiple lessons per module
     const existingLessons = this.byModule.get(lesson.moduleId) || [];
@@ -22,9 +37,9 @@ export class InMemoryLessonRepository implements ILessonRepository {
   }
 
   async findById(id: string): Promise<Either<Error, Lesson>> {
-    const lesson = this.byId.get(id);
-    if (!lesson) return left(new Error('Lesson not found'));
-    return right(lesson);
+    const stored = this.byId.get(id);
+    if (!stored) return left(new Error('Lesson not found'));
+    return right(stored.lesson);
   }
 
   async findByModuleId(
@@ -39,5 +54,154 @@ export class InMemoryLessonRepository implements ILessonRepository {
     const lessons = allLessons.slice(offset, offset + limit);
 
     return right({ lessons, total });
+  }
+
+  async checkLessonDependencies(
+    lessonId: string,
+  ): Promise<Either<Error, LessonDependencyInfo>> {
+    try {
+      const stored = this.byId.get(lessonId);
+
+      if (!stored) {
+        return left(new Error('Lesson not found'));
+      }
+
+      const videos = stored.videos || [];
+      const documents = stored.documents || [];
+      const flashcards = stored.flashcards || [];
+      const quizzes = stored.quizzes || [];
+      const comments = stored.comments || [];
+
+      const dependencies: LessonDependency[] = [];
+
+      // Adicionar vídeos como dependências
+      videos.forEach((video) => {
+        dependencies.push({
+          type: 'video',
+          id: video.id || new UniqueEntityID().toString(),
+          name: video.title || `Video ${video.id}`,
+          relatedEntities: {
+            translations: video.translations?.length || 0,
+          },
+        });
+      });
+
+      // Adicionar documentos como dependências
+      documents.forEach((doc) => {
+        dependencies.push({
+          type: 'document',
+          id: doc.id || new UniqueEntityID().toString(),
+          name: doc.filename || `Document ${doc.id}`,
+          relatedEntities: {
+            translations: doc.translations?.length || 0,
+          },
+        });
+      });
+
+      // Adicionar flashcards como dependências
+      flashcards.forEach((flashcard) => {
+        dependencies.push({
+          type: 'flashcard',
+          id: flashcard.id || new UniqueEntityID().toString(),
+          name: flashcard.title || `Flashcard ${flashcard.id}`,
+        });
+      });
+
+      // Adicionar quizzes como dependências
+      quizzes.forEach((quiz) => {
+        dependencies.push({
+          type: 'quiz',
+          id: quiz.id || new UniqueEntityID().toString(),
+          name: quiz.title || `Quiz ${quiz.id}`,
+        });
+      });
+
+      // Adicionar comentários como dependências
+      comments.forEach((comment) => {
+        dependencies.push({
+          type: 'comment',
+          id: comment.id || new UniqueEntityID().toString(),
+          name: comment.author || `Comment ${comment.id}`,
+        });
+      });
+
+      const canDelete = dependencies.length === 0;
+
+      return right({
+        canDelete,
+        totalDependencies: dependencies.length,
+        summary: {
+          videos: videos.length,
+          documents: documents.length,
+          flashcards: flashcards.length,
+          quizzes: quizzes.length,
+          comments: comments.length,
+        },
+        dependencies,
+      });
+    } catch (err: any) {
+      return left(new Error(err.message));
+    }
+  }
+
+  async delete(lessonId: string): Promise<Either<Error, void>> {
+    try {
+      const stored = this.byId.get(lessonId);
+      if (!stored) {
+        return left(new Error('Lesson not found'));
+      }
+
+      const lesson = stored.lesson;
+
+      // Remove from byId map
+      this.byId.delete(lessonId);
+
+      // Remove from byModule map
+      const moduleLessons = this.byModule.get(lesson.moduleId) || [];
+      const filteredLessons = moduleLessons.filter(
+        (l) => l.id.toString() !== lessonId,
+      );
+
+      if (filteredLessons.length > 0) {
+        this.byModule.set(lesson.moduleId, filteredLessons);
+      } else {
+        this.byModule.delete(lesson.moduleId);
+      }
+
+      return right(undefined);
+    } catch (err: any) {
+      return left(new Error(err.message));
+    }
+  }
+
+  // Método auxiliar para testes - adicionar dependências simuladas
+  public addDependenciesToLesson(
+    lessonId: string,
+    dependencies: {
+      videos?: any[];
+      documents?: any[];
+      flashcards?: any[];
+      quizzes?: any[];
+      comments?: any[];
+    },
+  ): void {
+    const stored = this.byId.get(lessonId);
+    if (stored) {
+      if (dependencies.videos) {
+        stored.videos = dependencies.videos;
+      }
+      if (dependencies.documents) {
+        stored.documents = dependencies.documents;
+      }
+      if (dependencies.flashcards) {
+        stored.flashcards = dependencies.flashcards;
+      }
+      if (dependencies.quizzes) {
+        stored.quizzes = dependencies.quizzes;
+      }
+      if (dependencies.comments) {
+        stored.comments = dependencies.comments;
+      }
+    }
   }
 }

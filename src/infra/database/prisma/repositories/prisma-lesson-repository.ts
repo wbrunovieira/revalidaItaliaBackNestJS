@@ -8,6 +8,10 @@ import {
   PaginatedLessonsResult,
 } from '@/domain/course-catalog/application/repositories/i-lesson-repository';
 import { Lesson } from '@/domain/course-catalog/enterprise/entities/lesson.entity';
+import {
+  LessonDependencyInfo,
+  LessonDependency,
+} from '@/domain/course-catalog/application/dtos/lesson-dependencies.dto';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 
 @Injectable()
@@ -179,6 +183,154 @@ export class PrismaLessonRepository implements ILessonRepository {
       return right({ lessons, total });
     } catch (err: any) {
       return left(new Error(err.message));
+    }
+  }
+
+  async checkLessonDependencies(
+    lessonId: string,
+  ): Promise<Either<Error, LessonDependencyInfo>> {
+    try {
+      // Verificar se a lição existe e buscar suas dependências
+      const lesson = await this.prisma.lesson.findUnique({
+        where: { id: lessonId },
+        include: {
+          Video: {
+            include: {
+              translations: true,
+            },
+          },
+          documents: {
+            include: {
+              translations: true,
+            },
+          },
+        },
+      });
+
+      if (!lesson) {
+        return left(new Error('Lesson not found'));
+      }
+
+      const dependencies: LessonDependency[] = [];
+
+      // Adicionar vídeos como dependências
+      for (const video of lesson.Video) {
+        dependencies.push({
+          type: 'video',
+          id: video.id,
+          name: video.slug,
+          relatedEntities: {
+            translations: video.translations.length,
+          },
+        });
+      }
+
+      // Adicionar documentos como dependências
+      for (const doc of lesson.documents) {
+        const ptTranslation = doc.translations.find((t) => t.locale === 'pt');
+        const docName =
+          doc.filename || ptTranslation?.title || `Document ${doc.id}`;
+
+        dependencies.push({
+          type: 'document',
+          id: doc.id,
+          name: docName,
+          relatedEntities: {
+            translations: doc.translations.length,
+          },
+        });
+      }
+
+      // Adicionar flashcards (apenas contagem, pois são IDs)
+      for (const flashcardId of lesson.flashcardIds) {
+        dependencies.push({
+          type: 'flashcard',
+          id: flashcardId,
+          name: `Flashcard ${flashcardId}`,
+        });
+      }
+
+      // Adicionar quizzes (apenas contagem, pois são IDs)
+      for (const quizId of lesson.quizIds) {
+        dependencies.push({
+          type: 'quiz',
+          id: quizId,
+          name: `Quiz ${quizId}`,
+        });
+      }
+
+      // Adicionar comentários (apenas contagem, pois são IDs)
+      for (const commentId of lesson.commentIds) {
+        dependencies.push({
+          type: 'comment',
+          id: commentId,
+          name: `Comment ${commentId}`,
+        });
+      }
+
+      const canDelete = dependencies.length === 0;
+
+      return right({
+        canDelete,
+        totalDependencies: dependencies.length,
+        summary: {
+          videos: lesson.Video.length,
+          documents: lesson.documents.length,
+          flashcards: lesson.flashcardIds.length,
+          quizzes: lesson.quizIds.length,
+          comments: lesson.commentIds.length,
+        },
+        dependencies,
+      });
+    } catch (err: any) {
+      return left(new Error(`Failed to check dependencies: ${err.message}`));
+    }
+  }
+
+  async delete(lessonId: string): Promise<Either<Error, void>> {
+    try {
+      // Usar transação para garantir atomicidade
+      await this.prisma.$transaction(async (tx) => {
+        // Verificar se a lição existe
+        const lessonExists = await tx.lesson.findUnique({
+          where: { id: lessonId },
+        });
+
+        if (!lessonExists) {
+          throw new Error('Lesson not found');
+        }
+
+        // Deletar traduções da lição
+        await tx.lessonTranslation.deleteMany({
+          where: { lessonId },
+        });
+
+        // Deletar traduções dos documentos
+        await tx.lessonDocumentTranslation.deleteMany({
+          where: {
+            document: {
+              lessonId,
+            },
+          },
+        });
+
+        // Deletar documentos da lição
+        await tx.lessonDocument.deleteMany({
+          where: { lessonId },
+        });
+
+        // Deletar a lição
+        await tx.lesson.delete({
+          where: { id: lessonId },
+        });
+      });
+
+      return right(undefined);
+    } catch (err: any) {
+      if (err.message === 'Lesson not found') {
+        return left(new Error('Lesson not found'));
+      }
+      return left(new Error(`Failed to delete lesson: ${err.message}`));
     }
   }
 }

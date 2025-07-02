@@ -1,6 +1,7 @@
 // src/domain/course-catalog/application/repositories/i-lesson-repository.ts
 import { Either } from '@/core/either';
 import { Lesson } from '@/domain/course-catalog/enterprise/entities/lesson.entity';
+import { LessonDependencyInfo } from '../dtos/lesson-dependencies.dto';
 
 export interface PaginatedLessonsResult {
   lessons: Lesson[];
@@ -26,4 +27,16 @@ export abstract class ILessonRepository {
    * Persists a new Lesson.
    */
   abstract create(lesson: Lesson): Promise<Either<Error, undefined>>;
+
+  /**
+   * Checks if lesson has dependencies that prevent deletion.
+   */
+  abstract checkLessonDependencies(
+    lessonId: string,
+  ): Promise<Either<Error, LessonDependencyInfo>>;
+
+  /**
+   * Deletes a lesson.
+   */
+  abstract delete(lessonId: string): Promise<Either<Error, void>>;
 }
