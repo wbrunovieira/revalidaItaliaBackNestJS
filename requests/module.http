@@ -50,3 +50,80 @@ Content-Type: application/json
 # Este exemplo testa a exclusão de um módulo que tem dependências (deve retornar erro 409)
 DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/module-id-with-dependencies
 Content-Type: application/json
+
+
+
+###
+# @name update-module
+PATCH {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
+Content-Type: application/json
+
+{
+  "slug": "modulo-calculo-atualizado",
+  "order": 8
+}
+
+###
+# @name update-module-full
+# Exemplo atualizando todos os campos
+PATCH {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
+Content-Type: application/json
+
+{
+  "slug": "modulo-completo-atualizado",
+  "imageUrl": "https://example.com/nova-imagem.jpg",
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Módulo Atualizado",
+      "description": "Nova descrição em português."
+    },
+    {
+      "locale": "it",
+      "title": "Modulo Aggiornato",
+      "description": "Nuova descrizione in italiano."
+    },
+    {
+      "locale": "es",
+      "title": "Módulo Actualizado",
+      "description": "Nueva descripción en español."
+    }
+  ],
+  "order": 10
+}
+
+###
+# @name update-module-remove-image
+# Remove a imagem do módulo
+PATCH {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
+Content-Type: application/json
+
+{
+  "imageUrl": null
+}
+
+###
+# @name update-module-only-translations
+# Atualiza apenas as traduções
+PATCH {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
+Content-Type: application/json
+
+{
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Novo Título PT",
+      "description": "Nova descrição PT."
+    },
+    {
+      "locale": "it",
+      "title": "Nuovo Titolo IT",
+      "description": "Nuova descrizione IT."
+    },
+    {
+      "locale": "es",
+      "title": "Nuevo Título ES",
+      "description": "Nueva descripción ES."
+    }
+  ]
+}

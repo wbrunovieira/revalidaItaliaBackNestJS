@@ -281,6 +281,602 @@ describe('Create Module (E2E)', () => {
     );
   });
 
+  describe('Update Module (E2E)', () => {
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Update Slug Successfully', async () => {
+      // Create a module first
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'modulo-original',
+          translations: [
+            { locale: 'pt', title: 'Original', description: 'Desc Original' },
+            { locale: 'it', title: 'Originale', description: 'Desc Originale' },
+            { locale: 'es', title: 'Original', description: 'Desc Original' },
+          ],
+          order: 60,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Update the slug
+      const updateRes = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          slug: 'modulo-atualizado',
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body).toHaveProperty('id', moduleId);
+      expect(updateRes.body.slug).toBe('modulo-atualizado');
+      expect(updateRes.body.order).toBe(60); // Should remain unchanged
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Update Order Successfully', async () => {
+      // Create a module
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'modulo-order-test',
+          translations: [
+            { locale: 'pt', title: 'Order Test', description: 'Test Order' },
+            { locale: 'it', title: 'Test Ordine', description: 'Test Ordine' },
+            { locale: 'es', title: 'Test Orden', description: 'Test Orden' },
+          ],
+          order: 70,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Update the order
+      const updateRes = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          order: 75,
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.order).toBe(75);
+      expect(updateRes.body.slug).toBe('modulo-order-test'); // Should remain unchanged
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Update Image URL', async () => {
+      // Create a module with an image
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'modulo-image',
+          imageUrl: 'https://example.com/old-image.jpg',
+          translations: [
+            { locale: 'pt', title: 'Image Test', description: 'Test Image' },
+            {
+              locale: 'it',
+              title: 'Test Immagine',
+              description: 'Test Immagine',
+            },
+            { locale: 'es', title: 'Test Imagen', description: 'Test Imagen' },
+          ],
+          order: 80,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Update the image URL
+      const updateRes = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          imageUrl: 'https://example.com/new-image.jpg',
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.imageUrl).toBe('https://example.com/new-image.jpg');
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Remove Image URL', async () => {
+      // Create a module with an image
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'modulo-remove-image',
+          imageUrl: 'https://example.com/image-to-remove.jpg',
+          translations: [
+            { locale: 'pt', title: 'Remove Image', description: 'Test Remove' },
+            {
+              locale: 'it',
+              title: 'Rimuovi Immagine',
+              description: 'Test Rimuovi',
+            },
+            {
+              locale: 'es',
+              title: 'Quitar Imagen',
+              description: 'Test Quitar',
+            },
+          ],
+          order: 85,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Remove the image URL
+      const updateRes = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          imageUrl: null,
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.imageUrl).toBeUndefined();
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Update Translations', async () => {
+      // Create a module
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'modulo-trans',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Título Antigo',
+              description: 'Desc Antiga',
+            },
+            {
+              locale: 'it',
+              title: 'Titolo Vecchio',
+              description: 'Desc Vecchia',
+            },
+            { locale: 'es', title: 'Título Viejo', description: 'Desc Vieja' },
+          ],
+          order: 90,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Update translations
+      const updateRes = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          translations: [
+            { locale: 'pt', title: 'Título Novo', description: 'Desc Nova' },
+            { locale: 'it', title: 'Titolo Nuovo', description: 'Desc Nuova' },
+            { locale: 'es', title: 'Título Nuevo', description: 'Desc Nueva' },
+          ],
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body).toHaveProperty('id', moduleId);
+      expect(updateRes.body.slug).toBe('modulo-trans');
+      expect(updateRes.body.order).toBe(90);
+
+      // Make a GET request to verify translations were updated
+      const getRes = await request(app.getHttpServer()).get(
+        `/courses/${courseId}/modules/${moduleId}`,
+      );
+
+      expect(getRes.status).toBe(200);
+      expect(getRes.body.translations).toEqual(
+        expect.arrayContaining([
+          { locale: 'pt', title: 'Título Novo', description: 'Desc Nova' },
+          { locale: 'it', title: 'Titolo Nuovo', description: 'Desc Nuova' },
+          { locale: 'es', title: 'Título Nuevo', description: 'Desc Nueva' },
+        ]),
+      );
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Update Multiple Fields', async () => {
+      // Create a module
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'modulo-multi',
+          imageUrl: 'https://example.com/original.jpg',
+          translations: [
+            { locale: 'pt', title: 'Multi Original', description: 'Original' },
+            {
+              locale: 'it',
+              title: 'Multi Originale',
+              description: 'Originale',
+            },
+            { locale: 'es', title: 'Multi Original', description: 'Original' },
+          ],
+          order: 95,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Update multiple fields
+      const updateRes = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          slug: 'modulo-multi-updated',
+          imageUrl: 'https://example.com/updated.jpg',
+          order: 96,
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Multi Atualizado',
+              description: 'Atualizado',
+            },
+            {
+              locale: 'it',
+              title: 'Multi Aggiornato',
+              description: 'Aggiornato',
+            },
+            {
+              locale: 'es',
+              title: 'Multi Actualizado',
+              description: 'Actualizado',
+            },
+          ],
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.slug).toBe('modulo-multi-updated');
+      expect(updateRes.body.imageUrl).toBe('https://example.com/updated.jpg');
+      expect(updateRes.body.order).toBe(96);
+
+      // Make a GET request to verify all updates including translations
+      const getRes = await request(app.getHttpServer()).get(
+        `/courses/${courseId}/modules/${moduleId}`,
+      );
+
+      expect(getRes.status).toBe(200);
+      expect(getRes.body.translations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ locale: 'pt', title: 'Multi Atualizado' }),
+        ]),
+      );
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Module Not Found', async () => {
+      const nonExistentId = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+
+      const res = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${nonExistentId}`)
+        .send({
+          slug: 'new-slug',
+        });
+
+      expect(res.status).toBe(404);
+      expect(res.body).toHaveProperty('message', 'Module not found');
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Invalid Module ID', async () => {
+      const res = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/invalid-uuid`)
+        .send({
+          slug: 'new-slug',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            message: 'Module ID must be a valid UUID',
+            path: ['id'],
+          }),
+        ]),
+      );
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Duplicate Slug', async () => {
+      // Create two modules
+      await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'existing-slug',
+          translations: [
+            { locale: 'pt', title: 'Existing', description: 'Existing' },
+            { locale: 'it', title: 'Esistente', description: 'Esistente' },
+            { locale: 'es', title: 'Existente', description: 'Existente' },
+          ],
+          order: 100,
+        });
+
+      const createRes2 = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'module-to-update',
+          translations: [
+            { locale: 'pt', title: 'To Update', description: 'To Update' },
+            {
+              locale: 'it',
+              title: 'Da Aggiornare',
+              description: 'Da Aggiornare',
+            },
+            {
+              locale: 'es',
+              title: 'Para Actualizar',
+              description: 'Para Actualizar',
+            },
+          ],
+          order: 101,
+        });
+
+      const moduleId = createRes2.body.id;
+
+      // Try to update with existing slug
+      const res = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          slug: 'existing-slug',
+        });
+
+      expect(res.status).toBe(409);
+      expect(res.body.message).toContain('already exists');
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Duplicate Order', async () => {
+      // Create two modules
+      await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'module-order-1',
+          translations: [
+            { locale: 'pt', title: 'Order 1', description: 'Order 1' },
+            { locale: 'it', title: 'Ordine 1', description: 'Ordine 1' },
+            { locale: 'es', title: 'Orden 1', description: 'Orden 1' },
+          ],
+          order: 110,
+        });
+
+      const createRes2 = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'module-order-2',
+          translations: [
+            { locale: 'pt', title: 'Order 2', description: 'Order 2' },
+            { locale: 'it', title: 'Ordine 2', description: 'Ordine 2' },
+            { locale: 'es', title: 'Orden 2', description: 'Orden 2' },
+          ],
+          order: 111,
+        });
+
+      const moduleId = createRes2.body.id;
+
+      // Try to update with existing order
+      const res = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          order: 110,
+        });
+
+      expect(res.status).toBe(409);
+      expect(res.body.message).toContain('order already exists');
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Invalid Slug Format', async () => {
+      // Create a module
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'valid-slug',
+          translations: [
+            { locale: 'pt', title: 'Valid', description: 'Valid' },
+            { locale: 'it', title: 'Valido', description: 'Valido' },
+            { locale: 'es', title: 'Válido', description: 'Válido' },
+          ],
+          order: 120,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Try to update with invalid slug
+      const res = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          slug: 'Invalid Slug!',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            message:
+              'Slug must contain only lowercase letters, numbers, and hyphens',
+            path: ['slug'],
+          }),
+        ]),
+      );
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Invalid Image URL', async () => {
+      // Create a module
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'module-invalid-url',
+          translations: [
+            { locale: 'pt', title: 'Invalid URL', description: 'Invalid URL' },
+            {
+              locale: 'it',
+              title: 'URL Non Valido',
+              description: 'URL Non Valido',
+            },
+            {
+              locale: 'es',
+              title: 'URL Inválida',
+              description: 'URL Inválida',
+            },
+          ],
+          order: 125,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Try to update with invalid URL
+      const res = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          imageUrl: 'not-a-url',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('message');
+      // The error message format might be different
+      // It could be a simple array of strings instead of objects
+      const messages = Array.isArray(res.body.message)
+        ? res.body.message
+        : [res.body.message];
+      const hasUrlError = messages.some((msg) =>
+        typeof msg === 'string'
+          ? msg.includes('imageUrl must be a valid URL')
+          : msg.message?.includes('imageUrl must be a valid URL'),
+      );
+      expect(hasUrlError).toBe(true);
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Missing Portuguese Translation', async () => {
+      // Create a module
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'module-missing-pt',
+          translations: [
+            { locale: 'pt', title: 'Has PT', description: 'Has PT' },
+            { locale: 'it', title: 'Ha IT', description: 'Ha IT' },
+            { locale: 'es', title: 'Tiene ES', description: 'Tiene ES' },
+          ],
+          order: 130,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Try to update without Portuguese
+      const res = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          translations: [
+            { locale: 'it', title: 'Solo IT', description: 'Solo IT' },
+            { locale: 'es', title: 'Solo ES', description: 'Solo ES' },
+          ],
+        });
+
+      expect(res.status).toBe(400);
+      const msgs: any[] = res.body.message;
+      const hasPtError = msgs.some((m) =>
+        m.message?.toLowerCase().includes('portuguese'),
+      );
+      expect(hasPtError).toBe(true);
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Empty Update Body', async () => {
+      // Create a module
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'module-empty-update',
+          translations: [
+            {
+              locale: 'pt',
+              title: 'Empty Update',
+              description: 'Empty Update',
+            },
+            {
+              locale: 'it',
+              title: 'Aggiornamento Vuoto',
+              description: 'Aggiornamento Vuoto',
+            },
+            {
+              locale: 'es',
+              title: 'Actualización Vacía',
+              description: 'Actualización Vacía',
+            },
+          ],
+          order: 135,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Try to update with empty body
+      const res = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({});
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            message: 'At least one field must be provided for update',
+          }),
+        ]),
+      );
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Verify Translations Update', async () => {
+      // Create a module
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'module-verify-trans',
+          translations: [
+            { locale: 'pt', title: 'Original PT', description: 'Desc PT' },
+            { locale: 'it', title: 'Original IT', description: 'Desc IT' },
+            { locale: 'es', title: 'Original ES', description: 'Desc ES' },
+          ],
+          order: 140,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Verify original translations in DB
+      const originalTrans = await prisma.moduleTranslation.findMany({
+        where: { moduleId },
+      });
+      expect(originalTrans).toHaveLength(3);
+
+      // Update translations
+      await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          translations: [
+            { locale: 'pt', title: 'Updated PT', description: 'New Desc PT' },
+            { locale: 'it', title: 'Updated IT', description: 'New Desc IT' },
+            { locale: 'es', title: 'Updated ES', description: 'New Desc ES' },
+          ],
+        });
+
+      // Verify translations were replaced
+      const updatedTrans = await prisma.moduleTranslation.findMany({
+        where: { moduleId },
+      });
+      expect(updatedTrans).toHaveLength(3);
+
+      const ptTrans = updatedTrans.find((t) => t.locale === 'pt');
+      expect(ptTrans?.title).toBe('Updated PT');
+      expect(ptTrans?.description).toBe('New Desc PT');
+    });
+
+    it('[PATCH] /courses/:courseId/modules/:moduleId - Update Same Slug (No Change)', async () => {
+      // Create a module
+      const createRes = await request(app.getHttpServer())
+        .post(`/courses/${courseId}/modules`)
+        .send({
+          slug: 'same-slug-test',
+          translations: [
+            { locale: 'pt', title: 'Same Slug', description: 'Same Slug' },
+            { locale: 'it', title: 'Stesso Slug', description: 'Stesso Slug' },
+            { locale: 'es', title: 'Mismo Slug', description: 'Mismo Slug' },
+          ],
+          order: 145,
+        });
+
+      const moduleId = createRes.body.id;
+
+      // Update with the same slug (should succeed)
+      const res = await request(app.getHttpServer())
+        .patch(`/courses/${courseId}/modules/${moduleId}`)
+        .send({
+          slug: 'same-slug-test',
+          order: 146, // Change something else to ensure update works
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.slug).toBe('same-slug-test');
+      expect(res.body.order).toBe(146);
+    });
+  });
+
   describe('Delete Module (E2E)', () => {
     it('[DELETE] /courses/:courseId/modules/:moduleId - Success', async () => {
       // Create a module to delete

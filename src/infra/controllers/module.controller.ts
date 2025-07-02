@@ -3,6 +3,8 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
+  Delete,
   Param,
   Body,
   Inject,
@@ -10,19 +12,22 @@ import {
   NotFoundException,
   ConflictException,
   InternalServerErrorException,
-  Delete,
 } from '@nestjs/common';
 import { CreateModuleUseCase } from '@/domain/course-catalog/application/use-cases/create-module.use-case';
 import { GetModulesUseCase } from '@/domain/course-catalog/application/use-cases/get-modules.use-case';
+import { GetModuleUseCase } from '@/domain/course-catalog/application/use-cases/get-module.use-case';
+import { DeleteModuleUseCase } from '@/domain/course-catalog/application/use-cases/delete-module.use-case';
+import { UpdateModuleUseCase } from '@/domain/course-catalog/application/use-cases/update-module.use-case';
 
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { CourseNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/course-not-found-error';
 import { DuplicateModuleOrderError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-module-order-error';
-import { CreateModuleDto } from '@/domain/course-catalog/application/dtos/create-module.dto';
-import { GetModuleUseCase } from '@/domain/course-catalog/application/use-cases/get-module.use-case';
 import { ModuleNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/module-not-found-error';
-import { DeleteModuleUseCase } from '@/domain/course-catalog/application/use-cases/delete-module.use-case';
 import { ModuleHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/module-has-dependencies-error';
+import { ModuleSlugAlreadyExistsError } from '@/domain/course-catalog/application/use-cases/errors/module-slug-already-exists-error';
+
+import { CreateModuleDto } from '@/domain/course-catalog/application/dtos/create-module.dto';
+import { UpdateModuleDto } from '@/domain/course-catalog/application/dtos/update-module.dto';
 
 @Controller('courses/:courseId/modules')
 export class ModuleController {
@@ -35,6 +40,8 @@ export class ModuleController {
     private readonly getModuleUseCase: GetModuleUseCase,
     @Inject(DeleteModuleUseCase)
     private readonly deleteModuleUseCase: DeleteModuleUseCase,
+    @Inject(UpdateModuleUseCase)
+    private readonly updateModuleUseCase: UpdateModuleUseCase,
   ) {}
 
   @Post()
@@ -102,6 +109,55 @@ export class ModuleController {
       throw new InternalServerErrorException(err.message);
     }
     return result.value.module;
+  }
+
+  @Patch(':moduleId')
+  async update(
+    @Param('courseId') courseId: string,
+    @Param('moduleId') moduleId: string,
+    @Body() dto: UpdateModuleDto,
+  ) {
+    const request = {
+      id: moduleId,
+      ...(dto.slug !== undefined && { slug: dto.slug }),
+      ...(dto.imageUrl !== undefined && { imageUrl: dto.imageUrl }),
+      ...(dto.translations !== undefined && {
+        translations: dto.translations.map((t) => ({
+          locale: t.locale,
+          title: t.title,
+          description: t.description,
+        })),
+      }),
+      ...(dto.order !== undefined && { order: dto.order }),
+    };
+
+    const result = await this.updateModuleUseCase.execute(request);
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException(error.details);
+      }
+
+      if (error instanceof ModuleNotFoundError) {
+        throw new NotFoundException(error.message);
+      }
+
+      if (error instanceof ModuleSlugAlreadyExistsError) {
+        throw new ConflictException(error.message);
+      }
+
+      if (error instanceof DuplicateModuleOrderError) {
+        throw new ConflictException(error.message);
+      }
+
+      throw new InternalServerErrorException(error.message);
+    }
+
+    // Retorna o módulo atualizado
+    const updatedModule = result.value.module;
+    return updatedModule.toResponseObject();
   }
 
   @Delete(':moduleId')

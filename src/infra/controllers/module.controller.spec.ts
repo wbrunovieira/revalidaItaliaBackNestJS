@@ -12,9 +12,11 @@ import { CourseNotFoundError } from '@/domain/course-catalog/application/use-cas
 import { DuplicateModuleOrderError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-module-order-error';
 import { ModuleNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/module-not-found-error';
 import { ModuleHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/module-has-dependencies-error';
+import { ModuleSlugAlreadyExistsError } from '@/domain/course-catalog/application/use-cases/errors/module-slug-already-exists-error';
 import { ModuleDependencyInfo } from '@/domain/course-catalog/application/dtos/module-dependencies.dto';
 import { ModuleController } from './module.controller';
 import { CreateModuleDto } from '@/domain/course-catalog/application/dtos/create-module.dto';
+import { UpdateModuleDto } from '@/domain/course-catalog/application/dtos/update-module.dto';
 
 class MockCreateUseCase {
   execute = vi.fn();
@@ -32,12 +34,17 @@ class MockDeleteUseCase {
   execute = vi.fn();
 }
 
+class MockUpdateUseCase {
+  execute = vi.fn();
+}
+
 describe('ModuleController', () => {
   let controller: ModuleController;
   let createUseCase: MockCreateUseCase;
   let getUseCase: MockGetUseCase;
   let getOneUseCase: MockGetOneUseCase;
   let deleteUseCase: MockDeleteUseCase;
+  let updateUseCase: MockUpdateUseCase;
 
   const validDto: CreateModuleDto = {
     slug: 'modulo-teste',
@@ -55,16 +62,34 @@ describe('ModuleController', () => {
   const courseId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
   const moduleId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 
+  // Mock module with toResponseObject method
+  const mockModule = {
+    id: moduleId,
+    slug: 'updated-module',
+    order: 5,
+    imageUrl: 'https://example.com/updated.jpg',
+    translations: validDto.translations,
+    toResponseObject: vi.fn().mockReturnValue({
+      id: moduleId,
+      slug: 'updated-module',
+      order: 5,
+      imageUrl: 'https://example.com/updated.jpg',
+      translations: validDto.translations,
+    }),
+  };
+
   beforeEach(() => {
     createUseCase = new MockCreateUseCase();
     getUseCase = new MockGetUseCase();
     getOneUseCase = new MockGetOneUseCase();
     deleteUseCase = new MockDeleteUseCase();
+    updateUseCase = new MockUpdateUseCase();
     controller = new ModuleController(
       createUseCase as any,
       getUseCase as any,
       getOneUseCase as any,
       deleteUseCase as any,
+      updateUseCase as any,
     );
   });
 
@@ -235,6 +260,286 @@ describe('ModuleController', () => {
       await expect(
         controller.findOne(courseId, moduleId),
       ).rejects.toBeInstanceOf(InternalServerErrorException);
+    });
+  });
+
+  describe('PATCH /courses/:courseId/modules/:moduleId', () => {
+    it('should update module slug successfully', async () => {
+      const updateDto: UpdateModuleDto = { slug: 'new-slug' };
+      updateUseCase.execute.mockResolvedValueOnce(
+        right({ module: mockModule }),
+      );
+
+      const response = await controller.update(courseId, moduleId, updateDto);
+
+      expect(response).toEqual(mockModule.toResponseObject());
+      expect(updateUseCase.execute).toHaveBeenCalledWith({
+        id: moduleId,
+        slug: 'new-slug',
+      });
+      expect(mockModule.toResponseObject).toHaveBeenCalled();
+    });
+
+    it('should update module order successfully', async () => {
+      const updateDto: UpdateModuleDto = { order: 5 };
+      updateUseCase.execute.mockResolvedValueOnce(
+        right({ module: mockModule }),
+      );
+
+      const response = await controller.update(courseId, moduleId, updateDto);
+
+      expect(response).toEqual(mockModule.toResponseObject());
+      expect(updateUseCase.execute).toHaveBeenCalledWith({
+        id: moduleId,
+        order: 5,
+      });
+    });
+
+    it('should update imageUrl to new value', async () => {
+      const updateDto: UpdateModuleDto = {
+        imageUrl: 'https://example.com/new.jpg',
+      };
+      updateUseCase.execute.mockResolvedValueOnce(
+        right({ module: mockModule }),
+      );
+
+      await controller.update(courseId, moduleId, updateDto);
+
+      expect(updateUseCase.execute).toHaveBeenCalledWith({
+        id: moduleId,
+        imageUrl: 'https://example.com/new.jpg',
+      });
+    });
+
+    it('should remove imageUrl when null is provided', async () => {
+      const updateDto: UpdateModuleDto = { imageUrl: null };
+      updateUseCase.execute.mockResolvedValueOnce(
+        right({ module: mockModule }),
+      );
+
+      await controller.update(courseId, moduleId, updateDto);
+
+      expect(updateUseCase.execute).toHaveBeenCalledWith({
+        id: moduleId,
+        imageUrl: null,
+      });
+    });
+
+    it('should update translations successfully', async () => {
+      const updateDto: UpdateModuleDto = {
+        translations: [
+          { locale: 'pt', title: 'Novo Título', description: 'Nova Descrição' },
+          {
+            locale: 'it',
+            title: 'Nuovo Titolo',
+            description: 'Nuova Descrizione',
+          },
+          {
+            locale: 'es',
+            title: 'Nuevo Título',
+            description: 'Nueva Descripción',
+          },
+        ],
+      };
+      updateUseCase.execute.mockResolvedValueOnce(
+        right({ module: mockModule }),
+      );
+
+      await controller.update(courseId, moduleId, updateDto);
+
+      expect(updateUseCase.execute).toHaveBeenCalledWith({
+        id: moduleId,
+        translations: [
+          { locale: 'pt', title: 'Novo Título', description: 'Nova Descrição' },
+          {
+            locale: 'it',
+            title: 'Nuovo Titolo',
+            description: 'Nuova Descrizione',
+          },
+          {
+            locale: 'es',
+            title: 'Nuevo Título',
+            description: 'Nueva Descripción',
+          },
+        ],
+      });
+    });
+
+    it('should update multiple fields simultaneously', async () => {
+      const updateDto: UpdateModuleDto = {
+        slug: 'updated-slug',
+        order: 10,
+        imageUrl: 'https://example.com/updated.jpg',
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Título Atualizado',
+            description: 'Desc Atualizada',
+          },
+          {
+            locale: 'it',
+            title: 'Titolo Aggiornato',
+            description: 'Desc Aggiornata',
+          },
+          {
+            locale: 'es',
+            title: 'Título Actualizado',
+            description: 'Desc Actualizada',
+          },
+        ],
+      };
+      updateUseCase.execute.mockResolvedValueOnce(
+        right({ module: mockModule }),
+      );
+
+      await controller.update(courseId, moduleId, updateDto);
+
+      expect(updateUseCase.execute).toHaveBeenCalledWith({
+        id: moduleId,
+        slug: 'updated-slug',
+        order: 10,
+        imageUrl: 'https://example.com/updated.jpg',
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Título Atualizado',
+            description: 'Desc Atualizada',
+          },
+          {
+            locale: 'it',
+            title: 'Titolo Aggiornato',
+            description: 'Desc Aggiornata',
+          },
+          {
+            locale: 'es',
+            title: 'Título Actualizado',
+            description: 'Desc Actualizada',
+          },
+        ],
+      });
+    });
+
+    it('should handle empty update DTO', async () => {
+      const updateDto: UpdateModuleDto = {};
+      updateUseCase.execute.mockResolvedValueOnce(
+        right({ module: mockModule }),
+      );
+
+      await controller.update(courseId, moduleId, updateDto);
+
+      expect(updateUseCase.execute).toHaveBeenCalledWith({
+        id: moduleId,
+      });
+    });
+
+    it('should throw BadRequestException on InvalidInputError', async () => {
+      const updateDto: UpdateModuleDto = { slug: 'invalid slug!' };
+      const details = [{ path: ['slug'], message: 'Invalid slug format' }];
+      updateUseCase.execute.mockResolvedValueOnce(
+        left(new InvalidInputError('Validation failed', details)),
+      );
+
+      await expect(
+        controller.update(courseId, moduleId, updateDto),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('should throw NotFoundException when module does not exist', async () => {
+      const updateDto: UpdateModuleDto = { slug: 'new-slug' };
+      updateUseCase.execute.mockResolvedValueOnce(
+        left(new ModuleNotFoundError()),
+      );
+
+      await expect(
+        controller.update(courseId, moduleId, updateDto),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('should throw ConflictException when slug already exists', async () => {
+      const updateDto: UpdateModuleDto = { slug: 'existing-slug' };
+      updateUseCase.execute.mockResolvedValueOnce(
+        left(new ModuleSlugAlreadyExistsError('existing-slug')),
+      );
+
+      await expect(
+        controller.update(courseId, moduleId, updateDto),
+      ).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('should throw ConflictException when order already exists in course', async () => {
+      const updateDto: UpdateModuleDto = { order: 3 };
+      updateUseCase.execute.mockResolvedValueOnce(
+        left(new DuplicateModuleOrderError()),
+      );
+
+      await expect(
+        controller.update(courseId, moduleId, updateDto),
+      ).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('should throw InternalServerErrorException on generic error', async () => {
+      const updateDto: UpdateModuleDto = { slug: 'new-slug' };
+      updateUseCase.execute.mockResolvedValueOnce(
+        left(new Error('Database error')),
+      );
+
+      await expect(
+        controller.update(courseId, moduleId, updateDto),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
+    });
+
+    it('should handle when use case throws exception', async () => {
+      const updateDto: UpdateModuleDto = { slug: 'new-slug' };
+      updateUseCase.execute.mockRejectedValueOnce(
+        new Error('Unexpected exception'),
+      );
+
+      await expect(
+        controller.update(courseId, moduleId, updateDto),
+      ).rejects.toBeInstanceOf(Error);
+    });
+
+    it('should ignore undefined fields in DTO', async () => {
+      const updateDto = {
+        slug: 'new-slug',
+        order: undefined,
+        imageUrl: undefined,
+        translations: undefined,
+      };
+      updateUseCase.execute.mockResolvedValueOnce(
+        right({ module: mockModule }),
+      );
+
+      await controller.update(courseId, moduleId, updateDto);
+
+      expect(updateUseCase.execute).toHaveBeenCalledWith({
+        id: moduleId,
+        slug: 'new-slug',
+      });
+    });
+
+    it('should handle partial translation updates', async () => {
+      const updateDto: UpdateModuleDto = {
+        translations: [
+          { locale: 'pt', title: 'Só PT', description: 'Apenas português' },
+          { locale: 'it', title: 'Solo IT', description: 'Solo italiano' },
+          { locale: 'es', title: 'Solo ES', description: 'Solo español' },
+        ],
+      };
+      updateUseCase.execute.mockResolvedValueOnce(
+        right({ module: mockModule }),
+      );
+
+      await controller.update(courseId, moduleId, updateDto);
+
+      expect(updateUseCase.execute).toHaveBeenCalledWith({
+        id: moduleId,
+        translations: expect.arrayContaining([
+          expect.objectContaining({ locale: 'pt' }),
+          expect.objectContaining({ locale: 'it' }),
+          expect.objectContaining({ locale: 'es' }),
+        ]),
+      });
     });
   });
 
@@ -500,6 +805,28 @@ describe('ModuleController', () => {
       await expect(
         controller.delete(courseId, moduleId),
       ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('should handle concurrent update requests', async () => {
+      const updateDto1: UpdateModuleDto = { slug: 'slug-1' };
+      const updateDto2: UpdateModuleDto = { slug: 'slug-2' };
+
+      // Both requests succeed - last one wins
+      updateUseCase.execute.mockResolvedValueOnce(
+        right({ module: mockModule }),
+      );
+      updateUseCase.execute.mockResolvedValueOnce(
+        right({ module: mockModule }),
+      );
+
+      const [response1, response2] = await Promise.all([
+        controller.update(courseId, moduleId, updateDto1),
+        controller.update(courseId, moduleId, updateDto2),
+      ]);
+
+      expect(response1).toBeDefined();
+      expect(response2).toBeDefined();
+      expect(updateUseCase.execute).toHaveBeenCalledTimes(2);
     });
   });
 });
