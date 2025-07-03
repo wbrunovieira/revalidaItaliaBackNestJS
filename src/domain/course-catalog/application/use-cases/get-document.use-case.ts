@@ -1,4 +1,3 @@
-// src/domain/course-catalog/application/use-cases/get-document.use-case.ts
 import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
 
@@ -22,9 +21,7 @@ export type GetDocumentUseCaseResponse = Either<
   {
     document: {
       id: string;
-      url: string;
       filename: string;
-      title: string;
       fileSize: number;
       fileSizeInMB: number;
       mimeType: string;
@@ -36,6 +33,7 @@ export type GetDocumentUseCaseResponse = Either<
         locale: 'pt' | 'it' | 'es';
         title: string;
         description: string;
+        url: string;
       }>;
     };
   }
@@ -44,9 +42,7 @@ export type GetDocumentUseCaseResponse = Either<
 @Injectable()
 export class GetDocumentUseCase {
   constructor(
-    @Inject('LessonRepository')
-    private readonly lessonRepo: ILessonRepository,
-
+    @Inject('LessonRepository') private readonly lessonRepo: ILessonRepository,
     @Inject('DocumentRepository')
     private readonly documentRepo: IDocumentRepository,
   ) {}
@@ -54,7 +50,7 @@ export class GetDocumentUseCase {
   async execute(
     request: GetDocumentRequest,
   ): Promise<GetDocumentUseCaseResponse> {
-    // 1) Validate DTO
+    // 1) valida DTO
     const parseResult = getDocumentSchema.safeParse(request);
     if (!parseResult.success) {
       const details = parseResult.error.issues.map((iss) => ({
@@ -66,55 +62,53 @@ export class GetDocumentUseCase {
     }
     const data = parseResult.data as GetDocumentSchema;
 
-    // 2) Check that the lesson exists
+    // 2) verifica existência da aula
     const lessonOrErr = await this.lessonRepo.findById(data.lessonId);
     if (lessonOrErr.isLeft()) {
       return left(new LessonNotFoundError());
     }
 
-    // 3) Get document by ID
+    // 3) busca documento por ID
     const documentOrErr = await this.documentRepo.findById(data.documentId);
     if (documentOrErr.isLeft()) {
-      if (documentOrErr.value.message === 'Document not found') {
+      const err = documentOrErr.value;
+      if (err.message === 'Document not found') {
         return left(new DocumentNotFoundError());
       }
-      return left(new RepositoryError(documentOrErr.value.message));
+      return left(new RepositoryError(err.message));
     }
+    const { document } = documentOrErr.value;
 
-    const { document, translations } = documentOrErr.value;
-
-    // 4) Verify document belongs to the lesson (security check)
-    const documentsInLessonOrErr = await this.documentRepo.findByLesson(
+    // 4) verifica se pertence à aula
+    const docsInLessonOrErr = await this.documentRepo.findByLesson(
       data.lessonId,
     );
-    if (documentsInLessonOrErr.isLeft()) {
-      return left(new RepositoryError(documentsInLessonOrErr.value.message));
+    if (docsInLessonOrErr.isLeft()) {
+      return left(new RepositoryError(docsInLessonOrErr.value.message));
     }
-
-    const documentBelongsToLesson = documentsInLessonOrErr.value.some(
-      ({ document: doc }) => doc.id.toString() === data.documentId,
+    const belongs = docsInLessonOrErr.value.some(
+      (d) => d.document.id.toString() === data.documentId,
     );
-
-    if (!documentBelongsToLesson) {
+    if (!belongs) {
       return left(new DocumentNotFoundError());
     }
 
-    // 5) Transform to response format
-    const documentResponse = {
-      id: document.id.toString(),
-      url: document.url,
-      filename: document.filename,
-      title: document.title,
-      fileSize: document.fileSize,
-      fileSizeInMB: document.getFileSizeInMB(),
-      mimeType: document.mimeType,
-      isDownloadable: document.isDownloadable,
-      downloadCount: document.downloadCount,
-      createdAt: document.createdAt,
-      updatedAt: document.updatedAt,
-      translations,
-    };
+    // 5) monta resposta usando entity.toResponseObject()
+    const resp = document.toResponseObject();
 
-    return right({ document: documentResponse });
+    return right({
+      document: {
+        id: resp.id,
+        filename: resp.filename,
+        fileSize: resp.fileSize,
+        fileSizeInMB: resp.fileSizeInMB,
+        mimeType: resp.mimeType,
+        isDownloadable: resp.isDownloadable,
+        downloadCount: resp.downloadCount,
+        createdAt: resp.createdAt,
+        updatedAt: resp.updatedAt,
+        translations: resp.translations,
+      },
+    });
   }
 }

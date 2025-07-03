@@ -14,7 +14,20 @@ sudo docker system prune -a -f --volumes
 docker-compose exec backend npx prisma migrate dev --name init
 docker-compose exec backend npx prisma migrate reset --force
 
-docker exec -it ead-backend-dev sh -c "pnpm prisma db push --force-reset"
+1 docker exec -it ead-backend-dev sh -c "pnpm prisma db push --force-reset"
+2 docker compose -f compose.dev.yaml down
+3 docker compose -f compose.dev.yaml up -d db
+
+4 docker exec -it revalida_postgres psql -U postgres -d revalida_postgres \
+ -c 'DROP TABLE IF EXISTS "\_prisma_migrations";'
+NOTICE: table "\_prisma_migrations" does not exist, skipping
+DROP TABLE
+5 docker exec -it revalida_postgres \
+ psql -U postgres -d revalida_postgres \
+ -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+6 docker compose -f compose.dev.yaml run --rm backend sh -c "\
+ pnpm prisma migrate dev --name init \
+"
 
 docker compose -f compose.dev.yaml down && docker compose -f compose.dev.yaml build --no-cache && docker compose -f compose.dev.yaml up -d && docker compose -f compose.dev.yaml logs -f
 
@@ -37,3 +50,6 @@ curl -s \
 
 terraform import aws_key_pair.revalida revalida-key
 export AWS_PROFILE=bruno-admin-revalida-aws
+
+npx prisma migrate dev --name add_url_to_lesson_document_translation
+npx prisma generate

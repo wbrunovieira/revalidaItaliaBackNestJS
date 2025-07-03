@@ -1,4 +1,3 @@
-// src/domain/course-catalog/application/use-cases/list-documents.use-case.ts
 import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
 
@@ -18,9 +17,7 @@ export type ListDocumentsUseCaseResponse = Either<
   {
     documents: Array<{
       id: string;
-      url: string;
       filename: string;
-      title: string;
       fileSize: number;
       fileSizeInMB: number;
       mimeType: string;
@@ -40,9 +37,7 @@ export type ListDocumentsUseCaseResponse = Either<
 @Injectable()
 export class ListDocumentsUseCase {
   constructor(
-    @Inject('LessonRepository')
-    private readonly lessonRepo: ILessonRepository,
-
+    @Inject('LessonRepository') private readonly lessonRepo: ILessonRepository,
     @Inject('DocumentRepository')
     private readonly documentRepo: IDocumentRepository,
   ) {}
@@ -50,7 +45,7 @@ export class ListDocumentsUseCase {
   async execute(
     request: ListDocumentsRequest,
   ): Promise<ListDocumentsUseCaseResponse> {
-    // 1) Validate DTO
+    // 1) Validate input DTO
     const parseResult = listDocumentsSchema.safeParse(request);
     if (!parseResult.success) {
       const details = parseResult.error.issues.map((iss) => ({
@@ -60,37 +55,33 @@ export class ListDocumentsUseCase {
       }));
       return left(new InvalidInputError('Validation failed', details));
     }
-    const data = parseResult.data as ListDocumentsSchema;
+    const { lessonId } = parseResult.data as ListDocumentsSchema;
 
-    // 2) Check that the lesson exists
-    const lessonOrErr = await this.lessonRepo.findById(data.lessonId);
+    // 2) Ensure lesson exists
+    const lessonOrErr = await this.lessonRepo.findById(lessonId);
     if (lessonOrErr.isLeft()) {
       return left(new LessonNotFoundError());
     }
 
-    // 3) Get documents for this lesson
-    const documentsOrErr = await this.documentRepo.findByLesson(data.lessonId);
-    if (documentsOrErr.isLeft()) {
-      return left(new RepositoryError(documentsOrErr.value.message));
+    // 3) Retrieve documents for this lesson
+    const docsOrErr = await this.documentRepo.findByLesson(lessonId);
+    if (docsOrErr.isLeft()) {
+      return left(new RepositoryError(docsOrErr.value.message));
     }
 
-    // 4) Transform to response format
-    const documents = documentsOrErr.value.map(
-      ({ document, translations }) => ({
-        id: document.id.toString(),
-        url: document.url,
-        filename: document.filename,
-        title: document.title,
-        fileSize: document.fileSize,
-        fileSizeInMB: document.getFileSizeInMB(),
-        mimeType: document.mimeType,
-        isDownloadable: document.isDownloadable,
-        downloadCount: document.downloadCount,
-        createdAt: document.createdAt,
-        updatedAt: document.updatedAt,
-        translations,
-      }),
-    );
+    // 4) Map entity to response including translations
+    const documents = docsOrErr.value.map(({ document, translations }) => {
+      const base = document.toResponseObject();
+      return {
+        ...base,
+        translations: translations.map((t) => ({
+          locale: t.locale,
+          title: t.title,
+          description: t.description,
+          url: t.url,
+        })),
+      };
+    });
 
     return right({ documents });
   }

@@ -209,7 +209,6 @@ CREATE TABLE "LessonTranslation" (
 CREATE TABLE "LessonDocument" (
     "id" TEXT NOT NULL,
     "lessonId" TEXT NOT NULL,
-    "url" TEXT NOT NULL,
     "filename" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -222,6 +221,7 @@ CREATE TABLE "LessonDocumentTranslation" (
     "locale" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
+    "url" TEXT NOT NULL,
     "documentId" TEXT NOT NULL,
 
     CONSTRAINT "LessonDocumentTranslation_pkey" PRIMARY KEY ("id")

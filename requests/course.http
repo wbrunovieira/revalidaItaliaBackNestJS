@@ -36,7 +36,7 @@ Content-Type: application/json
 ###
 
 # @name get-course
-GET {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8
+GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a
 Content-Type: application/json
 
 
@@ -65,7 +65,7 @@ Content-Type: application/json
 
 ### 
 # @name update-course-complete
-PUT {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8
+PUT {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a
 Content-Type: application/json
 
 {

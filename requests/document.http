@@ -3,11 +3,11 @@
 
 ###
 # @name create-document
-POST {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents
+POST {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents
 Content-Type: application/json
 
 {
-  "url": "https://cdn.example.com/documents/material-curso-derivadas.pdf",
+ 
   "filename": "material-curso-derivadas.pdf",
   "fileSize": 2547890,
   "mimeType": "application/pdf",
@@ -16,17 +16,20 @@ Content-Type: application/json
     {
       "locale": "pt",
       "title": "Material do Curso - Derivadas",
-      "description": "Apostila completa sobre cálculo diferencial e derivadas."
+      "description": "Apostila completa sobre cálculo diferencial e derivadas.pt",
+      "url": "/document/urlemportugues."
     },
     {
       "locale": "it",
       "title": "Materiale del Corso - Derivate",
-      "description": "Dispensa completa sul calcolo differenziale e derivate."
+       "description": "Apostila completa sobre cálculo diferencial e derivadas.it",
+       "url": "/document/urlemitaliano."
     },
     {
       "locale": "es",
       "title": "Material del Curso - Derivadas",
-      "description": "Apostilla completa sobre cálculo diferencial y derivadas."
+       "description": "Apostila completa sobre cálculo diferencial e derivadas. es",
+      "url": "/document/urlemespanhol"
     }
   ]
 }
@@ -93,12 +96,12 @@ Content-Type: application/json
 
 ### 
 # @name get-document
-GET {{BASE_URL}}/courses/1fc39af9-534a-4020-bc6d-3f7f1c8dda90/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents/692dd019-2f1c-461d-bb51-00e8718b1169
+GET {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/432245df-0406-48bd-b852-5541df7b7e3e
 Accept: application/json
 
 ### 
 # @name list-documents
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/lessons/4eb7f594-a804-4567-b9c3-db21c6ef3bad/documents
+GET {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents
 Accept: application/json
 
 ### 

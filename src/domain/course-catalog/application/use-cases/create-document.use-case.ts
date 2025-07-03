@@ -1,4 +1,3 @@
-// src/domain/course-catalog/application/use-cases/create-document.use-case.ts
 import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
 
@@ -25,19 +24,20 @@ export type CreateDocumentUseCaseResponse = Either<
   {
     document: {
       id: string;
-      url: string;
       filename: string;
-      title: string;
       fileSize: number;
       fileSizeInMB: number;
       mimeType: string;
       isDownloadable: boolean;
       downloadCount: number;
+      createdAt: Date;
+      updatedAt: Date;
     };
     translations: Array<{
       locale: 'pt' | 'it' | 'es';
       title: string;
       description: string;
+      url: string;
     }>;
   }
 >;
@@ -55,6 +55,7 @@ export class CreateDocumentUseCase {
   async execute(
     request: CreateDocumentRequest,
   ): Promise<CreateDocumentUseCaseResponse> {
+    // 1) valida DTO
     const parseResult = createDocumentSchema.safeParse(request);
     if (!parseResult.success) {
       const details = parseResult.error.issues.map((iss) => ({
@@ -66,11 +67,13 @@ export class CreateDocumentUseCase {
     }
     const data = parseResult.data as CreateDocumentSchema;
 
+    // 2) verifica existência da aula
     const lessonOrErr = await this.lessonRepo.findById(data.lessonId);
     if (lessonOrErr.isLeft()) {
       return left(new LessonNotFoundError());
     }
 
+    // 3) evita duplicação de filename
     const existingOrErr = await this.documentRepo.findByFilename(data.filename);
     if (existingOrErr.isRight()) {
       return left(new DuplicateDocumentError());
@@ -82,21 +85,21 @@ export class CreateDocumentUseCase {
       return left(new RepositoryError(existingOrErr.value.message));
     }
 
+    // 4) valida tamanho de arquivo (caso extra)
     if (data.fileSize > 50 * 1024 * 1024) {
-      // 50MB
       return left(new InvalidFileError('File size exceeds 50MB limit'));
     }
 
-    const ptTr = data.translations.find((t) => t.locale === 'pt')!;
+    // 5) cria entidade de domínio incluindo traduções com URL
     const documentEntity = Document.create({
-      url: data.url,
       filename: data.filename,
-      title: ptTr.title,
       fileSize: data.fileSize,
       mimeType: data.mimeType,
-      isDownloadable: data.isDownloadable ?? true,
+      isDownloadable: data.isDownloadable,
+      translations: data.translations,
     });
 
+    // 6) persiste no repositório
     const saveOrErr = await this.documentRepo.create(
       data.lessonId,
       documentEntity,
@@ -106,19 +109,21 @@ export class CreateDocumentUseCase {
       return left(new RepositoryError(saveOrErr.value.message));
     }
 
+    // 7) monta resposta
+    const resp = documentEntity.toResponseObject();
     return right({
       document: {
-        id: documentEntity.id.toString(),
-        url: documentEntity.url,
-        filename: documentEntity.filename,
-        title: documentEntity.title,
-        fileSize: documentEntity.fileSize,
-        fileSizeInMB: documentEntity.getFileSizeInMB(),
-        mimeType: documentEntity.mimeType,
-        isDownloadable: documentEntity.isDownloadable,
-        downloadCount: documentEntity.downloadCount,
+        id: resp.id,
+        filename: resp.filename,
+        fileSize: resp.fileSize,
+        fileSizeInMB: resp.fileSizeInMB,
+        mimeType: resp.mimeType,
+        isDownloadable: resp.isDownloadable,
+        downloadCount: resp.downloadCount,
+        createdAt: resp.createdAt,
+        updatedAt: resp.updatedAt,
       },
-      translations: data.translations,
+      translations: resp.translations,
     });
   }
 }

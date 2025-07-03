@@ -1,11 +1,11 @@
 @BASE_URL = http://localhost:3333
 
 ### Create Lesson
-POST {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons
+POST {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef/lessons
 Content-Type: application/json
 
 {
-  "moduleId": "dbe40109-2277-4586-a2d5-dfbe26d45c5c", 
+  "moduleId": "64436979-2173-4518-be2f-6415961d9cef", 
   "imageUrl": "/images/capa-track.avif",
   "translations": [
     { "locale": "pt", "title": "Aula PT4", "description": "Descrição PT" },
@@ -29,7 +29,7 @@ Content-Type: application/json
 }
 
 ### List Lessons
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons
+GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/64436979-2173-4518-be2f-6415961d9cef/lessons
 
 ### List Lessons (with pagination)
 GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons?page=1&limit=5&includeVideo=true

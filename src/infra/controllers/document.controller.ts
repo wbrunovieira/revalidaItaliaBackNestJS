@@ -1,4 +1,3 @@
-// src/infra/controllers/document.controller.ts (compatível com os testes)
 import {
   Controller,
   Post,
@@ -13,12 +12,10 @@ import {
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
 import { CreateDocumentUseCase } from '@/domain/course-catalog/application/use-cases/create-document.use-case';
 import { ListDocumentsUseCase } from '@/domain/course-catalog/application/use-cases/list-documents.use-case';
 import { GetDocumentUseCase } from '@/domain/course-catalog/application/use-cases/get-document.use-case';
 import { CreateDocumentRequest } from '@/domain/course-catalog/application/dtos/create-document-request.dto';
-import { CreateDocumentDto } from '@/domain/course-catalog/application/dtos/create-document.dto';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
 import { DuplicateDocumentError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-document-error';
@@ -26,44 +23,24 @@ import { DocumentNotFoundError } from '@/domain/course-catalog/application/use-c
 import { InvalidFileError } from '@/domain/course-catalog/application/use-cases/errors/invalid-file-error';
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 
-@Controller('courses/:courseId/lessons/:lessonId/documents')
+@Controller('lessons/:lessonId/documents')
 export class DocumentController {
   constructor(
-    private readonly createDocument: CreateDocumentUseCase,
-    private readonly listDocuments: ListDocumentsUseCase,
-    private readonly getDocument: GetDocumentUseCase,
-    private readonly prisma: PrismaService,
+    private readonly createDocumentUseCase: CreateDocumentUseCase,
+    private readonly listDocumentsUseCase: ListDocumentsUseCase,
+    private readonly getDocumentUseCase: GetDocumentUseCase,
   ) {}
-
-  private async validateLesson(courseId: string, lessonId: string) {
-    const lesson = await this.prisma.lesson.findUnique({
-      where: { id: lessonId },
-      include: { module: { select: { courseId: true } } },
-    });
-
-    if (!lesson || lesson.module.courseId !== courseId) {
-      throw new NotFoundException('Lesson not found');
-    }
-  }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(
-    @Param('courseId', ParseUUIDPipe) courseId: string,
     @Param('lessonId', ParseUUIDPipe) lessonId: string,
     @Body() body: Omit<CreateDocumentRequest, 'lessonId'>,
   ) {
-    // Verify lesson exists and belongs to course
-    const lesson = await this.prisma.lesson.findUnique({
-      where: { id: lessonId },
-      include: { module: { select: { courseId: true } } },
+    const result = await this.createDocumentUseCase.execute({
+      ...body,
+      lessonId,
     });
-
-    if (!lesson || lesson.module.courseId !== courseId) {
-      throw new NotFoundException('Lesson not found');
-    }
-
-    const result = await this.createDocument.execute({ ...body, lessonId });
     if (result.isLeft()) {
       const err = result.value;
       if (err instanceof InvalidInputError) {
@@ -84,31 +61,13 @@ export class DocumentController {
       throw new InternalServerErrorException('An unexpected error occurred');
     }
 
-    // Return created document with translations
     const { document, translations } = result.value;
-    return {
-      id: document.id,
-      url: document.url,
-      filename: document.filename,
-      title: document.title,
-      fileSize: document.fileSize,
-      fileSizeInMB: document.fileSizeInMB,
-      mimeType: document.mimeType,
-      isDownloadable: document.isDownloadable,
-      downloadCount: document.downloadCount,
-      translations,
-    };
+    return { ...document, translations };
   }
 
-  // List all documents for a lesson
   @Get()
-  async findAll(
-    @Param('courseId') courseId: string,
-    @Param('lessonId', ParseUUIDPipe) lessonId: string,
-  ) {
-    await this.validateLesson(courseId, lessonId);
-
-    const result = await this.listDocuments.execute({ lessonId });
+  async findAll(@Param('lessonId', ParseUUIDPipe) lessonId: string) {
+    const result = await this.listDocumentsUseCase.execute({ lessonId });
     if (result.isLeft()) {
       const err = result.value;
       if (err instanceof InvalidInputError) {
@@ -126,18 +85,14 @@ export class DocumentController {
     return result.value.documents;
   }
 
-  // Get a single document by ID
   @Get(':documentId')
   async findOne(
-    @Param('courseId') courseId: string,
     @Param('lessonId', ParseUUIDPipe) lessonId: string,
     @Param('documentId', ParseUUIDPipe) documentId: string,
   ) {
-    await this.validateLesson(courseId, lessonId);
-
-    const result = await this.getDocument.execute({
-      documentId,
+    const result = await this.getDocumentUseCase.execute({
       lessonId,
+      documentId,
     });
 
     if (result.isLeft()) {
@@ -157,41 +112,19 @@ export class DocumentController {
       if (err instanceof RepositoryError) {
         throw new InternalServerErrorException(err.message);
       }
-      // Fallback para qualquer erro não mapeado
       throw new InternalServerErrorException('An unexpected error occurred');
     }
 
     return result.value.document;
   }
 
-  // Increment download count
   @Post(':documentId/download')
   @HttpCode(HttpStatus.OK)
   async incrementDownload(
-    @Param('courseId') courseId: string,
-    @Param('lessonId') lessonId: string,
+    @Param('lessonId', ParseUUIDPipe) lessonId: string,
     @Param('documentId', ParseUUIDPipe) documentId: string,
   ) {
-    await this.validateLesson(courseId, lessonId);
-
-    // Ensure document belongs to that lesson
-    const rec = await this.prisma.lessonDocument.findUnique({
-      where: { id: documentId },
-    });
-
-    if (!rec || rec.lessonId !== lessonId) {
-      throw new NotFoundException('Document not found in this lesson');
-    }
-
-    // TODO: Implementar IncrementDownloadUseCase quando necessário
-    // const result = await this.incrementDownload.execute({ id: documentId });
-    // if (result.isLeft()) {
-    //   throw new InternalServerErrorException(result.value.message);
-    // }
-
-    return {
-      message: 'Download count incremented successfully',
-      documentId,
-    };
+    // implementação futura de incremento no caso de uso
+    return { message: 'Download count incremented successfully', documentId };
   }
 }

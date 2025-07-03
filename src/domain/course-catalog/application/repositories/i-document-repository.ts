@@ -12,6 +12,7 @@ export interface IDocumentRepository {
       locale: 'pt' | 'it' | 'es';
       title: string;
       description: string;
+      url: string;
     }>,
   ): Promise<Either<Error, void>>;
 
@@ -24,6 +25,7 @@ export interface IDocumentRepository {
           locale: 'pt' | 'it' | 'es';
           title: string;
           description: string;
+          url: string;
         }>;
       }
     >
@@ -38,6 +40,7 @@ export interface IDocumentRepository {
           locale: 'pt' | 'it' | 'es';
           title: string;
           description: string;
+          url: string;
         }>;
       }>
     >

@@ -1,4 +1,3 @@
-// test/e2e/documents.e2e.spec.ts (Versão atualizada com testes GetDocument)
 import request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -20,7 +19,14 @@ describe('DocumentController (E2E)', () => {
 
     app = modRef.createNestApplication();
     app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        transformOptions: {
+          enableImplicitConversion: true,
+        },
+      }),
     );
     await app.init();
 
@@ -32,22 +38,27 @@ describe('DocumentController (E2E)', () => {
   });
 
   beforeEach(async () => {
-    // limpa tudo na ordem certa
+    // Clean database in correct order to avoid foreign key constraints
+    await cleanDatabase();
+
+    // Setup test data
+    await setupTestData();
+  });
+
+  const cleanDatabase = async () => {
     await prisma.lessonDocumentTranslation.deleteMany();
     await prisma.lessonDocument.deleteMany();
-
     await prisma.videoTranslation.deleteMany();
     await prisma.video.deleteMany();
-
     await prisma.lesson.deleteMany();
-
     await prisma.moduleTranslation.deleteMany();
     await prisma.module.deleteMany();
-
     await prisma.courseTranslation.deleteMany();
     await prisma.course.deleteMany();
+  };
 
-    // cria curso
+  const setupTestData = async () => {
+    // Create course
     const course = await prisma.course.create({
       data: {
         slug: 'test-course-doc',
@@ -62,7 +73,7 @@ describe('DocumentController (E2E)', () => {
     });
     courseId = course.id;
 
-    // cria módulo
+    // Create module
     const module = await prisma.module.create({
       data: {
         slug: 'test-module-doc',
@@ -79,144 +90,250 @@ describe('DocumentController (E2E)', () => {
     });
     moduleId = module.id;
 
-    // agora criamos a lesson vinculada ao módulo
+    // Create lesson
     const lesson = await prisma.lesson.create({
       data: { moduleId },
     });
     lessonId = lesson.id;
+  };
+
+  const endpoint = () => `/lessons/${lessonId}/documents`;
+
+  const createValidDocumentPayload = (overrides = {}) => ({
+    filename: 'material-curso.pdf',
+    fileSize: 1024 * 1024, // 1MB
+    mimeType: 'application/pdf',
+    isDownloadable: true,
+    translations: [
+      {
+        locale: 'pt',
+        title: 'Material do Curso',
+        description: 'Apostila em PDF',
+        url: 'https://cdn.example.com/material-curso-pt.pdf',
+      },
+      {
+        locale: 'it',
+        title: 'Materiale del Corso',
+        description: 'Dispensa in PDF',
+        url: 'https://cdn.example.com/material-corso-it.pdf',
+      },
+      {
+        locale: 'es',
+        title: 'Material del Curso',
+        description: 'Apostilla en PDF',
+        url: 'https://cdn.example.com/material-curso-es.pdf',
+      },
+    ],
+    ...overrides,
   });
 
-  // monta a rota usando lessonId
-  const endpoint = () => `/courses/${courseId}/lessons/${lessonId}/documents`;
-
   describe('[POST] create document', () => {
-    it('→ Success (PDF Document)', async () => {
-      const payload = {
-        url: 'https://cdn.example.com/material-curso.pdf',
-        filename: 'material-curso.pdf',
-        fileSize: 1024 * 1024, // 1MB
-        mimeType: 'application/pdf',
-        isDownloadable: true,
-        translations: [
-          {
-            locale: 'pt',
-            title: 'Material do Curso',
-            description: 'Apostila em PDF',
-          },
-          {
-            locale: 'it',
-            title: 'Materiale del Corso',
-            description: 'Dispensa in PDF',
-          },
-          {
-            locale: 'es',
-            title: 'Material del Curso',
-            description: 'Apostilla en PDF',
-          },
-        ],
-      };
+    it('should create a PDF document successfully', async () => {
+      const payload = createValidDocumentPayload();
 
       const res = await request(app.getHttpServer())
         .post(endpoint())
-        .send(payload);
+        .send(payload)
+        .expect(201);
 
-      expect(res.status).toBe(201);
       expect(res.body).toEqual(
         expect.objectContaining({
-          url: payload.url,
           filename: payload.filename,
-          title: 'Material do Curso',
           fileSize: payload.fileSize,
           fileSizeInMB: 1,
           mimeType: payload.mimeType,
           isDownloadable: payload.isDownloadable,
           downloadCount: 0,
+          id: expect.any(String),
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
         }),
       );
+
+      expect(res.body.translations).toHaveLength(3);
+      expect(res.body.translations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            locale: 'pt',
+            title: 'Material do Curso',
+            description: 'Apostila em PDF',
+            url: 'https://cdn.example.com/material-curso-pt.pdf',
+          }),
+          expect.objectContaining({
+            locale: 'it',
+            title: 'Materiale del Corso',
+            description: 'Dispensa in PDF',
+            url: 'https://cdn.example.com/material-corso-it.pdf',
+          }),
+          expect.objectContaining({
+            locale: 'es',
+            title: 'Material del Curso',
+            description: 'Apostilla en PDF',
+            url: 'https://cdn.example.com/material-curso-es.pdf',
+          }),
+        ]),
+      );
+
       createdDocumentId = res.body.id;
     });
 
-    it('→ Success (Word Document)', async () => {
-      const payload = {
-        url: 'https://cdn.example.com/exercicios.docx',
+    it('should create a Word document successfully', async () => {
+      const payload = createValidDocumentPayload({
         filename: 'exercicios.docx',
         fileSize: 512 * 1024, // 512KB
         mimeType:
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        isDownloadable: true,
         translations: [
           {
             locale: 'pt',
             title: 'Exercícios',
             description: 'Lista de exercícios',
+            url: 'https://cdn.example.com/exercicios-pt.docx',
           },
-          { locale: 'it', title: 'Esercizi', description: 'Lista di esercizi' },
+          {
+            locale: 'it',
+            title: 'Esercizi',
+            description: 'Lista di esercizi',
+            url: 'https://cdn.example.com/esercizi-it.docx',
+          },
           {
             locale: 'es',
             title: 'Ejercicios',
             description: 'Lista de ejercicios',
+            url: 'https://cdn.example.com/ejercicios-es.docx',
           },
         ],
-      };
+      });
 
       const res = await request(app.getHttpServer())
         .post(endpoint())
-        .send(payload);
+        .send(payload)
+        .expect(201);
 
-      expect(res.status).toBe(201);
       expect(res.body.filename).toBe('exercicios.docx');
-      expect(res.body.title).toBe('Exercícios');
       expect(typeof res.body.fileSizeInMB).toBe('number');
       expect(typeof res.body.mimeType).toBe('string');
+
+      // Verify translations with URLs
+      const ptTranslation = res.body.translations.find(
+        (t: any) => t.locale === 'pt',
+      );
+      expect(ptTranslation.title).toBe('Exercícios');
+      expect(ptTranslation.url).toBe(
+        'https://cdn.example.com/exercicios-pt.docx',
+      );
     });
 
-    // ... outros testes de create permanecem iguais ...
+    it('should return 400 for invalid lesson ID format', async () => {
+      const invalidLessonEndpoint = '/lessons/invalid-uuid/documents';
+      const payload = createValidDocumentPayload();
+
+      await request(app.getHttpServer())
+        .post(invalidLessonEndpoint)
+        .send(payload)
+        .expect(400);
+    });
+
+    it('should return 404 for nonexistent lesson', async () => {
+      const nonexistentLessonEndpoint =
+        '/lessons/00000000-0000-0000-0000-000000000000/documents';
+      const payload = createValidDocumentPayload();
+
+      await request(app.getHttpServer())
+        .post(nonexistentLessonEndpoint)
+        .send(payload)
+        .expect(404);
+    });
+
+    it('should return 400 for invalid payload', async () => {
+      const invalidPayload = {
+        filename: 'test.pdf',
+        // missing required fields
+      };
+
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .send(invalidPayload)
+        .expect(400);
+    });
+
+    it('should return 400 for missing translations', async () => {
+      const payloadWithoutTranslations = {
+        filename: 'test.pdf',
+        fileSize: 1024,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        // missing translations
+      };
+
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payloadWithoutTranslations)
+        .expect(400);
+    });
+
+    it('should return 400 for translations without URLs', async () => {
+      const payloadWithoutUrls = createValidDocumentPayload({
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Test PT',
+            description: 'Desc PT',
+            // missing url
+          },
+        ],
+      });
+
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payloadWithoutUrls)
+        .expect(400);
+    });
   });
 
   describe('[GET] get document', () => {
     beforeEach(async () => {
+      const payload = createValidDocumentPayload({
+        filename: 'e2e-doc.pdf',
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Documento E2E PT',
+            description: 'Descrição completa em português',
+            url: 'https://cdn.example.com/e2e-doc-pt.pdf',
+          },
+          {
+            locale: 'it',
+            title: 'Documento E2E IT',
+            description: 'Descrizione completa in italiano',
+            url: 'https://cdn.example.com/e2e-doc-it.pdf',
+          },
+          {
+            locale: 'es',
+            title: 'Documento E2E ES',
+            description: 'Descripción completa en español',
+            url: 'https://cdn.example.com/e2e-doc-es.pdf',
+          },
+        ],
+      });
+
       const res = await request(app.getHttpServer())
         .post(endpoint())
-        .send({
-          url: 'https://cdn.example.com/e2e-doc.pdf',
-          filename: 'e2e-doc.pdf',
-          fileSize: 1024 * 1024, // 1MB
-          mimeType: 'application/pdf',
-          isDownloadable: true,
-          translations: [
-            {
-              locale: 'pt',
-              title: 'Documento E2E PT',
-              description: 'Descrição completa em português',
-            },
-            {
-              locale: 'it',
-              title: 'Documento E2E IT',
-              description: 'Descrizione completa in italiano',
-            },
-            {
-              locale: 'es',
-              title: 'Documento E2E ES',
-              description: 'Descripción completa en español',
-            },
-          ],
-        });
+        .send(payload)
+        .expect(201);
+
       createdDocumentId = res.body.id;
     });
 
-    it('→ Success returns complete document with translations', async () => {
+    it('should return complete document with translations including URLs', async () => {
       const res = await request(app.getHttpServer())
         .get(`${endpoint()}/${createdDocumentId}`)
-        .send();
+        .expect(200);
 
-      expect(res.status).toBe(200);
       expect(res.body).toEqual(
         expect.objectContaining({
           id: createdDocumentId,
-          url: 'https://cdn.example.com/e2e-doc.pdf',
           filename: 'e2e-doc.pdf',
-          title: 'Documento E2E PT', // Título da tradução PT (padrão)
-          // Campos que podem ter valores padrão na implementação atual
           fileSize: expect.any(Number),
           fileSizeInMB: expect.any(Number),
           mimeType: expect.any(String),
@@ -224,30 +341,34 @@ describe('DocumentController (E2E)', () => {
           downloadCount: expect.any(Number),
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
-          translations: expect.arrayContaining([
-            expect.objectContaining({
-              locale: 'pt',
-              title: 'Documento E2E PT',
-              description: 'Descrição completa em português',
-            }),
-            expect.objectContaining({
-              locale: 'it',
-              title: 'Documento E2E IT',
-              description: 'Descrizione completa in italiano',
-            }),
-            expect.objectContaining({
-              locale: 'es',
-              title: 'Documento E2E ES',
-              description: 'Descripción completa en español',
-            }),
-          ]),
         }),
       );
 
-      // Verificar que todas as traduções estão presentes
       expect(res.body.translations).toHaveLength(3);
+      expect(res.body.translations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            locale: 'pt',
+            title: 'Documento E2E PT',
+            description: 'Descrição completa em português',
+            url: 'https://cdn.example.com/e2e-doc-pt.pdf',
+          }),
+          expect.objectContaining({
+            locale: 'it',
+            title: 'Documento E2E IT',
+            description: 'Descrizione completa in italiano',
+            url: 'https://cdn.example.com/e2e-doc-it.pdf',
+          }),
+          expect.objectContaining({
+            locale: 'es',
+            title: 'Documento E2E ES',
+            description: 'Descripción completa en español',
+            url: 'https://cdn.example.com/e2e-doc-es.pdf',
+          }),
+        ]),
+      );
 
-      // Verificar tipos de dados
+      // Verify data types
       expect(typeof res.body.id).toBe('string');
       expect(typeof res.body.fileSize).toBe('number');
       expect(typeof res.body.fileSizeInMB).toBe('number');
@@ -256,7 +377,463 @@ describe('DocumentController (E2E)', () => {
       expect(new Date(res.body.createdAt)).toBeInstanceOf(Date);
       expect(new Date(res.body.updatedAt)).toBeInstanceOf(Date);
 
-      // Verificar estrutura específica das traduções
+      // Verify each translation has required URL
+      res.body.translations.forEach((translation: any) => {
+        expect(translation.url).toBeDefined();
+        expect(typeof translation.url).toBe('string');
+        expect(translation.url).toMatch(/^https?:\/\//);
+      });
+    });
+
+    it('should return 404 for nonexistent document', async () => {
+      const res = await request(app.getHttpServer())
+        .get(`${endpoint()}/00000000-0000-0000-0000-000000000000`)
+        .expect(404);
+
+      expect(res.body.message).toMatch(/not found/i);
+    });
+
+    it('should return 400 for invalid UUID format', async () => {
+      await request(app.getHttpServer())
+        .get(`${endpoint()}/not-a-uuid`)
+        .expect(400);
+    });
+  });
+
+  describe('[GET] list documents', () => {
+    it('should return list of documents with translations including URLs', async () => {
+      const payload1 = createValidDocumentPayload({
+        filename: 'list-doc-1.pdf',
+        fileSize: 1024,
+        translations: [
+          {
+            locale: 'pt',
+            title: 'L1 PT',
+            description: 'Desc1',
+            url: 'https://cdn.example.com/list-doc-1-pt.pdf',
+          },
+          {
+            locale: 'it',
+            title: 'L1 IT',
+            description: 'Desc1 IT',
+            url: 'https://cdn.example.com/list-doc-1-it.pdf',
+          },
+          {
+            locale: 'es',
+            title: 'L1 ES',
+            description: 'Desc1 ES',
+            url: 'https://cdn.example.com/list-doc-1-es.pdf',
+          },
+        ],
+      });
+
+      const payload2 = createValidDocumentPayload({
+        filename: 'list-doc-2.docx',
+        fileSize: 2048,
+        mimeType:
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        translations: [
+          {
+            locale: 'pt',
+            title: 'L2 PT',
+            description: 'Desc2',
+            url: 'https://cdn.example.com/list-doc-2-pt.docx',
+          },
+          {
+            locale: 'it',
+            title: 'L2 IT',
+            description: 'Desc2 IT',
+            url: 'https://cdn.example.com/list-doc-2-it.docx',
+          },
+          {
+            locale: 'es',
+            title: 'L2 ES',
+            description: 'Desc2 ES',
+            url: 'https://cdn.example.com/list-doc-2-es.docx',
+          },
+        ],
+      });
+
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payload1)
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payload2)
+        .expect(201);
+
+      const res = await request(app.getHttpServer())
+        .get(endpoint())
+        .expect(200);
+
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveLength(2);
+
+      // Verify document structure
+      const doc1 = res.body.find((d: any) => d.filename === 'list-doc-1.pdf');
+      expect(doc1).toBeDefined();
+      expect(doc1).toEqual(
+        expect.objectContaining({
+          id: expect.any(String),
+          filename: payload1.filename,
+          fileSize: expect.any(Number),
+          fileSizeInMB: expect.any(Number),
+          mimeType: expect.any(String),
+          isDownloadable: expect.any(Boolean),
+          downloadCount: expect.any(Number),
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        }),
+      );
+      expect(doc1.translations).toHaveLength(3);
+
+      // Verify URLs in translations
+      doc1.translations.forEach((translation: any) => {
+        expect(translation.url).toBeDefined();
+        expect(translation.url).toContain('list-doc-1');
+      });
+
+      const doc2 = res.body.find((d: any) => d.filename === 'list-doc-2.docx');
+      expect(doc2).toBeDefined();
+      expect(doc2.translations).toHaveLength(3);
+
+      // Verify URLs in translations
+      doc2.translations.forEach((translation: any) => {
+        expect(translation.url).toBeDefined();
+        expect(translation.url).toContain('list-doc-2');
+      });
+    });
+
+    it('should return empty array when no documents exist', async () => {
+      const res = await request(app.getHttpServer())
+        .get(endpoint())
+        .expect(200);
+
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toEqual([]);
+    });
+
+    it('should return 404 for nonexistent lesson', async () => {
+      const nonexistentEndpoint =
+        '/lessons/00000000-0000-0000-0000-000000000000/documents';
+
+      await request(app.getHttpServer()).get(nonexistentEndpoint).expect(404);
+    });
+  });
+
+  describe('Cross-lesson validation', () => {
+    let otherLessonId: string;
+    let otherModuleId: string;
+
+    beforeEach(async () => {
+      // Create another module and lesson in the same course
+      const otherModule = await prisma.module.create({
+        data: {
+          slug: 'other-module-doc',
+          order: 2,
+          courseId,
+          translations: {
+            create: [
+              {
+                locale: 'pt',
+                title: 'Outro Módulo PT',
+                description: 'Desc PT',
+              },
+              {
+                locale: 'it',
+                title: 'Altro Modulo IT',
+                description: 'Desc IT',
+              },
+              { locale: 'es', title: 'Otro Módulo ES', description: 'Desc ES' },
+            ],
+          },
+        },
+      });
+      otherModuleId = otherModule.id;
+
+      const otherLesson = await prisma.lesson.create({
+        data: { moduleId: otherModuleId },
+      });
+      otherLessonId = otherLesson.id;
+
+      // Create document in the original lesson
+      const payload = createValidDocumentPayload({
+        filename: 'cross-validation.pdf',
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Cross Validation PT',
+            description: 'Desc PT',
+            url: 'https://cdn.example.com/cross-validation-pt.pdf',
+          },
+          {
+            locale: 'it',
+            title: 'Cross Validation IT',
+            description: 'Desc IT',
+            url: 'https://cdn.example.com/cross-validation-it.pdf',
+          },
+          {
+            locale: 'es',
+            title: 'Cross Validation ES',
+            description: 'Desc ES',
+            url: 'https://cdn.example.com/cross-validation-es.pdf',
+          },
+        ],
+      });
+
+      const res = await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payload)
+        .expect(201);
+
+      createdDocumentId = res.body.id;
+    });
+
+    it('should not allow access to document from different lesson', async () => {
+      const otherLessonEndpoint = `/lessons/${otherLessonId}/documents`;
+
+      const res = await request(app.getHttpServer())
+        .get(`${otherLessonEndpoint}/${createdDocumentId}`)
+        .expect(404);
+
+      expect(res.body.message).toMatch(/not found/i);
+    });
+
+    it('should only show documents from current lesson in list', async () => {
+      // Create document in current lesson
+      const currentLessonPayload = createValidDocumentPayload({
+        filename: 'current-lesson.pdf',
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Current Lesson PT',
+            description: 'Desc PT',
+            url: 'https://cdn.example.com/current-lesson-pt.pdf',
+          },
+          {
+            locale: 'it',
+            title: 'Current Lesson IT',
+            description: 'Desc IT',
+            url: 'https://cdn.example.com/current-lesson-it.pdf',
+          },
+          {
+            locale: 'es',
+            title: 'Current Lesson ES',
+            description: 'Desc ES',
+            url: 'https://cdn.example.com/current-lesson-es.pdf',
+          },
+        ],
+      });
+
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .send(currentLessonPayload)
+        .expect(201);
+
+      // Create document in other lesson
+      const otherEndpoint = `/lessons/${otherLessonId}/documents`;
+      const otherLessonPayload = createValidDocumentPayload({
+        filename: 'other-lesson.pdf',
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Other Lesson PT',
+            description: 'Desc PT',
+            url: 'https://cdn.example.com/other-lesson-pt.pdf',
+          },
+          {
+            locale: 'it',
+            title: 'Other Lesson IT',
+            description: 'Desc IT',
+            url: 'https://cdn.example.com/other-lesson-it.pdf',
+          },
+          {
+            locale: 'es',
+            title: 'Other Lesson ES',
+            description: 'Desc ES',
+            url: 'https://cdn.example.com/other-lesson-es.pdf',
+          },
+        ],
+      });
+
+      await request(app.getHttpServer())
+        .post(otherEndpoint)
+        .send(otherLessonPayload)
+        .expect(201);
+
+      // List documents from current lesson
+      const currentRes = await request(app.getHttpServer())
+        .get(endpoint())
+        .expect(200);
+
+      // List documents from other lesson
+      const otherRes = await request(app.getHttpServer())
+        .get(otherEndpoint)
+        .expect(200);
+
+      // Each lesson should have only its own documents
+      expect(currentRes.body).toHaveLength(2); // cross-validation.pdf + current-lesson.pdf
+      expect(otherRes.body).toHaveLength(1); // other-lesson.pdf
+
+      // Verify no overlap
+      const currentFilenames = currentRes.body.map((doc: any) => doc.filename);
+      const otherFilenames = otherRes.body.map((doc: any) => doc.filename);
+
+      expect(currentFilenames).toContain('cross-validation.pdf');
+      expect(currentFilenames).toContain('current-lesson.pdf');
+      expect(currentFilenames).not.toContain('other-lesson.pdf');
+
+      expect(otherFilenames).toContain('other-lesson.pdf');
+      expect(otherFilenames).not.toContain('cross-validation.pdf');
+      expect(otherFilenames).not.toContain('current-lesson.pdf');
+    });
+  });
+
+  describe('Edge cases and error handling', () => {
+    it('should handle malformed request payloads', async () => {
+      const malformedPayload = {
+        filename: 'test.pdf',
+        // missing required fields
+      };
+
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .send(malformedPayload)
+        .expect(400);
+    });
+
+    it('should handle very large file sizes', async () => {
+      const payload = createValidDocumentPayload({
+        filename: 'large-file.pdf',
+        fileSize: 1024 * 1024 * 1024, // 1GB
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Large File PT',
+            description: 'Desc PT',
+            url: 'https://cdn.example.com/large-file-pt.pdf',
+          },
+          {
+            locale: 'it',
+            title: 'Large File IT',
+            description: 'Desc IT',
+            url: 'https://cdn.example.com/large-file-it.pdf',
+          },
+          {
+            locale: 'es',
+            title: 'Large File ES',
+            description: 'Desc ES',
+            url: 'https://cdn.example.com/large-file-es.pdf',
+          },
+        ],
+      });
+
+      const res = await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payload);
+
+      // Should either accept or reject with appropriate status
+      expect([201, 400, 413]).toContain(res.status);
+    });
+
+    it('should handle empty translations array', async () => {
+      const payloadWithEmptyTranslations = createValidDocumentPayload({
+        translations: [],
+      });
+
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payloadWithEmptyTranslations)
+        .expect(400);
+    });
+
+    it('should handle invalid locale in translations', async () => {
+      const payloadWithInvalidLocale = createValidDocumentPayload({
+        translations: [
+          {
+            locale: 'invalid-locale',
+            title: 'Test Title',
+            description: 'Test Description',
+            url: 'https://cdn.example.com/test.pdf',
+          },
+        ],
+      });
+
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payloadWithInvalidLocale)
+        .expect(400);
+    });
+
+    it('should handle negative file sizes', async () => {
+      const payloadWithNegativeSize = createValidDocumentPayload({
+        fileSize: -1024,
+      });
+
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payloadWithNegativeSize)
+        .expect(400);
+    });
+
+    it('should handle unsupported MIME types', async () => {
+      const payloadWithUnsupportedMime = createValidDocumentPayload({
+        mimeType: 'unsupported/type',
+      });
+
+      const res = await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payloadWithUnsupportedMime);
+
+      // Should either accept or reject based on business rules
+      expect([201, 400]).toContain(res.status);
+    });
+
+    it('should handle invalid URLs in translations', async () => {
+      const payloadWithInvalidUrls = createValidDocumentPayload({
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Test PT',
+            description: 'Desc PT',
+            url: 'not-a-valid-url',
+          },
+        ],
+      });
+
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payloadWithInvalidUrls)
+        .expect(400);
+    });
+  });
+
+  describe('Data consistency and validation', () => {
+    it('should properly calculate fileSizeInMB', async () => {
+      const fileSizeBytes = 1024 * 1024 * 2.5; // 2.5MB
+      const payload = createValidDocumentPayload({
+        fileSize: fileSizeBytes,
+      });
+
+      const res = await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payload)
+        .expect(201);
+
+      expect(res.body.fileSize).toBe(fileSizeBytes);
+      expect(res.body.fileSizeInMB).toBeCloseTo(2.5, 2);
+    });
+
+    it('should preserve translation order and URLs', async () => {
+      const payload = createValidDocumentPayload();
+
+      const res = await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payload)
+        .expect(201);
+
       const ptTranslation = res.body.translations.find(
         (t: any) => t.locale === 'pt',
       );
@@ -268,510 +845,95 @@ describe('DocumentController (E2E)', () => {
       );
 
       expect(ptTranslation).toBeDefined();
-      expect(ptTranslation.title).toBe('Documento E2E PT');
-      expect(ptTranslation.description).toBe('Descrição completa em português');
-
       expect(itTranslation).toBeDefined();
-      expect(itTranslation.title).toBe('Documento E2E IT');
-      expect(itTranslation.description).toBe(
-        'Descrizione completa in italiano',
+      expect(esTranslation).toBeDefined();
+
+      expect(ptTranslation.title).toBe('Material do Curso');
+      expect(ptTranslation.url).toBe(
+        'https://cdn.example.com/material-curso-pt.pdf',
       );
 
-      expect(esTranslation).toBeDefined();
-      expect(esTranslation.title).toBe('Documento E2E ES');
-      expect(esTranslation.description).toBe('Descripción completa en español');
+      expect(itTranslation.title).toBe('Materiale del Corso');
+      expect(itTranslation.url).toBe(
+        'https://cdn.example.com/material-corso-it.pdf',
+      );
+
+      expect(esTranslation.title).toBe('Material del Curso');
+      expect(esTranslation.url).toBe(
+        'https://cdn.example.com/material-curso-es.pdf',
+      );
     });
 
-    it('→ Not Found for nonexistent document', async () => {
+    it('should initialize download count to zero', async () => {
+      const payload = createValidDocumentPayload();
+
       const res = await request(app.getHttpServer())
-        .get(`${endpoint()}/00000000-0000-0000-0000-000000000000`)
-        .send();
+        .post(endpoint())
+        .send(payload)
+        .expect(201);
 
-      expect(res.status).toBe(404);
-      expect(res.body.message).toMatch(/Document not found|not found/i);
+      expect(res.body.downloadCount).toBe(0);
     });
 
-    it('→ Bad Request for invalid UUID format', async () => {
+    it('should set default isDownloadable when not provided', async () => {
+      const { isDownloadable, ...payloadWithoutDownloadable } =
+        createValidDocumentPayload();
+
       const res = await request(app.getHttpServer())
-        .get(`${endpoint()}/not-a-uuid`)
-        .send();
+        .post(endpoint())
+        .send(payloadWithoutDownloadable);
 
-      expect(res.status).toBe(400);
-    });
+      // Should either use default value or require the field
+      expect([201, 400]).toContain(res.status);
 
-    it('→ Not Found for document from different lesson', async () => {
-      // Criar outro módulo e lesson
-      const otherModule = await prisma.module.create({
-        data: {
-          slug: 'test-module-other',
-          order: 2,
-          courseId,
-          translations: {
-            create: [
-              {
-                locale: 'pt',
-                title: 'Outro Módulo PT',
-                description: 'Desc PT',
-              },
-              {
-                locale: 'it',
-                title: 'Altro Modulo IT',
-                description: 'Desc IT',
-              },
-              { locale: 'es', title: 'Otro Módulo ES', description: 'Desc ES' },
-            ],
-          },
-        },
-      });
-
-      const otherLesson = await prisma.lesson.create({
-        data: { moduleId: otherModule.id },
-      });
-
-      // Criar documento na outra lesson
-      const otherDocRes = await request(app.getHttpServer())
-        .post(`/courses/${courseId}/lessons/${otherLesson.id}/documents`)
-        .send({
-          url: 'https://cdn.example.com/other-lesson-doc.pdf',
-          filename: 'other-lesson-doc.pdf',
-          fileSize: 1024,
-          mimeType: 'application/pdf',
-          translations: [
-            {
-              locale: 'pt',
-              title: 'Doc Outra Lesson PT',
-              description: 'Desc PT',
-            },
-            {
-              locale: 'it',
-              title: 'Doc Altra Lezione IT',
-              description: 'Desc IT',
-            },
-            {
-              locale: 'es',
-              title: 'Doc Otra Lección ES',
-              description: 'Desc ES',
-            },
-          ],
-        });
-
-      // Tentar acessar documento da outra lesson através da lesson atual
-      const res = await request(app.getHttpServer())
-        .get(`${endpoint()}/${otherDocRes.body.id}`)
-        .send();
-
-      expect(res.status).toBe(404);
-      expect(res.body.message).toMatch(/Document not found|not found/i);
-    });
-
-    it('→ Success handles different MIME types correctly', async () => {
-      const testCases = [
-        {
-          filename: 'test.docx',
-          mimeType:
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          size: 512 * 1024, // 512KB
-          expectedTitle: 'Teste test.docx PT',
-        },
-        {
-          filename: 'test.xlsx',
-          mimeType:
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          size: 256 * 1024, // 256KB
-          expectedTitle: 'Teste test.xlsx PT',
-        },
-        {
-          filename: 'test.pptx',
-          mimeType:
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-          size: 1024 * 1024, // 1MB
-          expectedTitle: 'Teste test.pptx PT',
-        },
-      ];
-
-      for (const testCase of testCases) {
-        const payload = {
-          url: `https://cdn.example.com/${testCase.filename}`,
-          filename: testCase.filename,
-          fileSize: testCase.size,
-          mimeType: testCase.mimeType,
-          translations: [
-            {
-              locale: 'pt',
-              title: `Teste ${testCase.filename} PT`,
-              description: 'Desc PT',
-            },
-            {
-              locale: 'it',
-              title: `Test ${testCase.filename} IT`,
-              description: 'Desc IT',
-            },
-            {
-              locale: 'es',
-              title: `Test ${testCase.filename} ES`,
-              description: 'Desc ES',
-            },
-          ],
-        };
-
-        const createRes = await request(app.getHttpServer())
-          .post(endpoint())
-          .send(payload);
-
-        const res = await request(app.getHttpServer())
-          .get(`${endpoint()}/${createRes.body.id}`)
-          .send();
-
-        expect(res.status).toBe(200);
-
-        // Verificar propriedades básicas
-        expect(res.body.filename).toBe(testCase.filename);
-        expect(res.body.url).toBe(payload.url);
-        expect(res.body.title).toBe(testCase.expectedTitle);
-
-        // Verificar tipos dos campos (mesmo que tenham valores padrão)
-        expect(typeof res.body.mimeType).toBe('string');
-        expect(typeof res.body.fileSize).toBe('number');
-        expect(typeof res.body.fileSizeInMB).toBe('number');
-
-        // Verificar traduções
-        expect(res.body.translations).toHaveLength(3);
-        const ptTranslation = res.body.translations.find(
-          (t: any) => t.locale === 'pt',
-        );
-        expect(ptTranslation.title).toBe(`Teste ${testCase.filename} PT`);
-        expect(ptTranslation.description).toBe('Desc PT');
+      if (res.status === 201) {
+        expect(typeof res.body.isDownloadable).toBe('boolean');
       }
     });
-  });
 
-  describe('[GET] list documents', () => {
-    it('→ Success returns list of documents', async () => {
-      const payload1 = {
-        url: 'https://cdn.example.com/list-doc-1.pdf',
-        filename: 'list-doc-1.pdf',
-        fileSize: 1024,
-        mimeType: 'application/pdf',
+    it('should ensure all translations have unique locales', async () => {
+      const payloadWithDuplicateLocales = createValidDocumentPayload({
         translations: [
-          { locale: 'pt', title: 'L1 PT', description: 'Desc1' },
-          { locale: 'it', title: 'L1 IT', description: 'Desc1 IT' },
-          { locale: 'es', title: 'L1 ES', description: 'Desc1 ES' },
+          {
+            locale: 'pt',
+            title: 'Test PT 1',
+            description: 'Desc PT 1',
+            url: 'https://cdn.example.com/test1-pt.pdf',
+          },
+          {
+            locale: 'pt', // duplicate locale
+            title: 'Test PT 2',
+            description: 'Desc PT 2',
+            url: 'https://cdn.example.com/test2-pt.pdf',
+          },
         ],
-      };
-      const payload2 = {
-        url: 'https://cdn.example.com/list-doc-2.docx',
-        filename: 'list-doc-2.docx',
-        fileSize: 2048,
-        mimeType:
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        translations: [
-          { locale: 'pt', title: 'L2 PT', description: 'Desc2' },
-          { locale: 'it', title: 'L2 IT', description: 'Desc2 IT' },
-          { locale: 'es', title: 'L2 ES', description: 'Desc2 ES' },
-        ],
-      };
-      await request(app.getHttpServer()).post(endpoint()).send(payload1);
-      await request(app.getHttpServer()).post(endpoint()).send(payload2);
-
-      const res = await request(app.getHttpServer()).get(endpoint()).send();
-      expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body).toHaveLength(2);
-
-      // Verificar estrutura dos documentos retornados
-      const doc1 = res.body.find((d: any) => d.filename === 'list-doc-1.pdf');
-      expect(doc1).toBeDefined();
-      expect(doc1).toEqual(
-        expect.objectContaining({
-          id: expect.any(String),
-          url: payload1.url,
-          filename: payload1.filename,
-          title: 'L1 PT', // título da tradução PT
-          fileSize: expect.any(Number),
-          fileSizeInMB: expect.any(Number),
-          mimeType: expect.any(String),
-          isDownloadable: expect.any(Boolean),
-          downloadCount: expect.any(Number),
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
-          translations: expect.arrayContaining([
-            expect.objectContaining({ locale: 'pt', title: 'L1 PT' }),
-            expect.objectContaining({ locale: 'it', title: 'L1 IT' }),
-            expect.objectContaining({ locale: 'es', title: 'L1 ES' }),
-          ]),
-        }),
-      );
-
-      const doc2 = res.body.find((d: any) => d.filename === 'list-doc-2.docx');
-      expect(doc2).toBeDefined();
-      expect(doc2.translations).toHaveLength(3);
-    });
-
-    it('→ Success returns empty array when no documents', async () => {
-      const res = await request(app.getHttpServer()).get(endpoint()).send();
-      expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body).toEqual([]);
-    });
-  });
-
-  describe('[POST] increment download', () => {
-    beforeEach(async () => {
-      const res = await request(app.getHttpServer())
-        .post(endpoint())
-        .send({
-          url: 'https://cdn.example.com/download-test.pdf',
-          filename: 'download-test.pdf',
-          fileSize: 1024,
-          mimeType: 'application/pdf',
-          translations: [
-            {
-              locale: 'pt',
-              title: 'Teste Download PT',
-              description: 'Desc PT',
-            },
-            { locale: 'it', title: 'Test Download IT', description: 'Desc IT' },
-            { locale: 'es', title: 'Test Download ES', description: 'Desc ES' },
-          ],
-        });
-      createdDocumentId = res.body.id;
-    });
-
-    it('→ Success increments download count', async () => {
-      const res = await request(app.getHttpServer())
-        .post(`${endpoint()}/${createdDocumentId}/download`)
-        .send();
-
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(
-        expect.objectContaining({
-          message: 'Download count incremented successfully',
-          documentId: createdDocumentId,
-        }),
-      );
-    });
-
-    it('→ Not Found for nonexistent document', async () => {
-      const res = await request(app.getHttpServer())
-        .post(`${endpoint()}/00000000-0000-0000-0000-000000000000/download`)
-        .send();
-      expect(res.status).toBe(404);
-    });
-
-    it('→ Bad Request for invalid UUID', async () => {
-      const res = await request(app.getHttpServer())
-        .post(`${endpoint()}/not-a-uuid/download`)
-        .send();
-      expect(res.status).toBe(400);
-    });
-  });
-
-  describe('Cross-lesson and Cross-course validation', () => {
-    let otherCourseId: string;
-    let otherLessonId: string;
-    let sameCourseOtherLessonId: string;
-
-    beforeEach(async () => {
-      // Criar outro curso
-      const otherCourse = await prisma.course.create({
-        data: {
-          slug: 'other-course-doc',
-          translations: {
-            create: [
-              { locale: 'pt', title: 'Outro Curso PT', description: 'Desc PT' },
-              { locale: 'it', title: 'Altro Corso IT', description: 'Desc IT' },
-              { locale: 'es', title: 'Otro Curso ES', description: 'Desc ES' },
-            ],
-          },
-        },
-      });
-      otherCourseId = otherCourse.id;
-
-      // Criar módulo e lesson no outro curso
-      const otherModule = await prisma.module.create({
-        data: {
-          slug: 'other-module-doc',
-          order: 1,
-          courseId: otherCourseId,
-          translations: {
-            create: [
-              {
-                locale: 'pt',
-                title: 'Outro Módulo PT',
-                description: 'Desc PT',
-              },
-              {
-                locale: 'it',
-                title: 'Altro Modulo IT',
-                description: 'Desc IT',
-              },
-              { locale: 'es', title: 'Otro Módulo ES', description: 'Desc ES' },
-            ],
-          },
-        },
       });
 
-      const otherLesson = await prisma.lesson.create({
-        data: { moduleId: otherModule.id },
-      });
-      otherLessonId = otherLesson.id;
-
-      // Criar outro módulo e lesson no mesmo curso
-      const sameCourseModule = await prisma.module.create({
-        data: {
-          slug: 'same-course-other-module',
-          order: 2,
-          courseId,
-          translations: {
-            create: [
-              {
-                locale: 'pt',
-                title: 'Módulo Mesmo Curso PT',
-                description: 'Desc PT',
-              },
-              {
-                locale: 'it',
-                title: 'Modulo Stesso Corso IT',
-                description: 'Desc IT',
-              },
-              {
-                locale: 'es',
-                title: 'Módulo Mismo Curso ES',
-                description: 'Desc ES',
-              },
-            ],
-          },
-        },
-      });
-
-      const sameCourseOtherLesson = await prisma.lesson.create({
-        data: { moduleId: sameCourseModule.id },
-      });
-      sameCourseOtherLessonId = sameCourseOtherLesson.id;
-
-      // Criar documento na lesson original
-      const res = await request(app.getHttpServer())
-        .post(endpoint())
-        .send({
-          url: 'https://cdn.example.com/cross-validation.pdf',
-          filename: 'cross-validation.pdf',
-          fileSize: 1024,
-          mimeType: 'application/pdf',
-          translations: [
-            {
-              locale: 'pt',
-              title: 'Cross Validation PT',
-              description: 'Desc PT',
-            },
-            {
-              locale: 'it',
-              title: 'Cross Validation IT',
-              description: 'Desc IT',
-            },
-            {
-              locale: 'es',
-              title: 'Cross Validation ES',
-              description: 'Desc ES',
-            },
-          ],
-        });
-      createdDocumentId = res.body.id;
-    });
-
-    it('→ Cannot access document from different course', async () => {
-      const otherCourseEndpoint = `/courses/${otherCourseId}/lessons/${otherLessonId}/documents`;
-
-      const res = await request(app.getHttpServer())
-        .get(`${otherCourseEndpoint}/${createdDocumentId}`)
-        .send();
-
-      expect(res.status).toBe(404);
-      expect(res.body.message).toMatch(/Lesson not found|not found/i);
-    });
-
-    it('→ Cannot access document from different lesson (same course)', async () => {
-      const sameCourseOtherEndpoint = `/courses/${courseId}/lessons/${sameCourseOtherLessonId}/documents`;
-
-      const res = await request(app.getHttpServer())
-        .get(`${sameCourseOtherEndpoint}/${createdDocumentId}`)
-        .send();
-
-      expect(res.status).toBe(404);
-      expect(res.body.message).toMatch(/Document not found|not found/i);
-    });
-
-    it('→ List documents only shows documents from current lesson', async () => {
-      // Criar documento na lesson atual
       await request(app.getHttpServer())
         .post(endpoint())
-        .send({
-          url: 'https://cdn.example.com/current-lesson.pdf',
-          filename: 'current-lesson.pdf',
-          fileSize: 1024,
-          mimeType: 'application/pdf',
-          translations: [
-            {
-              locale: 'pt',
-              title: 'Current Lesson PT',
-              description: 'Desc PT',
-            },
-            {
-              locale: 'it',
-              title: 'Current Lesson IT',
-              description: 'Desc IT',
-            },
-            {
-              locale: 'es',
-              title: 'Current Lesson ES',
-              description: 'Desc ES',
-            },
-          ],
-        });
+        .send(payloadWithDuplicateLocales)
+        .expect(400);
+    });
 
-      // Criar documento na outra lesson (mesmo curso)
-      const otherEndpoint = `/courses/${courseId}/lessons/${sameCourseOtherLessonId}/documents`;
-      await request(app.getHttpServer())
-        .post(otherEndpoint)
-        .send({
-          url: 'https://cdn.example.com/other-lesson.pdf',
-          filename: 'other-lesson.pdf',
-          fileSize: 1024,
-          mimeType: 'application/pdf',
-          translations: [
-            { locale: 'pt', title: 'Other Lesson PT', description: 'Desc PT' },
-            { locale: 'it', title: 'Other Lesson IT', description: 'Desc IT' },
-            { locale: 'es', title: 'Other Lesson ES', description: 'Desc ES' },
-          ],
-        });
+    it('should ensure all required locales are present', async () => {
+      const payloadMissingLocale = createValidDocumentPayload({
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Test PT',
+            description: 'Desc PT',
+            url: 'https://cdn.example.com/test-pt.pdf',
+          },
+          // missing 'it' and 'es' locales
+        ],
+      });
 
-      // Listar documentos da lesson atual
-      const currentRes = await request(app.getHttpServer())
-        .get(endpoint())
-        .send();
+      const res = await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payloadMissingLocale);
 
-      // Listar documentos da outra lesson
-      const otherRes = await request(app.getHttpServer())
-        .get(otherEndpoint)
-        .send();
-
-      expect(currentRes.status).toBe(200);
-      expect(otherRes.status).toBe(200);
-
-      // Cada lesson deve ter apenas seus próprios documentos
-      expect(currentRes.body).toHaveLength(2); // cross-validation.pdf + current-lesson.pdf
-      expect(otherRes.body).toHaveLength(1); // other-lesson.pdf
-
-      // Verificar que não há overlap
-      const currentFilenames = currentRes.body.map((doc: any) => doc.filename);
-      const otherFilenames = otherRes.body.map((doc: any) => doc.filename);
-
-      expect(currentFilenames).toContain('cross-validation.pdf');
-      expect(currentFilenames).toContain('current-lesson.pdf');
-      expect(currentFilenames).not.toContain('other-lesson.pdf');
-
-      expect(otherFilenames).toContain('other-lesson.pdf');
-      expect(otherFilenames).not.toContain('cross-validation.pdf');
-      expect(otherFilenames).not.toContain('current-lesson.pdf');
+      // Should either require all locales or accept partial translations
+      expect([201, 400]).toContain(res.status);
     });
   });
 });

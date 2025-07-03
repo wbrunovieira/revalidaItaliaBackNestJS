@@ -1,17 +1,25 @@
-// src/domain/course-catalog/enterprise/entities/document.entity.ts
 import { Entity } from '@/core/entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 
-export interface DocumentProps {
-  url: string;
-  filename: string;
+// Representa as traduções de documento em diferentes idiomas
+export interface DocumentTranslationProps {
+  locale: 'pt' | 'it' | 'es';
   title: string;
+  description: string;
+  url: string;
+}
+
+// Propriedades principais do documento (excluindo URL específico de idioma)
+export interface DocumentProps {
+  filename: string;
   fileSize: number;
-  mimeType: string; // "application/pdf", "application/msword", etc
+  mimeType: string; // ex: "application/pdf"
   isDownloadable: boolean;
   downloadCount: number;
   createdAt: Date;
   updatedAt: Date;
+  // Traduções por idioma, incluindo URL em cada
+  translations: DocumentTranslationProps[];
 }
 
 export class Document extends Entity<DocumentProps> {
@@ -19,16 +27,9 @@ export class Document extends Entity<DocumentProps> {
     this.props.updatedAt = new Date();
   }
 
-  public get url(): string {
-    return this.props.url;
-  }
-
+  // Getters para propriedades comuns
   public get filename(): string {
     return this.props.filename;
-  }
-
-  public get title(): string {
-    return this.props.title;
   }
 
   public get fileSize(): number {
@@ -55,23 +56,20 @@ export class Document extends Entity<DocumentProps> {
     return this.props.updatedAt;
   }
 
+  // Retorna todas as traduções (inclui URL por idioma)
+  public get translations(): DocumentTranslationProps[] {
+    return this.props.translations;
+  }
+
+  // Atualiza detalhes básicos (sem tocar traduções)
   public updateDetails(updates: {
-    title?: string;
     filename?: string;
-    url?: string;
     fileSize?: number;
     mimeType?: string;
+    isDownloadable?: boolean;
   }) {
-    if (updates.title) {
-      this.props.title = updates.title;
-      this.touch();
-    }
     if (updates.filename) {
       this.props.filename = updates.filename;
-      this.touch();
-    }
-    if (updates.url) {
-      this.props.url = updates.url;
       this.touch();
     }
     if (typeof updates.fileSize === 'number') {
@@ -82,18 +80,8 @@ export class Document extends Entity<DocumentProps> {
       this.props.mimeType = updates.mimeType;
       this.touch();
     }
-  }
-
-  public enableDownload() {
-    if (!this.props.isDownloadable) {
-      this.props.isDownloadable = true;
-      this.touch();
-    }
-  }
-
-  public disableDownload() {
-    if (this.props.isDownloadable) {
-      this.props.isDownloadable = false;
+    if (typeof updates.isDownloadable === 'boolean') {
+      this.props.isDownloadable = updates.isDownloadable;
       this.touch();
     }
   }
@@ -103,26 +91,10 @@ export class Document extends Entity<DocumentProps> {
     this.touch();
   }
 
-  public isPdf(): boolean {
-    return this.props.mimeType === 'application/pdf';
-  }
-
-  public isWord(): boolean {
-    return [
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ].includes(this.props.mimeType);
-  }
-
-  public getFileSizeInMB(): number {
-    return Number((this.props.fileSize / (1024 * 1024)).toFixed(2));
-  }
-
+  // Converte para objeto de resposta incluindo traduções completas
   public toResponseObject(): {
     id: string;
-    url: string;
     filename: string;
-    title: string;
     fileSize: number;
     fileSizeInMB: number;
     mimeType: string;
@@ -130,22 +102,23 @@ export class Document extends Entity<DocumentProps> {
     downloadCount: number;
     createdAt: Date;
     updatedAt: Date;
+    translations: DocumentTranslationProps[];
   } {
     return {
       id: this.id.toString(),
-      url: this.props.url,
       filename: this.props.filename,
-      title: this.props.title,
       fileSize: this.props.fileSize,
-      fileSizeInMB: this.getFileSizeInMB(),
+      fileSizeInMB: Number((this.props.fileSize / (1024 * 1024)).toFixed(2)),
       mimeType: this.props.mimeType,
       isDownloadable: this.props.isDownloadable,
       downloadCount: this.props.downloadCount,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
+      translations: this.props.translations,
     };
   }
 
+  // Cria nova entidade de documento com traduções
   public static create(
     props: Omit<DocumentProps, 'createdAt' | 'updatedAt' | 'downloadCount'> & {
       downloadCount?: number;
@@ -155,20 +128,20 @@ export class Document extends Entity<DocumentProps> {
     const now = new Date();
     return new Document(
       {
-        url: props.url,
         filename: props.filename,
-        title: props.title,
         fileSize: props.fileSize,
         mimeType: props.mimeType,
         isDownloadable: props.isDownloadable,
         downloadCount: props.downloadCount ?? 0,
         createdAt: now,
         updatedAt: now,
+        translations: props.translations,
       },
       id,
     );
   }
 
+  // Reconstrói entidade a partir de dados completos
   public static reconstruct(
     props: DocumentProps,
     id: UniqueEntityID,

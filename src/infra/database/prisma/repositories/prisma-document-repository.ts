@@ -1,9 +1,4 @@
-// src/infra/database/prisma/repositories/prisma-document-repository.ts
-import {
-  Injectable,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { Either, left, right } from '@/core/either';
@@ -16,6 +11,7 @@ import { DuplicateDocumentError } from '@/domain/course-catalog/application/use-
 export class PrismaDocumentRepository implements IDocumentRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Busca por filename
   async findByFilename(filename: string): Promise<Either<Error, Document>> {
     try {
       const row = await this.prisma.lessonDocument.findFirst({
@@ -25,21 +21,27 @@ export class PrismaDocumentRepository implements IDocumentRepository {
 
       if (!row) return left(new Error('Document not found'));
 
-      const ptTr = row.translations.find((t) => t.locale === 'pt');
-      if (!ptTr) return left(new Error('Portuguese translation missing'));
+      // Monta array de traduções com URL
+      const translationsData = row.translations.map((t) => ({
+        locale: t.locale as 'pt' | 'it' | 'es',
+        title: t.title,
+        description: t.description ?? '',
+        url: t.url,
+      }));
 
+      // Reconstrói entidade contendo todas as traduções
+      const props = {
+        filename: row.filename ?? '',
+        fileSize: 0, // TODO: adicionar fileSize no schema Prisma
+        mimeType: '', // TODO: adicionar mimeType no schema Prisma
+        isDownloadable: true, // TODO: adicionar isDownloadable no schema Prisma
+        downloadCount: 0, // TODO: adicionar downloadCount no schema Prisma
+        createdAt: row.createdAt,
+        updatedAt: row.createdAt,
+        translations: translationsData,
+      };
       const documentEntity = Document.reconstruct(
-        {
-          url: row.url,
-          filename: row.filename || '',
-          title: ptTr.title,
-          fileSize: 0, // TODO: adicionar no schema do Prisma
-          mimeType: '', // TODO: adicionar no schema do Prisma
-          isDownloadable: true, // TODO: adicionar no schema do Prisma
-          downloadCount: 0, // TODO: adicionar no schema do Prisma
-          createdAt: row.createdAt,
-          updatedAt: row.createdAt, // LessonDocument não tem updatedAt no schema atual
-        },
+        props,
         new UniqueEntityID(row.id),
       );
 
@@ -49,6 +51,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     }
   }
 
+  // Criação de documento com traduções que incluem URL
   async create(
     lessonId: string,
     document: Document,
@@ -56,6 +59,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
       locale: 'pt' | 'it' | 'es';
       title: string;
       description: string;
+      url: string;
     }>,
   ): Promise<Either<Error, void>> {
     try {
@@ -63,7 +67,6 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         data: {
           id: document.id.toString(),
           lessonId,
-          url: document.url,
           filename: document.filename,
           translations: {
             create: translations.map((t) => ({
@@ -71,6 +74,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
               locale: t.locale,
               title: t.title,
               description: t.description,
+              url: t.url,
             })),
           },
         },
@@ -90,6 +94,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     }
   }
 
+  // Busca por ID de documento
   async findById(id: string): Promise<
     Either<
       Error,
@@ -99,6 +104,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
           locale: 'pt' | 'it' | 'es';
           title: string;
           description: string;
+          url: string;
         }>;
       }
     >
@@ -111,26 +117,27 @@ export class PrismaDocumentRepository implements IDocumentRepository {
 
       if (!row) return left(new Error('Document not found'));
 
-      const documentEntity = Document.reconstruct(
-        {
-          url: row.url,
-          filename: row.filename || '',
-          title: row.translations.find((t) => t.locale === 'pt')!.title,
-          fileSize: 0, // TODO: adicionar no schema
-          mimeType: '', // TODO: adicionar no schema
-          isDownloadable: true, // TODO: adicionar no schema
-          downloadCount: 0, // TODO: adicionar no schema
-          createdAt: row.createdAt,
-          updatedAt: row.createdAt,
-        },
-        new UniqueEntityID(row.id),
-      );
-
       const translationsData = row.translations.map((t) => ({
         locale: t.locale as 'pt' | 'it' | 'es',
         title: t.title,
-        description: t.description || '', // Trata null/undefined como string vazia
+        description: t.description ?? '',
+        url: t.url,
       }));
+
+      const props = {
+        filename: row.filename ?? '',
+        fileSize: 0,
+        mimeType: '',
+        isDownloadable: true,
+        downloadCount: 0,
+        createdAt: row.createdAt,
+        updatedAt: row.createdAt,
+        translations: translationsData,
+      };
+      const documentEntity = Document.reconstruct(
+        props,
+        new UniqueEntityID(row.id),
+      );
 
       return right({
         document: documentEntity,
@@ -141,6 +148,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     }
   }
 
+  // Lista todos os documentos de uma aula
   async findByLesson(lessonId: string): Promise<
     Either<
       Error,
@@ -150,6 +158,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
           locale: 'pt' | 'it' | 'es';
           title: string;
           description: string;
+          url: string;
         }>;
       }>
     >
@@ -161,26 +170,27 @@ export class PrismaDocumentRepository implements IDocumentRepository {
       });
 
       const result = rows.map((row) => {
-        const documentEntity = Document.reconstruct(
-          {
-            url: row.url,
-            filename: row.filename || '',
-            title: row.translations.find((t) => t.locale === 'pt')!.title,
-            fileSize: 0, // TODO: adicionar no schema
-            mimeType: '', // TODO: adicionar no schema
-            isDownloadable: true, // TODO: adicionar no schema
-            downloadCount: 0, // TODO: adicionar no schema
-            createdAt: row.createdAt,
-            updatedAt: row.createdAt,
-          },
-          new UniqueEntityID(row.id),
-        );
-
         const translationsData = row.translations.map((t) => ({
           locale: t.locale as 'pt' | 'it' | 'es',
           title: t.title,
-          description: t.description || '', // Trata null/undefined como string vazia
+          description: t.description ?? '',
+          url: t.url,
         }));
+
+        const props = {
+          filename: row.filename ?? '',
+          fileSize: 0,
+          mimeType: '',
+          isDownloadable: true,
+          downloadCount: 0,
+          createdAt: row.createdAt,
+          updatedAt: row.createdAt,
+          translations: translationsData,
+        };
+        const documentEntity = Document.reconstruct(
+          props,
+          new UniqueEntityID(row.id),
+        );
 
         return { document: documentEntity, translations: translationsData };
       });
@@ -191,19 +201,18 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     }
   }
 
+  // Deleta documento
   async delete(id: string): Promise<Either<Error, void>> {
     try {
-      await this.prisma.lessonDocument.delete({
-        where: { id },
-      });
+      await this.prisma.lessonDocument.delete({ where: { id } });
       return right(undefined);
     } catch (err: any) {
       return left(new Error(`Failed to delete document: ${err.message}`));
     }
   }
 
+  // Incremento de download (a implementar)
   async incrementDownloadCount(id: string): Promise<Either<Error, void>> {
-    // TODO: Implementar quando adicionar downloadCount no schema
     return right(undefined);
   }
 }
