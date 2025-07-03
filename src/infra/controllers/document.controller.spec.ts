@@ -11,10 +11,12 @@ import { DocumentController } from './document.controller';
 import { CreateDocumentUseCase } from '@/domain/course-catalog/application/use-cases/create-document.use-case';
 import { ListDocumentsUseCase } from '@/domain/course-catalog/application/use-cases/list-documents.use-case';
 import { GetDocumentUseCase } from '@/domain/course-catalog/application/use-cases/get-document.use-case';
+import { DeleteDocumentUseCase } from '@/domain/course-catalog/application/use-cases/delete-document.use-case';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
 import { DuplicateDocumentError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-document-error';
 import { DocumentNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/document-not-found-error';
+import { DocumentHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/document-has-dependencies-error';
 import { InvalidFileError } from '@/domain/course-catalog/application/use-cases/errors/invalid-file-error';
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 import { right, left } from '@/core/either';
@@ -28,12 +30,16 @@ vi.mock(
   '@/domain/course-catalog/application/use-cases/list-documents.use-case',
 );
 vi.mock('@/domain/course-catalog/application/use-cases/get-document.use-case');
+vi.mock(
+  '@/domain/course-catalog/application/use-cases/delete-document.use-case',
+);
 
 describe('DocumentController', () => {
   let controller: DocumentController;
   let createUc: CreateDocumentUseCase;
   let listUc: ListDocumentsUseCase;
   let getUc: GetDocumentUseCase;
+  let deleteUc: DeleteDocumentUseCase;
 
   const lessonId = 'lesson-uuid';
   const documentId = 'doc-uuid';
@@ -57,8 +63,9 @@ describe('DocumentController', () => {
     createUc = new CreateDocumentUseCase({} as any, {} as any);
     listUc = new ListDocumentsUseCase({} as any, {} as any);
     getUc = new GetDocumentUseCase({} as any, {} as any);
+    deleteUc = new DeleteDocumentUseCase({} as any);
 
-    controller = new DocumentController(createUc, listUc, getUc);
+    controller = new DocumentController(createUc, listUc, getUc, deleteUc);
   });
 
   describe('create()', () => {
@@ -224,6 +231,164 @@ describe('DocumentController', () => {
       await expect(
         controller.findOne(lessonId, documentId),
       ).rejects.toBeInstanceOf(InternalServerErrorException);
+    });
+  });
+
+  describe('delete()', () => {
+    it('returns success message when deletion is successful', async () => {
+      const mockDeleteResponse = {
+        message: 'Document deleted successfully',
+        deletedAt: new Date(),
+      };
+
+      vi.mocked(deleteUc.execute).mockResolvedValueOnce(
+        right(mockDeleteResponse),
+      );
+
+      const result = await controller.delete(lessonId, documentId);
+
+      expect(deleteUc.execute).toHaveBeenCalledWith({
+        id: documentId,
+        lessonId: lessonId,
+      });
+      expect(result).toEqual({
+        message: 'Document deleted successfully',
+        deletedAt: mockDeleteResponse.deletedAt,
+      });
+    });
+
+    it('throws NotFoundException on DocumentNotFoundError', async () => {
+      vi.mocked(deleteUc.execute).mockResolvedValueOnce(
+        left(new DocumentNotFoundError()),
+      );
+
+      await expect(
+        controller.delete(lessonId, documentId),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('throws BadRequestException on InvalidInputError', async () => {
+      vi.mocked(deleteUc.execute).mockResolvedValueOnce(
+        left(new InvalidInputError('Invalid document ID', [])),
+      );
+
+      await expect(
+        controller.delete(lessonId, documentId),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('throws InternalServerErrorException on RepositoryError', async () => {
+      vi.mocked(deleteUc.execute).mockResolvedValueOnce(
+        left(new RepositoryError('Database error')),
+      );
+
+      await expect(
+        controller.delete(lessonId, documentId),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
+    });
+
+    it('throws ConflictException on DocumentHasDependenciesError', async () => {
+      const mockDependencyInfo = {
+        canDelete: false,
+        totalDependencies: 1,
+        summary: { downloads: 1, translations: 0 },
+        dependencies: [
+          {
+            type: 'download' as const,
+            id: 'download-1',
+            name: 'Downloaded by User 1',
+            relatedEntities: {
+              userId: 'user-1',
+              userName: 'User 1',
+              downloadedAt: new Date(),
+            },
+          },
+        ],
+      };
+
+      const dependencyError = new DocumentHasDependenciesError(
+        ['Downloaded by User 1'],
+        mockDependencyInfo,
+      );
+      (dependencyError as any).dependencyInfo = mockDependencyInfo;
+
+      vi.mocked(deleteUc.execute).mockResolvedValueOnce(left(dependencyError));
+
+      await expect(
+        controller.delete(lessonId, documentId),
+      ).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('calls deleteUc.execute with correct parameters', async () => {
+      const mockDeleteResponse = {
+        message: 'Document deleted successfully',
+        deletedAt: new Date(),
+      };
+
+      vi.mocked(deleteUc.execute).mockResolvedValueOnce(
+        right(mockDeleteResponse),
+      );
+
+      await controller.delete(lessonId, documentId);
+
+      expect(deleteUc.execute).toHaveBeenCalledWith({
+        id: documentId,
+        lessonId: lessonId,
+      });
+      expect(deleteUc.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns the exact response from the use case', async () => {
+      const mockDeleteResponse = {
+        message: 'Document deleted successfully',
+        deletedAt: new Date('2023-01-01T00:00:00Z'),
+      };
+
+      vi.mocked(deleteUc.execute).mockResolvedValueOnce(
+        right(mockDeleteResponse),
+      );
+
+      const result = await controller.delete(lessonId, documentId);
+
+      expect(result).toEqual(mockDeleteResponse);
+    });
+
+    it('handles deletion of document with translations', async () => {
+      const mockDeleteResponse = {
+        message: 'Document deleted successfully',
+        deletedAt: new Date(),
+      };
+
+      vi.mocked(deleteUc.execute).mockResolvedValueOnce(
+        right(mockDeleteResponse),
+      );
+
+      const result = await controller.delete(lessonId, documentId);
+
+      expect(result).toEqual(mockDeleteResponse);
+      expect(deleteUc.execute).toHaveBeenCalledWith({
+        id: documentId,
+        lessonId: lessonId,
+      });
+    });
+
+    it('validates cross-lesson access by passing lessonId', async () => {
+      const mockDeleteResponse = {
+        message: 'Document deleted successfully',
+        deletedAt: new Date(),
+      };
+
+      vi.mocked(deleteUc.execute).mockResolvedValueOnce(
+        right(mockDeleteResponse),
+      );
+
+      const differentLessonId = 'different-lesson-id';
+      await controller.delete(differentLessonId, documentId);
+
+      expect(deleteUc.execute).toHaveBeenCalledWith({
+        id: documentId,
+        lessonId: differentLessonId,
+      });
     });
   });
 

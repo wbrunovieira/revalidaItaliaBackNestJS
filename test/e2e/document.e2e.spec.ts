@@ -523,6 +523,237 @@ describe('DocumentController (E2E)', () => {
     });
   });
 
+  describe('[DELETE] delete document', () => {
+    beforeEach(async () => {
+      const payload = createValidDocumentPayload({
+        filename: 'delete-doc.pdf',
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Documento para Deletar PT',
+            description: 'Será deletado',
+            url: 'https://cdn.example.com/delete-doc-pt.pdf',
+          },
+          {
+            locale: 'it',
+            title: 'Documento da Eliminare IT',
+            description: 'Sarà eliminato',
+            url: 'https://cdn.example.com/delete-doc-it.pdf',
+          },
+          {
+            locale: 'es',
+            title: 'Documento para Eliminar ES',
+            description: 'Será eliminado',
+            url: 'https://cdn.example.com/delete-doc-es.pdf',
+          },
+        ],
+      });
+
+      const res = await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payload)
+        .expect(201);
+
+      createdDocumentId = res.body.id;
+    });
+
+    it('should delete a document successfully', async () => {
+      const res = await request(app.getHttpServer())
+        .delete(`${endpoint()}/${createdDocumentId}`)
+        .expect(200);
+
+      expect(res.body).toEqual({
+        message: 'Document deleted successfully',
+        deletedAt: expect.any(String),
+      });
+
+      // Verify the document is deleted from database
+      const dbDocument = await prisma.lessonDocument.findUnique({
+        where: { id: createdDocumentId },
+      });
+      expect(dbDocument).toBeNull();
+
+      // Verify translations are also deleted
+      const dbTranslations = await prisma.lessonDocumentTranslation.findMany({
+        where: { documentId: createdDocumentId },
+      });
+      expect(dbTranslations).toHaveLength(0);
+    });
+
+    it('should return 404 for nonexistent document', async () => {
+      const nonexistentDocumentId = '00000000-0000-0000-0000-000000000000';
+
+      const res = await request(app.getHttpServer())
+        .delete(`${endpoint()}/${nonexistentDocumentId}`)
+        .expect(404);
+
+      expect(res.body.message).toMatch(/not found/i);
+    });
+
+    it('should return 400 for invalid UUID format', async () => {
+      await request(app.getHttpServer())
+        .delete(`${endpoint()}/not-a-uuid`)
+        .expect(400);
+    });
+
+    it('should return 404 for nonexistent lesson', async () => {
+      const nonexistentLessonEndpoint =
+        '/lessons/00000000-0000-0000-0000-000000000000/documents';
+
+      await request(app.getHttpServer())
+        .delete(`${nonexistentLessonEndpoint}/${createdDocumentId}`)
+        .expect(404);
+    });
+
+    it('should delete document with multiple translations', async () => {
+      // Create a document with all three translations
+      const payload = createValidDocumentPayload({
+        filename: 'multi-translation-doc.pdf',
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Documento Multilíngue PT',
+            description: 'Documento com múltiplas traduções',
+            url: 'https://cdn.example.com/multi-doc-pt.pdf',
+          },
+          {
+            locale: 'it',
+            title: 'Documento Multilingue IT',
+            description: 'Documento con traduzioni multiple',
+            url: 'https://cdn.example.com/multi-doc-it.pdf',
+          },
+          {
+            locale: 'es',
+            title: 'Documento Multilingüe ES',
+            description: 'Documento con múltiples traducciones',
+            url: 'https://cdn.example.com/multi-doc-es.pdf',
+          },
+        ],
+      });
+
+      const createRes = await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payload)
+        .expect(201);
+
+      const documentId = createRes.body.id;
+
+      // Verify document exists with all translations
+      const beforeDelete = await prisma.lessonDocument.findUnique({
+        where: { id: documentId },
+        include: { translations: true },
+      });
+      expect(beforeDelete).toBeDefined();
+      expect(beforeDelete?.translations).toHaveLength(3);
+
+      // Delete the document
+      await request(app.getHttpServer())
+        .delete(`${endpoint()}/${documentId}`)
+        .expect(200);
+
+      // Verify document and all translations are deleted
+      const afterDelete = await prisma.lessonDocument.findUnique({
+        where: { id: documentId },
+        include: { translations: true },
+      });
+      expect(afterDelete).toBeNull();
+
+      const orphanedTranslations =
+        await prisma.lessonDocumentTranslation.findMany({
+          where: { documentId },
+        });
+      expect(orphanedTranslations).toHaveLength(0);
+    });
+
+    it('should not affect other documents when deleting one', async () => {
+      // Create another document
+      const payload2 = createValidDocumentPayload({
+        filename: 'another-doc.pdf',
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Outro Documento PT',
+            description: 'Não deve ser afetado',
+            url: 'https://cdn.example.com/another-doc-pt.pdf',
+          },
+          {
+            locale: 'it',
+            title: 'Altro Documento IT',
+            description: 'Non deve essere interessato',
+            url: 'https://cdn.example.com/another-doc-it.pdf',
+          },
+          {
+            locale: 'es',
+            title: 'Otro Documento ES',
+            description: 'No debe ser afectado',
+            url: 'https://cdn.example.com/another-doc-es.pdf',
+          },
+        ],
+      });
+
+      const createRes2 = await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payload2)
+        .expect(201);
+
+      const anotherDocumentId = createRes2.body.id;
+
+      // Delete the first document
+      await request(app.getHttpServer())
+        .delete(`${endpoint()}/${createdDocumentId}`)
+        .expect(200);
+
+      // Verify the other document still exists
+      const otherDocument = await prisma.lessonDocument.findUnique({
+        where: { id: anotherDocumentId },
+        include: { translations: true },
+      });
+      expect(otherDocument).toBeDefined();
+      expect(otherDocument?.translations).toHaveLength(3);
+
+      // Verify we can still access the other document
+      await request(app.getHttpServer())
+        .get(`${endpoint()}/${anotherDocumentId}`)
+        .expect(200);
+    });
+
+    it('should handle deletion with database transaction integrity', async () => {
+      // Get initial counts
+      const initialDocCount = await prisma.lessonDocument.count();
+      const initialTranslationCount =
+        await prisma.lessonDocumentTranslation.count();
+
+      // Delete the document
+      await request(app.getHttpServer())
+        .delete(`${endpoint()}/${createdDocumentId}`)
+        .expect(200);
+
+      // Verify counts decreased correctly
+      const finalDocCount = await prisma.lessonDocument.count();
+      const finalTranslationCount =
+        await prisma.lessonDocumentTranslation.count();
+
+      expect(finalDocCount).toBe(initialDocCount - 1);
+      expect(finalTranslationCount).toBe(initialTranslationCount - 3); // 3 translations deleted
+    });
+
+    it('should return proper timestamp in deletion response', async () => {
+      const beforeDelete = new Date();
+
+      const res = await request(app.getHttpServer())
+        .delete(`${endpoint()}/${createdDocumentId}`)
+        .expect(200);
+
+      const afterDelete = new Date();
+      const deletedAt = new Date(res.body.deletedAt);
+
+      expect(deletedAt.getTime()).toBeGreaterThanOrEqual(
+        beforeDelete.getTime(),
+      );
+      expect(deletedAt.getTime()).toBeLessThanOrEqual(afterDelete.getTime());
+    });
+  });
+
   describe('Cross-lesson validation', () => {
     let otherLessonId: string;
     let otherModuleId: string;
@@ -599,6 +830,21 @@ describe('DocumentController (E2E)', () => {
         .expect(404);
 
       expect(res.body.message).toMatch(/not found/i);
+    });
+
+    it('should not allow deletion of document from different lesson', async () => {
+      const otherLessonEndpoint = `/lessons/${otherLessonId}/documents`;
+
+      const res = await request(app.getHttpServer())
+        .delete(`${otherLessonEndpoint}/${createdDocumentId}`)
+        .expect(404);
+
+      expect(res.body.message).toMatch(/not found/i);
+
+      // Verify the document still exists in the original lesson
+      await request(app.getHttpServer())
+        .get(`${endpoint()}/${createdDocumentId}`)
+        .expect(200);
     });
 
     it('should only show documents from current lesson in list', async () => {
@@ -807,6 +1053,50 @@ describe('DocumentController (E2E)', () => {
         .post(endpoint())
         .send(payloadWithInvalidUrls)
         .expect(400);
+    });
+
+    it('should handle deletion of already deleted document', async () => {
+      // Create and delete a document
+      const payload = createValidDocumentPayload({
+        filename: 'to-be-deleted.pdf',
+        translations: [
+          {
+            locale: 'pt',
+            title: 'To Be Deleted PT',
+            description: 'Will be deleted',
+            url: 'https://cdn.example.com/to-be-deleted-pt.pdf',
+          },
+          {
+            locale: 'it',
+            title: 'To Be Deleted IT',
+            description: 'Will be deleted',
+            url: 'https://cdn.example.com/to-be-deleted-it.pdf',
+          },
+          {
+            locale: 'es',
+            title: 'To Be Deleted ES',
+            description: 'Will be deleted',
+            url: 'https://cdn.example.com/to-be-deleted-es.pdf',
+          },
+        ],
+      });
+
+      const createRes = await request(app.getHttpServer())
+        .post(endpoint())
+        .send(payload)
+        .expect(201);
+
+      const documentId = createRes.body.id;
+
+      // Delete the document
+      await request(app.getHttpServer())
+        .delete(`${endpoint()}/${documentId}`)
+        .expect(200);
+
+      // Try to delete again
+      await request(app.getHttpServer())
+        .delete(`${endpoint()}/${documentId}`)
+        .expect(404);
     });
   });
 

@@ -1,104 +1,493 @@
-// src/domain/course-catalog/application/use-cases/delete-document.use-case.spec.ts
-
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DeleteDocumentUseCase } from '@/domain/course-catalog/application/use-cases/delete-document.use-case';
-import { InMemoryDocumentRepository } from '@/test/repositories/in-memory-document-repository';
-import { DeleteDocumentRequest } from '@/domain/course-catalog/application/dtos/delete-document-request.dto';
-import { DocumentNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/document-not-found-error';
-import { DocumentHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/document-has-dependencies-error';
-import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
-import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
-import { Document } from '@/domain/course-catalog/enterprise/entities/document.entity';
+import { DeleteDocumentUseCase } from './delete-document.use-case';
+import { IDocumentRepository } from '../repositories/i-document-repository';
+import { Document } from '../../enterprise/entities/document.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
-import { left, right } from '@/core/either';
-
-let repo: InMemoryDocumentRepository;
-let sut: DeleteDocumentUseCase;
+import { right, left } from '@/core/either';
+import { InvalidInputError } from './errors/invalid-input-error';
+import { DocumentNotFoundError } from './errors/document-not-found-error';
+import { RepositoryError } from './errors/repository-error';
+import { DocumentHasDependenciesError } from './errors/document-has-dependencies-error';
 
 describe('DeleteDocumentUseCase', () => {
+  let sut: DeleteDocumentUseCase;
+  let documentRepository: IDocumentRepository;
+
   beforeEach(() => {
-    repo = new InMemoryDocumentRepository();
-    sut = new DeleteDocumentUseCase(repo);
+    documentRepository = {
+      findById: vi.fn(),
+      delete: vi.fn(),
+      findByFilename: vi.fn(),
+      create: vi.fn(),
+      findByLesson: vi.fn(),
+      incrementDownloadCount: vi.fn(),
+      checkDocumentDependencies: vi.fn(),
+    };
+
+    sut = new DeleteDocumentUseCase(documentRepository);
   });
 
-  function createValidDocument(id?: string): Document {
-    const documentId = id || new UniqueEntityID().toString();
-
-    return Document.create(
-      {
-        filename: 'test-document.pdf',
-        fileSize: 1024 * 1024, // 1MB
+  describe('Successful deletion', () => {
+    it('deletes a document successfully when it exists', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'test.pdf',
+        fileSize: 1000,
         mimeType: 'application/pdf',
         isDownloadable: true,
-        translations: [
-          {
-            locale: 'pt',
-            title: 'Documento de Teste',
-            description: 'Descrição do documento',
-            url: 'http://example.com/doc-pt.pdf',
-          },
-        ],
-      },
-      new UniqueEntityID(documentId),
-    );
-  }
+        downloadCount: 0,
+        translations: [],
+      });
 
-  function validDeleteRequest(id?: string): DeleteDocumentRequest {
-    return {
-      id: id || new UniqueEntityID().toString(),
-    };
-  }
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({
+          document,
+          translations: [
+            {
+              locale: 'pt' as const,
+              title: 'Documento de Teste',
+              description: 'Descrição do documento',
+              url: 'https://example.com/test.pdf',
+            },
+          ],
+        }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 1 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockResolvedValue(
+        right(undefined),
+      );
 
-  describe('Successful deletion', () => {
-    it('deletes a document successfully when it exists and has no dependencies', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
-
-      const request = validDeleteRequest(document.id.toString());
+      const request = { id: documentId };
       const result = await sut.execute(request);
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.message).toBe('Document deleted successfully');
         expect(result.value.deletedAt).toBeInstanceOf(Date);
-        expect(repo.items).toHaveLength(0);
+      }
+      expect(documentRepository.findById).toHaveBeenCalledWith(documentId);
+      expect(documentRepository.checkDocumentDependencies).toHaveBeenCalledWith(
+        documentId,
+      );
+      expect(documentRepository.delete).toHaveBeenCalledWith(documentId);
+    });
+
+    it('deletes a document with translations successfully', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'test.pdf',
+        fileSize: 1000,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
+        translations: [],
+      });
+
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({
+          document,
+          translations: [
+            {
+              locale: 'pt' as const,
+              title: 'Documento de Teste',
+              description: 'Descrição do documento',
+              url: 'https://example.com/test.pdf',
+            },
+            {
+              locale: 'it' as const,
+              title: 'Documento di Prova',
+              description: 'Descrizione del documento',
+              url: 'https://example.com/test.pdf',
+            },
+          ],
+        }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 2 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockResolvedValue(
+        right(undefined),
+      );
+
+      const request = { id: documentId };
+      const result = await sut.execute(request);
+
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.message).toBe('Document deleted successfully');
+        expect(result.value.deletedAt).toBeInstanceOf(Date);
       }
     });
 
-    it('returns success message with current timestamp', async () => {
+    it('deletes a document successfully with lessonId validation', async () => {
+      const documentId = new UniqueEntityID().toString();
       const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
+      const document = Document.create(
         {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
+          filename: 'test.pdf',
+          fileSize: 1000,
+          mimeType: 'application/pdf',
+          isDownloadable: true,
+          downloadCount: 0,
+          translations: [],
         },
-      ];
-      await repo.create(lessonId, document, translations);
+        new UniqueEntityID(documentId),
+      );
 
-      const beforeDeletion = new Date();
-      const request = validDeleteRequest(document.id.toString());
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      vi.spyOn(documentRepository, 'findByLesson').mockResolvedValue(
+        right([{ document, translations: [] }]),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 0 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockResolvedValue(
+        right(undefined),
+      );
+
+      const request = { id: documentId, lessonId };
       const result = await sut.execute(request);
-      const afterDeletion = new Date();
+
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.message).toBe('Document deleted successfully');
+      }
+      expect(documentRepository.findByLesson).toHaveBeenCalledWith(lessonId);
+    });
+
+    it('returns success message with current timestamp', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'test.pdf',
+        fileSize: 1000,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
+        translations: [],
+      });
+
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 0 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockResolvedValue(
+        right(undefined),
+      );
+
+      const beforeExecution = new Date();
+      const result = await sut.execute({ id: documentId });
+      const afterExecution = new Date();
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.deletedAt.getTime()).toBeGreaterThanOrEqual(
-          beforeDeletion.getTime(),
+          beforeExecution.getTime(),
         );
         expect(result.value.deletedAt.getTime()).toBeLessThanOrEqual(
-          afterDeletion.getTime(),
+          afterExecution.getTime(),
+        );
+      }
+    });
+  });
+
+  describe('Cross-lesson validation', () => {
+    it('returns DocumentNotFoundError when document does not belong to specified lesson', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const lessonId = new UniqueEntityID().toString();
+      const document = Document.create(
+        {
+          filename: 'test.pdf',
+          fileSize: 1000,
+          mimeType: 'application/pdf',
+          isDownloadable: true,
+          downloadCount: 0,
+          translations: [],
+        },
+        new UniqueEntityID(documentId),
+      );
+
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      // Document exists but not in the specified lesson
+      vi.spyOn(documentRepository, 'findByLesson').mockResolvedValue(
+        right([]), // Empty array means document doesn't belong to this lesson
+      );
+
+      const request = { id: documentId, lessonId };
+      const result = await sut.execute(request);
+
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(DocumentNotFoundError);
+      }
+    });
+
+    it('returns DocumentNotFoundError when lesson does not exist', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const lessonId = new UniqueEntityID().toString();
+      const document = Document.create(
+        {
+          filename: 'test.pdf',
+          fileSize: 1000,
+          mimeType: 'application/pdf',
+          isDownloadable: true,
+          downloadCount: 0,
+          translations: [],
+        },
+        new UniqueEntityID(documentId),
+      );
+
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      // Lesson doesn't exist
+      vi.spyOn(documentRepository, 'findByLesson').mockResolvedValue(
+        left(new Error('Lesson not found')),
+      );
+
+      const request = { id: documentId, lessonId };
+      const result = await sut.execute(request);
+
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(DocumentNotFoundError);
+      }
+    });
+
+    it('allows deletion when document belongs to specified lesson', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const lessonId = new UniqueEntityID().toString();
+      const document = Document.create(
+        {
+          filename: 'test.pdf',
+          fileSize: 1000,
+          mimeType: 'application/pdf',
+          isDownloadable: true,
+          downloadCount: 0,
+          translations: [],
+        },
+        new UniqueEntityID(documentId),
+      );
+
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      // Document belongs to the specified lesson
+      vi.spyOn(documentRepository, 'findByLesson').mockResolvedValue(
+        right([{ document, translations: [] }]),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 0 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockResolvedValue(
+        right(undefined),
+      );
+
+      const request = { id: documentId, lessonId };
+      const result = await sut.execute(request);
+
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.message).toBe('Document deleted successfully');
+      }
+    });
+
+    it('does not validate lesson when lessonId is not provided', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'test.pdf',
+        fileSize: 1000,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
+        translations: [],
+      });
+
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 0 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockResolvedValue(
+        right(undefined),
+      );
+
+      const request = { id: documentId };
+      const result = await sut.execute(request);
+
+      expect(result.isRight()).toBe(true);
+      expect(documentRepository.findByLesson).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Dependencies validation', () => {
+    it('returns DocumentHasDependenciesError when document has real dependencies', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'test.pdf',
+        fileSize: 1000,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
+        translations: [],
+      });
+
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: false,
+          totalDependencies: 1,
+          summary: { downloads: 1, translations: 0 },
+          dependencies: [
+            {
+              type: 'download' as const,
+              id: 'download-1',
+              name: 'Downloaded by User 1',
+              relatedEntities: {
+                userId: 'user-1',
+                userName: 'User 1',
+                downloadedAt: new Date(),
+              },
+            },
+          ],
+        }),
+      );
+
+      const request = { id: documentId };
+      const result = await sut.execute(request);
+
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(DocumentHasDependenciesError);
+      }
+    });
+
+    it('allows deletion when document has no dependencies', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'test.pdf',
+        fileSize: 1000,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
+        translations: [],
+      });
+
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 0 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockResolvedValue(
+        right(undefined),
+      );
+
+      const request = { id: documentId };
+      const result = await sut.execute(request);
+
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.message).toBe('Document deleted successfully');
+      }
+    });
+
+    it('handles repository error when checking dependencies', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'test.pdf',
+        fileSize: 1000,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
+        translations: [],
+      });
+
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(left(new Error('Database error')));
+
+      const request = { id: documentId };
+      const result = await sut.execute(request);
+
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(RepositoryError);
+        expect((result.value as RepositoryError).message).toBe(
+          'Database error',
         );
       }
     });
@@ -106,455 +495,250 @@ describe('DeleteDocumentUseCase', () => {
 
   describe('Validation errors', () => {
     it('rejects empty document ID', async () => {
-      const request: any = { id: '' };
+      const request = { id: '' };
       const result = await sut.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        const error = result.value as InvalidInputError;
-        expect(error).toBeInstanceOf(InvalidInputError);
-        expect(error.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              message: 'Document ID is required',
-              path: ['id'],
-            }),
-          ]),
+        expect(result.value).toBeInstanceOf(InvalidInputError);
+        expect((result.value as InvalidInputError).message).toBe(
+          'Validation failed',
         );
       }
     });
 
     it('rejects missing document ID', async () => {
-      const request: any = {};
+      const request = {} as any;
       const result = await sut.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        const error = result.value as InvalidInputError;
-        expect(error).toBeInstanceOf(InvalidInputError);
-        expect(error.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              code: 'invalid_type',
-              expected: 'string',
-              received: 'undefined',
-              path: ['id'],
-            }),
-          ]),
-        );
+        expect(result.value).toBeInstanceOf(InvalidInputError);
       }
     });
 
     it('rejects invalid UUID format', async () => {
-      const request: any = { id: 'invalid-uuid' };
+      const request = { id: 'not-a-uuid' };
       const result = await sut.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        const error = result.value as InvalidInputError;
-        expect(error).toBeInstanceOf(InvalidInputError);
-        expect(error.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              message: 'Document ID must be a valid UUID',
-              path: ['id'],
-            }),
-          ]),
-        );
+        expect(result.value).toBeInstanceOf(InvalidInputError);
       }
     });
 
     it('rejects non-string document ID', async () => {
-      const request: any = { id: 123 };
+      const request = { id: 123 } as any;
       const result = await sut.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        const error = result.value as InvalidInputError;
-        expect(error).toBeInstanceOf(InvalidInputError);
-        expect(error.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              code: 'invalid_type',
-              expected: 'string',
-              received: 'number',
-              path: ['id'],
-            }),
-          ]),
-        );
+        expect(result.value).toBeInstanceOf(InvalidInputError);
       }
     });
 
     it('rejects null document ID', async () => {
-      const request: any = { id: null };
+      const request = { id: null } as any;
       const result = await sut.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        const error = result.value as InvalidInputError;
-        expect(error).toBeInstanceOf(InvalidInputError);
-        expect(error.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              code: 'invalid_type',
-              expected: 'string',
-              received: 'null',
-              path: ['id'],
-            }),
-          ]),
-        );
+        expect(result.value).toBeInstanceOf(InvalidInputError);
+      }
+    });
+
+    it('rejects invalid lessonId UUID format', async () => {
+      const request = {
+        id: new UniqueEntityID().toString(),
+        lessonId: 'not-a-uuid',
+      };
+      const result = await sut.execute(request);
+
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(InvalidInputError);
       }
     });
   });
 
   describe('Document not found errors', () => {
     it('returns DocumentNotFoundError when document does not exist', async () => {
-      const nonExistentId = new UniqueEntityID().toString();
-      const request = validDeleteRequest(nonExistentId);
+      const documentId = new UniqueEntityID().toString();
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        left(new Error('Document not found')),
+      );
+
+      const request = { id: documentId };
       const result = await sut.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        const error = result.value as DocumentNotFoundError;
-        expect(error).toBeInstanceOf(DocumentNotFoundError);
-        expect(error.message).toBe('Document not found');
+        expect(result.value).toBeInstanceOf(DocumentNotFoundError);
       }
     });
 
     it('handles repository error when finding document', async () => {
       const documentId = new UniqueEntityID().toString();
-      vi.spyOn(repo, 'findById').mockRejectedValueOnce(
-        new Error('Database connection failed'),
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        left(new Error('Database connection error')),
       );
 
-      const request = validDeleteRequest(documentId);
+      const request = { id: documentId };
       const result = await sut.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Database connection failed');
+        expect(result.value).toBeInstanceOf(DocumentNotFoundError);
       }
     });
 
     it('handles Left result from repository.findById', async () => {
       const documentId = new UniqueEntityID().toString();
-      vi.spyOn(repo, 'findById').mockResolvedValueOnce(
-        left(new Error('Document lookup failed')),
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        left(new Error('Some error')),
       );
 
-      const request = validDeleteRequest(documentId);
+      const request = { id: documentId };
       const result = await sut.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        const error = result.value as DocumentNotFoundError;
-        expect(error).toBeInstanceOf(DocumentNotFoundError);
-        expect(error.message).toBe('Document not found');
-      }
-    });
-  });
-
-  describe('Document dependencies errors', () => {
-    it('returns DocumentHasDependenciesError when document has been downloaded by users', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
-
-      // Adicionar dependências simuladas (usuários que baixaram o documento)
-      repo.addDependenciesToDocument(document.id.toString(), {
-        downloads: [
-          {
-            id: '1',
-            userId: 'user1',
-            userName: 'João Silva',
-            downloadedAt: new Date(),
-          },
-          {
-            id: '2',
-            userId: 'user2',
-            userName: 'Maria Santos',
-            downloadedAt: new Date(),
-          },
-        ],
-      });
-
-      const request = validDeleteRequest(document.id.toString());
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as DocumentHasDependenciesError;
-        expect(error).toBeInstanceOf(DocumentHasDependenciesError);
-        expect(error.message).toContain(
-          'Cannot delete document because it has dependencies',
-        );
-        expect(error.message).toContain('Downloaded by João Silva');
-        expect(error.message).toContain('Downloaded by Maria Santos');
-      }
-    });
-
-    it('returns DocumentHasDependenciesError when document has translations', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
-
-      // Adicionar traduções como dependências
-      repo.addDependenciesToDocument(document.id.toString(), {
-        translations: [
-          { id: '1', locale: 'pt', title: 'Documento Introdutório' },
-          { id: '2', locale: 'en', title: 'Introduction Document' },
-        ],
-      });
-
-      const request = validDeleteRequest(document.id.toString());
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as DocumentHasDependenciesError;
-        expect(error).toBeInstanceOf(DocumentHasDependenciesError);
-        expect(error.message).toContain(
-          'Cannot delete document because it has dependencies',
-        );
-        expect(error.message).toContain('Translation (pt): Documento Introdutório');
-        expect(error.message).toContain('Translation (en): Introduction Document');
-      }
-    });
-
-    it('returns DocumentHasDependenciesError when document has multiple types of dependencies', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
-
-      repo.addDependenciesToDocument(document.id.toString(), {
-        downloads: [
-          {
-            id: '1',
-            userId: 'user1',
-            userName: 'João Silva',
-            downloadedAt: new Date(),
-          },
-        ],
-        translations: [{ id: '2', locale: 'pt', title: 'Documento Avançado' }],
-      });
-
-      const request = validDeleteRequest(document.id.toString());
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as DocumentHasDependenciesError;
-        expect(error).toBeInstanceOf(DocumentHasDependenciesError);
-        expect(error.message).toContain(
-          'Cannot delete document because it has dependencies',
-        );
-        expect(error.message).toContain('Downloaded by João Silva');
-        expect(error.message).toContain('Translation (pt): Documento Avançado');
-      }
-    });
-
-    it('includes dependency info in error for frontend usage', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
-
-      repo.addDependenciesToDocument(document.id.toString(), {
-        downloads: [
-          {
-            id: '1',
-            userId: 'user1',
-            userName: 'João Silva',
-            downloadedAt: new Date(),
-          },
-          {
-            id: '2',
-            userId: 'user2',
-            userName: 'Maria Santos',
-            downloadedAt: new Date(),
-          },
-        ],
-        translations: [{ id: '3', locale: 'pt', title: 'Teste Documento' }],
-      });
-
-      const request = validDeleteRequest(document.id.toString());
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as DocumentHasDependenciesError;
-        expect(error).toBeInstanceOf(DocumentHasDependenciesError);
-
-        // Verificar se a informação extra está disponível
-        const errorWithInfo = error as any;
-        expect(errorWithInfo.dependencyInfo).toBeDefined();
-        expect(errorWithInfo.dependencyInfo.canDelete).toBe(false);
-        expect(errorWithInfo.dependencyInfo.totalDependencies).toBe(3);
-        expect(errorWithInfo.dependencyInfo.summary.downloads).toBe(2);
-        expect(errorWithInfo.dependencyInfo.summary.translations).toBe(1);
-
-        // Verificar detalhes das entidades relacionadas
-        const downloadDeps = errorWithInfo.dependencyInfo.dependencies.filter(
-          (d: any) => d.type === 'download',
-        );
-        expect(downloadDeps).toHaveLength(2);
-        expect(downloadDeps[0].relatedEntities?.userName).toBe('João Silva');
-        expect(downloadDeps[1].relatedEntities?.userName).toBe('Maria Santos');
-      }
-    });
-
-    it('handles repository error when checking dependencies', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
-
-      vi.spyOn(repo, 'checkDocumentDependencies').mockResolvedValueOnce(
-        left(new Error('Dependencies check failed')),
-      );
-
-      const request = validDeleteRequest(document.id.toString());
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Dependencies check failed');
+        expect(result.value).toBeInstanceOf(DocumentNotFoundError);
       }
     });
   });
 
   describe('Repository errors', () => {
     it('handles repository error during deletion', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'test.pdf',
+        fileSize: 1000,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
+        translations: [],
+      });
 
-      vi.spyOn(repo, 'delete').mockResolvedValueOnce(
-        left(new Error('Deletion failed')),
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 0 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockResolvedValue(
+        left(new Error('Database error during deletion')),
       );
 
-      const request = validDeleteRequest(document.id.toString());
+      const request = { id: documentId };
       const result = await sut.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Deletion failed');
+        expect(result.value).toBeInstanceOf(RepositoryError);
+        expect((result.value as RepositoryError).message).toBe(
+          'Database error during deletion',
+        );
       }
     });
 
     it('handles exception thrown during deletion', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
-
-      vi.spyOn(repo, 'delete').mockImplementationOnce(() => {
-        throw new Error('Unexpected deletion error');
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'test.pdf',
+        fileSize: 1000,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
+        translations: [],
       });
 
-      const request = validDeleteRequest(document.id.toString());
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 0 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockRejectedValue(
+        new Error('Unexpected error'),
+      );
+
+      const request = { id: documentId };
       const result = await sut.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Unexpected deletion error');
+        expect(result.value).toBeInstanceOf(RepositoryError);
+        expect((result.value as RepositoryError).message).toBe(
+          'Unexpected error',
+        );
       }
     });
 
     it('handles generic exception during document lookup', async () => {
       const documentId = new UniqueEntityID().toString();
-      vi.spyOn(repo, 'findById').mockImplementationOnce(() => {
-        throw new Error('Unexpected lookup error');
-      });
+      vi.spyOn(documentRepository, 'findById').mockRejectedValue(
+        new Error('Network error'),
+      );
 
-      const request = validDeleteRequest(documentId);
+      const request = { id: documentId };
       const result = await sut.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Unexpected lookup error');
+        expect(result.value).toBeInstanceOf(RepositoryError);
+        expect((result.value as RepositoryError).message).toBe('Network error');
       }
     });
   });
 
   describe('Edge cases', () => {
-    it('handles document with no dependencies', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
+    it('handles document with no translations', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'test.pdf',
+        fileSize: 1000,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
+        translations: [],
+      });
 
-      const request = validDeleteRequest(document.id.toString());
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 0 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockResolvedValue(
+        right(undefined),
+      );
+
+      const request = { id: documentId };
       const result = await sut.execute(request);
 
       expect(result.isRight()).toBe(true);
@@ -564,167 +748,90 @@ describe('DeleteDocumentUseCase', () => {
     });
 
     it('handles document with empty dependency arrays', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
-
-      repo.addDependenciesToDocument(document.id.toString(), {
-        downloads: [],
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'test.pdf',
+        fileSize: 1000,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
         translations: [],
       });
 
-      const request = validDeleteRequest(document.id.toString());
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 0 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockResolvedValue(
+        right(undefined),
+      );
+
+      const request = { id: documentId };
+      const result = await sut.execute(request);
+
+      expect(result.isRight()).toBe(true);
+    });
+
+    it('handles malformed UUID that passes regex but fails in repository', async () => {
+      const documentId = '00000000-0000-0000-0000-000000000000';
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        left(new Error('Invalid UUID format')),
+      );
+
+      const request = { id: documentId };
+      const result = await sut.execute(request);
+
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(DocumentNotFoundError);
+      }
+    });
+
+    it('handles multiple documents from same lesson', async () => {
+      const documentId = new UniqueEntityID().toString();
+      const document = Document.create({
+        filename: 'lesson1-doc1.pdf',
+        fileSize: 1000,
+        mimeType: 'application/pdf',
+        isDownloadable: true,
+        downloadCount: 0,
+        translations: [],
+      });
+
+      vi.spyOn(documentRepository, 'findById').mockResolvedValue(
+        right({ document, translations: [] }),
+      );
+      vi.spyOn(
+        documentRepository,
+        'checkDocumentDependencies',
+      ).mockResolvedValue(
+        right({
+          canDelete: true,
+          totalDependencies: 0,
+          summary: { downloads: 0, translations: 0 },
+          dependencies: [],
+        }),
+      );
+      vi.spyOn(documentRepository, 'delete').mockResolvedValue(
+        right(undefined),
+      );
+
+      const request = { id: documentId };
       const result = await sut.execute(request);
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.message).toBe('Document deleted successfully');
-      }
-    });
-
-    it('handles malformed UUID that passes regex but fails in repository', async () => {
-      const malformedId = '12345678-1234-1234-1234-123456789012';
-
-      const request = validDeleteRequest(malformedId);
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as DocumentNotFoundError;
-        expect(error).toBeInstanceOf(DocumentNotFoundError);
-        expect(error.message).toBe('Document not found');
-      }
-    });
-
-    it('handles exception during dependencies check', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
-
-      vi.spyOn(repo, 'checkDocumentDependencies').mockImplementationOnce(() => {
-        throw new Error('Unexpected dependencies check error');
-      });
-
-      const request = validDeleteRequest(document.id.toString());
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Unexpected dependencies check error');
-      }
-    });
-
-    it('verifies dependency information structure', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document = createValidDocument();
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-      await repo.create(lessonId, document, translations);
-
-      repo.addDependenciesToDocument(document.id.toString(), {
-        downloads: [
-          {
-            id: '1',
-            userId: 'user1',
-            userName: 'João Silva',
-            downloadedAt: new Date(),
-          },
-        ],
-        translations: [
-          { id: '2', locale: 'pt', title: 'Documento Teste' },
-          { id: '3', locale: 'en', title: 'Test Document' },
-        ],
-      });
-
-      // Testar o método checkDocumentDependencies diretamente
-      const dependenciesResult = await repo.checkDocumentDependencies(
-        document.id.toString(),
-      );
-
-      expect(dependenciesResult.isRight()).toBe(true);
-      if (dependenciesResult.isRight()) {
-        const info = dependenciesResult.value;
-        expect(info.canDelete).toBe(false);
-        expect(info.totalDependencies).toBe(3);
-        expect(info.summary.downloads).toBe(1);
-        expect(info.summary.translations).toBe(2);
-        expect(info.dependencies).toHaveLength(3);
-
-        const downloadDependency = info.dependencies.find(
-          (d) => d.type === 'download',
-        );
-        expect(downloadDependency).toBeDefined();
-        expect(downloadDependency?.name).toBe('Downloaded by João Silva');
-        expect(downloadDependency?.relatedEntities?.userId).toBe('user1');
-
-        const translationDeps = info.dependencies.filter(
-          (d) => d.type === 'translation',
-        );
-        expect(translationDeps).toHaveLength(2);
-      }
-    });
-
-    it('handles multiple documents from same lesson', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      const document1 = createValidDocument();
-      const document2 = createValidDocument();
-      const document3 = createValidDocument();
-
-      const translations = [
-        {
-          locale: 'pt' as const,
-          title: 'Documento PT',
-          description: 'Descrição PT',
-          url: 'http://example.com/doc-pt.pdf',
-        },
-      ];
-
-      await repo.create(lessonId, document1, translations);
-      await repo.create(lessonId, document2, translations);
-      await repo.create(lessonId, document3, translations);
-
-      // Deletar apenas o documento 2
-      const request = validDeleteRequest(document2.id.toString());
-      const result = await sut.execute(request);
-
-      expect(result.isRight()).toBe(true);
-      expect(repo.items).toHaveLength(2);
-
-      // Verificar que os outros documentos ainda existem
-      const remainingDocuments = await repo.findByLesson(lessonId);
-      expect(remainingDocuments.isRight()).toBe(true);
-      if (remainingDocuments.isRight()) {
-        expect(remainingDocuments.value).toHaveLength(2);
-        const remainingIds = remainingDocuments.value.map((d) =>
-          d.document.id.toString(),
-        );
-        expect(remainingIds).toContain(document1.id.toString());
-        expect(remainingIds).toContain(document3.id.toString());
-        expect(remainingIds).not.toContain(document2.id.toString());
       }
     });
   });

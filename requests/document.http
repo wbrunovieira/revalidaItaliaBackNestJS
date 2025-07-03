@@ -109,6 +109,22 @@ Accept: application/json
 POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents/c3ed5a10-60b6-4a8c-8add-6770784a6553/download
 
 ###
+# @name delete-document-success
+DELETE {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/432245df-0406-48bd-b852-5541df7b7e3e
+
+###
+# @name delete-document-not-found
+DELETE {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/00000000-0000-0000-0000-000000000000
+
+###
+# @name delete-document-invalid-uuid
+DELETE {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/invalid-uuid
+
+###
+# @name delete-document-with-dependencies
+DELETE {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/document-with-downloads-id
+
+###
 # @name error-invalid-file-size
 POST {{BASE_URL}}/courses/055e8884-abf4-4ae4-97dc-12809271ea6c/lessons/a16eb397-561a-499c-b2b3-aa1ae0231bfa/documents
 Content-Type: application/json

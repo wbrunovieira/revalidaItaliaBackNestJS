@@ -6,6 +6,7 @@ import { IDocumentRepository } from '@/domain/course-catalog/application/reposit
 import { Document } from '@/domain/course-catalog/enterprise/entities/document.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { DuplicateDocumentError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-document-error';
+import { DocumentDependencyInfo } from '@/domain/course-catalog/application/dtos/document-dependencies.dto';
 
 @Injectable()
 export class PrismaDocumentRepository implements IDocumentRepository {
@@ -204,7 +205,19 @@ export class PrismaDocumentRepository implements IDocumentRepository {
   // Deleta documento
   async delete(id: string): Promise<Either<Error, void>> {
     try {
-      await this.prisma.lessonDocument.delete({ where: { id } });
+      // Usar transaction para garantir atomicidade
+      await this.prisma.$transaction(async (prisma) => {
+        // Primeiro deleta as traduções
+        await prisma.lessonDocumentTranslation.deleteMany({
+          where: { documentId: id },
+        });
+
+        // Depois deleta o documento
+        await prisma.lessonDocument.delete({
+          where: { id },
+        });
+      });
+
       return right(undefined);
     } catch (err: any) {
       return left(new Error(`Failed to delete document: ${err.message}`));
@@ -214,5 +227,70 @@ export class PrismaDocumentRepository implements IDocumentRepository {
   // Incremento de download (a implementar)
   async incrementDownloadCount(id: string): Promise<Either<Error, void>> {
     return right(undefined);
+  }
+
+  // Verifica dependências do documento
+  async checkDocumentDependencies(
+    id: string,
+  ): Promise<Either<Error, DocumentDependencyInfo>> {
+    try {
+      // Verifica se o documento existe
+      const document = await this.prisma.lessonDocument.findUnique({
+        where: { id },
+        include: {
+          translations: true,
+          // Adicione aqui outras relações que realmente impedem a remoção
+          // Por exemplo: assignments, quizzes, downloads por usuários, etc.
+        },
+      });
+
+      if (!document) {
+        return left(new Error('Document not found'));
+      }
+
+      // Monta informações sobre dependências REAIS (que impedem remoção)
+      const dependencies: Array<{
+        type: 'translation' | 'download';
+        id: string;
+        name: string;
+        relatedEntities?: {
+          userId?: string;
+          userName?: string;
+          downloadedAt?: Date;
+          locale?: string;
+          title?: string;
+        };
+      }> = [];
+
+      // NÃO adiciona traduções como dependências - elas são parte do documento
+      // e devem ser removidas em cascata
+
+      // Adicione aqui verificações de dependências REAIS que impedem a remoção
+      // Por exemplo:
+      // - Downloads por usuários (se você quiser manter histórico)
+      // - Referências em assignments/quizzes
+      // - Uso em outras partes do sistema
+
+      // Conta os tipos de dependências
+      const translationsCount = document.translations.length; // Para informação apenas
+      const downloadsCount = dependencies.filter(
+        (d) => d.type === 'download',
+      ).length;
+      const totalDependencies = dependencies.length; // Apenas dependências reais
+
+      const dependencyInfo: DocumentDependencyInfo = {
+        canDelete: totalDependencies === 0, // Pode deletar se não há dependências REAIS
+        totalDependencies,
+        summary: {
+          downloads: downloadsCount,
+          translations: translationsCount, // Informativo apenas
+        },
+        dependencies,
+      };
+
+      return right(dependencyInfo);
+    } catch (err: any) {
+      return left(new Error(`Database error: ${err.message}`));
+    }
   }
 }

@@ -2,4 +2,5 @@
 
 export interface DeleteDocumentRequest {
   id: string;
+  lessonId?: string;
 }

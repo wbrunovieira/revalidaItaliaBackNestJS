@@ -1,5 +1,3 @@
-// src/domain/course-catalog/application/use-cases/delete-document.use-case.ts
-
 import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
 import { IDocumentRepository } from '../repositories/i-document-repository';
@@ -63,13 +61,33 @@ export class DeleteDocumentUseCase {
 
     try {
       // Verificar se o documento existe
-      const existingDocumentResult = await this.documentRepository.findById(data.id);
+      const existingDocumentResult = await this.documentRepository.findById(
+        data.id,
+      );
 
       if (existingDocumentResult.isLeft()) {
         return left(new DocumentNotFoundError());
       }
 
-      // Verificar dependências com informações detalhadas
+      // Verificar se o documento pertence à lição especificada (se lessonId for fornecido)
+      if (data.lessonId) {
+        const documentsByLessonResult =
+          await this.documentRepository.findByLesson(data.lessonId);
+
+        if (documentsByLessonResult.isLeft()) {
+          return left(new DocumentNotFoundError());
+        }
+
+        const documentExists = documentsByLessonResult.value.some(
+          (item) => item.document.id.toString() === data.id,
+        );
+
+        if (!documentExists) {
+          return left(new DocumentNotFoundError());
+        }
+      }
+
+      // Opcional: Verificar dependências REAIS (não incluindo traduções)
       const dependenciesResult =
         await this.documentRepository.checkDocumentDependencies(data.id);
 
@@ -79,23 +97,22 @@ export class DeleteDocumentUseCase {
 
       const dependencyInfo = dependenciesResult.value;
 
-      // Se não pode deletar, retornar erro detalhado
-      if (!dependencyInfo.canDelete) {
+      // Se há dependências REAIS (não traduções), impedir a remoção
+      if (!dependencyInfo.canDelete && dependencyInfo.totalDependencies > 0) {
         const dependencyNames = dependencyInfo.dependencies.map(
           (dep) => dep.name,
         );
 
-        // Criar erro customizado com informações para o frontend
         const error = new DocumentHasDependenciesError(
           dependencyNames,
           dependencyInfo,
         );
-        (error as any).dependencyInfo = dependencyInfo; // Adicionar info extra
+        (error as any).dependencyInfo = dependencyInfo;
 
         return left(error);
       }
 
-      // Deletar o documento
+      // Deletar o documento (e suas traduções em cascata)
       const deleteResult = await this.documentRepository.delete(data.id);
 
       if (deleteResult.isLeft()) {

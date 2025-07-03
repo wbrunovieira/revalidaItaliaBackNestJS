@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ModuleModule } from './module.module';
 import { DocumentController } from './controllers/document.controller';
 import { GetDocumentUseCase } from '@/domain/course-catalog/application/use-cases/get-document.use-case';
+import { DeleteDocumentUseCase } from '@/domain/course-catalog/application/use-cases/delete-document.use-case';
 
 @Module({
   imports: [DatabaseModule, ConfigModule, ModuleModule],
@@ -18,6 +19,7 @@ import { GetDocumentUseCase } from '@/domain/course-catalog/application/use-case
     CreateDocumentUseCase,
     ListDocumentsUseCase,
     GetDocumentUseCase,
+    DeleteDocumentUseCase,
 
     // TODO: Adicionar quando implementados
     // GetDocumentUseCase,
@@ -30,6 +32,7 @@ import { GetDocumentUseCase } from '@/domain/course-catalog/application/use-case
   exports: [
     CreateDocumentUseCase,
     ListDocumentsUseCase,
+    DeleteDocumentUseCase,
     'DocumentRepository',
     'LessonRepository',
 
