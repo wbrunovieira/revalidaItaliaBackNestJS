@@ -32,5 +32,9 @@ GET {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/lessons/9c053337-b
 Accept: application/json
 
 ### list-videos
-GET http://localhost:3333/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/lessons/9c053337-ba52-48e7-8b28-6ba2c8884fd9/videos
+GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/lessons/9c053337-ba52-48e7-8b28-6ba2c8884fd9/videos
+Accept: application/json
+
+### Teste 1: Deletar video sem dependências (deve funcionar)
+DELETE {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/lessons/9c053337-ba52-48e7-8b28-6ba2c8884fd9/videos/3e441f53-0a38-4866-9bb2-9898ee418d09
 Accept: application/json

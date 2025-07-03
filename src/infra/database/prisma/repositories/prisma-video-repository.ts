@@ -188,32 +188,25 @@ export class PrismaVideoRepository implements IVideoRepository {
     id: string,
   ): Promise<Either<Error, VideoDependencyInfo>> {
     try {
-      // Buscar todas as dependências do vídeo
-      const [videosSeen, translations, videoLinks] = await Promise.all([
-        // VideoSeen - usuários que já viram o vídeo
-        this.prisma.videoSeen.findMany({
-          where: { videoId: id },
-          include: {
-            user: {
-              select: { id: true, name: true },
-            },
+      // Buscar APENAS as dependências que realmente impedem a exclusão
+      const videosSeen = await this.prisma.videoSeen.findMany({
+        where: { videoId: id },
+        include: {
+          user: {
+            select: { id: true, name: true },
           },
-        }),
+        },
+      });
 
-        // VideoTranslation - traduções do vídeo
-        this.prisma.videoTranslation.findMany({
-          where: { videoId: id },
-        }),
-
-        // VideoLink - links do vídeo por idioma
-        this.prisma.videoLink.findMany({
-          where: { videoId: id },
-        }),
+      // Contar dependências que podem ser deletadas (para info apenas)
+      const [translations, videoLinks] = await Promise.all([
+        this.prisma.videoTranslation.count({ where: { videoId: id } }),
+        this.prisma.videoLink.count({ where: { videoId: id } }),
       ]);
 
       const dependencies: VideoDependencyInfo['dependencies'] = [];
 
-      // Processar VideoSeen
+      // APENAS VideoSeen impede a exclusão (dados de progresso do usuário)
       videosSeen.forEach((seen) => {
         dependencies.push({
           type: 'video_seen',
@@ -226,37 +219,13 @@ export class PrismaVideoRepository implements IVideoRepository {
         });
       });
 
-      // Processar VideoTranslation
-      translations.forEach((translation) => {
-        dependencies.push({
-          type: 'translation',
-          id: translation.id,
-          name: `Translation (${translation.locale}): ${translation.title}`,
-          relatedEntities: {
-            locale: translation.locale,
-          },
-        });
-      });
-
-      // Processar VideoLink
-      videoLinks.forEach((link) => {
-        dependencies.push({
-          type: 'video_link',
-          id: link.id,
-          name: `Video Link (${link.locale})`,
-          relatedEntities: {
-            locale: link.locale,
-          },
-        });
-      });
-
       const info: VideoDependencyInfo = {
-        canDelete: dependencies.length === 0,
-        totalDependencies: dependencies.length,
+        canDelete: videosSeen.length === 0, // Só videosSeen impede
+        totalDependencies: videosSeen.length,
         summary: {
           videosSeen: videosSeen.length,
-          translations: translations.length,
-          videoLinks: videoLinks.length,
+          translations: translations, // Info apenas
+          videoLinks: videoLinks, // Info apenas
         },
         dependencies,
       };

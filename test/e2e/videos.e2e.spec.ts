@@ -40,6 +40,7 @@ describe('VideoController (E2E)', () => {
 
   beforeEach(async () => {
     // limpa tudo na ordem certa
+    await prisma.videoSeen.deleteMany();
     await prisma.videoTranslation.deleteMany();
     await prisma.video.deleteMany();
 
@@ -93,6 +94,25 @@ describe('VideoController (E2E)', () => {
 
   // monta a rota usando lessonId
   const endpoint = () => `/courses/${courseId}/lessons/${lessonId}/videos`;
+
+  // Helper para criar um vídeo de teste
+  const createTestVideo = async (slug = 'test-video') => {
+    const payload = {
+      slug,
+      providerVideoId: realVideoId,
+      translations: [
+        { locale: 'pt', title: 'Vídeo PT', description: 'Desc PT' },
+        { locale: 'it', title: 'Video IT', description: 'Desc IT' },
+        { locale: 'es', title: 'Video ES', description: 'Desc ES' },
+      ],
+    };
+
+    const res = await request(app.getHttpServer())
+      .post(endpoint())
+      .send(payload);
+
+    return res.body.id;
+  };
 
   describe('[POST] create video', () => {
     it('→ Success', async () => {
@@ -264,6 +284,231 @@ describe('VideoController (E2E)', () => {
       const res = await request(app.getHttpServer()).get(endpoint()).send();
       expect(res.status).toBe(200);
       expect(res.body).toEqual([]);
+    });
+  });
+
+  describe('[DELETE] delete video', () => {
+    it('→ Success deletes video and returns success message', async () => {
+      // Criar um vídeo para deletar
+      const videoId = await createTestVideo('video-to-delete');
+
+      // Verificar que o vídeo existe
+      const getRes = await request(app.getHttpServer())
+        .get(`${endpoint()}/${videoId}`)
+        .send();
+      expect(getRes.status).toBe(200);
+
+      // Deletar o vídeo
+      const deleteRes = await request(app.getHttpServer())
+        .delete(`${endpoint()}/${videoId}`)
+        .send();
+
+      expect(deleteRes.status).toBe(200);
+      expect(deleteRes.body).toEqual(
+        expect.objectContaining({
+          message: 'Video deleted successfully',
+          deletedAt: expect.any(String),
+        }),
+      );
+
+      // Verificar que o vídeo foi realmente deletado
+      const getAfterDeleteRes = await request(app.getHttpServer())
+        .get(`${endpoint()}/${videoId}`)
+        .send();
+      expect(getAfterDeleteRes.status).toBe(404);
+    });
+
+    it('→ Success deletes video with all related data (translations)', async () => {
+      // Criar um vídeo
+      const videoId = await createTestVideo('video-with-translations');
+
+      // Verificar que as traduções existem
+      const videoInDb = await prisma.video.findUnique({
+        where: { id: videoId },
+        include: { translations: true },
+      });
+      expect(videoInDb?.translations).toHaveLength(3);
+
+      // Deletar o vídeo
+      const deleteRes = await request(app.getHttpServer())
+        .delete(`${endpoint()}/${videoId}`)
+        .send();
+
+      expect(deleteRes.status).toBe(200);
+
+      // Verificar que as traduções também foram deletadas
+      const translationsInDb = await prisma.videoTranslation.findMany({
+        where: { videoId },
+      });
+      expect(translationsInDb).toHaveLength(0);
+    });
+
+    it('→ Not Found for nonexistent video', async () => {
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+      const res = await request(app.getHttpServer())
+        .delete(`${endpoint()}/${nonExistentId}`)
+        .send();
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          message: 'Video not found in this lesson',
+        }),
+      );
+    });
+
+    it('→ Bad Request for invalid UUID', async () => {
+      const res = await request(app.getHttpServer())
+        .delete(`${endpoint()}/not-a-uuid`)
+        .send();
+
+      expect(res.status).toBe(400);
+    });
+
+    it('→ Not Found when lesson does not exist', async () => {
+      const videoId = await createTestVideo('video-for-invalid-lesson');
+      const invalidLessonId = '00000000-0000-0000-0000-000000000000';
+
+      const res = await request(app.getHttpServer())
+        .delete(
+          `/courses/${courseId}/lessons/${invalidLessonId}/videos/${videoId}`,
+        )
+        .send();
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          message: 'Lesson not found',
+        }),
+      );
+    });
+
+    it('→ Not Found when video belongs to different lesson', async () => {
+      // Criar outra lesson
+      const otherLesson = await prisma.lesson.create({
+        data: { moduleId },
+      });
+
+      // Criar vídeo na lesson original
+      const videoId = await createTestVideo('video-wrong-lesson');
+
+      // Tentar deletar usando a outra lesson
+      const res = await request(app.getHttpServer())
+        .delete(
+          `/courses/${courseId}/lessons/${otherLesson.id}/videos/${videoId}`,
+        )
+        .send();
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          message: 'Video not found in this lesson',
+        }),
+      );
+    });
+
+    it('→ Not Found when course does not match lesson', async () => {
+      // Criar outro curso
+      const otherCourse = await prisma.course.create({
+        data: {
+          slug: 'other-course',
+          translations: {
+            create: [
+              { locale: 'pt', title: 'Outro Curso', description: 'Desc' },
+            ],
+          },
+        },
+      });
+
+      const videoId = await createTestVideo('video-wrong-course');
+
+      // Tentar deletar usando courseId incorreto
+      const res = await request(app.getHttpServer())
+        .delete(
+          `/courses/${otherCourse.id}/lessons/${lessonId}/videos/${videoId}`,
+        )
+        .send();
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          message: 'Lesson not found',
+        }),
+      );
+    });
+
+    it('→ Conflict when video has dependencies (user viewed)', async () => {
+      // Criar um vídeo
+      const videoId = await createTestVideo('video-with-views');
+
+      // Criar um usuário
+      const user = await prisma.user.create({
+        data: {
+          name: 'Test User',
+          email: 'test@example.com',
+          password: 'password',
+          cpf: '12345678901',
+          role: 'student',
+        },
+      });
+
+      // Criar registro de visualização
+      await prisma.videoSeen.create({
+        data: {
+          userId: user.id,
+          videoId,
+        },
+      });
+
+      // Tentar deletar o vídeo
+      const res = await request(app.getHttpServer())
+        .delete(`${endpoint()}/${videoId}`)
+        .send();
+
+      expect(res.status).toBe(409);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'Cannot delete video because it has dependencies',
+          ),
+          dependencyInfo: expect.objectContaining({
+            canDelete: false,
+            totalDependencies: expect.any(Number),
+            summary: expect.objectContaining({
+              videosSeen: 1,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('→ Success deletes multiple videos in sequence', async () => {
+      // Criar múltiplos vídeos
+      const video1Id = await createTestVideo('multi-video-1');
+      const video2Id = await createTestVideo('multi-video-2');
+      const video3Id = await createTestVideo('multi-video-3');
+
+      // Deletar todos em sequência
+      const delete1 = await request(app.getHttpServer())
+        .delete(`${endpoint()}/${video1Id}`)
+        .send();
+      expect(delete1.status).toBe(200);
+
+      const delete2 = await request(app.getHttpServer())
+        .delete(`${endpoint()}/${video2Id}`)
+        .send();
+      expect(delete2.status).toBe(200);
+
+      const delete3 = await request(app.getHttpServer())
+        .delete(`${endpoint()}/${video3Id}`)
+        .send();
+      expect(delete3.status).toBe(200);
+
+      // Verificar que a lista está vazia
+      const listRes = await request(app.getHttpServer()).get(endpoint()).send();
+      expect(listRes.status).toBe(200);
+      expect(listRes.body).toEqual([]);
     });
   });
 });

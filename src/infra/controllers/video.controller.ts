@@ -11,6 +11,7 @@ import {
   ParseUUIDPipe,
   HttpStatus,
   HttpCode,
+  Delete,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateVideoUseCase } from '@/domain/course-catalog/application/use-cases/create-video.use-case';
@@ -22,6 +23,8 @@ import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cas
 import { DuplicateVideoError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-video-error';
 import { VideoNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/video-not-found-error';
 import { ListVideosUseCase } from '@/domain/course-catalog/application/use-cases/list-videos.use-case';
+import { DeleteVideoUseCase } from '@/domain/course-catalog/application/use-cases/delete-video.use-case';
+import { VideoHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/video-has-dependencies-error';
 
 @Controller('courses/:courseId/lessons/:lessonId/videos')
 export class VideoController {
@@ -29,6 +32,7 @@ export class VideoController {
     private readonly createVideo: CreateVideoUseCase,
     private readonly getVideo: GetVideoUseCase,
     private readonly listVideos: ListVideosUseCase,
+    private readonly deleteVideo: DeleteVideoUseCase,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -128,5 +132,52 @@ export class VideoController {
     }
 
     return result.value.video;
+  }
+
+  @Delete(':videoId')
+  @HttpCode(HttpStatus.OK)
+  async remove(
+    @Param('courseId', ParseUUIDPipe) courseId: string,
+    @Param('lessonId', ParseUUIDPipe) lessonId: string,
+    @Param('videoId', ParseUUIDPipe) videoId: string,
+  ) {
+    // 1. Validar se lesson existe e pertence ao course
+    await this.validateLesson(courseId, lessonId);
+
+    // 2. Validar se video pertence à lesson
+    const video = await this.prisma.video.findUnique({
+      where: { id: videoId },
+    });
+    if (!video || video.lessonId !== lessonId) {
+      throw new NotFoundException('Video not found in this lesson');
+    }
+
+    // 3. Executar use-case (todas as validações estão lá)
+    const result = await this.deleteVideo.execute({ id: videoId });
+
+    // 4. Tratar erros
+    if (result.isLeft()) {
+      const err = result.value;
+
+      if (err instanceof InvalidInputError) {
+        throw new BadRequestException(err.details);
+      }
+
+      if (err instanceof VideoNotFoundError) {
+        throw new NotFoundException(err.message);
+      }
+
+      if (err instanceof VideoHasDependenciesError) {
+        throw new ConflictException({
+          message: err.message,
+          dependencyInfo: err.dependencyInfo,
+        });
+      }
+
+      throw new InternalServerErrorException(err.message);
+    }
+
+    // 5. Retornar sucesso
+    return result.value;
   }
 }
