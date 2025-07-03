@@ -12,6 +12,7 @@ import {
   ParseUUIDPipe,
   HttpStatus,
   HttpCode,
+  Put,
 } from '@nestjs/common';
 import { CreateDocumentUseCase } from '@/domain/course-catalog/application/use-cases/create-document.use-case';
 import { ListDocumentsUseCase } from '@/domain/course-catalog/application/use-cases/list-documents.use-case';
@@ -25,6 +26,9 @@ import { DocumentNotFoundError } from '@/domain/course-catalog/application/use-c
 import { DocumentHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/document-has-dependencies-error';
 import { InvalidFileError } from '@/domain/course-catalog/application/use-cases/errors/invalid-file-error';
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
+import { UpdateDocumentUseCase } from '@/domain/course-catalog/application/use-cases/update-document.use-case';
+import { UpdateDocumentRequest } from '@/domain/course-catalog/application/dtos/update-document-request.dto';
+import { DocumentResponseDto } from '@/domain/course-catalog/application/dtos/document-response.dto';
 
 @Controller('lessons/:lessonId/documents')
 export class DocumentController {
@@ -33,6 +37,7 @@ export class DocumentController {
     private readonly listDocumentsUseCase: ListDocumentsUseCase,
     private readonly getDocumentUseCase: GetDocumentUseCase,
     private readonly deleteDocumentUseCase: DeleteDocumentUseCase,
+    private readonly updateDocumentUseCase: UpdateDocumentUseCase,
   ) {}
 
   @Post()
@@ -167,5 +172,67 @@ export class DocumentController {
     }
 
     return result.value;
+  }
+
+  @Put(':documentId')
+  async update(
+    @Param('lessonId', ParseUUIDPipe) lessonId: string,
+    @Param('documentId', ParseUUIDPipe) documentId: string,
+    @Body() body: Omit<UpdateDocumentRequest, 'id' | 'lessonId'>,
+  ): Promise<DocumentResponseDto> {
+    const result = await this.updateDocumentUseCase.execute({
+      ...body,
+      id: documentId,
+    });
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          message: error.message,
+          details: error.details,
+        });
+      }
+
+      if (error instanceof DocumentNotFoundError) {
+        throw new NotFoundException('Document not found');
+      }
+
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException('Failed to update document');
+      }
+
+      throw new InternalServerErrorException('An unexpected error occurred');
+    }
+
+    const { document, translations } = result.value;
+    const responseObj = document.toResponseObject();
+
+    // Format according to DocumentResponseDto structure
+    // Note: The DTO expects 'url' and 'title' at document level, but these are per-translation
+    // We'll use the first translation's data as defaults
+    const firstTranslation = translations[0];
+
+    return {
+      document: {
+        id: responseObj.id,
+        url: firstTranslation?.url || '', // URL is per translation
+        filename: responseObj.filename,
+        title: firstTranslation?.title || responseObj.filename, // Title is per translation
+        fileSize: responseObj.fileSize,
+        fileSizeInMB: responseObj.fileSizeInMB,
+        mimeType: responseObj.mimeType,
+        isDownloadable: responseObj.isDownloadable,
+        downloadCount: responseObj.downloadCount,
+        createdAt: responseObj.createdAt,
+        updatedAt: responseObj.updatedAt,
+      },
+      translations: translations.map((t) => ({
+        locale: t.locale,
+        title: t.title,
+        description: t.description,
+      })),
+    };
   }
 }

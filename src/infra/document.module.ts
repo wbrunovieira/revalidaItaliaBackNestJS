@@ -11,6 +11,7 @@ import { ModuleModule } from './module.module';
 import { DocumentController } from './controllers/document.controller';
 import { GetDocumentUseCase } from '@/domain/course-catalog/application/use-cases/get-document.use-case';
 import { DeleteDocumentUseCase } from '@/domain/course-catalog/application/use-cases/delete-document.use-case';
+import { UpdateDocumentUseCase } from '@/domain/course-catalog/application/use-cases/update-document.use-case';
 
 @Module({
   imports: [DatabaseModule, ConfigModule, ModuleModule],
@@ -20,6 +21,7 @@ import { DeleteDocumentUseCase } from '@/domain/course-catalog/application/use-c
     ListDocumentsUseCase,
     GetDocumentUseCase,
     DeleteDocumentUseCase,
+    UpdateDocumentUseCase,
 
     // TODO: Adicionar quando implementados
     // GetDocumentUseCase,
@@ -33,6 +35,7 @@ import { DeleteDocumentUseCase } from '@/domain/course-catalog/application/use-c
     CreateDocumentUseCase,
     ListDocumentsUseCase,
     DeleteDocumentUseCase,
+    UpdateDocumentUseCase,
     'DocumentRepository',
     'LessonRepository',
 

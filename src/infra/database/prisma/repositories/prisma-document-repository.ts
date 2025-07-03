@@ -293,4 +293,54 @@ export class PrismaDocumentRepository implements IDocumentRepository {
       return left(new Error(`Database error: ${err.message}`));
     }
   }
+
+  async update(
+    document: Document,
+    translations: Array<{
+      locale: 'pt' | 'it' | 'es';
+      title: string;
+      description: string;
+      url: string;
+    }>,
+  ): Promise<Either<Error, void>> {
+    try {
+      await this.prisma.$transaction(async (prisma) => {
+        // 1. Atualiza o filename, caso tenha mudado
+        await prisma.lessonDocument.update({
+          where: { id: document.id.toString() },
+          data: { filename: document.filename },
+        });
+
+        // 2. Deleta traduções antigas
+        await prisma.lessonDocumentTranslation.deleteMany({
+          where: { documentId: document.id.toString() },
+        });
+
+        // 3. Insere novas traduções
+        for (const t of translations) {
+          await prisma.lessonDocumentTranslation.create({
+            data: {
+              id: new UniqueEntityID().toString(),
+              locale: t.locale,
+              title: t.title,
+              description: t.description,
+              url: t.url,
+              documentId: document.id.toString(),
+            },
+          });
+        }
+      });
+
+      return right(undefined);
+    } catch (err: any) {
+      // Tratamento de erro de unicidade (tradução duplicada para mesmo locale)
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
+        return left(new Error('Cada locale de tradução deve ser único'));
+      }
+      return left(new Error(`Falha ao atualizar documento: ${err.message}`));
+    }
+  }
 }

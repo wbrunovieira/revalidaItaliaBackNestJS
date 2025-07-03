@@ -185,4 +185,29 @@ export class InMemoryDocumentRepository implements IDocumentRepository {
       translations: dependencies.translations || existing.translations,
     });
   }
+
+  async update(
+    document: Document,
+    translations: Array<{
+      locale: 'pt' | 'it' | 'es';
+      title: string;
+      description: string;
+      url: string;
+    }>,
+  ): Promise<Either<Error, void>> {
+    // Encontra o índice do documento armazenado
+    const index = this.items.findIndex(
+      (item) => item.document.id.toString() === document.id.toString(),
+    );
+
+    if (index === -1) {
+      return left(new Error('Document not found'));
+    }
+
+    // Atualiza a entidade e as traduções
+    this.items[index].document = document;
+    this.items[index].translations = translations;
+
+    return right(undefined);
+  }
 }

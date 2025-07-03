@@ -54,4 +54,14 @@ export interface IDocumentRepository {
   checkDocumentDependencies(
     id: string,
   ): Promise<Either<Error, DocumentDependencyInfo>>;
+
+  update(
+    document: Document,
+    translations: Array<{
+      locale: 'pt' | 'it' | 'es';
+      title: string;
+      description: string;
+      url: string;
+    }>,
+  ): Promise<Either<Error, void>>;
 }

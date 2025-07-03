@@ -96,7 +96,7 @@ Content-Type: application/json
 
 ### 
 # @name get-document
-GET {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/432245df-0406-48bd-b852-5541df7b7e3e
+GET {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/ebd55495-9e38-4862-b4b6-e9e5af25d1d5
 Accept: application/json
 
 ### 
@@ -200,6 +200,154 @@ Content-Type: application/json
       "locale": "pt",
       "title": "Documento",
       "description": "Apenas uma tradução."
+    }
+  ]
+}
+
+
+# Add these requests to document.http
+
+###
+# @name update-document-complete
+PUT {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/ebd55495-9e38-4862-b4b6-e9e5af25d1d5
+Content-Type: application/json
+
+{
+  "filename": "material-curso-derivadas-v2.pdf",
+  "fileSize": 3547890,
+  "mimeType": "application/pdf",
+  "isDownloadable": false,
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Material do Curso - Derivadas (Versão 2)",
+      "description": "Apostila atualizada e expandida sobre cálculo diferencial e derivadas.",
+      "url": "/document/v2/urlemportugues.pdf"
+    },
+    {
+      "locale": "it",
+      "title": "Materiale del Corso - Derivate (Versione 2)",
+      "description": "Dispensa aggiornata ed espansa sul calcolo differenziale e derivate.",
+      "url": "/document/v2/urlemitaliano.pdf"
+    },
+    {
+      "locale": "es",
+      "title": "Material del Curso - Derivadas (Versión 2)",
+      "description": "Apostilla actualizada y expandida sobre cálculo diferencial y derivadas.",
+      "url": "/document/v2/urlemespanhol.pdf"
+    }
+  ]
+}
+
+###
+# @name update-document-partial-metadata
+PUT {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/432245df-0406-48bd-b852-5541df7b7e3e
+Content-Type: application/json
+
+{
+  "filename": "material-curso-derivadas-revisado.pdf",
+  "fileSize": 2847890
+}
+
+###
+# @name update-document-only-translations
+PUT {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/432245df-0406-48bd-b852-5541df7b7e3e
+Content-Type: application/json
+
+{
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Material do Curso - Derivadas (Revisado)",
+      "description": "Apostila revisada com novos exemplos e exercícios.",
+      "url": "/document/revised/pt/material-derivadas.pdf"
+    },
+    {
+      "locale": "it",
+      "title": "Materiale del Corso - Derivate (Revisionato)",
+      "description": "Dispensa rivista con nuovi esempi ed esercizi.",
+      "url": "/document/revised/it/materiale-derivate.pdf"
+    },
+    {
+      "locale": "es",
+      "title": "Material del Curso - Derivadas (Revisado)",
+      "description": "Apostilla revisada con nuevos ejemplos y ejercicios.",
+      "url": "/document/revised/es/material-derivadas.pdf"
+    }
+  ]
+}
+
+###
+# @name update-document-toggle-downloadable
+PUT {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/432245df-0406-48bd-b852-5541df7b7e3e
+Content-Type: application/json
+
+{
+  "isDownloadable": true
+}
+
+###
+# @name update-document-change-mime-type
+PUT {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/432245df-0406-48bd-b852-5541df7b7e3e
+Content-Type: application/json
+
+{
+  "filename": "material-curso-derivadas.docx",
+  "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+}
+
+###
+# @name update-document-not-found
+PUT {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+{
+  "filename": "document-that-does-not-exist.pdf"
+}
+
+###
+# @name update-document-invalid-data
+PUT {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/432245df-0406-48bd-b852-5541df7b7e3e
+Content-Type: application/json
+
+{
+  "fileSize": -1000,
+  "mimeType": "invalid/mime-type"
+}
+
+###
+# @name update-document-missing-translation-fields
+PUT {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/432245df-0406-48bd-b852-5541df7b7e3e
+Content-Type: application/json
+
+{
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Título sem descrição"
+    }
+  ]
+}
+
+###
+# @name update-document-empty-body
+PUT {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/432245df-0406-48bd-b852-5541df7b7e3e
+Content-Type: application/json
+
+{}
+
+###
+# @name update-document-single-translation
+PUT {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents/432245df-0406-48bd-b852-5541df7b7e3e
+Content-Type: application/json
+
+{
+  "translations": [
+    {
+      "locale": "es",
+      "title": "Solo actualización en español",
+      "description": "Actualizando solo la traducción al español.",
+      "url": "/document/es/solo-espanol.pdf"
     }
   ]
 }
