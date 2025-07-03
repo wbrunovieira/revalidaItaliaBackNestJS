@@ -1,6 +1,7 @@
 // src/domain/course-catalog/application/repositories/i-document-repository.ts
 import { Either } from '@/core/either';
 import { Document } from '../../enterprise/entities/document.entity';
+import { DocumentDependencyInfo } from '../dtos/document-dependencies.dto';
 
 export interface IDocumentRepository {
   findByFilename(filename: string): Promise<Either<Error, Document>>;
@@ -49,4 +50,8 @@ export interface IDocumentRepository {
   delete(id: string): Promise<Either<Error, void>>;
 
   incrementDownloadCount(id: string): Promise<Either<Error, void>>;
+
+  checkDocumentDependencies(
+    id: string,
+  ): Promise<Either<Error, DocumentDependencyInfo>>;
 }

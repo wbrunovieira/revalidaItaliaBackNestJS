@@ -2,6 +2,7 @@
 import { Either, left, right } from '@/core/either';
 import { IDocumentRepository } from '@/domain/course-catalog/application/repositories/i-document-repository';
 import { Document } from '@/domain/course-catalog/enterprise/entities/document.entity';
+import { DocumentDependencyInfo } from '@/domain/course-catalog/application/dtos/document-dependencies.dto';
 
 interface StoredDocument {
   lessonId: string;
@@ -10,11 +11,27 @@ interface StoredDocument {
     locale: 'pt' | 'it' | 'es';
     title: string;
     description: string;
+    url: string;
+  }>;
+}
+
+interface DocumentDependencies {
+  downloads: Array<{
+    id: string;
+    userId: string;
+    userName: string;
+    downloadedAt: Date;
+  }>;
+  translations: Array<{
+    id: string;
+    locale: string;
+    title: string;
   }>;
 }
 
 export class InMemoryDocumentRepository implements IDocumentRepository {
   public items: StoredDocument[] = [];
+  private documentDependencies: Map<string, DocumentDependencies> = new Map();
 
   async findByFilename(filename: string): Promise<Either<Error, Document>> {
     const found = this.items.find(
@@ -34,6 +51,7 @@ export class InMemoryDocumentRepository implements IDocumentRepository {
           locale: 'pt' | 'it' | 'es';
           title: string;
           description: string;
+          url: string;
         }>;
       }
     >
@@ -57,6 +75,7 @@ export class InMemoryDocumentRepository implements IDocumentRepository {
       locale: 'pt' | 'it' | 'es';
       title: string;
       description: string;
+      url: string;
     }>,
   ): Promise<Either<Error, void>> {
     this.items.push({ lessonId, document, translations });
@@ -72,6 +91,7 @@ export class InMemoryDocumentRepository implements IDocumentRepository {
           locale: 'pt' | 'it' | 'es';
           title: string;
           description: string;
+          url: string;
         }>;
       }>
     >
@@ -105,5 +125,64 @@ export class InMemoryDocumentRepository implements IDocumentRepository {
     }
     found.document.incrementDownloadCount();
     return right(undefined);
+  }
+
+  async checkDocumentDependencies(
+    id: string,
+  ): Promise<Either<Error, DocumentDependencyInfo>> {
+    const dependencies = this.documentDependencies.get(id) || {
+      downloads: [],
+      translations: [],
+    };
+
+    const dependencyList = [
+      ...dependencies.downloads.map((download) => ({
+        type: 'download' as const,
+        id: download.id,
+        name: `Downloaded by ${download.userName}`,
+        relatedEntities: {
+          userId: download.userId,
+          userName: download.userName,
+          downloadedAt: download.downloadedAt,
+        },
+      })),
+      ...dependencies.translations.map((translation) => ({
+        type: 'translation' as const,
+        id: translation.id,
+        name: `Translation (${translation.locale}): ${translation.title}`,
+        relatedEntities: {
+          locale: translation.locale,
+          title: translation.title,
+        },
+      })),
+    ];
+
+    const dependencyInfo: DocumentDependencyInfo = {
+      canDelete: dependencyList.length === 0,
+      totalDependencies: dependencyList.length,
+      summary: {
+        downloads: dependencies.downloads.length,
+        translations: dependencies.translations.length,
+      },
+      dependencies: dependencyList,
+    };
+
+    return right(dependencyInfo);
+  }
+
+  // Método auxiliar para testes
+  public addDependenciesToDocument(
+    documentId: string,
+    dependencies: Partial<DocumentDependencies>,
+  ): void {
+    const existing = this.documentDependencies.get(documentId) || {
+      downloads: [],
+      translations: [],
+    };
+
+    this.documentDependencies.set(documentId, {
+      downloads: dependencies.downloads || existing.downloads,
+      translations: dependencies.translations || existing.translations,
+    });
   }
 }
