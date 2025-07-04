@@ -1,6 +1,6 @@
 # track.http
-@BASE_URL = http://localhost:3333
-#@BASE_URL = http://3.131.246.201:3333
+#@BASE_URL = http://localhost:3333
+@BASE_URL = http://18.216.107.74:3333
 
 ### Create Track
 POST {{BASE_URL}}/tracks
@@ -10,7 +10,7 @@ Content-Type: application/json
   "slug": "minha-trilha2",
    "imageUrl": "/images/capa-track.avif",
   "courseIds": [
-    "04799601-bc16-4872-a2ff-91dc69b8d97a"
+    "658a63c9-ab41-4d8b-a131-a6f402938b59"
   ],
   "translations": [
     {

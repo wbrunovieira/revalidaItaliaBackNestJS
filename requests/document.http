@@ -1,9 +1,10 @@
 # Document HTTP Requests
-@BASE_URL = http://localhost:3333
+#@BASE_URL = http://localhost:3333
 
+@BASE_URL = http://18.216.107.74:3333
 ###
 # @name create-document
-POST {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents
+POST {{BASE_URL}}/lessons/bf0cf8a7-e64d-495c-8e61-eb57b38346b9/documents
 Content-Type: application/json
 
 {

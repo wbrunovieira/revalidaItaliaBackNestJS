@@ -1,7 +1,9 @@
-@BASE_URL = http://localhost:3333
+#@BASE_URL = http://localhost:3333
+
+@BASE_URL = http://18.216.107.74:3333
 
 ### Create Lesson
-POST {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef/lessons
+POST {{BASE_URL}}/courses/658a63c9-ab41-4d8b-a131-a6f402938b59/modules/a84849e5-5820-485a-84f0-8d347772e56f/lessons
 Content-Type: application/json
 
 {
@@ -29,7 +31,7 @@ Content-Type: application/json
 }
 
 ### List Lessons
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/64436979-2173-4518-be2f-6415961d9cef/lessons
+GET {{BASE_URL}}/courses/f1f23772-3116-415e-9998-4b3b181bf379/modules/79f155b2-2849-4401-903d-b74c31327eb2/lessons
 
 ### List Lessons (with pagination)
 GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons?page=1&limit=5&includeVideo=true

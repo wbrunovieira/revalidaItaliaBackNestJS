@@ -14,5 +14,4 @@ services:
     ports:
       - '${PORT:-3333}:3000'
     environment:
-      - NODE_ENV=production
       - PORT=3000

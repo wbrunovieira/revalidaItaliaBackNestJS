@@ -38,6 +38,7 @@ RUN pnpm install --prod --frozen-lockfile \
   && npm cache clean --force
 
 # 5) Copia build e Prisma Client
+COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/node_modules/.prisma      ./node_modules/.prisma

@@ -7,7 +7,7 @@
     app_dir: /home/ubuntu/app
     compose_file: compose.prod.yml
     env_file: .env
-    port: "{{ lookup('env','PORT') | default('3000') | int }}"
+    port: "{{ PORT | default('3000') }}"
 
   pre_tasks:
     - name: Atualiza cache do apt
@@ -15,37 +15,77 @@
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Instala dependências de sistema
+    # Remove conflicting packages before installing Docker
+    - name: Remove conflicting container packages
       apt:
         name:
+          - docker
+          - docker-engine
           - docker.io
+          - containerd
+          - runc
+        state: absent
+      ignore_errors: yes
+
+    # Install Docker from official repository
+    - name: Install prerequisites for Docker repository
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - software-properties-common
+        state: present
+
+    - name: Add Docker's official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Update apt cache after adding Docker repo
+      apt:
+        update_cache: yes
+
+    - name: Install Docker Engine
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Install additional dependencies
+      apt:
+        name:
           - git
           - curl
           - jq
         state: present
 
-    - name: Instala plugin Docker Compose V2
-      get_url:
-        url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64
-        dest: /usr/local/lib/docker/cli-plugins/docker-compose
-        mode: '0755'
-
-    - name: Instala plugin Docker Buildx
-      shell: |
-        set -e
-        LATEST=$(curl -s https://api.github.com/repos/docker/buildx/releases/latest | jq -r .tag_name)
-        mkdir -p /usr/local/lib/docker/cli-plugins
-        curl -sSL "https://github.com/docker/buildx/releases/download/${LATEST}/buildx-${LATEST}.linux-amd64" \
-          -o /usr/local/lib/docker/cli-plugins/docker-buildx
-        chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
-      args:
-        executable: /bin/bash
+    - name: Ensure Docker service is started
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
 
     - name: Adiciona ubuntu ao grupo docker
       user:
         name: ubuntu
         groups: docker
         append: yes
+
+    # Reset SSH connection to apply group changes
+    - name: Reset SSH connection to apply group membership
+      meta: reset_connection
 
   tasks:
     - name: Clona ou atualiza o código-fonte
@@ -56,28 +96,124 @@
         force: yes
       become_user: ubuntu
 
+    - name: Create .env file from template
+      template:
+        src: templates/.env.prod.j2
+        dest: '{{ app_dir }}/.env'
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
+
+    - name: Stop and remove existing containers
+      community.docker.docker_compose_v2:
+        project_src: '{{ app_dir }}'
+        files:
+          - '{{ compose_file }}'
+        state: absent
+      become_user: ubuntu
+      ignore_errors: yes
+
     - name: Inicia containers com Docker Compose V2 (pull+build sempre)
       community.docker.docker_compose_v2:
         project_src: '{{ app_dir }}'
         files:
           - '{{ compose_file }}'
-        pull: missing # ou always, conforme sua preferência
-        build: always # pode ser always, never ou policy
+        pull: always
+        build: always
         state: present
         env_files:
           - '{{ app_dir }}/{{ env_file }}'
       become_user: ubuntu
 
+    - name: Wait for container to be ready
+      pause:
+        seconds: 10
+
+    - name: Check container status
+      command: docker compose -f {{ compose_file }} ps
+      args:
+        chdir: '{{ app_dir }}'
+      become_user: ubuntu
+      register: container_status
+      changed_when: false
+
+    - name: Show container status
+      debug:
+        var: container_status.stdout_lines
+
+    - name: Check if container is running
+      command: docker compose -f {{ compose_file }} ps --services --filter "status=running"
+      args:
+        chdir: '{{ app_dir }}'
+      become_user: ubuntu
+      register: running_services
+      changed_when: false
+
+    - name: Start container if not running
+      command: docker compose -f {{ compose_file }} up -d
+      args:
+        chdir: '{{ app_dir }}'
+      become_user: ubuntu
+      when: "'backend' not in running_services.stdout"
+
+    - name: Wait for container to be fully ready
+      wait_for:
+        host: localhost
+        port: "{{ PORT | default('3000') }}"
+        delay: 5
+        timeout: 60
+      when: "'backend' not in running_services.stdout"
+
+    - name: Wait additional time for container initialization
+      pause:
+        seconds: 10
+
+    - name: Run Prisma migrations
+      command: docker compose -f {{ compose_file }} exec -T -w /app backend npx prisma migrate deploy
+      args:
+        chdir: '{{ app_dir }}'
+      become_user: ubuntu
+      register: migration_result
+      ignore_errors: yes
+
+    - name: Show migration output
+      debug:
+        msg: '{{ migration_result.stderr_lines | default([]) + migration_result.stdout_lines | default([]) }}'
+      when: migration_result is defined
+
+    - name: Push schema to database if no migrations exist
+      command: docker compose -f {{ compose_file }} exec -T -w /app backend npx prisma db push
+      args:
+        chdir: '{{ app_dir }}'
+      become_user: ubuntu
+      when: >
+        migration_result.failed | default(false) or 
+        'No migration found' in (migration_result.stderr | default('')) or
+        'P1001' in (migration_result.stderr | default(''))
+      register: db_push_result
+
+    - name: Show db push output
+      debug:
+        msg: '{{ db_push_result.stderr_lines | default([]) + db_push_result.stdout_lines | default([]) }}'
+      when: db_push_result is defined
+
+    - name: Restart container after database setup
+      command: docker compose -f {{ compose_file }} restart
+      args:
+        chdir: '{{ app_dir }}'
+      become_user: ubuntu
+      when: (migration_result.changed | default(false)) or (db_push_result.changed | default(false))
+
     - name: Aguarda aplicação ficar disponível
       wait_for:
         host: localhost
-        port: '{{ port }}'
+        port: "{{ PORT | default('3000') }}"
         delay: 10
         timeout: 120
 
     - name: Testa endpoint de saúde
       uri:
-        url: 'http://localhost:{{ port }}/health'
+        url: "http://localhost:{{ PORT | default('3000') }}/health"
         method: GET
         status_code: 200
       register: health_check
@@ -89,3 +225,16 @@
       debug:
         msg: >
           🎉 Deploy concluído: {{ 'OK' if health_check.status == 200 else 'FAILED' }}
+
+    - name: Show Docker Compose logs if health check failed
+      command: docker compose -f {{ compose_file }} logs --tail=50
+      args:
+        chdir: '{{ app_dir }}'
+      register: compose_logs
+      when: health_check.failed | default(false)
+      become_user: ubuntu
+
+    - name: Display logs if health check failed
+      debug:
+        var: compose_logs.stdout_lines
+      when: health_check.failed | default(false)

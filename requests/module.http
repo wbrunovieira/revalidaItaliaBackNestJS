@@ -1,8 +1,9 @@
-@BASE_URL = http://localhost:3333
+#@BASE_URL = http://localhost:3333
+@BASE_URL = http://18.216.107.74:3333
 
 ###
 # @name create-module
-POST {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules
+POST {{BASE_URL}}/courses/658a63c9-ab41-4d8b-a131-a6f402938b59/modules
 Content-Type: application/json
 
 {
@@ -31,7 +32,7 @@ Content-Type: application/json
 ###
 
 # @name list-modules
-GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules
+GET {{BASE_URL}}/courses/f1f23772-3116-415e-9998-4b3b181bf379/modules
 Content-Type: application/json
 
 ###

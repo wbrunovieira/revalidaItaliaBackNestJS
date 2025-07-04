@@ -1,5 +1,6 @@
 #@BASE_URL = http://localhost:3333
-@BASE_URL = http://3.131.246.201:3333
+
+@BASE_URL = http://18.216.107.74:3333
 
 ###
 # @name create-account
@@ -11,7 +12,7 @@ Content-Type: application/json
   "email": "admin@revalidaitalia.com.br",
   "password": "Senha123!",
   "role": "admin",
-  "cpf": "12145678912"
+  "cpf": "12145678914"
 }
 ###
 ###
