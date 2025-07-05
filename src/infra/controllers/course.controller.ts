@@ -54,6 +54,7 @@ export class CourseController {
         description: t.description,
       })),
     };
+    console.log('chegou no create course', request);
 
     const result = await this.createCourseUseCase.execute(request);
 

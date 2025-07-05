@@ -2,12 +2,12 @@
 import {
   IsString,
   IsOptional,
-  IsUrl,
   IsArray,
   ValidateNested,
   IsInt,
   Min,
   IsIn,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -28,7 +28,10 @@ export class UpdateModuleDto {
   slug?: string;
 
   @IsOptional()
-  @IsUrl({}, { message: 'imageUrl must be a valid URL' })
+  @IsString()
+  @Matches(/^(\/\S+|https?:\/\/\S+)$/, {
+    message: 'imageUrl must be a valid URL or a path starting with "/"',
+  })
   imageUrl?: string | null;
 
   @IsOptional()

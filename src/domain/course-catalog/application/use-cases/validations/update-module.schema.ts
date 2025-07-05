@@ -20,7 +20,7 @@ export const updateModuleSchema = z
       .string({ required_error: 'Module ID is required' })
       .min(1, 'Module ID is required')
       .regex(
-        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, // UUID v4 format
         'Module ID must be a valid UUID',
       ),
     slug: z
@@ -34,26 +34,26 @@ export const updateModuleSchema = z
       .optional(),
     imageUrl: z
       .union([
-        z.string().url('Image URL must be a valid URL').nullable(),
+        z.string().url('Image URL must be a valid URL'),
+        z
+          .string()
+          .regex(
+            /^\/[^\s]+/,
+            'Image URL must be a valid path starting with "/"',
+          ),
         z.null(),
       ])
       .optional(),
     translations: z
       .array(updateModuleTranslationSchema)
       .min(1, 'At least one translation is required')
+      .refine((translations) => translations.some((t) => t.locale === 'pt'), {
+        message: 'Portuguese translation is required',
+      })
       .refine(
-        (translations) => {
-          const locales = translations.map((t) => t.locale);
-          return locales.includes('pt');
-        },
-        { message: 'Portuguese translation is required' },
-      )
-      .refine(
-        (translations) => {
-          const locales = translations.map((t) => t.locale);
-          const uniqueLocales = new Set(locales);
-          return locales.length === uniqueLocales.size;
-        },
+        (translations) =>
+          new Set(translations.map((t) => t.locale)).size ===
+          translations.length,
         { message: 'Duplicate locales are not allowed' },
       )
       .optional(),
@@ -64,15 +64,11 @@ export const updateModuleSchema = z
       .optional(),
   })
   .refine(
-    (data) => {
-      // At least one field besides ID must be provided for update
-      return (
-        data.slug !== undefined ||
-        data.imageUrl !== undefined ||
-        data.translations !== undefined ||
-        data.order !== undefined
-      );
-    },
+    (data) =>
+      data.slug !== undefined ||
+      data.imageUrl !== undefined ||
+      data.translations !== undefined ||
+      data.order !== undefined,
     { message: 'At least one field must be provided for update' },
   );
 

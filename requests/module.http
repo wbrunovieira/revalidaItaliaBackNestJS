@@ -1,5 +1,5 @@
-#@BASE_URL = http://localhost:3333
-@BASE_URL = http://18.216.107.74:3333
+@BASE_URL = http://localhost:3333
+#@BASE_URL = http://18.216.107.74:3333
 
 ###
 # @name create-module
@@ -32,12 +32,12 @@ Content-Type: application/json
 ###
 
 # @name list-modules
-GET {{BASE_URL}}/courses/f1f23772-3116-415e-9998-4b3b181bf379/modules
+GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules
 Content-Type: application/json
 
 ###
 # @name get-module
-GET {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c
+GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef
 Content-Type: application/json
 
 
@@ -67,12 +67,12 @@ Content-Type: application/json
 ###
 # @name update-module-full
 # Exemplo atualizando todos os campos
-PATCH {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/884486b1-9488-4a2b-8095-6e05ad59e8e9
+PATCH {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef
 Content-Type: application/json
 
 {
   "slug": "modulo-completo-atualizado",
-  "imageUrl": "https://example.com/nova-imagem.jpg",
+  "imageUrl": "/images/capa-track.avif",
   "translations": [
     {
       "locale": "pt",

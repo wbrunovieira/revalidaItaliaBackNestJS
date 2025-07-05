@@ -1,5 +1,5 @@
-#@BASE_URL = http://localhost:3333
-@BASE_URL = http://18.216.107.74:3333
+@BASE_URL = http://localhost:3333
+#@BASE_URL = http://18.216.107.74:3333
 
 ###
 # @name create-course
@@ -7,22 +7,22 @@ POST {{BASE_URL}}/courses
 Content-Type: application/json
 
 {
-  "slug": "curso-teste",
+  "slug": "curso-teste5",
    "imageUrl": "/images/capa-track.avif",
   "translations": [
     {
       "locale": "pt",
-      "title": "Titulo Curso pt",
+      "title": "Titulo Curso pt5",
       "description": "Descricao curso pt."
     },
     {
       "locale": "it",
-      "title": "Titulo Curso it",
+      "title": "Titulo Curso it5",
       "description": "Descricao curso it."
     },
     {
       "locale": "es",
-      "title": "Titulo Curso pt",
+      "title": "Titulo Curso pt5",
       "description": "Descricao curso es."
     }
   ]

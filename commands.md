@@ -11,6 +11,8 @@ docker exec -it ead-backend sh -c "pnpm test:e2e"
 
 sudo docker system prune -a -f --volumes
 
+terraform taint null_resource.run_ansible
+
 docker-compose exec backend npx prisma migrate dev --name init
 docker-compose exec backend npx prisma migrate reset --force
 

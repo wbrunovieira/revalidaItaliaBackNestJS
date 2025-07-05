@@ -1,12 +1,11 @@
-#@BASE_URL = http://localhost:3333
+@BASE_URL = http://localhost:3333
 
-@BASE_URL = http://18.216.107.74:3333
+#@BASE_URL = http://18.216.107.74:3333
 
 ###
 # @name create-account
 POST {{BASE_URL}}/students
 Content-Type: application/json
-
 {
   "name": "admin Super",
   "email": "admin@revalidaitalia.com.br",
