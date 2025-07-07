@@ -1,5 +1,5 @@
-#@BASE_URL = http://localhost:3333
-@BASE_URL = http://18.216.107.74:3333
+@BASE_URL = http://localhost:3333
+#@BASE_URL = http://18.216.107.74:3333
 
 
 ###
@@ -8,35 +8,35 @@ POST {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/lessons/e936312a-
 Content-Type: application/json
 
 {
-  "slug": "intro-derivadas",
+  "slug": "intro-derivadas-wwwww",
   "providerVideoId": "09a2f980-48fe-4724-adc8-e9d1f9d6daa8",
   "translations": [
     {
       "locale": "pt",
-      "title": "Video pt",
+      "title": "Video ptwww",
       "description": "Vídeo sobre os conceitos básicos de derivadas."
     },
     {
       "locale": "it",
-      "title": "video es",
+      "title": "video eswww",
       "description": "Video sui concetti di base delle derivate."
     },
     {
       "locale": "es",
-      "title": "video it",
+      "title": "video itwwww",
       "description": "Vídeo sobre los conceptos básicos de derivadas."
     }
   ]
 }
 
 ### get-video
-GET {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/lessons/9c053337-ba52-48e7-8b28-6ba2c8884fd9/videos/3e441f53-0a38-4866-9bb2-9898ee418d09
+GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/videos/43dd24be-0ef7-4e6e-b54c-cd5b2f879c68
 Accept: application/json
 
 ### list-videos
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/lessons/9c053337-ba52-48e7-8b28-6ba2c8884fd9/videos
+GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/videos
 Accept: application/json
 
-### Teste 1: Deletar video sem dependências (deve funcionar)
-DELETE {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/lessons/9c053337-ba52-48e7-8b28-6ba2c8884fd9/videos/3e441f53-0a38-4866-9bb2-9898ee418d09
+###  delete-video
+DELETE {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/videos/43dd24be-0ef7-4e6e-b54c-cd5b2f879c68
 Accept: application/json

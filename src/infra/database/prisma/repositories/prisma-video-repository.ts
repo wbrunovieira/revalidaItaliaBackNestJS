@@ -105,6 +105,7 @@ export class PrismaVideoRepository implements IVideoRepository {
     >
   > {
     try {
+      console.log('prisma video findById id', id);
       const row = await this.prisma.video.findUnique({
         where: { id },
         include: { translations: true },

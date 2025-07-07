@@ -1,20 +1,20 @@
-#@BASE_URL = http://localhost:3333
+@BASE_URL = http://localhost:3333
 
-@BASE_URL = http://18.216.107.74:3333
+#@BASE_URL = http://18.216.107.74:3333
 
 ### Create Lesson
-POST {{BASE_URL}}/courses/658a63c9-ab41-4d8b-a131-a6f402938b59/modules/a84849e5-5820-485a-84f0-8d347772e56f/lessons
+POST {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef/lessons
 Content-Type: application/json
 
 {
   "moduleId": "64436979-2173-4518-be2f-6415961d9cef", 
   "imageUrl": "/images/capa-track.avif",
   "translations": [
-    { "locale": "pt", "title": "Aula PT4", "description": "Descrição PT" },
-    { "locale": "it", "title": "Lezione IT4", "description": "Descrizione IT" },
-    { "locale": "es", "title": "Lección ES4", "description": "Descripción ES" }
+    { "locale": "pt", "title": "Aula PT teste 8", "description": "Descrição PT" },
+    { "locale": "it", "title": "Lezione IT teste 8", "description": "Descrizione IT" },
+    { "locale": "es", "title": "Lección teste 8", "description": "Descripción ES" }
   ],
-   "order": 5
+   "order": 8
 }
 
 ### Create Lesson (with video)
@@ -31,13 +31,13 @@ Content-Type: application/json
 }
 
 ### List Lessons
-GET {{BASE_URL}}/courses/f1f23772-3116-415e-9998-4b3b181bf379/modules/79f155b2-2849-4401-903d-b74c31327eb2/lessons
+GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef/lessons
 
 ### List Lessons (with pagination)
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons?page=1&limit=5&includeVideo=true
+GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef/lessons?page=1&limit=5&includeVideo=true
 
 ### ✅ NEW: Get Specific Lesson
-GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons/9c053337-ba52-48e7-8b28-6ba2c8884fd9
+GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9ce/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f
 
 ### ✅ NEW: Get Lesson - Not Found (example)
 GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons/00000000-0000-0000-0000-000000000000
@@ -47,7 +47,7 @@ GET {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-4
 
 
 ### 🗑️ Delete Lesson
-DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons/5bb2ed75-7920-469b-a91e-4f406d44e62d
+DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons/ba0c2b44-f8b5-49e1-91ea-3f87331ce43c
 
 ### 🗑️ Delete Lesson - Not Found
 DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c84-49b8-4787-807b-97d9a36caa72/lessons/00000000-0000-0000-0000-000000000000
@@ -61,17 +61,17 @@ DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/c1542c8
 
 
 ### 🆕 Update Lesson - Complete Update
-PUT {{BASE_URL}}/courses/fbe18d9c-a3c6-4799-9d64-b024d39813f8/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons/9c053337-ba52-48e7-8b28-6ba2c8884fd9
+PUT {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9ce/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f
 Content-Type: application/json
 
 {
   "imageUrl": "/images/updated-lesson-image.avif",
   "translations": [
-    { "locale": "pt", "title": "Aula Atualizada PT", "description": "Descrição atualizada PT" },
-    { "locale": "it", "title": "Lezione Aggiornata IT", "description": "Descrizione aggiornata IT" },
-    { "locale": "es", "title": "Lección Actualizada ES", "description": "Descripción actualizada ES" }
+    { "locale": "pt", "title": "Aula Atualizada PT12", "description": "Descrição atualizada PT" },
+    { "locale": "it", "title": "Lezione Aggiornata IT12", "description": "Descrizione aggiornata IT" },
+    { "locale": "es", "title": "Lección Actualizada ES12", "description": "Descripción actualizada ES" }
   ],
-  "order": 7,
+  "order": 9,
   "videoId": "new-video-id-123",
   "flashcardIds": ["flashcard-1", "flashcard-2"],
   "quizIds": ["quiz-1", "quiz-2"],

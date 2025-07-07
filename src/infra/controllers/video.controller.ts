@@ -113,7 +113,9 @@ export class VideoController {
     @Param('lessonId') lessonId: string,
     @Param('videoId', ParseUUIDPipe) videoId: string,
   ) {
-    await this.validateLesson(courseId, lessonId);
+    console.log('entrada do get video by id videoId', videoId);
+    console.log('entrada do get video by id courseId', courseId);
+    console.log('entrada do get video by id lessonId', lessonId);
 
     // garante que o vídeo pertence àquela lesson
     const rec = await this.prisma.video.findUnique({ where: { id: videoId } });
