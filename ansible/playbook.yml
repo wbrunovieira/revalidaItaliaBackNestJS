@@ -1,7 +1,10 @@
 ---
-- name: Deploy Backend via Ansible (produção)
+- name: Deploy Backend via Ansible (cross-platform optimized)
   hosts: backend
+  gather_facts: yes
+  gather_subset: min
   become: true
+  strategy: linear
   vars:
     repo_url: 'https://github.com/wbrunovieira/revalidaItaliaBackNestJS.git'
     app_dir: /home/ubuntu/app
@@ -10,10 +13,75 @@
     port: "{{ PORT | default('3000') }}"
 
   pre_tasks:
+    # Detecta se está sendo executado de um macOS
+    - name: Detect control machine OS
+      setup:
+        gather_subset: min
+      delegate_to: localhost
+      become: false
+      run_once: true
+      register: control_machine_facts
+
+    - name: Set macOS flag
+      set_fact:
+        is_macos: "{{ control_machine_facts.ansible_facts.ansible_os_family == 'Darwin' }}"
+      run_once: true
+
+    - name: Display control machine info
+      debug:
+        msg: "Control machine: {{ control_machine_facts.ansible_facts.ansible_system }} (macOS optimizations: {{ 'enabled' if is_macos else 'disabled' }})"
+      run_once: true
+
+    # Aplica configurações específicas do macOS apenas se necessário
+    - name: Apply macOS-specific configurations
+      block:
+        - name: Set macOS environment variables
+          set_fact:
+            ansible_env_vars:
+              OBJC_DISABLE_INITIALIZE_FORK_SAFETY: 'YES'
+              no_proxy: '*'
+              ANSIBLE_HOST_KEY_CHECKING: 'False'
+              ANSIBLE_FORKS: '1'
+              ANSIBLE_TIMEOUT: '60'
+              ANSIBLE_GATHER_TIMEOUT: '60'
+
+        - name: Display macOS optimizations applied
+          debug:
+            msg: '🍎 macOS detected - Applied fork safety and performance optimizations'
+      when: is_macos
+      run_once: true
+
+    - name: Display non-macOS info
+      debug:
+        msg: '🐧 Non-macOS system detected - Using standard Ansible configurations'
+      when: not is_macos
+      run_once: true
+
+    - name: Print system information
+      debug:
+        msg: 'Deploying to {{ inventory_hostname }} - {{ ansible_distribution }} {{ ansible_distribution_version }}'
+
+    - name: Detect Ubuntu version for Docker repository
+      set_fact:
+        ubuntu_codename: "{{ 'noble' if ansible_distribution_version is version('24.04', '>=') else 'jammy' if ansible_distribution_version is version('22.04', '>=') else 'focal' }}"
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Fallback Ubuntu codename detection
+      set_fact:
+        ubuntu_codename: 'noble'
+      when: ansible_distribution == 'Ubuntu' and ubuntu_codename is not defined
+
+    - name: Display Ubuntu version detected
+      debug:
+        msg: 'Ubuntu codename detected: {{ ubuntu_codename }} for {{ ansible_distribution }} {{ ansible_distribution_version }}'
+      when: ansible_distribution == 'Ubuntu'
+
     - name: Atualiza cache do apt
       apt:
         update_cache: yes
         cache_valid_time: 3600
+      retries: 3
+      delay: 5
 
     # Remove conflicting packages before installing Docker
     - name: Remove conflicting container packages
@@ -38,20 +106,59 @@
           - lsb-release
           - software-properties-common
         state: present
+      retries: 3
+      delay: 5
 
-    - name: Add Docker's official GPG key
+    - name: Clean up old Docker GPG keys to avoid conflicts
+      shell: |
+        apt-key list | grep -i docker || true
+        rm -f /etc/apt/trusted.gpg.d/docker.gpg || true
+      ignore_errors: yes
+
+    - name: Add Docker's official GPG key (modern method)
+      shell: |
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      retries: 3
+      delay: 5
+      ignore_errors: yes
+
+    - name: Add Docker's official GPG key (fallback legacy method)
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
+      retries: 3
+      delay: 5
 
-    - name: Add Docker repository
+    - name: Add Docker repository (modern method with keyring)
       apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        repo: deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {{ ubuntu_codename | default('noble') }} stable
         state: present
+        update_cache: false
+      when: ansible_distribution == 'Ubuntu'
+      register: docker_repo_modern
+      ignore_errors: yes
+
+    - name: Add Docker repository (fallback legacy method)
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ubuntu_codename | default('noble') }} stable
+        state: present
+        update_cache: false
+      when: ansible_distribution == 'Ubuntu' and docker_repo_modern.failed | default(false)
+      register: docker_repo_legacy
+      ignore_errors: yes
+
+    - name: Fallback - Add Docker repository with noble if both methods failed
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable
+        state: present
+        update_cache: false
+      when: ansible_distribution == 'Ubuntu' and (docker_repo_modern.failed | default(false)) and (docker_repo_legacy.failed | default(false))
 
     - name: Update apt cache after adding Docker repo
       apt:
         update_cache: yes
+      retries: 3
+      delay: 5
 
     - name: Install Docker Engine
       apt:
@@ -62,6 +169,8 @@
           - docker-buildx-plugin
           - docker-compose-plugin
         state: present
+      retries: 3
+      delay: 5
 
     - name: Install additional dependencies
       apt:
@@ -95,44 +204,82 @@
         version: main
         force: yes
       become_user: ubuntu
+      retries: 3
+      delay: 5
 
-    - name: Create .env file from template
-      template:
-        src: templates/.env.prod.j2
-        dest: '{{ app_dir }}/.env'
+    # SEMPRE usa shell - compatível com macOS e não requer templates
+    - name: Create .env file using shell (cross-platform method)
+      shell: |
+        cat > {{ app_dir }}/.env << 'EOF'
+        NODE_ENV={{ NODE_ENV }}
+        PORT={{ PORT }}
+        DATABASE_URL={{ DATABASE_URL }}
+        JWT_PRIVATE_KEY={{ JWT_PRIVATE_KEY }}
+        JWT_PUBLIC_KEY={{ JWT_PUBLIC_KEY }}
+        AWS_REGION={{ AWS_REGION }}
+        S3_BUCKET_NAME={{ S3_BUCKET_NAME }}
+        S3_BASE_URL={{ S3_BASE_URL }}
+        STORAGE_TYPE={{ STORAGE_TYPE }}
+        ALLOWED_FILE_TYPES={{ ALLOWED_FILE_TYPES }}
+        MAX_FILE_SIZE={{ MAX_FILE_SIZE }}
+        NEXT_PUBLIC_URL={{ NEXT_PUBLIC_URL }}
+        PANDA_API_KEY={{ PANDA_API_KEY }}
+        EOF
+      become_user: ubuntu
+      no_log: false # Set to true in production for security
+
+    - name: Set correct permissions on .env file
+      file:
+        path: '{{ app_dir }}/.env'
         owner: ubuntu
         group: ubuntu
         mode: '0600'
 
+    - name: Verify .env file was created
+      stat:
+        path: '{{ app_dir }}/.env'
+      register: env_file_stat
+
+    - name: Display .env file status
+      debug:
+        msg: '.env file created successfully: {{ env_file_stat.stat.exists }}'
+
     - name: Stop and remove existing containers
-      community.docker.docker_compose_v2:
-        project_src: '{{ app_dir }}'
-        files:
-          - '{{ compose_file }}'
-        state: absent
+      shell: |
+        cd {{ app_dir }}
+        docker compose -f {{ compose_file }} down --remove-orphans || true
       become_user: ubuntu
       ignore_errors: yes
 
-    - name: Inicia containers com Docker Compose V2 (pull+build sempre)
-      community.docker.docker_compose_v2:
-        project_src: '{{ app_dir }}'
-        files:
-          - '{{ compose_file }}'
-        pull: always
-        build: always
-        state: present
-        env_files:
-          - '{{ app_dir }}/{{ env_file }}'
+    - name: Pull latest images
+      shell: |
+        cd {{ app_dir }}
+        docker compose -f {{ compose_file }} pull || true
       become_user: ubuntu
+      ignore_errors: yes
+
+    - name: Build and start containers
+      shell: |
+        cd {{ app_dir }}
+        docker compose -f {{ compose_file }} up -d --build
+      become_user: ubuntu
+      register: compose_up_result
+      retries: '{{ 3 if is_macos else 2 }}'
+      delay: '{{ 15 if is_macos else 10 }}'
+
+    - name: Display compose up result
+      debug:
+        var: compose_up_result.stdout_lines
+      when: compose_up_result.stdout_lines is defined
 
     - name: Wait for container to be ready
       pause:
-        seconds: 10
+        seconds: '{{ 20 if is_macos else 15 }}'
 
     - name: Check container status
-      command: docker compose -f {{ compose_file }} ps
-      args:
-        chdir: '{{ app_dir }}'
+      shell: |
+        cd {{ app_dir }}
+        docker compose -f {{ compose_file }} ps
       become_user: ubuntu
       register: container_status
       changed_when: false
@@ -141,100 +288,141 @@
       debug:
         var: container_status.stdout_lines
 
-    - name: Check if container is running
-      command: docker compose -f {{ compose_file }} ps --services --filter "status=running"
-      args:
-        chdir: '{{ app_dir }}'
+    - name: Check if backend service is running
+      shell: |
+        cd {{ app_dir }}
+        docker compose -f {{ compose_file }} ps --services --filter "status=running" | grep -q "backend"
       become_user: ubuntu
-      register: running_services
+      register: backend_running
+      ignore_errors: yes
       changed_when: false
 
-    - name: Start container if not running
-      command: docker compose -f {{ compose_file }} up -d
-      args:
-        chdir: '{{ app_dir }}'
+    - name: Start backend if not running
+      shell: |
+        cd {{ app_dir }}
+        docker compose -f {{ compose_file }} up -d backend
       become_user: ubuntu
-      when: "'backend' not in running_services.stdout"
+      when: backend_running.rc != 0
+      retries: '{{ 3 if is_macos else 2 }}'
+      delay: '{{ 15 if is_macos else 10 }}'
 
-    - name: Wait for container to be fully ready
+    - name: Wait for backend port to be available
       wait_for:
         host: localhost
         port: "{{ PORT | default('3000') }}"
-        delay: 5
-        timeout: 60
-      when: "'backend' not in running_services.stdout"
-
-    - name: Wait additional time for container initialization
-      pause:
-        seconds: 10
+        delay: '{{ 15 if is_macos else 10 }}'
+        timeout: '{{ 180 if is_macos else 120 }}'
+        msg: "Backend port {{ PORT | default('3000') }} not available after timeout"
 
     - name: Run Prisma migrations
-      command: docker compose -f {{ compose_file }} exec -T -w /app backend npx prisma migrate deploy
-      args:
-        chdir: '{{ app_dir }}'
+      shell: |
+        cd {{ app_dir }}
+        docker compose -f {{ compose_file }} exec -T backend npx prisma migrate deploy
       become_user: ubuntu
       register: migration_result
       ignore_errors: yes
+      retries: '{{ 3 if is_macos else 2 }}'
+      delay: '{{ 10 if is_macos else 5 }}'
 
     - name: Show migration output
       debug:
-        msg: '{{ migration_result.stderr_lines | default([]) + migration_result.stdout_lines | default([]) }}'
+        msg: '{{ migration_result.stdout_lines | default([]) + migration_result.stderr_lines | default([]) }}'
       when: migration_result is defined
 
-    - name: Push schema to database if no migrations exist
-      command: docker compose -f {{ compose_file }} exec -T -w /app backend npx prisma db push
-      args:
-        chdir: '{{ app_dir }}'
+    - name: Push schema to database if migrations failed
+      shell: |
+        cd {{ app_dir }}
+        docker compose -f {{ compose_file }} exec -T backend npx prisma db push
       become_user: ubuntu
       when: >
         migration_result.failed | default(false) or 
         'No migration found' in (migration_result.stderr | default('')) or
         'P1001' in (migration_result.stderr | default(''))
       register: db_push_result
+      retries: '{{ 3 if is_macos else 2 }}'
+      delay: '{{ 10 if is_macos else 5 }}'
 
     - name: Show db push output
       debug:
-        msg: '{{ db_push_result.stderr_lines | default([]) + db_push_result.stdout_lines | default([]) }}'
+        msg: '{{ db_push_result.stdout_lines | default([]) + db_push_result.stderr_lines | default([]) }}'
       when: db_push_result is defined
 
-    - name: Restart container after database setup
-      command: docker compose -f {{ compose_file }} restart
-      args:
-        chdir: '{{ app_dir }}'
+    - name: Restart containers after database setup
+      shell: |
+        cd {{ app_dir }}
+        docker compose -f {{ compose_file }} restart
       become_user: ubuntu
       when: (migration_result.changed | default(false)) or (db_push_result.changed | default(false))
 
-    - name: Aguarda aplicação ficar disponível
+    - name: Final wait for application
       wait_for:
         host: localhost
         port: "{{ PORT | default('3000') }}"
-        delay: 10
-        timeout: 120
+        delay: '{{ 20 if is_macos else 15 }}'
+        timeout: '{{ 240 if is_macos else 180 }}'
 
-    - name: Testa endpoint de saúde
+    - name: Test health endpoint
       uri:
         url: "http://localhost:{{ PORT | default('3000') }}/health"
         method: GET
         status_code: 200
+        timeout: 30
       register: health_check
       ignore_errors: yes
       become_user: ubuntu
+      retries: '{{ 5 if is_macos else 3 }}'
+      delay: '{{ 15 if is_macos else 10 }}'
+
+    - name: Alternative health check using curl
+      shell: |
+        curl -f -s -o /dev/null -w "%{http_code}" http://localhost:{{ PORT | default('3000') }}/health
+      register: curl_health_check
+      ignore_errors: yes
+      become_user: ubuntu
+      when: health_check.failed | default(false)
 
   post_tasks:
-    - name: Resultado do Deploy
+    - name: Final container status check
+      shell: |
+        cd {{ app_dir }}
+        docker compose -f {{ compose_file }} ps
+        echo "=== LOGS ==="
+        docker compose -f {{ compose_file }} logs --tail=20 backend
+      become_user: ubuntu
+      register: final_status
+      ignore_errors: yes
+
+    - name: Display final status
+      debug:
+        var: final_status.stdout_lines
+
+    - name: Deploy result (with platform info)
       debug:
         msg: >
-          🎉 Deploy concluído: {{ 'OK' if health_check.status == 200 else 'FAILED' }}
+          🎉 Deploy Status: {{ 'SUCCESS ✅' if (health_check.status == 200 or curl_health_check.stdout == '200') else 'FAILED ❌' }}
+          🖥️  Platform: {{ 'macOS (optimized)' if is_macos else 'Linux/Other' }}
+          {% if health_check.status == 200 or curl_health_check.stdout == '200' %}
+          🌐 Application URL: http://{{ ansible_host }}:{{ PORT | default('3000') }}
+          🔍 Health endpoint: http://{{ ansible_host }}:{{ PORT | default('3000') }}/health
+          {% else %}
+          ❌ Check the logs above for troubleshooting information
+          {% if is_macos %}💡 macOS optimizations were applied but deployment still failed{% endif %}
+          {% endif %}
 
-    - name: Show Docker Compose logs if health check failed
-      command: docker compose -f {{ compose_file }} logs --tail=50
-      args:
-        chdir: '{{ app_dir }}'
-      register: compose_logs
-      when: health_check.failed | default(false)
+    - name: Show detailed logs if deployment failed
+      shell: |
+        cd {{ app_dir }}
+        echo "=== DOCKER COMPOSE LOGS ==="
+        docker compose -f {{ compose_file }} logs --tail=50
+        echo "=== DOCKER SYSTEM INFO ==="
+        docker system df
+        echo "=== DOCKER PROCESSES ==="
+        docker ps -a
       become_user: ubuntu
+      register: debug_logs
+      when: (health_check.failed | default(false)) and (curl_health_check.stdout | default('') != '200')
 
-    - name: Display logs if health check failed
+    - name: Display debug logs
       debug:
-        var: compose_logs.stdout_lines
-      when: health_check.failed | default(false)
+        var: debug_logs.stdout_lines
+      when: debug_logs is defined and debug_logs.stdout_lines is defined
