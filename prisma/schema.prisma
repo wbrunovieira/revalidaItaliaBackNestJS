@@ -210,6 +210,7 @@ model User {
 
   Address    Address[]
   videosSeen VideoSeen[]
+  Attempt    Attempt[]
 }
 
 model Address {
@@ -237,16 +238,17 @@ model Lesson {
   order        Int      @default(1)
   videoId      String?
   flashcardIds String[] @default([])
-  quizIds      String[] @default([])
-  commentIds   String[] @default([])
+
+  commentIds String[] @default([])
 
   documents LessonDocument[]
 
   translations LessonTranslation[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Video     Video[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  Video      Video[]
+  Assessment Assessment[]
 }
 
 model LessonTranslation {
@@ -284,4 +286,175 @@ model LessonDocumentTranslation {
   documentId String
 
   @@unique([documentId, locale])
+}
+
+// ====================================
+// = Enums para Assessment
+// ====================================
+
+enum AssessmentType {
+  QUIZ
+  SIMULADO
+  PROVA_ABERTA
+}
+
+enum QuizPosition {
+  BEFORE_LESSON
+  AFTER_LESSON
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  OPEN
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  GRADING
+  GRADED
+}
+
+// ====================================
+// = Entidades do domínio Assessment
+// ====================================
+
+model Assessment {
+  id                 String         @id @default(uuid())
+  title              String
+  description        String?
+  type               AssessmentType
+  quizPosition       QuizPosition? // Apenas para tipo QUIZ
+  passingScore       Int // Nota mínima para aprovação
+  timeLimitInMinutes Int? // Tempo limite (apenas para SIMULADO)
+  randomizeQuestions Boolean        @default(false)
+  randomizeOptions   Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  // Relações
+
+  lesson   Lesson? @relation(fields: [lessonId], references: [id])
+  lessonId String? // Opcional, apenas para QUIZ
+
+  arguments Argument[]
+  questions Question[]
+  attempts  Attempt[]
+}
+
+model Argument {
+  id    String @id @default(uuid())
+  title String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  assessmentId String
+
+  questions Question[]
+}
+
+model Question {
+  id   String       @id @default(uuid())
+  text String
+  type QuestionType
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  assessmentId String
+
+  argument   Argument? @relation(fields: [argumentId], references: [id])
+  argumentId String?
+
+  options        QuestionOption[]
+  answer         Answer?
+  attemptAnswers AttemptAnswer[]
+}
+
+model QuestionOption {
+  id   String @id @default(uuid())
+  text String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String
+}
+
+model Answer {
+  id              String  @id @default(uuid())
+  correctOptionId String? // Para múltipla escolha
+
+  explanation String // Explicação do gabarito
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relações
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String   @unique
+
+  translations AnswerTranslation[]
+}
+
+model AnswerTranslation {
+  id          String @id @default(uuid())
+  locale      String // "pt", "it", "es"
+  explanation String // Tradução da explicação
+
+  // Relações
+  answer   Answer @relation(fields: [answerId], references: [id])
+  answerId String
+
+  @@unique([answerId, locale])
+}
+
+model Attempt {
+  id                 String        @id @default(uuid())
+  status             AttemptStatus
+  score              Float? // Pontuação final
+  startedAt          DateTime      @default(now())
+  submittedAt        DateTime?
+  gradedAt           DateTime?
+  timeLimitExpiresAt DateTime? // Para simulados com tempo
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  // Relações
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  assessmentId String
+
+  answers AttemptAnswer[]
+
+  @@index([userId, assessmentId])
+}
+
+model AttemptAnswer {
+  id               String        @id @default(uuid())
+  selectedOptionId String? // Para múltipla escolha
+  textAnswer       String?
+  status           AttemptStatus @default(IN_PROGRESS)
+  isCorrect        Boolean? // Calculado para múltipla escolha, definido pelo professor para abertas
+
+  teacherComment String? // Comentário do professor (questões abertas)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relações
+  attempt   Attempt @relation(fields: [attemptId], references: [id])
+  attemptId String
+
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String
+
+  @@unique([attemptId, questionId])
 }

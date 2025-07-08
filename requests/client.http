@@ -20,11 +20,11 @@ POST {{BASE_URL}}/students
 Content-Type: application/json
 
 {
-  "name": "Professor 2",
-  "email": "professor2@revalidaitalia.com.br",
+  "name": "aluno",
+  "email": "aluno@revalidaitalia.com.br",
   "password": "Senha123!",
-  "role": "tutor",
-  "cpf": "78655443456"
+  "role": "student",
+  "cpf": "78655443458"
 }
 ###
 
@@ -54,7 +54,7 @@ Content-Type: application/json
   "password": "Senha123!"
 }
 ###
-@token = {{login.response.body.access_token}}
+@token = {{login.response.body.accessToken}}
 
 ### 4. Login as Admin
 # @name adminLogin
@@ -68,6 +68,15 @@ Content-Type: application/json
 
 ###
 @adminToken = {{adminLogin.response.body.accessToken}}
+
+###
+
+### Get User By ID - Success
+# @name getUserById
+GET {{BASE_URL}}/students/1533f9c1-23a1-421c-868e-b305996ac5d0
+Authorization: Bearer {{token}}
+
+###
 
 ###
 # @name update-account

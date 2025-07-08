@@ -158,11 +158,9 @@ export class StudentsController {
     return result.value;
   }
 
-  // Nova rota para buscar usuário por ID
   @Get(':id')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   async findById(@Param('id') id: string) {
     const result = await this.getUserById.execute({ id });
 

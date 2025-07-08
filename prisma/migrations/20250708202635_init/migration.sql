@@ -1,3 +1,15 @@
+-- CreateEnum
+CREATE TYPE "AssessmentType" AS ENUM ('QUIZ', 'SIMULADO', 'PROVA_ABERTA');
+
+-- CreateEnum
+CREATE TYPE "QuizPosition" AS ENUM ('BEFORE_LESSON', 'AFTER_LESSON');
+
+-- CreateEnum
+CREATE TYPE "QuestionType" AS ENUM ('MULTIPLE_CHOICE', 'OPEN');
+
+-- CreateEnum
+CREATE TYPE "AttemptStatus" AS ENUM ('IN_PROGRESS', 'SUBMITTED', 'GRADING', 'GRADED');
+
 -- CreateTable
 CREATE TABLE "Track" (
     "id" TEXT NOT NULL,
@@ -186,7 +198,6 @@ CREATE TABLE "Lesson" (
     "order" INTEGER NOT NULL DEFAULT 1,
     "videoId" TEXT,
     "flashcardIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
-    "quizIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "commentIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -225,6 +236,114 @@ CREATE TABLE "LessonDocumentTranslation" (
     "documentId" TEXT NOT NULL,
 
     CONSTRAINT "LessonDocumentTranslation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Assessment" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "type" "AssessmentType" NOT NULL,
+    "quizPosition" "QuizPosition",
+    "passingScore" INTEGER NOT NULL,
+    "timeLimitInMinutes" INTEGER,
+    "randomizeQuestions" BOOLEAN NOT NULL DEFAULT false,
+    "randomizeOptions" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "lessonId" TEXT,
+
+    CONSTRAINT "Assessment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Argument" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "assessmentId" TEXT NOT NULL,
+
+    CONSTRAINT "Argument_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Question" (
+    "id" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "type" "QuestionType" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "assessmentId" TEXT NOT NULL,
+    "argumentId" TEXT,
+
+    CONSTRAINT "Question_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "QuestionOption" (
+    "id" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "questionId" TEXT NOT NULL,
+
+    CONSTRAINT "QuestionOption_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Answer" (
+    "id" TEXT NOT NULL,
+    "correctOptionId" TEXT,
+    "explanation" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "questionId" TEXT NOT NULL,
+
+    CONSTRAINT "Answer_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AnswerTranslation" (
+    "id" TEXT NOT NULL,
+    "locale" TEXT NOT NULL,
+    "explanation" TEXT NOT NULL,
+    "answerId" TEXT NOT NULL,
+
+    CONSTRAINT "AnswerTranslation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Attempt" (
+    "id" TEXT NOT NULL,
+    "status" "AttemptStatus" NOT NULL,
+    "score" DOUBLE PRECISION,
+    "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "submittedAt" TIMESTAMP(3),
+    "gradedAt" TIMESTAMP(3),
+    "timeLimitExpiresAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL,
+    "assessmentId" TEXT NOT NULL,
+
+    CONSTRAINT "Attempt_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AttemptAnswer" (
+    "id" TEXT NOT NULL,
+    "selectedOptionId" TEXT,
+    "textAnswer" TEXT,
+    "status" "AttemptStatus" NOT NULL DEFAULT 'IN_PROGRESS',
+    "isCorrect" BOOLEAN,
+    "teacherComment" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "attemptId" TEXT NOT NULL,
+    "questionId" TEXT NOT NULL,
+
+    CONSTRAINT "AttemptAnswer_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -274,6 +393,18 @@ CREATE UNIQUE INDEX "LessonTranslation_lessonId_locale_key" ON "LessonTranslatio
 
 -- CreateIndex
 CREATE UNIQUE INDEX "LessonDocumentTranslation_documentId_locale_key" ON "LessonDocumentTranslation"("documentId", "locale");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Answer_questionId_key" ON "Answer"("questionId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AnswerTranslation_answerId_locale_key" ON "AnswerTranslation"("answerId", "locale");
+
+-- CreateIndex
+CREATE INDEX "Attempt_userId_assessmentId_idx" ON "Attempt"("userId", "assessmentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AttemptAnswer_attemptId_questionId_key" ON "AttemptAnswer"("attemptId", "questionId");
 
 -- AddForeignKey
 ALTER TABLE "TrackCourse" ADD CONSTRAINT "TrackCourse_trackId_fkey" FOREIGN KEY ("trackId") REFERENCES "Track"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -328,3 +459,36 @@ ALTER TABLE "LessonDocument" ADD CONSTRAINT "LessonDocument_lessonId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "LessonDocumentTranslation" ADD CONSTRAINT "LessonDocumentTranslation_documentId_fkey" FOREIGN KEY ("documentId") REFERENCES "LessonDocument"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Assessment" ADD CONSTRAINT "Assessment_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Argument" ADD CONSTRAINT "Argument_assessmentId_fkey" FOREIGN KEY ("assessmentId") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Question" ADD CONSTRAINT "Question_assessmentId_fkey" FOREIGN KEY ("assessmentId") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Question" ADD CONSTRAINT "Question_argumentId_fkey" FOREIGN KEY ("argumentId") REFERENCES "Argument"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "QuestionOption" ADD CONSTRAINT "QuestionOption_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Answer" ADD CONSTRAINT "Answer_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AnswerTranslation" ADD CONSTRAINT "AnswerTranslation_answerId_fkey" FOREIGN KEY ("answerId") REFERENCES "Answer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Attempt" ADD CONSTRAINT "Attempt_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Attempt" ADD CONSTRAINT "Attempt_assessmentId_fkey" FOREIGN KEY ("assessmentId") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AttemptAnswer" ADD CONSTRAINT "AttemptAnswer_attemptId_fkey" FOREIGN KEY ("attemptId") REFERENCES "Attempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AttemptAnswer" ADD CONSTRAINT "AttemptAnswer_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
