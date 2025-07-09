@@ -22,7 +22,7 @@ export const createAssessmentSchema = z
     timeLimitInMinutes: z
       .number()
       .int('Time limit must be an integer')
-      .positive('Time limit must be positive')
+      .positive('Time limit must be positive (minimum: 1)')
       .optional(),
     randomizeQuestions: z.boolean().default(false),
     randomizeOptions: z.boolean().default(false),
@@ -57,18 +57,26 @@ export const createAssessmentSchema = z
           path: ['quizPosition'],
         });
       }
-    }
-
-    // Simulado-specific validations
-    if (data.type === 'SIMULADO') {
-      if (!data.timeLimitInMinutes) {
+      if (data.lessonId) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Time limit is recommended for SIMULADO type assessments',
+          message: 'Lesson ID can only be set for QUIZ type assessments',
+          path: ['lessonId'],
+        });
+      }
+    }
+
+    // Non-simulado validations
+    if (data.type !== 'SIMULADO') {
+      if (data.timeLimitInMinutes) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Time limit can only be set for SIMULADO type assessments',
           path: ['timeLimitInMinutes'],
         });
       }
     }
+    
   });
 
 export type CreateAssessmentSchema = z.infer<typeof createAssessmentSchema>;

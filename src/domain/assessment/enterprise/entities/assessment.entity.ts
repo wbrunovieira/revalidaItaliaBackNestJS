@@ -3,6 +3,7 @@ import { Entity } from '@/core/entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 
 export interface AssessmentProps {
+  slug: string;
   title: string;
   description?: string;
   type: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA';
@@ -11,13 +12,21 @@ export interface AssessmentProps {
   timeLimitInMinutes?: number;
   randomizeQuestions: boolean;
   randomizeOptions: boolean;
-  lessonId?: string;
+  lessonId?: UniqueEntityID;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export class Assessment extends Entity<AssessmentProps> {
+  private touch() {
+    this.props.updatedAt = new Date();
+  }
+
   // Getters
+  public get slug(): string {
+    return this.props.slug;
+  }
+
   public get title(): string {
     return this.props.title;
   }
@@ -26,11 +35,11 @@ export class Assessment extends Entity<AssessmentProps> {
     return this.props.description;
   }
 
-  public get type(): string {
+  public get type(): 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA' {
     return this.props.type;
   }
 
-  public get quizPosition(): string | undefined {
+  public get quizPosition(): 'BEFORE_LESSON' | 'AFTER_LESSON' | undefined {
     return this.props.quizPosition;
   }
 
@@ -50,7 +59,7 @@ export class Assessment extends Entity<AssessmentProps> {
     return this.props.randomizeOptions;
   }
 
-  public get lessonId(): string | undefined {
+  public get lessonId(): UniqueEntityID | undefined {
     return this.props.lessonId;
   }
 
@@ -62,22 +71,19 @@ export class Assessment extends Entity<AssessmentProps> {
     return this.props.updatedAt;
   }
 
-  // Response Mapping
-  public toResponseObject() {
-    return {
-      id: this.id.toString(),
-      title: this.title,
-      description: this.description,
-      type: this.type,
-      quizPosition: this.quizPosition,
-      passingScore: this.passingScore,
-      timeLimitInMinutes: this.timeLimitInMinutes,
-      randomizeQuestions: this.randomizeQuestions,
-      randomizeOptions: this.randomizeOptions,
-      lessonId: this.lessonId,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
-    };
+  // Methods
+  public update(props: Partial<AssessmentProps>) {
+    if (props.title) this.props.title = props.title;
+    if (props.slug) this.props.slug = props.slug;
+    if (props.description) this.props.description = props.description;
+    if (props.type) this.props.type = props.type;
+    if (props.quizPosition) this.props.quizPosition = props.quizPosition;
+    if (props.passingScore) this.props.passingScore = props.passingScore;
+    if (props.timeLimitInMinutes) this.props.timeLimitInMinutes = props.timeLimitInMinutes;
+    if (props.randomizeQuestions) this.props.randomizeQuestions = props.randomizeQuestions;
+    if (props.randomizeOptions) this.props.randomizeOptions = props.randomizeOptions;
+    if (props.lessonId) this.props.lessonId = props.lessonId;
+    this.touch();
   }
 
   // Factory Methods

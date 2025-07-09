@@ -3,6 +3,7 @@
 export interface CreateAssessmentDto {
   assessment: {
     id: string;
+    slug: string;
     title: string;
     description?: string;
     type: string;
