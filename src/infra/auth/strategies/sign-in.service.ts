@@ -1,12 +1,11 @@
-
-import { Injectable } from '@nestjs/common'
-import { JwtService }    from '@nestjs/jwt'
-import { UserPayload }   from '@/infra/auth/strategies/jwt.strategy'
+import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UserPayload } from '@/infra/auth/strategies/jwt.strategy';
 
 import {
   AuthenticateUserUseCase,
   AuthenticateUserRequest,
-} from '@/domain/auth/application/use-cases/authenticate-user.use-case'
+} from '@/domain/auth/application/use-cases/authenticate-user.use-case';
 
 @Injectable()
 export class SignInService {
@@ -17,18 +16,18 @@ export class SignInService {
 
   async signIn(dto: AuthenticateUserRequest) {
     // 1) Executa o use-case
-    const result = await this.authenticateUseCase.execute(dto)
+    const result = await this.authenticateUseCase.execute(dto);
     if (result.isLeft()) {
       // repassa o erro de credenciais
-      throw result.value
+      throw result.value;
     }
 
     // 2) Gera o JWT
-    const user = result.value.user
-    const payload: UserPayload = { sub: user.id, role: user.role }
-    const token = this.jwtService.sign(payload)
+    const user = result.value.user;
+    const payload: UserPayload = { sub: user.id, role: user.role };
+    const token = this.jwtService.sign(payload);
 
     // 3) Retorna token e dados do user
-    return { token, user }
+    return { token, user };
   }
 }

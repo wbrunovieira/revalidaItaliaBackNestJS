@@ -9,6 +9,7 @@ import { VideoHasDependenciesError } from '@/domain/course-catalog/application/u
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 import { Video } from '@/domain/course-catalog/enterprise/entities/video.entity';
+import { VideoTranslationVO } from '@/domain/course-catalog/enterprise/value-objects/video-translation.vo';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { left, right } from '@/core/either';
 import { VideoDependencyInfo } from '@/domain/course-catalog/application/dtos/video-dependencies.dto';
@@ -28,7 +29,11 @@ describe('DeleteVideoUseCase', () => {
     return Video.create(
       {
         slug: 'video-teste',
-        title: 'Vídeo de Teste',
+        translations: [
+          new VideoTranslationVO('pt', 'Vídeo de Teste', 'Descrição do vídeo de teste'),
+          new VideoTranslationVO('it', 'Video di Prova', 'Descrizione del video di prova'),
+          new VideoTranslationVO('es', 'Vídeo de Prueba', 'Descripción del vídeo de prueba'),
+        ],
         providerVideoId: 'yt_abc123',
         durationInSeconds: 300,
       },

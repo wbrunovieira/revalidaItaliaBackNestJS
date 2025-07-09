@@ -2,7 +2,7 @@
 export class AnswerTranslationVO {
   constructor(
     public readonly locale: 'pt' | 'it' | 'es',
-    public readonly explanation: string
+    public readonly explanation: string,
   ) {
     this.validate();
   }
@@ -19,6 +19,8 @@ export class AnswerTranslationVO {
   }
 
   public equals(other: AnswerTranslationVO): boolean {
-    return this.locale === other.locale && this.explanation === other.explanation;
+    return (
+      this.locale === other.locale && this.explanation === other.explanation
+    );
   }
 }

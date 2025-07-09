@@ -1,3 +1,4 @@
+//src/domain/course-catalog/application/ues-case/delete-document.use-case.spec.ts
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DeleteDocumentUseCase } from './delete-document.use-case';
 import { IDocumentRepository } from '../repositories/i-document-repository';
@@ -22,6 +23,7 @@ describe('DeleteDocumentUseCase', () => {
       findByLesson: vi.fn(),
       incrementDownloadCount: vi.fn(),
       checkDocumentDependencies: vi.fn(),
+      update: vi.fn(),
     };
 
     sut = new DeleteDocumentUseCase(documentRepository);

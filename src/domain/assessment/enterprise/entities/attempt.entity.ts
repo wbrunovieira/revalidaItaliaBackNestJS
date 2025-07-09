@@ -66,7 +66,7 @@ export class Attempt extends Entity<AttemptProps> {
     if (!this.status.isInProgress()) {
       throw new Error('Can only submit attempts that are in progress');
     }
-    
+
     this.props.status = new AttemptStatusVO('SUBMITTED');
     this.props.submittedAt = new Date();
     this.touch();
@@ -76,7 +76,7 @@ export class Attempt extends Entity<AttemptProps> {
     if (!this.status.isSubmitted()) {
       throw new Error('Can only start grading submitted attempts');
     }
-    
+
     this.props.status = new AttemptStatusVO('GRADING');
     this.touch();
   }
@@ -85,7 +85,7 @@ export class Attempt extends Entity<AttemptProps> {
     if (!this.status.isSubmitted() && !this.status.isGrading()) {
       throw new Error('Can only grade submitted or grading attempts');
     }
-    
+
     this.props.status = new AttemptStatusVO('GRADED');
     this.props.score = score;
     this.props.gradedAt = new Date();
@@ -96,7 +96,7 @@ export class Attempt extends Entity<AttemptProps> {
     if (!this.status.isInProgress()) {
       throw new Error('Can only set time limit for attempts in progress');
     }
-    
+
     this.props.timeLimitExpiresAt = expiresAt;
     this.touch();
   }
@@ -136,7 +136,7 @@ export class Attempt extends Entity<AttemptProps> {
     if (!this.hasTimeLimit()) {
       return Infinity;
     }
-    
+
     const now = new Date();
     const remaining = this.props.timeLimitExpiresAt!.getTime() - now.getTime();
     return Math.max(0, remaining);

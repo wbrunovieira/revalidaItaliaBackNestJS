@@ -82,6 +82,9 @@ export const updateLessonSchema = z
       .array(z.string().min(1, 'Flashcard ID cannot be empty'))
       .optional(),
     quizIds: z.array(z.string().min(1, 'Quiz ID cannot be empty')).optional(),
+    assessments: z
+      .array(z.string().min(1, 'Assessment ID cannot be empty'))
+      .optional(),
     commentIds: z
       .array(z.string().min(1, 'Comment ID cannot be empty'))
       .optional(),
@@ -96,6 +99,7 @@ export const updateLessonSchema = z
         data.videoId !== undefined ||
         data.flashcardIds !== undefined ||
         data.quizIds !== undefined ||
+        data.assessments !== undefined ||
         data.commentIds !== undefined
       );
     },

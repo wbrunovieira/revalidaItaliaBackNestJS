@@ -11,8 +11,12 @@ const lessonTranslationSchema = z.object({
 
 export const createLessonSchema = z
   .object({
+    slug: z
+      .string()
+      .min(1, 'Slug is required')
+      .max(200, 'Slug must be at most 200 characters'),
     moduleId: z.string().uuid('Module ID must be a valid UUID'),
-    order: z.number(),
+    order: z.number().positive('Order must be a positive number'),
     videoId: z.string().uuid('Video ID must be a valid UUID').optional(),
     imageUrl: z
       .union([
@@ -24,6 +28,12 @@ export const createLessonSchema = z
             'imageUrl must be an absolute path like "/images/..."',
           ),
       ])
+      .optional(),
+    flashcardIds: z
+      .array(z.string().uuid('Flashcard ID must be a valid UUID'))
+      .optional(),
+    commentIds: z
+      .array(z.string().uuid('Comment ID must be a valid UUID'))
       .optional(),
     translations: z
       .array(lessonTranslationSchema)

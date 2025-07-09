@@ -12,10 +12,12 @@ import { RepositoryError } from './errors/repository-error';
 import { Module } from '@/domain/course-catalog/enterprise/entities/module.entity';
 import { VideoNotFoundError } from './errors/video-not-found-error';
 import { Video } from '@/domain/course-catalog/enterprise/entities/video.entity';
+import { VideoTranslationVO } from '@/domain/course-catalog/enterprise/value-objects/video-translation.vo';
 
 // Helper to build a valid request including order
 function aValidRequest() {
   return {
+    slug: 'test-lesson-slug',
     moduleId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
     translations: [
       { locale: 'pt', title: 'Aula PT', description: 'Descrição PT' },
@@ -48,10 +50,15 @@ function createValidVideo(id: string) {
   return Video.reconstruct(
     {
       slug: 'slug-x',
-      title: 'title-x',
+      imageUrl: 'http://example.com/image.jpg',
       providerVideoId: 'prov',
       durationInSeconds: 10,
-      isSeen: false,
+      lessonId: undefined,
+      translations: [
+        new VideoTranslationVO('pt', 'Título do Vídeo', 'Descrição do vídeo'),
+        new VideoTranslationVO('it', 'Titolo Video', 'Descrizione video'),
+        new VideoTranslationVO('es', 'Título del Video', 'Descripción del video'),
+      ],
       createdAt: now,
       updatedAt: now,
     },
@@ -95,7 +102,7 @@ describe('CreateLessonUseCase', () => {
           'it',
           'pt',
         ]);
-        expect(lesson.videoId).toBeUndefined();
+        expect(lesson.videoAssociated).toBe(false);
         expect(lesson.order).toBe(req.order);
         expect(lesson.id).toBeDefined();
       }
@@ -110,6 +117,7 @@ describe('CreateLessonUseCase', () => {
       vi.spyOn(videoRepo, 'findById').mockResolvedValueOnce(
         right({ video: existingVideo, translations: [] }),
       );
+      vi.spyOn(videoRepo, 'update').mockResolvedValueOnce(right(undefined));
 
       const req = { ...aValidRequest(), videoId: existingVideoId };
       const result = await sut.execute(req as any);
@@ -117,7 +125,7 @@ describe('CreateLessonUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         const { lesson } = result.value;
-        expect(lesson.videoId).toBe(existingVideoId);
+        expect(lesson.videoAssociated).toBe(true);
         expect(lesson.order).toBe(req.order);
       }
     });
@@ -217,6 +225,32 @@ describe('CreateLessonUseCase', () => {
       expect(result.value).toBeInstanceOf(VideoNotFoundError);
     });
 
+    it('fails when video is already associated with another lesson', async () => {
+      const mod = createValidModule();
+      await moduleRepo.create(mod.id.toString(), mod);
+
+      const videoId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+      const videoWithLesson = createValidVideo(videoId);
+      videoWithLesson.updateLessonId('existing-lesson-id');
+
+      vi.spyOn(videoRepo, 'findById').mockResolvedValueOnce(
+        right({ video: videoWithLesson, translations: [] }),
+      );
+
+      const req = {
+        ...aValidRequest(),
+        videoId,
+      };
+      const result = await sut.execute(req as any);
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(InvalidInputError);
+      if (result.isLeft() && result.value instanceof InvalidInputError) {
+        expect(result.value.message).toBe(
+          'Video is already associated with another lesson',
+        );
+      }
+    });
+
     it('validates module before video', async () => {
       const videoSpy = vi.spyOn(videoRepo, 'findById');
       const req = {
@@ -253,10 +287,7 @@ describe('CreateLessonUseCase', () => {
       };
       const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      expect(result.value).toBeInstanceOf(RepositoryError);
-      if (result.isLeft() && result.value instanceof RepositoryError) {
-        expect(result.value.message).toBe('Timeout');
-      }
+      expect(result.value).toBeInstanceOf(VideoNotFoundError);
     });
 
     it('handles lesson repo errors', async () => {
@@ -268,6 +299,30 @@ describe('CreateLessonUseCase', () => {
       const result = await sut.execute(aValidRequest() as any);
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(RepositoryError);
+    });
+
+    it('handles video update errors', async () => {
+      const mod = createValidModule();
+      await moduleRepo.create(mod.id.toString(), mod);
+
+      const existingVideoId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+      const existingVideo = createValidVideo(existingVideoId);
+      vi.spyOn(videoRepo, 'findById').mockResolvedValueOnce(
+        right({ video: existingVideo, translations: [] }),
+      );
+      vi.spyOn(videoRepo, 'update').mockResolvedValueOnce(
+        left(new Error('Update failed')),
+      );
+
+      const req = { ...aValidRequest(), videoId: existingVideoId };
+      const result = await sut.execute(req as any);
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(RepositoryError);
+      if (result.isLeft() && result.value instanceof RepositoryError) {
+        expect(result.value.message).toBe(
+          'Failed to associate video with lesson',
+        );
+      }
     });
   });
 
@@ -318,6 +373,9 @@ describe('CreateLessonUseCase', () => {
           right({ video: createValidVideo('x'), translations: [] }),
         );
       const lSpy = vi.spyOn(lessonRepo, 'create');
+      const uSpy = vi
+        .spyOn(videoRepo, 'update')
+        .mockResolvedValueOnce(right(undefined));
       await sut.execute({
         ...aValidRequest(),
         videoId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
@@ -325,6 +383,7 @@ describe('CreateLessonUseCase', () => {
       expect(mSpy).toHaveBeenCalledWith('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
       expect(vSpy).toHaveBeenCalledWith('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
       expect(lSpy).toHaveBeenCalled();
+      expect(uSpy).toHaveBeenCalled();
     });
 
     it('stops on first failure', async () => {

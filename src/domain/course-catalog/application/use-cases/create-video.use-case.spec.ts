@@ -20,8 +20,8 @@ function aValidRequest() {
     providerVideoId: 'panda-123',
     translations: [
       { locale: 'pt', title: 'Vídeo Teste', description: 'Desc PT' },
-      { locale: 'it', title: 'Video Test',    description: 'Desc IT' },
-      { locale: 'es', title: 'Vídeo Prueba',  description: 'Desc ES' },
+      { locale: 'it', title: 'Video Test', description: 'Desc IT' },
+      { locale: 'es', title: 'Vídeo Prueba', description: 'Desc ES' },
     ],
   };
 }
@@ -41,22 +41,22 @@ describe('CreateVideoUseCase', () => {
     const getEmbedUrlSpy = vi.fn(() => 'embed-url');
     host = { getMetadata: getMetadataSpy, getEmbedUrl: getEmbedUrlSpy };
 
-    sut = new CreateVideoUseCase(
-      lessonRepo as any,
-      videoRepo as any,
-      host
-    );
+    sut = new CreateVideoUseCase(lessonRepo as any, videoRepo as any, host);
   });
 
   it('creates a video successfully', async () => {
     // preparar uma lição existente em memória
     const lesson = Lesson.create(
-      { 
-        moduleId: 'mod-1', 
-        translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }], 
-        flashcardIds: [], quizIds: [], commentIds: [] 
+      {
+        slug: 'aula-pt',
+        moduleId: 'mod-1',
+        translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
+        flashcardIds: [],
+        assessments: [],
+        commentIds: [],
+        order: 0,
       },
-      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
     );
     await lessonRepo.create(lesson);
 
@@ -75,19 +75,21 @@ describe('CreateVideoUseCase', () => {
     const result = await sut.execute(req as any);
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(InvalidInputError);
-    expect((result.value as InvalidInputError).details)
-      .toEqual(expect.arrayContaining([
-        expect.objectContaining({ path: ['providerVideoId'] })
-      ]));
+    expect((result.value as InvalidInputError).details).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: ['providerVideoId'] }),
+      ]),
+    );
   });
 
   it('returns InvalidInputError for missing Portuguese translation', async () => {
     const req = aValidRequest();
-    req.translations = req.translations.filter(t => t.locale !== 'pt');
+    req.translations = req.translations.filter((t) => t.locale !== 'pt');
     const result = await sut.execute(req as any);
     expect(result.isLeft()).toBe(true);
-    expect((result.value as InvalidInputError).details[0].message)
-      .toMatch(/exactly three translations required/i);
+    expect((result.value as InvalidInputError).details[0].message).toMatch(
+      /exactly three translations required/i,
+    );
   });
 
   it('errors if lesson not found', async () => {
@@ -100,12 +102,16 @@ describe('CreateVideoUseCase', () => {
   it('errors on invalid slug format', async () => {
     // criar a lição primeiro
     const lesson = Lesson.create(
-      { 
-        moduleId: 'mod-1', 
-        translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }], 
-        flashcardIds: [], quizIds: [], commentIds: [] 
+      {
+        slug: 'aula-pt',
+        moduleId: 'mod-1',
+        translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
+        flashcardIds: [],
+        assessments: [],
+        commentIds: [],
+        order: 0,
       },
-      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
     );
     await lessonRepo.create(lesson);
 
@@ -118,17 +124,21 @@ describe('CreateVideoUseCase', () => {
   it('errors on duplicate slug', async () => {
     // criar a lição
     const lesson = Lesson.create(
-      { 
-        moduleId: 'mod-1', 
-        translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }], 
-        flashcardIds: [], quizIds: [], commentIds: [] 
+      {
+        slug: 'aula-pt',
+        moduleId: 'mod-1',
+        translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
+        flashcardIds: [],
+        assessments: [],
+        commentIds: [],
+        order: 0,
       },
-      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
     );
     await lessonRepo.create(lesson);
     // forçar slug duplicado
     vi.spyOn(videoRepo, 'findBySlug').mockResolvedValueOnce(
-      right(lesson as any)
+      right(lesson as any),
     );
 
     const result = await sut.execute(aValidRequest() as any);
@@ -138,12 +148,16 @@ describe('CreateVideoUseCase', () => {
 
   it('propagates host errors as RepositoryError', async () => {
     const lesson = Lesson.create(
-      { 
-        moduleId: 'mod-1', 
-        translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }], 
-        flashcardIds: [], quizIds: [], commentIds: [] 
+      {
+        slug: 'aula-pt',
+        moduleId: 'mod-1',
+        translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
+        flashcardIds: [],
+        assessments: [],
+        commentIds: [],
+        order: 0,
       },
-      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
     );
     await lessonRepo.create(lesson);
     getMetadataSpy.mockRejectedValueOnce(new Error('host fail'));
@@ -155,16 +169,20 @@ describe('CreateVideoUseCase', () => {
 
   it('propagates repo.create errors as RepositoryError', async () => {
     const lesson = Lesson.create(
-      { 
-        moduleId: 'mod-1', 
-        translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }], 
-        flashcardIds: [], quizIds: [], commentIds: [] 
+      {
+        slug: 'aula-pt',
+        moduleId: 'mod-1',
+        translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
+        flashcardIds: [],
+        assessments: [],
+        commentIds: [],
+        order: 0,
       },
-      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
     );
     await lessonRepo.create(lesson);
     vi.spyOn(videoRepo, 'create').mockResolvedValueOnce(
-      left(new Error('save fail'))
+      left(new Error('save fail')),
     );
 
     const result = await sut.execute(aValidRequest() as any);

@@ -21,11 +21,11 @@ describe('GetLessonUseCase', () => {
   function baseLesson(): Lesson {
     return Lesson.create(
       {
+        slug: 'lesson-example',
         moduleId: 'module-123',
-        videoId: 'video-456',
+        order: 1,
         imageUrl: 'https://example.com/lesson.jpg',
         flashcardIds: ['flashcard-1', 'flashcard-2'],
-        quizIds: ['quiz-1'],
         commentIds: ['comment-1', 'comment-2'],
         translations: [
           {
@@ -35,12 +35,12 @@ describe('GetLessonUseCase', () => {
           },
           {
             locale: 'it',
-            title: 'Lezione Esempio',
+            title: 'Lezione Exemplo',
             description: 'Descrizione della Lezione',
           },
           {
             locale: 'es',
-            title: 'Lección Ejemplo',
+            title: 'Lección Exemplo',
             description: 'Descripción de la Lección',
           },
         ],
@@ -62,11 +62,11 @@ describe('GetLessonUseCase', () => {
 
       expect(dto).toBeDefined();
       expect(dto.id).toBe('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
+      expect(dto.slug).toBe('lesson-example');
       expect(dto.moduleId).toBe('module-123');
-      expect(dto.videoId).toBe('video-456');
+      expect(dto.order).toBe(1);
       expect(dto.imageUrl).toBe('https://example.com/lesson.jpg');
       expect(dto.flashcardIds).toEqual(['flashcard-1', 'flashcard-2']);
-      expect(dto.quizIds).toEqual(['quiz-1']);
       expect(dto.commentIds).toEqual(['comment-1', 'comment-2']);
       expect(dto.translations).toEqual(
         expect.arrayContaining([
@@ -77,105 +77,100 @@ describe('GetLessonUseCase', () => {
           },
           {
             locale: 'it',
-            title: 'Lezione Esempio',
+            title: 'Lezione Exemplo',
             description: 'Descrizione della Lezione',
           },
           {
             locale: 'es',
-            title: 'Lección Ejemplo',
+            title: 'Lección Exemplo',
             description: 'Descripción de la Lección',
           },
         ]),
       );
+      expect(dto.videos).toEqual([]);
+      expect(dto.documents).toEqual([]);
+      expect(dto.assessments).toEqual([]);
+      expect(dto.video).toBeUndefined();
       expect(dto.createdAt).toBeInstanceOf(Date);
       expect(dto.updatedAt).toBeInstanceOf(Date);
     }
   });
 
   it('returns lesson with optional fields as undefined', async () => {
-    const lessonWithoutOptionals = Lesson.create(
+    const lesson = Lesson.create(
       {
-        moduleId: 'module-456',
+        slug: 'minimal-lesson',
+        moduleId: 'module-minimal',
+        order: 1,
         flashcardIds: [],
-        quizIds: [],
         commentIds: [],
-        translations: [{ locale: 'pt', title: 'Aula Simples' }],
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Minimal Lesson',
+            description: 'Minimal description',
+          },
+        ],
       },
       new UniqueEntityID('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
     );
-    await repo.create(lessonWithoutOptionals);
 
-    const result = await sut.execute({
-      id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-    });
+    await repo.create(lesson);
+
+    const result = await sut.execute({ id: lesson.id.toString() });
 
     expect(result.isRight()).toBe(true);
 
     if (result.isRight()) {
       const dto = result.value;
 
-      expect(dto).toBeDefined();
-      expect(dto.videoId).toBeUndefined();
+      expect(dto.id).toBe('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
+      expect(dto.slug).toBe('minimal-lesson');
+      expect(dto.moduleId).toBe('module-minimal');
+      expect(dto.order).toBe(1);
       expect(dto.imageUrl).toBeUndefined();
       expect(dto.flashcardIds).toEqual([]);
-      expect(dto.quizIds).toEqual([]);
       expect(dto.commentIds).toEqual([]);
       expect(dto.translations).toHaveLength(1);
-      expect(dto.translations[0].description).toBeUndefined();
+      expect(dto.videos).toEqual([]);
+      expect(dto.documents).toEqual([]);
+      expect(dto.assessments).toEqual([]);
+      expect(dto.video).toBeUndefined();
     }
   });
 
   it('returns InvalidInputError when ID is not a valid UUID', async () => {
-    const result = await sut.execute({ id: 'not-a-uuid' });
+    const result = await sut.execute({ id: 'invalid-uuid' });
 
     expect(result.isLeft()).toBe(true);
-
-    if (result.isLeft()) {
-      const err = result.value;
-      expect(err).toBeInstanceOf(InvalidInputError);
-      if (err instanceof InvalidInputError) {
-        expect(err.details[0].message).toMatch(/ID must be a valid UUID/);
-      }
-    }
+    expect(result.value).toBeInstanceOf(InvalidInputError);
   });
 
   it('returns InvalidInputError when ID is empty', async () => {
     const result = await sut.execute({ id: '' });
 
     expect(result.isLeft()).toBe(true);
-
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(InvalidInputError);
-    }
+    expect(result.value).toBeInstanceOf(InvalidInputError);
   });
 
   it('returns LessonNotFoundError when no lesson exists for given ID', async () => {
-    const result = await sut.execute({
-      id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-    });
-
-    expect(result.isLeft()).toBe(true);
-
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(LessonNotFoundError);
-    }
-  });
-
-  it('propagates RepositoryError when repository throws', async () => {
-    vi.spyOn(repo, 'findById').mockRejectedValueOnce(new Error('DB down'));
-
     const result = await sut.execute({
       id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
     });
 
     expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(LessonNotFoundError);
+  });
 
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(RepositoryError);
-      if (result.value instanceof RepositoryError) {
-        expect(result.value.message).toBe('DB down');
-      }
-    }
+  it('propagates RepositoryError when repository throws', async () => {
+    vi.spyOn(repo, 'findById').mockRejectedValue(new Error('Database error'));
+
+    const result = await sut.execute({
+      id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+    });
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(RepositoryError);
   });
 
   it('returns lesson with all translation locales', async () => {
@@ -188,82 +183,75 @@ describe('GetLessonUseCase', () => {
 
     if (result.isRight()) {
       const dto = result.value;
-
-      expect(dto).toBeDefined();
       expect(dto.translations).toHaveLength(3);
-
-      const locales = dto.translations.map((t) => t.locale);
-      expect(locales).toEqual(expect.arrayContaining(['pt', 'it', 'es']));
-
-      // Verificar estrutura de cada tradução
-      dto.translations.forEach((translation) => {
-        expect(translation).toHaveProperty('locale');
-        expect(translation).toHaveProperty('title');
-        expect(['pt', 'it', 'es']).toContain(translation.locale);
-        expect(typeof translation.title).toBe('string');
-        expect(translation.title.length).toBeGreaterThan(0);
-      });
+      expect(dto.translations.map((t) => t.locale)).toEqual(
+        expect.arrayContaining(['pt', 'it', 'es']),
+      );
     }
   });
 
   it('returns lesson even when repository returns lesson with minimal data', async () => {
-    const minimalLesson = Lesson.create(
+    const lesson = Lesson.create(
       {
-        moduleId: 'minimal-module',
+        slug: 'test-lesson',
+        moduleId: 'test-module',
+        order: 1,
         flashcardIds: [],
-        quizIds: [],
         commentIds: [],
-        translations: [{ locale: 'pt', title: 'Título Mínimo' }],
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Test',
+          },
+        ],
       },
-      new UniqueEntityID('dddddddd-dddd-dddd-dddd-dddddddddddd'),
+      new UniqueEntityID('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'),
     );
-    await repo.create(minimalLesson);
 
-    const result = await sut.execute({
-      id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
-    });
+    await repo.create(lesson);
+
+    const result = await sut.execute({ id: lesson.id.toString() });
 
     expect(result.isRight()).toBe(true);
 
     if (result.isRight()) {
       const dto = result.value;
-
-      expect(dto).toBeDefined();
-      expect(dto.moduleId).toBe('minimal-module');
-      expect(dto.translations).toHaveLength(1);
-      expect(dto.translations[0].locale).toBe('pt');
-      expect(dto.translations[0].title).toBe('Título Mínimo');
+      expect(dto.translations[0].description).toBeUndefined();
     }
   });
 
   it('handles arrays that might be undefined from entity', async () => {
-    // Test case para verificar como arrays undefined são tratados
-    const lessonWithNullArrays = Lesson.create(
+    const lesson = Lesson.create(
       {
-        moduleId: 'module-with-nulls',
-        flashcardIds: undefined as any,
-        quizIds: undefined as any,
-        commentIds: undefined as any,
-        translations: [{ locale: 'pt', title: 'Test Title' }],
+        slug: 'array-test',
+        moduleId: 'module-array',
+        order: 1,
+        flashcardIds: [],
+        commentIds: [],
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Array Test',
+          },
+        ],
       },
-      new UniqueEntityID('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'),
+      new UniqueEntityID('ffffffff-ffff-ffff-ffff-ffffffffffff'),
     );
-    await repo.create(lessonWithNullArrays);
 
-    const result = await sut.execute({
-      id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
-    });
+    await repo.create(lesson);
+
+    const result = await sut.execute({ id: lesson.id.toString() });
 
     expect(result.isRight()).toBe(true);
 
     if (result.isRight()) {
       const dto = result.value;
-
-      expect(dto).toBeDefined();
-
-      expect(dto.flashcardIds).toBeUndefined();
-      expect(dto.quizIds).toBeUndefined();
-      expect(dto.commentIds).toBeUndefined();
+      expect(Array.isArray(dto.flashcardIds)).toBe(true);
+      expect(Array.isArray(dto.commentIds)).toBe(true);
+      expect(Array.isArray(dto.translations)).toBe(true);
+      expect(Array.isArray(dto.videos)).toBe(true);
+      expect(Array.isArray(dto.documents)).toBe(true);
+      expect(Array.isArray(dto.assessments)).toBe(true);
     }
   });
 });

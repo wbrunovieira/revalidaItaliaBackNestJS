@@ -74,9 +74,9 @@ model Video {
   imageUrl          String?
   providerVideoId   String
   durationInSeconds Int
-  isSeen            Boolean @default(false)
-  lesson            Lesson  @relation(fields: [lessonId], references: [id])
-  lessonId          String
+
+  lessonId String? @unique
+  lesson   Lesson? @relation("LessonToVideo", fields: [lessonId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -231,24 +231,20 @@ model Address {
 }
 
 model Lesson {
-  id           String   @id @default(uuid())
-  module       Module   @relation(fields: [moduleId], references: [id])
+  id           String              @id @default(uuid())
+  slug         String              @unique
   moduleId     String
+  module       Module              @relation(fields: [moduleId], references: [id])
   imageUrl     String?
-  order        Int      @default(1)
-  videoId      String?
-  flashcardIds String[] @default([])
-
-  commentIds String[] @default([])
-
-  documents LessonDocument[]
-
+  order        Int                 @default(1)
+  video        Video?              @relation("LessonToVideo")
+  flashcardIds String[]            @default([])
+  commentIds   String[]            @default([])
+  documents    LessonDocument[]
   translations LessonTranslation[]
-
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  Video      Video[]
-  Assessment Assessment[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  Assessment   Assessment[]
 }
 
 model LessonTranslation {
@@ -321,6 +317,7 @@ enum AttemptStatus {
 
 model Assessment {
   id                 String         @id @default(uuid())
+  slug               String         @unique
   title              String
   description        String?
   type               AssessmentType
@@ -416,15 +413,15 @@ model AnswerTranslation {
 }
 
 model Attempt {
-  id                 String        @id @default(uuid())
-  status             AttemptStatus
-  score              Float? // Pontuação final
-  startedAt          DateTime      @default(now())
+  id     String        @id @default(uuid())
+  status AttemptStatus
+
+  startedAt          DateTime  @default(now())
   submittedAt        DateTime?
   gradedAt           DateTime?
   timeLimitExpiresAt DateTime? // Para simulados com tempo
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   // Relações
   user   User   @relation(fields: [userId], references: [id])

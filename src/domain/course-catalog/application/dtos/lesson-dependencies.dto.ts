@@ -1,7 +1,6 @@
 // src/domain/course-catalog/application/dtos/lesson-dependencies.dto.ts
-
 export interface LessonDependency {
-  type: 'video' | 'document' | 'flashcard' | 'quiz' | 'comment';
+  type: 'video' | 'document' | 'flashcard' | 'assessment' | 'comment';
   id: string;
   name: string;
   relatedEntities?: {
@@ -16,7 +15,7 @@ export interface LessonDependencyInfo {
     videos: number;
     documents: number;
     flashcards: number;
-    quizzes: number;
+    assessments: number;
     comments: number;
   };
   dependencies: LessonDependency[];

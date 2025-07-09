@@ -17,25 +17,16 @@ type GetLessonUseCaseResponse = Either<
   InvalidInputError | LessonNotFoundError | RepositoryError | Error,
   {
     id: string;
+    slug: string;
     moduleId: string;
     order: number;
-    videoId?: string;
     imageUrl?: string;
-    flashcardIds: string[];
-    quizIds: string[];
-    commentIds: string[];
-    translations: Array<{
-      locale: 'pt' | 'it' | 'es';
-      title: string;
-      description?: string;
-    }>;
     video?: {
       id: string;
       slug: string;
       imageUrl?: string;
-      providerVideoId: string; // ID do Panda Video
+      providerVideoId: string;
       durationInSeconds: number;
-      isSeen: boolean;
       translations: Array<{
         locale: 'pt' | 'it' | 'es';
         title: string;
@@ -44,6 +35,52 @@ type GetLessonUseCaseResponse = Either<
       createdAt: Date;
       updatedAt: Date;
     };
+    flashcardIds: string[];
+    commentIds: string[];
+    translations: Array<{
+      locale: 'pt' | 'it' | 'es';
+      title: string;
+      description?: string;
+    }>;
+    videos: Array<{
+      id: string;
+      slug: string;
+      imageUrl?: string;
+      providerVideoId: string;
+      durationInSeconds: number;
+      translations: Array<{
+        locale: 'pt' | 'it' | 'es';
+        title: string;
+        description?: string;
+      }>;
+      createdAt: Date;
+      updatedAt: Date;
+    }>;
+    documents: Array<{
+      id: string;
+      filename?: string;
+      translations: Array<{
+        locale: 'pt' | 'it' | 'es';
+        title: string;
+        description?: string;
+        url: string;
+      }>;
+      createdAt: Date;
+    }>;
+    assessments: Array<{
+      id: string;
+      title: string;
+      description?: string;
+      type: string;
+      quizPosition?: string;
+      passingScore: number;
+      timeLimitInMinutes?: number;
+      randomizeQuestions: boolean;
+      randomizeOptions: boolean;
+      lessonId?: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }>;
     createdAt: Date;
     updatedAt: Date;
   }
@@ -75,7 +112,7 @@ export class GetLessonUseCase {
       if (found.isLeft()) {
         return left(new LessonNotFoundError());
       }
-      const lessonEntity = found.value as Lesson;
+      const lessonEntity = found.value;
 
       // Usar o método toResponseObject() da entidade para manter consistência
       return right(lessonEntity.toResponseObject());

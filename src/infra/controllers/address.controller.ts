@@ -11,7 +11,6 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
-
   ParseUUIDPipe,
   Delete,
 } from '@nestjs/common';
@@ -24,10 +23,10 @@ import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/in
 import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
 import { Prisma } from '@prisma/client';
 import { UpdateAddressDto } from '@/domain/auth/application/dtos/update-address.dto';
-import { DeleteAddressRequest, DeleteAddressUseCase } from '@/domain/auth/application/use-cases/delete-address.use-case';
-
-
-
+import {
+  DeleteAddressRequest,
+  DeleteAddressUseCase,
+} from '@/domain/auth/application/use-cases/delete-address.use-case';
 
 @Controller('addresses')
 export class AddressController {
@@ -41,7 +40,6 @@ export class AddressController {
   @Post()
   @HttpCode(201)
   async create(@Body() dto: CreateAddressRequest) {
-
     const requiredFields = [
       'userId',
       'street',
@@ -60,7 +58,6 @@ export class AddressController {
       );
     }
 
-
     try {
       const result = await this.createAddressUseCase.execute(dto);
 
@@ -68,13 +65,11 @@ export class AddressController {
         const err = result.value;
 
         if (err instanceof InvalidInputError) {
-
           throw new HttpException(
             { message: err.message, errors: { details: err.details } },
             HttpStatus.BAD_REQUEST,
           );
         }
-
 
         throw new HttpException(
           { message: err.message },
@@ -88,7 +83,6 @@ export class AddressController {
         throw err;
       }
 
-
       if (
         err instanceof Prisma.PrismaClientKnownRequestError &&
         err.code === 'P2003'
@@ -98,7 +92,6 @@ export class AddressController {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-
 
       throw new HttpException(
         { message: err.message },
@@ -116,7 +109,6 @@ export class AddressController {
       if (result.isLeft()) {
         const err = result.value;
         if (err instanceof InvalidInputError) {
-
           throw new HttpException(
             { message: err.message, errors: { details: err.details } },
             HttpStatus.BAD_REQUEST,
@@ -150,11 +142,7 @@ export class AddressController {
 
   @Patch(':id')
   @HttpCode(200)
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateAddressDto,
-  ) {
-
+  async update(@Param('id') id: string, @Body() dto: UpdateAddressDto) {
     const payload: UpdateAddressRequest = { id, ...dto };
 
     try {
@@ -176,7 +164,6 @@ export class AddressController {
             HttpStatus.INTERNAL_SERVER_ERROR,
           );
         }
-
 
         throw new HttpException(
           { message: err.message },
@@ -202,12 +189,13 @@ export class AddressController {
     }
   }
 
-
   @Delete(':id')
   @HttpCode(204)
   async remove(@Param('id', new ParseUUIDPipe()) id: string) {
     try {
-      const result = await this.deleteAddressUseCase.execute({ id } as DeleteAddressRequest);
+      const result = await this.deleteAddressUseCase.execute({
+        id,
+      } as DeleteAddressRequest);
 
       if (result.isLeft()) {
         const err = result.value;
@@ -236,6 +224,4 @@ export class AddressController {
       );
     }
   }
-
-  
 }

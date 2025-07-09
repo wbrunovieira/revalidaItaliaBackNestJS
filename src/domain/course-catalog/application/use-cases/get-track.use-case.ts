@@ -44,7 +44,7 @@ export class GetTrackUseCase {
       }));
       return left(new InvalidInputError('Validation failed', details));
     }
-    const { id } = parse.data as GetTrackSchema;
+    const { id } = parse.data;
 
     // Fetch from repo
     let found;

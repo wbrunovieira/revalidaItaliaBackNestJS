@@ -64,25 +64,46 @@ const createMockLesson = (
   moduleId: string = VALID_MODULE_ID,
   videoId?: string,
 ): Lesson => {
-  const mockLesson = {
-    id: new UniqueEntityID(id),
-    moduleId,
-    videoId,
-    translations: [
-      {
-        locale: 'pt' as const,
-        title: 'Lesson Title',
-        description: 'Lesson Description',
-      },
-    ],
-    flashcardIds: [],
-    quizIds: [],
-    commentIds: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    order: 1,
-  };
-  return mockLesson as unknown as Lesson;
+  const video = videoId
+    ? {
+        id: videoId,
+        slug: `video-${videoId}`,
+        imageUrl: 'https://example.com/video.jpg',
+        providerVideoId: `panda-${videoId}`,
+        durationInSeconds: 300,
+        translations: [
+          {
+            locale: 'pt' as const,
+            title: 'Video Title',
+            description: 'Video Description',
+          },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    : undefined;
+
+  return Lesson.create(
+    {
+      slug: `lesson-${id}`,
+      moduleId,
+      order: 1,
+      flashcardIds: [],
+      commentIds: [],
+      translations: [
+        {
+          locale: 'pt' as const,
+          title: 'Lesson Title',
+          description: 'Lesson Description',
+        },
+      ],
+      videos: [],
+      documents: [],
+      assessments: [],
+      video,
+    },
+    new UniqueEntityID(id),
+  );
 };
 
 const createMockVideo = (id = 'video-1'): Video => {
@@ -254,16 +275,11 @@ describe('ListLessonsUseCase', () => {
         createMockLesson('l1', VALID_MODULE_ID, 'v1'),
         createMockLesson('l2', VALID_MODULE_ID, 'v2'),
       ];
-      const vid1 = createMockVideo('v1');
-      const vid2 = createMockVideo('v2');
 
       vi.mocked(moduleRepo.findById).mockResolvedValue(right(mockModule));
       vi.mocked(lessonRepo.findByModuleId).mockResolvedValue(
         right({ lessons, total: 2 }),
       );
-      vi.mocked(videoRepo.findById)
-        .mockResolvedValueOnce(right(createVideoRepoResponse(vid1)))
-        .mockResolvedValueOnce(right(createVideoRepoResponse(vid2)));
 
       const result = await useCase.execute(request);
       expect(result.isRight()).toBe(true);
@@ -271,9 +287,12 @@ describe('ListLessonsUseCase', () => {
         const res = result.value;
         expect(res.lessons[0].video?.id).toBe('v1');
         expect(res.lessons[1].video?.id).toBe('v2');
+        expect(res.lessons[0].video?.title).toBe('Video Title');
+        expect(res.lessons[1].video?.title).toBe('Video Title');
       }
 
-      expect(videoRepo.findById).toHaveBeenCalledTimes(2);
+      // Video repository should not be called since videos are in lesson entity
+      expect(videoRepo.findById).not.toHaveBeenCalled();
     });
 
     it('handles missing videoId gracefully', async () => {
@@ -285,17 +304,13 @@ describe('ListLessonsUseCase', () => {
       };
       const mockModule = createMockModule();
       const lessons = [
-        createMockLesson('l1'),
-        createMockLesson('l2', VALID_MODULE_ID, 'v2'),
+        createMockLesson('l1'), // No video
+        createMockLesson('l2', VALID_MODULE_ID, 'v2'), // With video
       ];
-      const vid2 = createMockVideo('v2');
 
       vi.mocked(moduleRepo.findById).mockResolvedValue(right(mockModule));
       vi.mocked(lessonRepo.findByModuleId).mockResolvedValue(
         right({ lessons, total: 2 }),
-      );
-      vi.mocked(videoRepo.findById).mockResolvedValueOnce(
-        right(createVideoRepoResponse(vid2)),
       );
 
       const result = await useCase.execute(request);
@@ -306,10 +321,11 @@ describe('ListLessonsUseCase', () => {
         expect(res.lessons[1].video?.id).toBe('v2');
       }
 
-      expect(videoRepo.findById).toHaveBeenCalledTimes(1);
+      // Video repository should not be called since videos are in lesson entity
+      expect(videoRepo.findById).not.toHaveBeenCalled();
     });
 
-    it('ignores video if not found', async () => {
+    it('handles lessons with video data already in entity', async () => {
       const request: ListLessonsRequest = {
         moduleId: VALID_MODULE_ID,
         page: 1,
@@ -323,15 +339,16 @@ describe('ListLessonsUseCase', () => {
       vi.mocked(lessonRepo.findByModuleId).mockResolvedValue(
         right({ lessons, total: 1 }),
       );
-      vi.mocked(videoRepo.findById).mockResolvedValue(
-        left(new Error('not found')),
-      );
 
       const result = await useCase.execute(request);
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.lessons[0].video).toBeUndefined();
+        expect(result.value.lessons[0].video?.id).toBe('v1');
+        expect(result.value.lessons[0].video?.title).toBe('Video Title');
       }
+
+      // Video repository should not be called since videos are in lesson entity
+      expect(videoRepo.findById).not.toHaveBeenCalled();
     });
   });
 

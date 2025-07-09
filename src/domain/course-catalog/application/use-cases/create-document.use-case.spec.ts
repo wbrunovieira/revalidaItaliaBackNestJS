@@ -57,10 +57,11 @@ describe('CreateDocumentUseCase', () => {
   it('creates a document successfully', async () => {
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },
@@ -165,10 +166,11 @@ describe('CreateDocumentUseCase', () => {
   it('errors on duplicate filename', async () => {
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },
@@ -186,10 +188,11 @@ describe('CreateDocumentUseCase', () => {
   it('propagates repo.create errors as RepositoryError', async () => {
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },
@@ -207,10 +210,11 @@ describe('CreateDocumentUseCase', () => {
   it('validates file types correctly for different extensions', async () => {
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },
@@ -242,10 +246,11 @@ describe('CreateDocumentUseCase', () => {
   it('calculates file size in MB correctly', async () => {
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },

@@ -7,7 +7,11 @@ export class AssessmentTypeVO {
   }
 
   private validate(): void {
-    const validTypes: AssessmentTypeValue[] = ['QUIZ', 'SIMULADO', 'PROVA_ABERTA'];
+    const validTypes: AssessmentTypeValue[] = [
+      'QUIZ',
+      'SIMULADO',
+      'PROVA_ABERTA',
+    ];
     if (!validTypes.includes(this.value)) {
       throw new Error(`Invalid assessment type: ${this.value}`);
     }

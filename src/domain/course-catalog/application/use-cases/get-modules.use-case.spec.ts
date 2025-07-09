@@ -19,7 +19,14 @@ describe('GetModulesUseCase', () => {
     sut = new GetModulesUseCase(moduleRepo as any);
   });
 
-  function makeModule(id: string, slug: string, titlePt: string, titleIt: string, titleEs: string, order: number): Module {
+  function makeModule(
+    id: string,
+    slug: string,
+    titlePt: string,
+    titleIt: string,
+    titleEs: string,
+    order: number,
+  ): Module {
     return Module.create(
       {
         slug,
@@ -31,7 +38,7 @@ describe('GetModulesUseCase', () => {
         order,
         videos: [],
       },
-      new UniqueEntityID(id)
+      new UniqueEntityID(id),
     );
   }
 
@@ -42,7 +49,7 @@ describe('GetModulesUseCase', () => {
       'Módulo Teste',
       'Modulo Test',
       'Módulo Prueba',
-      1
+      1,
     );
     const mod2 = makeModule(
       '22222222-2222-2222-2222-222222222222',
@@ -50,9 +57,8 @@ describe('GetModulesUseCase', () => {
       'Módulo Segundo',
       'Modulo Secondo',
       'Módulo Segundo',
-      2
+      2,
     );
-
 
     await moduleRepo.create(VALID_COURSE_ID, mod1);
     await moduleRepo.create(VALID_COURSE_ID, mod2);
@@ -87,7 +93,7 @@ describe('GetModulesUseCase', () => {
               { locale: 'es', title: 'Módulo Segundo', description: 'Desc ES' },
             ]),
           }),
-        ])
+        ]),
       );
     }
   });
@@ -102,8 +108,12 @@ describe('GetModulesUseCase', () => {
   });
 
   it('propagates RepositoryError when repository throws', async () => {
-    vi.spyOn(moduleRepo, 'findByCourseId').mockRejectedValueOnce(new Error('DB fail'));
-    const result = await sut.execute({ courseId: '33333333-3333-3333-3333-333333333333' });
+    vi.spyOn(moduleRepo, 'findByCourseId').mockRejectedValueOnce(
+      new Error('DB fail'),
+    );
+    const result = await sut.execute({
+      courseId: '33333333-3333-3333-3333-333333333333',
+    });
     expect(result.isLeft()).toBe(true);
 
     if (result.isLeft()) {

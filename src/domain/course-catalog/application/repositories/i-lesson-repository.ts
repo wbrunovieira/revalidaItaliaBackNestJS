@@ -15,6 +15,11 @@ export abstract class ILessonRepository {
   abstract findById(id: string): Promise<Either<Error, Lesson>>;
 
   /**
+   * Finds a single Lesson by its slug.
+   */
+  abstract findBySlug(slug: string): Promise<Either<Error, Lesson>>;
+
+  /**
    * Finds lessons by module ID with pagination support.
    */
   abstract findByModuleId(

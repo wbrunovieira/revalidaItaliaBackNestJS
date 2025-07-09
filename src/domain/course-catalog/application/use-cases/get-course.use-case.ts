@@ -54,7 +54,7 @@ export class GetCourseUseCase {
       if (found.isLeft()) {
         return left(new CourseNotFoundError());
       }
-      const courseEntity = found.value as Course;
+      const courseEntity = found.value;
 
       // 3) Montar payload com todas as traduções
       const payload = {

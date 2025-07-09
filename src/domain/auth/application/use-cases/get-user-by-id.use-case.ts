@@ -48,7 +48,7 @@ export class GetUserByIdUseCase {
       }));
       return left(new InvalidInputError('Validation failed', details));
     }
-    const { id } = parse.data as GetUserByIdSchema;
+    const { id } = parse.data;
 
     // Fetch from repo
     let found;

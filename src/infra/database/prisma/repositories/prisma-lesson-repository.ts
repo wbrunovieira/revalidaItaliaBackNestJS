@@ -23,12 +23,11 @@ export class PrismaLessonRepository implements ILessonRepository {
       await this.prisma.lesson.create({
         data: {
           id: lesson.id.toString(),
+          slug: lesson.slug,
           moduleId: lesson.moduleId,
           order: lesson.order,
           imageUrl: lesson.imageUrl ?? undefined,
-          videoId: lesson.videoId ?? null,
           flashcardIds: lesson.flashcardIds,
-          quizIds: lesson.quizIds,
           commentIds: lesson.commentIds,
           createdAt: lesson.createdAt,
           updatedAt: lesson.updatedAt,
@@ -57,43 +56,75 @@ export class PrismaLessonRepository implements ILessonRepository {
         where: { id },
         include: {
           translations: true,
-          Video: {
+          video: {
             include: {
               translations: true,
             },
           },
+          documents: {
+            include: {
+              translations: true,
+            },
+          },
+          Assessment: true,
         },
       });
       if (!row) return left(new Error('Lesson not found'));
 
-      // Mapear os vídeos se existirem
-      const videoData =
-        row.Video.length > 0
-          ? {
-              id: row.Video[0].id,
-              slug: row.Video[0].slug,
-              imageUrl: row.Video[0].imageUrl ?? undefined,
-              providerVideoId: row.Video[0].providerVideoId,
-              durationInSeconds: row.Video[0].durationInSeconds,
-              isSeen: row.Video[0].isSeen,
-              translations: row.Video[0].translations.map((t) => ({
-                locale: t.locale as any,
-                title: t.title,
-                description: t.description ?? undefined,
-              })),
-              createdAt: row.Video[0].createdAt,
-              updatedAt: row.Video[0].updatedAt,
-            }
-          : undefined;
+      // Mapear o vídeo se existir (relação one-to-one)
+      const videoData = row.video
+        ? {
+            id: row.video.id,
+            slug: row.video.slug,
+            imageUrl: row.video.imageUrl ?? undefined,
+            providerVideoId: row.video.providerVideoId,
+            durationInSeconds: row.video.durationInSeconds,
+            translations: row.video.translations.map((t) => ({
+              locale: t.locale as any,
+              title: t.title,
+              description: t.description ?? undefined,
+            })),
+            createdAt: row.video.createdAt,
+            updatedAt: row.video.updatedAt,
+          }
+        : undefined;
+
+      // Mapear documentos
+      const documentsData = row.documents.map((doc) => ({
+        id: doc.id,
+        filename: doc.filename ?? undefined,
+        translations: doc.translations.map((t) => ({
+          locale: t.locale as any,
+          title: t.title,
+          description: t.description ?? undefined,
+          url: t.url,
+        })),
+        createdAt: doc.createdAt,
+      }));
+
+      // Mapear assessments
+      const assessmentsData = row.Assessment.map((assessment) => ({
+        id: assessment.id,
+        title: assessment.title,
+        description: assessment.description ?? undefined,
+        type: assessment.type,
+        quizPosition: assessment.quizPosition ?? undefined,
+        passingScore: assessment.passingScore,
+        timeLimitInMinutes: assessment.timeLimitInMinutes ?? undefined,
+        randomizeQuestions: assessment.randomizeQuestions,
+        randomizeOptions: assessment.randomizeOptions,
+        lessonId: assessment.lessonId ?? undefined,
+        createdAt: assessment.createdAt,
+        updatedAt: assessment.updatedAt,
+      }));
 
       const lesson = Lesson.reconstruct(
         {
+          slug: row.slug,
           moduleId: row.moduleId,
           order: row.order,
-          videoId: row.videoId ?? undefined,
           imageUrl: row.imageUrl ?? undefined,
           flashcardIds: row.flashcardIds,
-          quizIds: row.quizIds,
           commentIds: row.commentIds,
           translations: row.translations.map((t) => ({
             locale: t.locale as any,
@@ -101,6 +132,106 @@ export class PrismaLessonRepository implements ILessonRepository {
             description: t.description ?? undefined,
           })),
           video: videoData,
+          videos: [], // Mantido para compatibilidade
+          documents: documentsData,
+          assessments: assessmentsData,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+        },
+        new UniqueEntityID(row.id),
+      );
+
+      return right(lesson);
+    } catch (err: any) {
+      return left(new Error(err.message));
+    }
+  }
+
+  async findBySlug(slug: string): Promise<Either<Error, Lesson>> {
+    try {
+      const row = await this.prisma.lesson.findUnique({
+        where: { slug },
+        include: {
+          translations: true,
+          video: {
+            include: {
+              translations: true,
+            },
+          },
+          documents: {
+            include: {
+              translations: true,
+            },
+          },
+          Assessment: true,
+        },
+      });
+      if (!row) return left(new Error('Lesson not found'));
+
+      // Mapear o vídeo se existir (relação one-to-one)
+      const videoData = row.video
+        ? {
+            id: row.video.id,
+            slug: row.video.slug,
+            imageUrl: row.video.imageUrl ?? undefined,
+            providerVideoId: row.video.providerVideoId,
+            durationInSeconds: row.video.durationInSeconds,
+            translations: row.video.translations.map((t) => ({
+              locale: t.locale as any,
+              title: t.title,
+              description: t.description ?? undefined,
+            })),
+            createdAt: row.video.createdAt,
+            updatedAt: row.video.updatedAt,
+          }
+        : undefined;
+
+      // Mapear documentos
+      const documentsData = row.documents.map((doc) => ({
+        id: doc.id,
+        filename: doc.filename ?? undefined,
+        translations: doc.translations.map((t) => ({
+          locale: t.locale as any,
+          title: t.title,
+          description: t.description ?? undefined,
+          url: t.url,
+        })),
+        createdAt: doc.createdAt,
+      }));
+
+      // Mapear assessments
+      const assessmentsData = row.Assessment.map((assessment) => ({
+        id: assessment.id,
+        title: assessment.title,
+        description: assessment.description ?? undefined,
+        type: assessment.type,
+        quizPosition: assessment.quizPosition ?? undefined,
+        passingScore: assessment.passingScore,
+        timeLimitInMinutes: assessment.timeLimitInMinutes ?? undefined,
+        randomizeQuestions: assessment.randomizeQuestions,
+        randomizeOptions: assessment.randomizeOptions,
+        lessonId: assessment.lessonId ?? undefined,
+        createdAt: assessment.createdAt,
+        updatedAt: assessment.updatedAt,
+      }));
+
+      const lesson = Lesson.reconstruct(
+        {
+          slug: row.slug,
+          moduleId: row.moduleId,
+          order: row.order,
+          imageUrl: row.imageUrl ?? undefined,
+          flashcardIds: row.flashcardIds,
+          commentIds: row.commentIds,
+          translations: row.translations.map((t) => ({
+            locale: t.locale as any,
+            title: t.title,
+            description: t.description ?? undefined,
+          })),
+          video: videoData,
+          videos: [], // Mantido para compatibilidade
+          documents: documentsData,
+          assessments: assessmentsData,
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
         },
@@ -125,11 +256,17 @@ export class PrismaLessonRepository implements ILessonRepository {
           where: { moduleId },
           include: {
             translations: true,
-            Video: {
+            video: {
               include: {
                 translations: true,
               },
             },
+            documents: {
+              include: {
+                translations: true,
+              },
+            },
+            Assessment: true,
           },
           take: limit,
           skip: offset,
@@ -141,34 +278,60 @@ export class PrismaLessonRepository implements ILessonRepository {
       ]);
 
       const lessons = rows.map((row) => {
-        // Mapear os vídeos se existirem
-        const videoData =
-          row.Video.length > 0
-            ? {
-                id: row.Video[0].id,
-                slug: row.Video[0].slug,
-                imageUrl: row.Video[0].imageUrl ?? undefined,
-                providerVideoId: row.Video[0].providerVideoId,
-                durationInSeconds: row.Video[0].durationInSeconds,
-                isSeen: row.Video[0].isSeen,
-                translations: row.Video[0].translations.map((t) => ({
-                  locale: t.locale as any,
-                  title: t.title,
-                  description: t.description ?? undefined,
-                })),
-                createdAt: row.Video[0].createdAt,
-                updatedAt: row.Video[0].updatedAt,
-              }
-            : undefined;
+        // Mapear o vídeo se existir (relação one-to-one)
+        const videoData = row.video
+          ? {
+              id: row.video.id,
+              slug: row.video.slug,
+              imageUrl: row.video.imageUrl ?? undefined,
+              providerVideoId: row.video.providerVideoId,
+              durationInSeconds: row.video.durationInSeconds,
+              translations: row.video.translations.map((t) => ({
+                locale: t.locale as any,
+                title: t.title,
+                description: t.description ?? undefined,
+              })),
+              createdAt: row.video.createdAt,
+              updatedAt: row.video.updatedAt,
+            }
+          : undefined;
+
+        // Mapear documentos
+        const documentsData = row.documents.map((doc) => ({
+          id: doc.id,
+          filename: doc.filename ?? undefined,
+          translations: doc.translations.map((t) => ({
+            locale: t.locale as any,
+            title: t.title,
+            description: t.description ?? undefined,
+            url: t.url,
+          })),
+          createdAt: doc.createdAt,
+        }));
+
+        // Mapear assessments
+        const assessmentsData = row.Assessment.map((assessment) => ({
+          id: assessment.id,
+          title: assessment.title,
+          description: assessment.description ?? undefined,
+          type: assessment.type,
+          quizPosition: assessment.quizPosition ?? undefined,
+          passingScore: assessment.passingScore,
+          timeLimitInMinutes: assessment.timeLimitInMinutes ?? undefined,
+          randomizeQuestions: assessment.randomizeQuestions,
+          randomizeOptions: assessment.randomizeOptions,
+          lessonId: assessment.lessonId ?? undefined,
+          createdAt: assessment.createdAt,
+          updatedAt: assessment.updatedAt,
+        }));
 
         return Lesson.reconstruct(
           {
+            slug: row.slug,
             moduleId: row.moduleId,
             order: row.order,
-            videoId: row.videoId ?? undefined,
             imageUrl: row.imageUrl ?? undefined,
             flashcardIds: row.flashcardIds,
-            quizIds: row.quizIds,
             commentIds: row.commentIds,
             translations: row.translations.map((t) => ({
               locale: t.locale as any,
@@ -176,6 +339,9 @@ export class PrismaLessonRepository implements ILessonRepository {
               description: t.description ?? undefined,
             })),
             video: videoData,
+            videos: [], // Mantido para compatibilidade
+            documents: documentsData,
+            assessments: assessmentsData,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
           },
@@ -197,7 +363,7 @@ export class PrismaLessonRepository implements ILessonRepository {
       const lesson = await this.prisma.lesson.findUnique({
         where: { id: lessonId },
         include: {
-          Video: {
+          video: {
             include: {
               translations: true,
             },
@@ -207,6 +373,7 @@ export class PrismaLessonRepository implements ILessonRepository {
               translations: true,
             },
           },
+          Assessment: true,
         },
       });
 
@@ -216,14 +383,14 @@ export class PrismaLessonRepository implements ILessonRepository {
 
       const dependencies: LessonDependency[] = [];
 
-      // Adicionar vídeos como dependências
-      for (const video of lesson.Video) {
+      // Adicionar vídeo como dependência (relação one-to-one)
+      if (lesson.video) {
         dependencies.push({
           type: 'video',
-          id: video.id,
-          name: video.slug,
+          id: lesson.video.id,
+          name: lesson.video.slug,
           relatedEntities: {
-            translations: video.translations.length,
+            translations: lesson.video.translations.length,
           },
         });
       }
@@ -253,12 +420,12 @@ export class PrismaLessonRepository implements ILessonRepository {
         });
       }
 
-      // Adicionar quizzes (apenas contagem, pois são IDs)
-      for (const quizId of lesson.quizIds) {
+      // Adicionar assessments
+      for (const assessment of lesson.Assessment) {
         dependencies.push({
-          type: 'quiz',
-          id: quizId,
-          name: `Quiz ${quizId}`,
+          type: 'assessment',
+          id: assessment.id,
+          name: assessment.title,
         });
       }
 
@@ -277,10 +444,10 @@ export class PrismaLessonRepository implements ILessonRepository {
         canDelete,
         totalDependencies: dependencies.length,
         summary: {
-          videos: lesson.Video.length,
+          videos: lesson.video ? 1 : 0,
           documents: lesson.documents.length,
           flashcards: lesson.flashcardIds.length,
-          quizzes: lesson.quizIds.length,
+          assessments: lesson.Assessment.length,
           comments: lesson.commentIds.length,
         },
         dependencies,
@@ -346,9 +513,7 @@ export class PrismaLessonRepository implements ILessonRepository {
           data: {
             order: lesson.order,
             imageUrl: lesson.imageUrl ?? null,
-            videoId: lesson.videoId ?? null,
             flashcardIds: lesson.flashcardIds,
-            quizIds: lesson.quizIds,
             commentIds: lesson.commentIds,
             updatedAt: lesson.updatedAt,
           },
@@ -391,11 +556,17 @@ export class PrismaLessonRepository implements ILessonRepository {
         },
         include: {
           translations: true,
-          Video: {
+          video: {
             include: {
               translations: true,
             },
           },
+          documents: {
+            include: {
+              translations: true,
+            },
+          },
+          Assessment: true,
         },
       });
 
@@ -403,33 +574,60 @@ export class PrismaLessonRepository implements ILessonRepository {
         return right(null);
       }
 
-      const videoData =
-        row.Video.length > 0
-          ? {
-              id: row.Video[0].id,
-              slug: row.Video[0].slug,
-              imageUrl: row.Video[0].imageUrl ?? undefined,
-              providerVideoId: row.Video[0].providerVideoId,
-              durationInSeconds: row.Video[0].durationInSeconds,
-              isSeen: row.Video[0].isSeen,
-              translations: row.Video[0].translations.map((t) => ({
-                locale: t.locale as any,
-                title: t.title,
-                description: t.description ?? undefined,
-              })),
-              createdAt: row.Video[0].createdAt,
-              updatedAt: row.Video[0].updatedAt,
-            }
-          : undefined;
+      // Mapear o vídeo se existir (relação one-to-one)
+      const videoData = row.video
+        ? {
+            id: row.video.id,
+            slug: row.video.slug,
+            imageUrl: row.video.imageUrl ?? undefined,
+            providerVideoId: row.video.providerVideoId,
+            durationInSeconds: row.video.durationInSeconds,
+            translations: row.video.translations.map((t) => ({
+              locale: t.locale as any,
+              title: t.title,
+              description: t.description ?? undefined,
+            })),
+            createdAt: row.video.createdAt,
+            updatedAt: row.video.updatedAt,
+          }
+        : undefined;
+
+      // Mapear documentos
+      const documentsData = row.documents.map((doc) => ({
+        id: doc.id,
+        filename: doc.filename ?? undefined,
+        translations: doc.translations.map((t) => ({
+          locale: t.locale as any,
+          title: t.title,
+          description: t.description ?? undefined,
+          url: t.url,
+        })),
+        createdAt: doc.createdAt,
+      }));
+
+      // Mapear assessments
+      const assessmentsData = row.Assessment.map((assessment) => ({
+        id: assessment.id,
+        title: assessment.title,
+        description: assessment.description ?? undefined,
+        type: assessment.type,
+        quizPosition: assessment.quizPosition ?? undefined,
+        passingScore: assessment.passingScore,
+        timeLimitInMinutes: assessment.timeLimitInMinutes ?? undefined,
+        randomizeQuestions: assessment.randomizeQuestions,
+        randomizeOptions: assessment.randomizeOptions,
+        lessonId: assessment.lessonId ?? undefined,
+        createdAt: assessment.createdAt,
+        updatedAt: assessment.updatedAt,
+      }));
 
       const lesson = Lesson.reconstruct(
         {
+          slug: row.slug,
           moduleId: row.moduleId,
           order: row.order,
-          videoId: row.videoId ?? undefined,
           imageUrl: row.imageUrl ?? undefined,
           flashcardIds: row.flashcardIds,
-          quizIds: row.quizIds,
           commentIds: row.commentIds,
           translations: row.translations.map((t) => ({
             locale: t.locale as any,
@@ -437,6 +635,9 @@ export class PrismaLessonRepository implements ILessonRepository {
             description: t.description ?? undefined,
           })),
           video: videoData,
+          videos: [], // Mantido para compatibilidade
+          documents: documentsData,
+          assessments: assessmentsData,
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
         },

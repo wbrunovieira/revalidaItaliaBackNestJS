@@ -113,7 +113,9 @@ describe('UpdateDocumentUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.document.filename).toBe('only-filename-updated.pdf');
+        expect(result.value.document.filename).toBe(
+          'only-filename-updated.pdf',
+        );
         expect(result.value.document.fileSize).toBe(originalFileSize); // Should remain unchanged
         expect(result.value.translations).toEqual(initialTranslations); // Should remain unchanged
       }
@@ -150,7 +152,9 @@ describe('UpdateDocumentUseCase', () => {
       if (result.isRight()) {
         expect(result.value.document.filename).toBe(originalFilename); // Should remain unchanged
         expect(result.value.translations).toHaveLength(1);
-        expect(result.value.translations[0].title).toBe('Apenas Traduções Atualizadas');
+        expect(result.value.translations[0].title).toBe(
+          'Apenas Traduções Atualizadas',
+        );
       }
     });
 
@@ -207,7 +211,9 @@ describe('UpdateDocumentUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.translations[0].url).toBe('/documents/local-file.pdf');
+        expect(result.value.translations[0].url).toBe(
+          '/documents/local-file.pdf',
+        );
       }
     });
   });
@@ -545,8 +551,12 @@ describe('UpdateDocumentUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.translations).toHaveLength(1);
-        expect(result.value.translations[0].title).toBe('Documento PT Atualizado');
-        expect(result.value.translations[0].url).toBe('/documents/pt-updated.pdf');
+        expect(result.value.translations[0].title).toBe(
+          'Documento PT Atualizado',
+        );
+        expect(result.value.translations[0].url).toBe(
+          '/documents/pt-updated.pdf',
+        );
       }
     });
 
@@ -591,9 +601,9 @@ describe('UpdateDocumentUseCase', () => {
       await repo.create(lessonId, document, initialTranslations);
 
       const originalUpdatedAt = document.updatedAt;
-      
+
       // Wait a bit to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const request = {
         id: document.id.toString(),
@@ -604,7 +614,7 @@ describe('UpdateDocumentUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.document.updatedAt.getTime()).toBeGreaterThan(
-          originalUpdatedAt.getTime()
+          originalUpdatedAt.getTime(),
         );
       }
     });

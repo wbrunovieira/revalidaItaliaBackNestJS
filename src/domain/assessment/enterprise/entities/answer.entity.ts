@@ -61,9 +61,9 @@ export class Answer extends Entity<AnswerProps> {
 
   public addTranslation(translation: AnswerTranslationVO): void {
     const existingIndex = this.props.translations.findIndex(
-      (t) => t.locale === translation.locale
+      (t) => t.locale === translation.locale,
     );
-    
+
     if (existingIndex >= 0) {
       this.props.translations[existingIndex] = translation;
     } else {
@@ -74,12 +74,14 @@ export class Answer extends Entity<AnswerProps> {
 
   public removeTranslation(locale: 'pt' | 'it' | 'es'): void {
     this.props.translations = this.props.translations.filter(
-      (t) => t.locale !== locale
+      (t) => t.locale !== locale,
     );
     this.touch();
   }
 
-  public getTranslationByLocale(locale: 'pt' | 'it' | 'es'): AnswerTranslationVO | undefined {
+  public getTranslationByLocale(
+    locale: 'pt' | 'it' | 'es',
+  ): AnswerTranslationVO | undefined {
     return this.props.translations.find((t) => t.locale === locale);
   }
 

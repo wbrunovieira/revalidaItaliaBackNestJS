@@ -50,7 +50,7 @@ describe('LessonController', () => {
 
   describe('Create Lesson (POST)', () => {
     it('creates lesson without video successfully', async () => {
-      const dto = { order: 1, translations: validTranslations };
+      const dto = { slug: 'lesson-slug', order: 1, translations: validTranslations };
       const expected = {
         lesson: { id: 'lesson-1', moduleId, translations: validTranslations },
       };
@@ -60,16 +60,19 @@ describe('LessonController', () => {
 
       expect(createLesson.execute).toHaveBeenCalledWith({
         moduleId,
+        slug: 'lesson-slug',
         order: 1,
         imageUrl: undefined,
         translations: validTranslations,
         videoId: undefined,
+        flashcardIds: undefined,
+        commentIds: undefined,
       });
       expect(result).toEqual(expected.lesson);
     });
 
     it('creates lesson with video successfully', async () => {
-      const dto = { order: 2, translations: validTranslations, videoId };
+      const dto = { slug: 'lesson-with-video', order: 2, translations: validTranslations, videoId };
       const expected = {
         lesson: {
           id: 'lesson-2',
@@ -84,16 +87,19 @@ describe('LessonController', () => {
 
       expect(createLesson.execute).toHaveBeenCalledWith({
         moduleId,
+        slug: 'lesson-with-video',
         order: 2,
         imageUrl: undefined,
         translations: validTranslations,
         videoId,
+        flashcardIds: undefined,
+        commentIds: undefined,
       });
       expect(result).toEqual(expected.lesson);
     });
 
     it('throws 400 on invalid input', async () => {
-      const dto = { order: 1, translations: [] };
+      const dto = { slug: 'invalid-lesson', order: 1, translations: [] };
       const details = [
         { path: ['translations'], message: 'Invalid', code: 'too_small' },
       ];
@@ -108,7 +114,7 @@ describe('LessonController', () => {
     });
 
     it('throws 404 when module not found', async () => {
-      const dto = { order: 1, translations: validTranslations };
+      const dto = { slug: 'lesson-slug', order: 1, translations: validTranslations };
       createLesson.execute.mockResolvedValueOnce(
         left(new ModuleNotFoundError('Module not found')),
       );
@@ -120,7 +126,7 @@ describe('LessonController', () => {
     });
 
     it('throws 400 when video not found', async () => {
-      const dto = { order: 1, translations: validTranslations, videoId };
+      const dto = { slug: 'lesson-with-video', order: 1, translations: validTranslations, videoId };
       createLesson.execute.mockResolvedValueOnce(
         left(new VideoNotFoundError()),
       );
@@ -132,7 +138,7 @@ describe('LessonController', () => {
     });
 
     it('throws 500 on repository error', async () => {
-      const dto = { order: 1, translations: validTranslations };
+      const dto = { slug: 'lesson-slug', order: 1, translations: validTranslations };
       createLesson.execute.mockResolvedValueOnce(
         left(new RepositoryError('DB failed')),
       );
@@ -233,10 +239,27 @@ describe('LessonController', () => {
     const lessonResponse = {
       id: lessonId,
       moduleId,
-      videoId,
+      video: {
+        id: videoId,
+        slug: 'video-slug',
+        providerVideoId: 'provider-video-id',
+        durationInSeconds: 300,
+        translations: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
       imageUrl: '/images/lesson.jpg',
       flashcardIds: ['flash-1'],
-      quizIds: ['quiz-1'],
+      assessments: [{
+        id: 'quiz-1',
+        title: 'Quiz 1',
+        type: 'quiz',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }],
       commentIds: ['comment-1'],
       translations: validTranslations,
       createdAt: new Date(),
@@ -257,7 +280,7 @@ describe('LessonController', () => {
         id: lessonId,
         moduleId,
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         translations: [validTranslations[0]],
         createdAt: new Date(),
@@ -269,7 +292,7 @@ describe('LessonController', () => {
 
       expect(getLesson.execute).toHaveBeenCalledWith({ id: lessonId });
       expect(result).toEqual(minimalLessonResponse);
-      expect(result.videoId).toBeUndefined();
+      expect(result.video?.id).toBeUndefined();
       expect(result.imageUrl).toBeUndefined();
     });
 
@@ -337,9 +360,26 @@ describe('LessonController', () => {
       moduleId,
       order: 2,
       imageUrl: '/images/updated-lesson.jpg',
-      videoId: 'new-video-id',
+      video: {
+        id: 'new-video-id',
+        slug: 'new-video-slug',
+        providerVideoId: 'provider-new-video-id',
+        durationInSeconds: 300,
+        translations: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
       flashcardIds: ['flash-1', 'flash-2'],
-      quizIds: ['quiz-1'],
+      assessments: [{
+        id: 'quiz-1',
+        title: 'Quiz 1',
+        type: 'quiz',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }],
       commentIds: [],
       translations: validTranslations,
       createdAt: new Date(),
@@ -352,9 +392,26 @@ describe('LessonController', () => {
         moduleId,
         order: 2,
         imageUrl: '/images/updated-lesson.jpg',
-        videoId: 'new-video-id',
+        video: {
+          id: 'new-video-id',
+          slug: 'new-video-slug',
+          providerVideoId: 'provider-new-video-id',
+          durationInSeconds: 300,
+          translations: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
         flashcardIds: ['flash-1', 'flash-2'],
-        quizIds: ['quiz-1'],
+        assessments: [{
+          id: 'quiz-1',
+          title: 'Quiz 1',
+          type: 'quiz',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
         commentIds: [],
         translations: validTranslations,
         createdAt: new Date(),
@@ -385,6 +442,7 @@ describe('LessonController', () => {
         videoId: 'new-video-id',
         flashcardIds: ['flash-1', 'flash-2'],
         quizIds: ['quiz-1'],
+        assessments: undefined,
         commentIds: [],
       });
       expect(result).toEqual(responseData);
@@ -407,6 +465,7 @@ describe('LessonController', () => {
         videoId: undefined,
         flashcardIds: undefined,
         quizIds: undefined,
+        assessments: undefined,
         commentIds: undefined,
       });
       expect(result).toEqual(responseData);
@@ -430,6 +489,7 @@ describe('LessonController', () => {
         videoId: null,
         flashcardIds: [],
         quizIds: undefined,
+        assessments: undefined,
         commentIds: undefined,
       });
       expect(result).toEqual(responseData);
@@ -451,6 +511,7 @@ describe('LessonController', () => {
         videoId: undefined,
         flashcardIds: undefined,
         quizIds: undefined,
+        assessments: undefined,
         commentIds: undefined,
       });
       expect(result).toEqual(responseData);
@@ -472,6 +533,7 @@ describe('LessonController', () => {
         videoId: undefined,
         flashcardIds: undefined,
         quizIds: undefined,
+        assessments: undefined,
         commentIds: undefined,
       });
       expect(result).toEqual(responseData);
@@ -495,6 +557,7 @@ describe('LessonController', () => {
         videoId: undefined,
         flashcardIds: [],
         quizIds: [],
+        assessments: undefined,
         commentIds: [],
       });
       expect(result).toEqual(responseData);
@@ -739,6 +802,7 @@ describe('LessonController', () => {
         videoId: undefined,
         flashcardIds: undefined,
         quizIds: undefined,
+        assessments: undefined,
         commentIds: undefined,
       });
       expect(updateLesson.execute).not.toHaveBeenCalledWith(

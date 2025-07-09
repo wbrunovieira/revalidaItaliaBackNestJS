@@ -111,7 +111,10 @@ export class Question extends Entity<QuestionProps> {
     );
   }
 
-  public static reconstruct(props: QuestionProps, id: UniqueEntityID): Question {
+  public static reconstruct(
+    props: QuestionProps,
+    id: UniqueEntityID,
+  ): Question {
     return new Question(props, id);
   }
 }

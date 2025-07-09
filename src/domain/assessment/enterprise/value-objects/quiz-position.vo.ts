@@ -7,7 +7,10 @@ export class QuizPositionVO {
   }
 
   private validate(): void {
-    const validPositions: QuizPositionValue[] = ['BEFORE_LESSON', 'AFTER_LESSON'];
+    const validPositions: QuizPositionValue[] = [
+      'BEFORE_LESSON',
+      'AFTER_LESSON',
+    ];
     if (!validPositions.includes(this.value)) {
       throw new Error(`Invalid quiz position: ${this.value}`);
     }

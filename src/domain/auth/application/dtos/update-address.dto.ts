@@ -1,10 +1,6 @@
 // src/domain/auth/application/dtos/update-address.dto.ts
 
-import {
-  IsString,
-  IsOptional,
-  Matches,
-} from 'class-validator';
+import { IsString, IsOptional, Matches } from 'class-validator';
 
 export class UpdateAddressDto {
   @IsOptional()

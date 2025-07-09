@@ -14,10 +14,7 @@ import {
 } from './validations/update-document.schema';
 
 type UpdateDocumentUseCaseResponse = Either<
-  | InvalidInputError
-  | DocumentNotFoundError
-  | RepositoryError
-  | Error,
+  InvalidInputError | DocumentNotFoundError | RepositoryError | Error,
   {
     document: Document;
     translations: Array<{
@@ -66,13 +63,16 @@ export class UpdateDocumentUseCase {
         return left(new DocumentNotFoundError());
       }
 
-      const { document: existingDocument, translations: currentTranslations } = documentResult.value;
+      const { document: existingDocument, translations: currentTranslations } =
+        documentResult.value;
 
       // Atualizar os campos do documento se fornecidos
-      if (data.filename !== undefined || 
-          data.fileSize !== undefined || 
-          data.mimeType !== undefined || 
-          data.isDownloadable !== undefined) {
+      if (
+        data.filename !== undefined ||
+        data.fileSize !== undefined ||
+        data.mimeType !== undefined ||
+        data.isDownloadable !== undefined
+      ) {
         existingDocument.updateDetails({
           filename: data.filename,
           fileSize: data.fileSize,
@@ -83,10 +83,10 @@ export class UpdateDocumentUseCase {
 
       // Preparar traduções para atualização
       let updatedTranslations = currentTranslations;
-      
+
       if (data.translations) {
         // Atualizar traduções com as novas
-        updatedTranslations = data.translations.map(t => ({
+        updatedTranslations = data.translations.map((t) => ({
           locale: t.locale,
           title: t.title,
           description: t.description,
@@ -97,7 +97,7 @@ export class UpdateDocumentUseCase {
       // Salvar as alterações
       const updateResult = await this.documentRepository.update(
         existingDocument,
-        updatedTranslations
+        updatedTranslations,
       );
       if (updateResult.isLeft()) {
         return left(new RepositoryError(updateResult.value.message));

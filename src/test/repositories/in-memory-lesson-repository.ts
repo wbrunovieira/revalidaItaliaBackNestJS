@@ -14,19 +14,22 @@ import { UniqueEntityID } from '@/core/unique-entity-id';
 interface StoredLesson {
   lesson: Lesson;
   // Simulação de dependências para testes
-  videos?: any[];
+  video?: any;
   documents?: any[];
   flashcards?: any[];
-  quizzes?: any[];
+  assessments?: any[];
   comments?: any[];
 }
 
 export class InMemoryLessonRepository implements ILessonRepository {
   private byId = new Map<string, StoredLesson>();
+  private bySlug = new Map<string, StoredLesson>();
   private byModule = new Map<string, Lesson[]>();
 
   async create(lesson: Lesson): Promise<Either<Error, undefined>> {
-    this.byId.set(lesson.id.toString(), { lesson });
+    const storedLesson = { lesson };
+    this.byId.set(lesson.id.toString(), storedLesson);
+    this.bySlug.set(lesson.slug, storedLesson);
 
     // Store multiple lessons per module
     const existingLessons = this.byModule.get(lesson.moduleId) || [];
@@ -38,6 +41,12 @@ export class InMemoryLessonRepository implements ILessonRepository {
 
   async findById(id: string): Promise<Either<Error, Lesson>> {
     const stored = this.byId.get(id);
+    if (!stored) return left(new Error('Lesson not found'));
+    return right(stored.lesson);
+  }
+
+  async findBySlug(slug: string): Promise<Either<Error, Lesson>> {
+    const stored = this.bySlug.get(slug);
     if (!stored) return left(new Error('Lesson not found'));
     return right(stored.lesson);
   }
@@ -66,16 +75,16 @@ export class InMemoryLessonRepository implements ILessonRepository {
         return left(new Error('Lesson not found'));
       }
 
-      const videos = stored.videos || [];
+      const video = stored.video;
       const documents = stored.documents || [];
       const flashcards = stored.flashcards || [];
-      const quizzes = stored.quizzes || [];
+      const assessments = stored.assessments || [];
       const comments = stored.comments || [];
 
       const dependencies: LessonDependency[] = [];
 
-      // Adicionar vídeos como dependências
-      videos.forEach((video) => {
+      // Adicionar vídeo como dependência (relação one-to-one)
+      if (video) {
         dependencies.push({
           type: 'video',
           id: video.id || new UniqueEntityID().toString(),
@@ -84,7 +93,7 @@ export class InMemoryLessonRepository implements ILessonRepository {
             translations: video.translations?.length || 0,
           },
         });
-      });
+      }
 
       // Adicionar documentos como dependências
       documents.forEach((doc) => {
@@ -107,12 +116,12 @@ export class InMemoryLessonRepository implements ILessonRepository {
         });
       });
 
-      // Adicionar quizzes como dependências
-      quizzes.forEach((quiz) => {
+      // Adicionar assessments como dependências
+      assessments.forEach((assessment) => {
         dependencies.push({
-          type: 'quiz',
-          id: quiz.id || new UniqueEntityID().toString(),
-          name: quiz.title || `Quiz ${quiz.id}`,
+          type: 'assessment',
+          id: assessment.id || new UniqueEntityID().toString(),
+          name: assessment.title || `Assessment ${assessment.id}`,
         });
       });
 
@@ -131,10 +140,10 @@ export class InMemoryLessonRepository implements ILessonRepository {
         canDelete,
         totalDependencies: dependencies.length,
         summary: {
-          videos: videos.length,
+          videos: video ? 1 : 0,
           documents: documents.length,
           flashcards: flashcards.length,
-          quizzes: quizzes.length,
+          assessments: assessments.length,
           comments: comments.length,
         },
         dependencies,
@@ -155,6 +164,9 @@ export class InMemoryLessonRepository implements ILessonRepository {
 
       // Remove from byId map
       this.byId.delete(lessonId);
+
+      // Remove from bySlug map
+      this.bySlug.delete(lesson.slug);
 
       // Remove from byModule map
       const moduleLessons = this.byModule.get(lesson.moduleId) || [];
@@ -178,17 +190,17 @@ export class InMemoryLessonRepository implements ILessonRepository {
   public addDependenciesToLesson(
     lessonId: string,
     dependencies: {
-      videos?: any[];
+      video?: any;
       documents?: any[];
       flashcards?: any[];
-      quizzes?: any[];
+      assessments?: any[];
       comments?: any[];
     },
   ): void {
     const stored = this.byId.get(lessonId);
     if (stored) {
-      if (dependencies.videos) {
-        stored.videos = dependencies.videos;
+      if (dependencies.video) {
+        stored.video = dependencies.video;
       }
       if (dependencies.documents) {
         stored.documents = dependencies.documents;
@@ -196,8 +208,8 @@ export class InMemoryLessonRepository implements ILessonRepository {
       if (dependencies.flashcards) {
         stored.flashcards = dependencies.flashcards;
       }
-      if (dependencies.quizzes) {
-        stored.quizzes = dependencies.quizzes;
+      if (dependencies.assessments) {
+        stored.assessments = dependencies.assessments;
       }
       if (dependencies.comments) {
         stored.comments = dependencies.comments;
@@ -214,6 +226,9 @@ export class InMemoryLessonRepository implements ILessonRepository {
 
       // Update the lesson in byId map
       stored.lesson = lesson;
+
+      // Update in bySlug map
+      this.bySlug.set(lesson.slug, stored);
 
       // Update in byModule map
       const moduleLessons = this.byModule.get(lesson.moduleId) || [];

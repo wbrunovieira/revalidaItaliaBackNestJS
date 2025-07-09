@@ -46,10 +46,13 @@ export class LessonController {
   ) {
     const result = await this.createLesson.execute({
       moduleId,
+      slug: dto.slug,
       order: dto.order,
       imageUrl: dto.imageUrl,
       translations: dto.translations,
       videoId: dto.videoId,
+      flashcardIds: dto.flashcardIds,
+      commentIds: dto.commentIds,
     });
 
     if (result.isLeft()) {
@@ -209,6 +212,7 @@ export class LessonController {
       videoId: dto.videoId,
       flashcardIds: dto.flashcardIds,
       quizIds: dto.quizIds,
+      assessments: dto.assessments,
       commentIds: dto.commentIds,
     });
 

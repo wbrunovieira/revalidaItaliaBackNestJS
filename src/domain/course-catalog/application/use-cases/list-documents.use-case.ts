@@ -55,7 +55,7 @@ export class ListDocumentsUseCase {
       }));
       return left(new InvalidInputError('Validation failed', details));
     }
-    const { lessonId } = parseResult.data as ListDocumentsSchema;
+    const { lessonId } = parseResult.data;
 
     // 2) Ensure lesson exists
     const lessonOrErr = await this.lessonRepo.findById(lessonId);

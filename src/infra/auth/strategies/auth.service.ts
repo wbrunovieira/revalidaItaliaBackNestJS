@@ -1,5 +1,5 @@
 // src/infra/auth/strategies/auth.service.ts
-import { Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {

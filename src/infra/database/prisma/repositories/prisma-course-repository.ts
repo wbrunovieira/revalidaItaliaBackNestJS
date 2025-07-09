@@ -18,49 +18,29 @@ export class PrismaCourseRepository implements ICourseRepository {
   async findByTitle(title: string): Promise<Either<Error, Course>> {
     try {
       const data = await this.prisma.course.findFirst({
-        where: {
-          translations: {
-            some: {
-              locale: 'pt',
-              title,
-            },
-          },
-        },
-        include: {
-          translations: {
-            where: { locale: 'pt' },
-            take: 1,
-          },
-        },
+        where: { translations: { some: { locale: 'pt', title } } },
+        include: { translations: { where: { locale: 'pt' }, take: 1 } },
       });
+      if (!data) return left(new Error('Course not found'));
 
-      if (!data) {
-        return left(new Error('Course not found'));
-      }
-
-      const courseTr = data.translations[0];
-      const courseProps = {
+      const tr = data.translations[0];
+      const props = {
         slug: data.slug,
-        imageUrl: data.imageUrl || undefined, // Converter null para undefined
+        imageUrl: data.imageUrl ?? undefined,
         translations: [
           {
-            locale: courseTr.locale as 'pt',
-            title: courseTr.title,
-            description: courseTr.description,
+            locale: tr.locale as 'pt',
+            title: tr.title,
+            description: tr.description,
           },
         ],
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
 
-      const courseEntity = Course.reconstruct(
-        courseProps,
-        new UniqueEntityID(data.id),
-      );
-
-      return right(courseEntity);
+      return right(Course.reconstruct(props, new UniqueEntityID(data.id)));
     } catch (err: any) {
-      return left(new Error('Database error'));
+      return left(new Error(`Database error: ${err.message}`));
     }
   }
 
@@ -68,18 +48,13 @@ export class PrismaCourseRepository implements ICourseRepository {
     try {
       const data = await this.prisma.course.findUnique({
         where: { slug },
-        include: {
-          translations: true,
-        },
+        include: { translations: true },
       });
+      if (!data) return left(new Error('Course not found'));
 
-      if (!data) {
-        return left(new Error('Course not found'));
-      }
-
-      const courseProps = {
+      const props = {
         slug: data.slug,
-        imageUrl: data.imageUrl || undefined, // Converter null para undefined
+        imageUrl: data.imageUrl ?? undefined,
         translations: data.translations.map((tr) => ({
           locale: tr.locale as 'pt' | 'it' | 'es',
           title: tr.title,
@@ -89,21 +64,14 @@ export class PrismaCourseRepository implements ICourseRepository {
         updatedAt: data.updatedAt,
       };
 
-      const courseEntity = Course.reconstruct(
-        courseProps,
-        new UniqueEntityID(data.id),
-      );
-
-      return right(courseEntity);
+      return right(Course.reconstruct(props, new UniqueEntityID(data.id)));
     } catch (err: any) {
-      return left(new Error('Database error'));
+      return left(new Error(`Database error: ${err.message}`));
     }
   }
 
   async create(course: Course): Promise<Either<Error, void>> {
     try {
-      const courseTranslations = course.translations;
-
       await this.prisma.course.create({
         data: {
           id: course.id.toString(),
@@ -111,9 +79,8 @@ export class PrismaCourseRepository implements ICourseRepository {
           imageUrl: course.imageUrl,
           createdAt: course.createdAt,
           updatedAt: course.updatedAt,
-
           translations: {
-            create: courseTranslations.map((t) => ({
+            create: course.translations.map((t) => ({
               id: new UniqueEntityID().toString(),
               locale: t.locale,
               title: t.title,
@@ -122,26 +89,21 @@ export class PrismaCourseRepository implements ICourseRepository {
           },
         },
       });
-
       return right(undefined);
     } catch (err: any) {
-      return left(new Error('Failed to create course'));
+      return left(new Error(`Failed to create course: ${err.message}`));
     }
   }
 
   async findAll(): Promise<Either<Error, Course[]>> {
     try {
       const data = await this.prisma.course.findMany({
-        include: {
-          translations: true,
-        },
+        include: { translations: true },
       });
-
       const courses = data.map((item) => {
         const props = {
           slug: item.slug,
-          imageUrl: item.imageUrl || undefined,
-
+          imageUrl: item.imageUrl ?? undefined,
           translations: item.translations.map((tr) => ({
             locale: tr.locale as 'pt' | 'it' | 'es',
             title: tr.title,
@@ -152,10 +114,9 @@ export class PrismaCourseRepository implements ICourseRepository {
         };
         return Course.reconstruct(props, new UniqueEntityID(item.id));
       });
-
       return right(courses);
     } catch (err: any) {
-      return left(new Error('Database error'));
+      return left(new Error(`Database error: ${err.message}`));
     }
   }
 
@@ -165,93 +126,60 @@ export class PrismaCourseRepository implements ICourseRepository {
         where: { id },
         include: {
           translations: true,
-          modules: {
-            include: {
-              translations: true,
-            },
-          },
+          modules: { include: { translations: true } },
         },
       });
+      if (!data) return left(new Error('Course not found'));
 
-      if (!data) {
-        return left(new Error('Course not found'));
-      }
-
-      const modulesEntities: Module[] = data.modules.map((mod) => {
-        const moduleProps = {
+      const modules = data.modules.map((mod) => {
+        const props = {
           slug: mod.slug,
-          imageUrl: mod.imageUrl || undefined, // Converter null para undefined
-          translations: mod.translations.map((modTr) => ({
-            locale: modTr.locale as 'pt' | 'it' | 'es',
-            title: modTr.title,
-            description: modTr.description,
+          imageUrl: mod.imageUrl ?? undefined,
+          translations: mod.translations.map((mt) => ({
+            locale: mt.locale as 'pt' | 'it' | 'es',
+            title: mt.title,
+            description: mt.description,
           })),
           order: mod.order,
           videos: [],
           createdAt: mod.createdAt,
           updatedAt: mod.updatedAt,
         };
-        return Module.reconstruct(moduleProps, new UniqueEntityID(mod.id));
+        return Module.reconstruct(props, new UniqueEntityID(mod.id));
       });
 
-      const courseProps = {
+      const props = {
         slug: data.slug,
-        imageUrl: data.imageUrl || undefined, // Converter null para undefined
-        translations: data.translations.map((ctr) => ({
-          locale: ctr.locale as 'pt' | 'it' | 'es',
-          title: ctr.title,
-          description: ctr.description,
+        imageUrl: data.imageUrl ?? undefined,
+        translations: data.translations.map((tr) => ({
+          locale: tr.locale as 'pt' | 'it' | 'es',
+          title: tr.title,
+          description: tr.description,
         })),
-        modules: modulesEntities,
+        modules,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
-
-      const courseEntity = Course.reconstruct(
-        courseProps,
-        new UniqueEntityID(data.id),
-      );
-      return right(courseEntity);
-    } catch {
-      return left(new Error('Database error'));
+      return right(Course.reconstruct(props, new UniqueEntityID(data.id)));
+    } catch (err: any) {
+      return left(new Error(`Database error: ${err.message}`));
     }
   }
 
   async delete(id: string): Promise<Either<Error, void>> {
     try {
       await this.prisma.$transaction(async (tx) => {
-        // 1. Deletar CourseTranslation primeiro
-        await tx.courseTranslation.deleteMany({
-          where: { courseId: id },
-        });
-
-        // 2. Deletar CourseVideoLink
-        await tx.courseVideoLink.deleteMany({
-          where: { courseId: id },
-        });
-
-        // 3. Deletar TrackCourse (relacionamentos N:N)
-        await tx.trackCourse.deleteMany({
-          where: { courseId: id },
-        });
-
-        // 4. Deletar o curso por último
-        await tx.course.delete({
-          where: { id },
-        });
+        await tx.courseTranslation.deleteMany({ where: { courseId: id } });
+        await tx.courseVideoLink.deleteMany({ where: { courseId: id } });
+        await tx.trackCourse.deleteMany({ where: { courseId: id } });
+        await tx.course.delete({ where: { id } });
       });
-
       return right(undefined);
     } catch (err: any) {
-      if (err.code === 'P2025') {
-        return left(new Error('Course not found'));
-      }
-      if (err.code === 'P2003') {
-        return left(
-          new Error('Cannot delete course due to existing dependencies'),
-        );
-      }
-      return left(new Error('Failed to delete course'));
+      if (err.code === 'P2025') return left(new Error('Course not found'));
+      if (err.code === 'P2003')
+        return left(new Error('Cannot delete course due to dependencies'));
+      return left(new Error(`Failed to delete course: ${err.message}`));
     }
   }
 
@@ -259,101 +187,61 @@ export class PrismaCourseRepository implements ICourseRepository {
     courseId: string,
   ): Promise<Either<Error, CourseDependencyInfo>> {
     try {
-      // Buscar todas as dependências em paralelo para performance
       const [modules, trackCourses, lessonsCount, videosCount] =
         await Promise.all([
-          // Modules com contagem de lessons e videos
           this.prisma.module.findMany({
             where: { courseId },
             include: {
-              translations: {
-                where: { locale: 'pt' },
-                take: 1,
-                select: { title: true, description: true },
-              },
-              lessons: {
-                include: {
-                  Video: true, // Contar videos por lesson
-                },
-              },
+              translations: { where: { locale: 'pt' }, take: 1 },
+              lessons: { include: { video: true } },
             },
           }),
-
-          // Track associations
           this.prisma.trackCourse.findMany({
             where: { courseId },
             include: {
               track: {
-                include: {
-                  translations: {
-                    where: { locale: 'pt' },
-                    take: 1,
-                    select: { title: true, description: true },
-                  },
-                },
+                include: { translations: { where: { locale: 'pt' }, take: 1 } },
               },
             },
           }),
-
-          // Total lessons count
-          this.prisma.lesson.count({
-            where: {
-              module: {
-                courseId,
-              },
-            },
-          }),
-
-          // Total videos count
+          this.prisma.lesson.count({ where: { module: { courseId } } }),
           this.prisma.video.count({
-            where: {
-              lesson: {
-                module: {
-                  courseId,
-                },
-              },
-            },
+            where: { lesson: { module: { courseId } } },
           }),
         ]);
 
       const dependencies: CourseDependency[] = [];
 
-      // Processar módulos
-      modules.forEach((module) => {
-        const moduleTranslation = module.translations[0];
-        const lessonsInModule = module.lessons.length;
-        const videosInModule = module.lessons.reduce(
-          (acc, lesson) => acc + lesson.Video.length,
+      modules.forEach((mod) => {
+        const mt = mod.translations[0];
+        const lessonCount = mod.lessons.length;
+        const videoCount = mod.lessons.reduce(
+          (sum, l) => sum + (l.video ? 1 : 0),
           0,
         );
 
         dependencies.push({
           type: 'module',
-          id: module.id,
-          name: moduleTranslation?.title || module.slug,
-          description: moduleTranslation?.description,
-          actionRequired: `Delete module "${moduleTranslation?.title || module.slug}" and all its content first`,
-          relatedEntities: {
-            lessons: lessonsInModule,
-            videos: videosInModule,
-          },
+          id: mod.id,
+          name: mt?.title ?? mod.slug,
+          description: mt?.description,
+          actionRequired: `Delete module "${mt?.title ?? mod.slug}" and its content first`,
+          relatedEntities: { lessons: lessonCount, videos: videoCount },
         });
       });
 
-      // Processar track associations
-      trackCourses.forEach((trackCourse) => {
-        const trackTranslation = trackCourse.track.translations[0];
-
+      trackCourses.forEach((tc) => {
+        const tt = tc.track.translations[0];
         dependencies.push({
           type: 'track',
-          id: trackCourse.track.id,
-          name: trackTranslation?.title || trackCourse.track.slug,
-          description: trackTranslation?.description,
-          actionRequired: `Remove course from track "${trackTranslation?.title || trackCourse.track.slug}" first`,
+          id: tc.track.id,
+          name: tt?.title ?? tc.track.slug,
+          description: tt?.description,
+          actionRequired: `Remove course from track "${tt?.title ?? tc.track.slug}" first`,
         });
       });
 
-      const result: CourseDependencyInfo = {
+      const info: CourseDependencyInfo = {
         canDelete: dependencies.length === 0,
         dependencies,
         totalDependencies: dependencies.length,
@@ -365,16 +253,17 @@ export class PrismaCourseRepository implements ICourseRepository {
         },
       };
 
-      return right(result);
+      return right(info);
     } catch (err: any) {
-      return left(new Error('Failed to check course dependencies'));
+      return left(
+        new Error(`Failed to check course dependencies: ${err.message}`),
+      );
     }
   }
 
   async update(course: Course): Promise<Either<Error, void>> {
     try {
       await this.prisma.$transaction(async (tx) => {
-        // Atualizar o curso
         await tx.course.update({
           where: { id: course.id.toString() },
           data: {
@@ -383,33 +272,24 @@ export class PrismaCourseRepository implements ICourseRepository {
             updatedAt: course.updatedAt,
           },
         });
-
-        // Deletar traduções existentes
         await tx.courseTranslation.deleteMany({
           where: { courseId: course.id.toString() },
         });
-
-        // Criar novas traduções
         await tx.courseTranslation.createMany({
-          data: course.translations.map((translation) => ({
+          data: course.translations.map((t) => ({
             id: new UniqueEntityID().toString(),
-            locale: translation.locale,
-            title: translation.title,
-            description: translation.description,
             courseId: course.id.toString(),
+            locale: t.locale,
+            title: t.title,
+            description: t.description,
           })),
         });
       });
-
       return right(undefined);
     } catch (err: any) {
-      if (err.code === 'P2025') {
-        return left(new Error('Course not found'));
-      }
-      if (err.code === 'P2002') {
-        return left(new Error('Duplicate course data'));
-      }
-      return left(new Error('Failed to update course'));
+      if (err.code === 'P2025') return left(new Error('Course not found'));
+      if (err.code === 'P2002') return left(new Error('Duplicate course data'));
+      return left(new Error(`Failed to update course: ${err.message}`));
     }
   }
 
@@ -419,22 +299,13 @@ export class PrismaCourseRepository implements ICourseRepository {
   ): Promise<Either<Error, Course>> {
     try {
       const data = await this.prisma.course.findFirst({
-        where: {
-          slug,
-          id: { not: excludeId },
-        },
-        include: {
-          translations: true,
-        },
+        where: { slug, id: { not: excludeId } },
+        include: { translations: true },
       });
-
-      if (!data) {
-        return left(new Error('Course not found'));
-      }
-
-      const courseProps = {
+      if (!data) return left(new Error('Course not found'));
+      const props = {
         slug: data.slug,
-        imageUrl: data.imageUrl || undefined,
+        imageUrl: data.imageUrl ?? undefined,
         translations: data.translations.map((tr) => ({
           locale: tr.locale as 'pt' | 'it' | 'es',
           title: tr.title,
@@ -443,14 +314,9 @@ export class PrismaCourseRepository implements ICourseRepository {
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
-
-      const courseEntity = Course.reconstruct(
-        courseProps,
-        new UniqueEntityID(data.id),
-      );
-      return right(courseEntity);
+      return right(Course.reconstruct(props, new UniqueEntityID(data.id)));
     } catch (err: any) {
-      return left(new Error('Database error'));
+      return left(new Error(`Database error: ${err.message}`));
     }
   }
 
@@ -461,26 +327,15 @@ export class PrismaCourseRepository implements ICourseRepository {
     try {
       const data = await this.prisma.course.findFirst({
         where: {
-          translations: {
-            some: {
-              locale: 'pt',
-              title,
-            },
-          },
+          translations: { some: { locale: 'pt', title } },
           id: { not: excludeId },
         },
-        include: {
-          translations: true,
-        },
+        include: { translations: true },
       });
-
-      if (!data) {
-        return left(new Error('Course not found'));
-      }
-
-      const courseProps = {
+      if (!data) return left(new Error('Course not found'));
+      const props = {
         slug: data.slug,
-        imageUrl: data.imageUrl || undefined,
+        imageUrl: data.imageUrl ?? undefined,
         translations: data.translations.map((tr) => ({
           locale: tr.locale as 'pt' | 'it' | 'es',
           title: tr.title,
@@ -489,14 +344,9 @@ export class PrismaCourseRepository implements ICourseRepository {
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
-
-      const courseEntity = Course.reconstruct(
-        courseProps,
-        new UniqueEntityID(data.id),
-      );
-      return right(courseEntity);
+      return right(Course.reconstruct(props, new UniqueEntityID(data.id)));
     } catch (err: any) {
-      return left(new Error('Database error'));
+      return left(new Error(`Database error: ${err.message}`));
     }
   }
 }

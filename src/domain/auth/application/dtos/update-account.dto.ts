@@ -7,40 +7,44 @@ import {
   Matches,
   IsUUID,
   IsOptional,
-} from 'class-validator'
+} from 'class-validator';
 
 export class UpdateAccountDto {
   @IsUUID()
   @IsString()
-  id: string
+  id: string;
 
   @IsOptional()
   @IsString()
   @MinLength(3)
-  name?: string
+  name?: string;
 
   @IsOptional()
   @IsString()
-  profileImageUrl?: string
+  profileImageUrl?: string;
 
   @IsOptional()
   @IsString()
   @Matches(/^\d{11}$/, { message: 'Invalid CPF' })
-  cpf?: string
+  cpf?: string;
 
   @IsOptional()
   @IsEmail()
-  email?: string
+  email?: string;
 
   @IsOptional()
   @IsString()
   @MinLength(6)
-  @Matches(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+  @Matches(/[A-Z]/, {
+    message: 'Password must contain at least one uppercase letter',
+  })
   @Matches(/\d/, { message: 'Password must contain at least one number' })
-  @Matches(/[^A-Za-z0-9]/, { message: 'Password must contain at least one special character' })
-  password?: string
+  @Matches(/[^A-Za-z0-9]/, {
+    message: 'Password must contain at least one special character',
+  })
+  password?: string;
 
   @IsOptional()
-  @IsEnum(['admin','tutor','student'])
-  role?: 'admin' | 'tutor' | 'student'
+  @IsEnum(['admin', 'tutor', 'student'])
+  role?: 'admin' | 'tutor' | 'student';
 }

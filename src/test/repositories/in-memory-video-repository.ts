@@ -175,6 +175,22 @@ export class InMemoryVideoRepository implements IVideoRepository {
     }
   }
 
+  async update(video: Video): Promise<Either<Error, void>> {
+    try {
+      const index = this.items.findIndex(
+        (item) => item.video.id.toString() === video.id.toString(),
+      );
+      if (index === -1) {
+        return left(new Error('Video not found'));
+      }
+
+      this.items[index].video = video;
+      return right(undefined);
+    } catch (err: any) {
+      return left(new Error(`Failed to update video: ${err.message}`));
+    }
+  }
+
   // Métodos auxiliares para testes
   addDependenciesToVideo(videoId: string, deps: VideoDependencies) {
     this.dependencies.set(videoId, deps);

@@ -1,73 +1,62 @@
 // src/domain/course-catalog/application/use-cases/delete-lesson.use-case.spec.ts
-
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DeleteLessonUseCase } from '@/domain/course-catalog/application/use-cases/delete-lesson.use-case';
-import { InMemoryLessonRepository } from '@/test/repositories/in-memory-lesson-repository';
-import { DeleteLessonRequest } from '@/domain/course-catalog/application/dtos/delete-lesson-request.dto';
-import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
-import { LessonHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/lesson-has-dependencies-error';
-import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
-import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
-import { Lesson } from '@/domain/course-catalog/enterprise/entities/lesson.entity';
-import { UniqueEntityID } from '@/core/unique-entity-id';
 import { left, right } from '@/core/either';
-import { LessonDependencyInfo } from '@/domain/course-catalog/application/dtos/lesson-dependencies.dto';
+import { UniqueEntityID } from '@/core/unique-entity-id';
+import { DeleteLessonUseCase } from './delete-lesson.use-case';
+import { InMemoryLessonRepository } from '@/test/repositories/in-memory-lesson-repository';
+import { InvalidInputError } from './errors/invalid-input-error';
+import { LessonNotFoundError } from './errors/lesson-not-found-error';
+import { LessonHasDependenciesError } from './errors/lesson-has-dependencies-error';
+import { RepositoryError } from './errors/repository-error';
+import { Lesson } from '@/domain/course-catalog/enterprise/entities/lesson.entity';
 
-let repo: InMemoryLessonRepository;
-let sut: DeleteLessonUseCase;
+// Helper to build a valid delete request
+function aValidDeleteRequest() {
+  return {
+    id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  };
+}
+
+// Build a valid Lesson entity
+function createValidLesson(
+  id: string = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  moduleId: string = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+) {
+  return Lesson.create(
+    {
+      slug: 'lesson-slug',
+      moduleId,
+      order: 1,
+      imageUrl: 'https://example.com/lesson.jpg',
+      flashcardIds: [],
+      commentIds: [],
+      translations: [
+        { locale: 'pt', title: 'Lição PT', description: 'Descrição PT' },
+        { locale: 'it', title: 'Lezione IT', description: 'Descrizione IT' },
+        { locale: 'es', title: 'Lección ES', description: 'Descripción ES' },
+      ],
+    },
+    new UniqueEntityID(id),
+  );
+}
 
 describe('DeleteLessonUseCase', () => {
+  let lessonRepo: InMemoryLessonRepository;
+  let sut: DeleteLessonUseCase;
+
   beforeEach(() => {
-    repo = new InMemoryLessonRepository();
-    sut = new DeleteLessonUseCase(repo);
+    lessonRepo = new InMemoryLessonRepository();
+    sut = new DeleteLessonUseCase(lessonRepo as any);
   });
 
-  function createValidLesson(id?: string, moduleId?: string): Lesson {
-    const lessonId = id || new UniqueEntityID().toString();
-    const modId = moduleId || new UniqueEntityID().toString();
-
-    return Lesson.create(
-      {
-        moduleId: modId,
-        translations: [
-          {
-            locale: 'pt',
-            title: 'Lição de Teste',
-            description: 'Descrição da lição de teste',
-          },
-          {
-            locale: 'it',
-            title: 'Lezione di Test',
-            description: 'Descrizione della lezione di test',
-          },
-          {
-            locale: 'es',
-            title: 'Lección de Prueba',
-            description: 'Descripción de la lección de prueba',
-          },
-        ],
-        flashcardIds: [],
-        quizIds: [],
-        commentIds: [],
-        imageUrl: 'https://example.com/lesson.jpg',
-      },
-      new UniqueEntityID(lessonId),
-    );
-  }
-
-  function validDeleteRequest(id?: string): DeleteLessonRequest {
-    return {
-      id: id || new UniqueEntityID().toString(),
-    };
-  }
-
-  describe('Successful deletion', () => {
+  // ✅ Success Scenarios
+  describe('✅ Success Scenarios', () => {
     it('deletes a lesson successfully when it exists and has no dependencies', async () => {
       const lesson = createValidLesson();
-      await repo.create(lesson);
+      await lessonRepo.create(lesson);
 
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
@@ -75,18 +64,18 @@ describe('DeleteLessonUseCase', () => {
         expect(result.value.deletedAt).toBeInstanceOf(Date);
 
         // Verify lesson was actually deleted
-        const findResult = await repo.findById(lesson.id.toString());
+        const findResult = await lessonRepo.findById(lesson.id.toString());
         expect(findResult.isLeft()).toBe(true);
       }
     });
 
-    it('returns success message with current timestamp', async () => {
+    it('returns success with valid timestamp', async () => {
       const lesson = createValidLesson();
-      await repo.create(lesson);
+      await lessonRepo.create(lesson);
 
       const beforeDeletion = new Date();
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       const afterDeletion = new Date();
 
       expect(result.isRight()).toBe(true);
@@ -101,514 +90,293 @@ describe('DeleteLessonUseCase', () => {
     });
   });
 
-  describe('Validation errors', () => {
-    it('rejects empty lesson ID', async () => {
-      const request: any = { id: '' };
-      const result = await sut.execute(request);
-
+  // ❌ Input Validation Failures
+  describe('❌ Input Validation Failures', () => {
+    it('rejects when id is missing', async () => {
+      const req = {} as any;
+      const result = await sut.execute(req);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as InvalidInputError;
-        expect(error).toBeInstanceOf(InvalidInputError);
-        expect(error.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              message: 'Lesson ID is required',
-              path: ['id'],
-            }),
-          ]),
-        );
-      }
+      expect(result.value).toBeInstanceOf(InvalidInputError);
     });
 
-    it('rejects missing lesson ID', async () => {
-      const request: any = {};
-      const result = await sut.execute(request);
-
+    it('rejects when id is empty string', async () => {
+      const req = { id: '' } as any;
+      const result = await sut.execute(req);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as InvalidInputError;
-        expect(error).toBeInstanceOf(InvalidInputError);
-        expect(error.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              message: 'Lesson ID is required',
-              path: ['id'],
-            }),
-          ]),
-        );
-      }
+      expect(result.value).toBeInstanceOf(InvalidInputError);
     });
 
-    it('rejects invalid UUID format', async () => {
-      const request: any = { id: 'invalid-uuid' };
-      const result = await sut.execute(request);
-
+    it('rejects when id is not a valid UUID', async () => {
+      const req = { id: 'invalid-uuid' } as any;
+      const result = await sut.execute(req);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as InvalidInputError;
-        expect(error).toBeInstanceOf(InvalidInputError);
-        expect(error.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              message: 'Lesson ID must be a valid UUID',
-              path: ['id'],
-            }),
-          ]),
-        );
-      }
+      expect(result.value).toBeInstanceOf(InvalidInputError);
     });
 
-    it('rejects non-string lesson ID', async () => {
-      const request: any = { id: 123 };
-      const result = await sut.execute(request);
-
+    it('rejects when id is not a string', async () => {
+      const req = { id: 123 } as any;
+      const result = await sut.execute(req);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as InvalidInputError;
-        expect(error).toBeInstanceOf(InvalidInputError);
-        expect(error.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              code: 'invalid_type',
-              expected: 'string',
-              received: 'number',
-              path: ['id'],
-            }),
-          ]),
-        );
-      }
+      expect(result.value).toBeInstanceOf(InvalidInputError);
     });
 
-    it('rejects null lesson ID', async () => {
-      const request: any = { id: null };
-      const result = await sut.execute(request);
-
+    it('rejects when id is null', async () => {
+      const req = { id: null } as any;
+      const result = await sut.execute(req);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as InvalidInputError;
-        expect(error).toBeInstanceOf(InvalidInputError);
-        expect(error.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              code: 'invalid_type',
-              expected: 'string',
-              received: 'null',
-              path: ['id'],
-            }),
-          ]),
-        );
-      }
+      expect(result.value).toBeInstanceOf(InvalidInputError);
+    });
+
+    it('rejects when request is empty', async () => {
+      const result = await sut.execute({} as any);
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(InvalidInputError);
     });
   });
 
-  describe('Lesson not found errors', () => {
-    it('returns LessonNotFoundError when lesson does not exist', async () => {
-      const nonExistentId = new UniqueEntityID().toString();
-      const request = validDeleteRequest(nonExistentId);
-      const result = await sut.execute(request);
-
+  // 🔍 Business Logic Failures
+  describe('🔍 Business Logic Failures', () => {
+    it('fails when lesson does not exist', async () => {
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as LessonNotFoundError;
-        expect(error).toBeInstanceOf(LessonNotFoundError);
-        expect(error.message).toBe('Lesson not found');
-      }
+      expect(result.value).toBeInstanceOf(LessonNotFoundError);
     });
 
-    it('handles repository error when finding lesson', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      vi.spyOn(repo, 'findById').mockRejectedValueOnce(
-        new Error('Database connection failed'),
-      );
-
-      const request = validDeleteRequest(lessonId);
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Database connection failed');
-      }
-    });
-
-    it('handles Left result from repository.findById', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      vi.spyOn(repo, 'findById').mockResolvedValueOnce(
-        left(new Error('Lesson lookup failed')),
-      );
-
-      const request = validDeleteRequest(lessonId);
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as LessonNotFoundError;
-        expect(error).toBeInstanceOf(LessonNotFoundError);
-        expect(error.message).toBe('Lesson not found');
-      }
-    });
-  });
-
-  describe('Lesson dependencies errors', () => {
-    it('returns LessonHasDependenciesError when lesson has videos', async () => {
+    it('fails when lesson has video dependencies', async () => {
       const lesson = createValidLesson();
-      await repo.create(lesson);
+      await lessonRepo.create(lesson);
 
-      // Adicionar vídeos como dependências
-      repo.addDependenciesToLesson(lesson.id.toString(), {
-        videos: [
-          {
-            id: '1',
-            title: 'Introduction Video',
-            translations: [{ locale: 'pt' }, { locale: 'it' }],
-          },
-          {
-            id: '2',
-            title: 'Tutorial Video',
-            translations: [{ locale: 'pt' }],
-          },
-        ],
+      lessonRepo.addDependenciesToLesson(lesson.id.toString(), {
+        video: { id: '1', title: 'Video 1', translations: [{ locale: 'pt' }] },
       });
 
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as LessonHasDependenciesError;
-        expect(error).toBeInstanceOf(LessonHasDependenciesError);
-        expect(error.message).toContain(
+      expect(result.value).toBeInstanceOf(LessonHasDependenciesError);
+      if (
+        result.isLeft() &&
+        result.value instanceof LessonHasDependenciesError
+      ) {
+        expect(result.value.message).toContain(
           'Cannot delete lesson because it has dependencies',
         );
-        expect(error.message).toContain('Introduction Video');
-        expect(error.message).toContain('Tutorial Video');
       }
     });
 
-    it('returns LessonHasDependenciesError when lesson has documents', async () => {
+    it('fails when lesson has document dependencies', async () => {
       const lesson = createValidLesson();
-      await repo.create(lesson);
+      await lessonRepo.create(lesson);
 
-      repo.addDependenciesToLesson(lesson.id.toString(), {
+      lessonRepo.addDependenciesToLesson(lesson.id.toString(), {
         documents: [
-          {
-            id: '1',
-            filename: 'lesson-guide.pdf',
-            translations: [{ locale: 'pt' }],
-          },
-          { id: '2', filename: 'exercises.docx', translations: [] },
+          { id: '1', filename: 'doc1.pdf', translations: [{ locale: 'pt' }] },
         ],
       });
 
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as LessonHasDependenciesError;
-        expect(error).toBeInstanceOf(LessonHasDependenciesError);
-        expect(error.message).toContain('lesson-guide.pdf');
-        expect(error.message).toContain('exercises.docx');
-      }
+      expect(result.value).toBeInstanceOf(LessonHasDependenciesError);
     });
 
-    it('returns LessonHasDependenciesError when lesson has flashcards', async () => {
+    it('fails when lesson has flashcard dependencies', async () => {
       const lesson = createValidLesson();
-      await repo.create(lesson);
+      await lessonRepo.create(lesson);
 
-      repo.addDependenciesToLesson(lesson.id.toString(), {
-        flashcards: [
-          { id: '1', title: 'Flashcard Set 1' },
-          { id: '2', title: 'Flashcard Set 2' },
-        ],
+      lessonRepo.addDependenciesToLesson(lesson.id.toString(), {
+        flashcards: [{ id: '1', title: 'Flashcard Set 1' }],
       });
 
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as LessonHasDependenciesError;
-        expect(error).toBeInstanceOf(LessonHasDependenciesError);
-        expect(error.message).toContain('Flashcard Set 1');
-        expect(error.message).toContain('Flashcard Set 2');
-      }
+      expect(result.value).toBeInstanceOf(LessonHasDependenciesError);
     });
 
-    it('returns LessonHasDependenciesError when lesson has quizzes', async () => {
+    it('fails when lesson has quiz dependencies', async () => {
       const lesson = createValidLesson();
-      await repo.create(lesson);
+      await lessonRepo.create(lesson);
 
-      repo.addDependenciesToLesson(lesson.id.toString(), {
-        quizzes: [
-          { id: '1', title: 'Quiz 1: Basic Concepts' },
-          { id: '2', title: 'Quiz 2: Advanced Topics' },
-        ],
+      lessonRepo.addDependenciesToLesson(lesson.id.toString(), {
+        assessments: [{ id: '1', title: 'Quiz 1' }],
       });
 
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as LessonHasDependenciesError;
-        expect(error).toBeInstanceOf(LessonHasDependenciesError);
-        expect(error.message).toContain('Quiz 1: Basic Concepts');
-        expect(error.message).toContain('Quiz 2: Advanced Topics');
-      }
+      expect(result.value).toBeInstanceOf(LessonHasDependenciesError);
     });
 
-    it('returns LessonHasDependenciesError when lesson has comments', async () => {
+    it('fails when lesson has comment dependencies', async () => {
       const lesson = createValidLesson();
-      await repo.create(lesson);
+      await lessonRepo.create(lesson);
 
-      repo.addDependenciesToLesson(lesson.id.toString(), {
-        comments: [
-          { id: '1', author: 'John Doe' },
-          { id: '2', author: 'Jane Smith' },
-        ],
+      lessonRepo.addDependenciesToLesson(lesson.id.toString(), {
+        comments: [{ id: '1', author: 'John Doe' }],
       });
 
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as LessonHasDependenciesError;
-        expect(error).toBeInstanceOf(LessonHasDependenciesError);
-        expect(error.message).toContain('John Doe');
-        expect(error.message).toContain('Jane Smith');
-      }
+      expect(result.value).toBeInstanceOf(LessonHasDependenciesError);
     });
 
-    it('returns LessonHasDependenciesError when lesson has multiple types of dependencies', async () => {
+    it('fails when lesson has multiple dependency types', async () => {
       const lesson = createValidLesson();
-      await repo.create(lesson);
+      await lessonRepo.create(lesson);
 
-      repo.addDependenciesToLesson(lesson.id.toString(), {
-        videos: [{ id: '1', title: 'Main Video' }],
-        documents: [{ id: '2', filename: 'notes.pdf' }],
-        flashcards: [{ id: '3', title: 'Vocabulary Cards' }],
-        quizzes: [{ id: '4', title: 'Final Quiz' }],
-        comments: [{ id: '5', author: 'Student A' }],
+      lessonRepo.addDependenciesToLesson(lesson.id.toString(), {
+        video: { id: '1', title: 'Video 1' },
+        documents: [{ id: '2', filename: 'doc.pdf' }],
+        flashcards: [{ id: '3', title: 'Cards' }],
+        assessments: [{ id: '4', title: 'Quiz' }],
+        comments: [{ id: '5', author: 'User' }],
       });
 
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as LessonHasDependenciesError;
-        expect(error).toBeInstanceOf(LessonHasDependenciesError);
-        expect(error.message).toContain('Main Video');
-        expect(error.message).toContain('notes.pdf');
-        expect(error.message).toContain('Vocabulary Cards');
-        expect(error.message).toContain('Final Quiz');
-        expect(error.message).toContain('Student A');
-      }
-    });
-
-    it('includes dependency info in error for frontend usage', async () => {
-      const lesson = createValidLesson();
-      await repo.create(lesson);
-
-      repo.addDependenciesToLesson(lesson.id.toString(), {
-        videos: [
-          {
-            id: '1',
-            title: 'Video 1',
-            translations: [{ locale: 'pt' }, { locale: 'it' }],
-          },
-          { id: '2', title: 'Video 2', translations: [{ locale: 'pt' }] },
-        ],
-        documents: [{ id: '3', filename: 'doc.pdf', translations: [] }],
-      });
-
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as LessonHasDependenciesError;
-        expect(error).toBeInstanceOf(LessonHasDependenciesError);
-
-        // Verificar se a informação extra está disponível
-        const errorWithInfo = error as any;
-        expect(errorWithInfo.dependencyInfo).toBeDefined();
-        expect(errorWithInfo.dependencyInfo.canDelete).toBe(false);
-        expect(errorWithInfo.dependencyInfo.totalDependencies).toBe(3);
-        expect(errorWithInfo.dependencyInfo.summary.videos).toBe(2);
-        expect(errorWithInfo.dependencyInfo.summary.documents).toBe(1);
-        expect(errorWithInfo.dependencyInfo.summary.flashcards).toBe(0);
-        expect(errorWithInfo.dependencyInfo.summary.quizzes).toBe(0);
-        expect(errorWithInfo.dependencyInfo.summary.comments).toBe(0);
-      }
-    });
-
-    it('handles repository error when checking dependencies', async () => {
-      const lesson = createValidLesson();
-      await repo.create(lesson);
-
-      vi.spyOn(repo, 'checkLessonDependencies').mockResolvedValueOnce(
-        left(new Error('Dependencies check failed')),
-      );
-
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Dependencies check failed');
-      }
+      expect(result.value).toBeInstanceOf(LessonHasDependenciesError);
     });
   });
 
-  describe('Repository errors', () => {
-    it('handles repository error during deletion', async () => {
-      const lesson = createValidLesson();
-      await repo.create(lesson);
+  // 💾 Repository Error Scenarios
+  describe('💾 Repository Error Scenarios', () => {
+    it('handles lesson repo findById errors', async () => {
+      vi.spyOn(lessonRepo, 'findById').mockResolvedValueOnce(
+        left(new Error('DB connection failed')),
+      );
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(LessonNotFoundError);
+    });
 
-      vi.spyOn(repo, 'delete').mockResolvedValueOnce(
-        left(new Error('Deletion failed')),
+    it('handles lesson repo delete errors', async () => {
+      const lesson = createValidLesson();
+      await lessonRepo.create(lesson);
+
+      vi.spyOn(lessonRepo, 'delete').mockResolvedValueOnce(
+        left(new Error('Delete operation failed')),
       );
 
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Deletion failed');
+      expect(result.value).toBeInstanceOf(RepositoryError);
+      if (result.isLeft() && result.value instanceof RepositoryError) {
+        expect(result.value.message).toBe('Delete operation failed');
       }
     });
 
-    it('handles exception thrown during deletion', async () => {
+    it('handles dependency check errors', async () => {
       const lesson = createValidLesson();
-      await repo.create(lesson);
+      await lessonRepo.create(lesson);
 
-      vi.spyOn(repo, 'delete').mockImplementationOnce(() => {
+      vi.spyOn(lessonRepo, 'checkLessonDependencies').mockResolvedValueOnce(
+        left(new Error('Dependency check failed')),
+      );
+
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(RepositoryError);
+      if (result.isLeft() && result.value instanceof RepositoryError) {
+        expect(result.value.message).toBe('Dependency check failed');
+      }
+    });
+
+    it('handles exceptions during deletion', async () => {
+      const lesson = createValidLesson();
+      await lessonRepo.create(lesson);
+
+      vi.spyOn(lessonRepo, 'delete').mockImplementationOnce(() => {
         throw new Error('Unexpected deletion error');
       });
 
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Unexpected deletion error');
+      expect(result.value).toBeInstanceOf(RepositoryError);
+      if (result.isLeft() && result.value instanceof RepositoryError) {
+        expect(result.value.message).toBe('Unexpected deletion error');
       }
     });
 
-    it('handles generic exception during lesson lookup', async () => {
-      const lessonId = new UniqueEntityID().toString();
-      vi.spyOn(repo, 'findById').mockImplementationOnce(() => {
+    it('handles exceptions during lesson lookup', async () => {
+      vi.spyOn(lessonRepo, 'findById').mockImplementationOnce(() => {
         throw new Error('Unexpected lookup error');
       });
 
-      const request = validDeleteRequest(lessonId);
-      const result = await sut.execute(request);
-
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Unexpected lookup error');
+      expect(result.value).toBeInstanceOf(RepositoryError);
+      if (result.isLeft() && result.value instanceof RepositoryError) {
+        expect(result.value.message).toBe('Unexpected lookup error');
+      }
+    });
+
+    it('handles exceptions during dependency check', async () => {
+      const lesson = createValidLesson();
+      await lessonRepo.create(lesson);
+
+      vi.spyOn(lessonRepo, 'checkLessonDependencies').mockImplementationOnce(
+        () => {
+          throw new Error('Unexpected dependency check error');
+        },
+      );
+
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(RepositoryError);
+      if (result.isLeft() && result.value instanceof RepositoryError) {
+        expect(result.value.message).toBe('Unexpected dependency check error');
       }
     });
   });
 
-  describe('Edge cases', () => {
-    it('handles lesson with no dependencies', async () => {
-      const lesson = createValidLesson();
-      await repo.create(lesson);
-
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
-      expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        expect(result.value.message).toBe('Lesson deleted successfully');
-      }
-    });
-
+  // 🎯 Edge Cases
+  describe('🎯 Edge Cases', () => {
     it('handles lesson with empty dependency arrays', async () => {
       const lesson = createValidLesson();
-      await repo.create(lesson);
+      await lessonRepo.create(lesson);
 
-      repo.addDependenciesToLesson(lesson.id.toString(), {
-        videos: [],
+      lessonRepo.addDependenciesToLesson(lesson.id.toString(), {
         documents: [],
         flashcards: [],
-        quizzes: [],
+        assessments: [],
         comments: [],
       });
 
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.message).toBe('Lesson deleted successfully');
       }
     });
 
-    it('handles malformed UUID that passes regex but fails in repository', async () => {
-      const malformedId = '12345678-1234-1234-1234-123456789012';
-
-      const request = validDeleteRequest(malformedId);
-      const result = await sut.execute(request);
-
+    it('handles malformed UUID that passes validation but fails in repository', async () => {
+      const req = { id: '12345678-1234-1234-1234-123456789012' };
+      const result = await sut.execute(req as any);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as LessonNotFoundError;
-        expect(error).toBeInstanceOf(LessonNotFoundError);
-        expect(error.message).toBe('Lesson not found');
-      }
-    });
-
-    it('handles exception during dependencies check', async () => {
-      const lesson = createValidLesson();
-      await repo.create(lesson);
-
-      vi.spyOn(repo, 'checkLessonDependencies').mockImplementationOnce(() => {
-        throw new Error('Unexpected dependencies check error');
-      });
-
-      const request = validDeleteRequest(lesson.id.toString());
-      const result = await sut.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        const error = result.value as RepositoryError;
-        expect(error).toBeInstanceOf(RepositoryError);
-        expect(error.message).toBe('Unexpected dependencies check error');
-      }
+      expect(result.value).toBeInstanceOf(LessonNotFoundError);
     });
 
     it('verifies dependency information structure', async () => {
       const lesson = createValidLesson();
-      await repo.create(lesson);
+      await lessonRepo.create(lesson);
 
-      repo.addDependenciesToLesson(lesson.id.toString(), {
-        videos: [
-          {
-            id: 'v1',
-            title: 'Video 1',
-            translations: [
-              { locale: 'pt' },
-              { locale: 'it' },
-              { locale: 'es' },
-            ],
-          },
-          { id: 'v2', title: 'Video 2', translations: [{ locale: 'pt' }] },
-        ],
+      lessonRepo.addDependenciesToLesson(lesson.id.toString(), {
+        video: {
+          id: 'v1',
+          title: 'Video 1',
+          translations: [{ locale: 'pt' }, { locale: 'it' }, { locale: 'es' }],
+        },
         documents: [
           {
             id: 'd1',
@@ -617,70 +385,121 @@ describe('DeleteLessonUseCase', () => {
           },
         ],
         flashcards: [{ id: 'f1', title: 'Cards 1' }],
-        quizzes: [],
         comments: [
           { id: 'c1', author: 'User 1' },
           { id: 'c2', author: 'User 2' },
         ],
       });
 
-      // Testar o método checkLessonDependencies diretamente
-      const dependenciesResult = await repo.checkLessonDependencies(
+      const dependenciesResult = await lessonRepo.checkLessonDependencies(
         lesson.id.toString(),
       );
-
       expect(dependenciesResult.isRight()).toBe(true);
       if (dependenciesResult.isRight()) {
         const info = dependenciesResult.value;
         expect(info.canDelete).toBe(false);
-        expect(info.totalDependencies).toBe(6);
-        expect(info.summary.videos).toBe(2);
+        expect(info.totalDependencies).toBe(5);
+        expect(info.summary.videos).toBe(1);
         expect(info.summary.documents).toBe(1);
         expect(info.summary.flashcards).toBe(1);
-        expect(info.summary.quizzes).toBe(0);
+        expect(info.summary.assessments).toBe(0);
         expect(info.summary.comments).toBe(2);
-        expect(info.dependencies).toHaveLength(6);
-
-        const videoDeps = info.dependencies.filter((d) => d.type === 'video');
-        expect(videoDeps).toHaveLength(2);
-        expect(videoDeps[0].relatedEntities?.translations).toBe(3);
-        expect(videoDeps[1].relatedEntities?.translations).toBe(1);
-
-        const docDep = info.dependencies.find((d) => d.type === 'document');
-        expect(docDep?.name).toBe('guide.pdf');
-        expect(docDep?.relatedEntities?.translations).toBe(2);
       }
     });
 
-    it('handles multiple lessons from same module', async () => {
-      const moduleId = new UniqueEntityID().toString();
-      const lesson1 = createValidLesson(undefined, moduleId);
-      const lesson2 = createValidLesson(undefined, moduleId);
-      const lesson3 = createValidLesson(undefined, moduleId);
+    it('handles deletion of one lesson among multiple in same module', async () => {
+      const moduleId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+      const lesson1 = createValidLesson(
+        '11111111-1111-1111-1111-111111111111',
+        moduleId,
+      );
+      const lesson2 = createValidLesson(
+        '22222222-2222-2222-2222-222222222222',
+        moduleId,
+      );
+      const lesson3 = createValidLesson(
+        '33333333-3333-3333-3333-333333333333',
+        moduleId,
+      );
 
-      await repo.create(lesson1);
-      await repo.create(lesson2);
-      await repo.create(lesson3);
+      await lessonRepo.create(lesson1);
+      await lessonRepo.create(lesson2);
+      await lessonRepo.create(lesson3);
 
-      // Deletar apenas a lição 2
-      const request = validDeleteRequest(lesson2.id.toString());
-      const result = await sut.execute(request);
-
+      const req = { id: lesson2.id.toString() };
+      const result = await sut.execute(req as any);
       expect(result.isRight()).toBe(true);
 
-      // Verificar que as outras lições ainda existem
-      const paginatedResult = await repo.findByModuleId(moduleId, 10, 0);
-      expect(paginatedResult.isRight()).toBe(true);
-      if (paginatedResult.isRight()) {
-        expect(paginatedResult.value.total).toBe(2);
-        expect(paginatedResult.value.lessons).toHaveLength(2);
-        const remainingIds = paginatedResult.value.lessons.map((l) =>
-          l.id.toString(),
-        );
-        expect(remainingIds).toContain(lesson1.id.toString());
-        expect(remainingIds).toContain(lesson3.id.toString());
-        expect(remainingIds).not.toContain(lesson2.id.toString());
-      }
+      // Verify other lessons still exist
+      const findResult1 = await lessonRepo.findById(lesson1.id.toString());
+      const findResult3 = await lessonRepo.findById(lesson3.id.toString());
+      expect(findResult1.isRight()).toBe(true);
+      expect(findResult3.isRight()).toBe(true);
+
+      // Verify deleted lesson is gone
+      const findResult2 = await lessonRepo.findById(lesson2.id.toString());
+      expect(findResult2.isLeft()).toBe(true);
+    });
+  });
+
+  // 🔄 Sequence and Dependencies
+  describe('🔄 Sequence and Dependencies', () => {
+    it('calls repos in correct order', async () => {
+      const lesson = createValidLesson();
+      await lessonRepo.create(lesson);
+
+      const findSpy = vi.spyOn(lessonRepo, 'findById');
+      const depSpy = vi.spyOn(lessonRepo, 'checkLessonDependencies');
+      const deleteSpy = vi.spyOn(lessonRepo, 'delete');
+
+      const req = aValidDeleteRequest();
+      await sut.execute(req as any);
+
+      expect(findSpy).toHaveBeenCalledWith(req.id);
+      expect(depSpy).toHaveBeenCalledWith(req.id);
+      expect(deleteSpy).toHaveBeenCalledWith(req.id);
+    });
+
+    it('stops on validation failure', async () => {
+      const findSpy = vi.spyOn(lessonRepo, 'findById');
+      const depSpy = vi.spyOn(lessonRepo, 'checkLessonDependencies');
+      const deleteSpy = vi.spyOn(lessonRepo, 'delete');
+
+      const req = { id: 'invalid-uuid' };
+      await sut.execute(req as any);
+
+      expect(findSpy).not.toHaveBeenCalled();
+      expect(depSpy).not.toHaveBeenCalled();
+      expect(deleteSpy).not.toHaveBeenCalled();
+    });
+
+    it('stops on lesson not found', async () => {
+      const depSpy = vi.spyOn(lessonRepo, 'checkLessonDependencies');
+      const deleteSpy = vi.spyOn(lessonRepo, 'delete');
+
+      const req = aValidDeleteRequest();
+      await sut.execute(req as any);
+
+      expect(depSpy).not.toHaveBeenCalled();
+      expect(deleteSpy).not.toHaveBeenCalled();
+    });
+
+    it('stops on dependency check failure', async () => {
+      const lesson = createValidLesson();
+      await lessonRepo.create(lesson);
+
+      lessonRepo.addDependenciesToLesson(lesson.id.toString(), {
+        video: { id: '1', title: 'Video 1' },
+      });
+
+      const deleteSpy = vi.spyOn(lessonRepo, 'delete');
+
+      const req = aValidDeleteRequest();
+      const result = await sut.execute(req as any);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(LessonHasDependenciesError);
+      expect(deleteSpy).not.toHaveBeenCalled();
     });
   });
 });

@@ -27,11 +27,10 @@ type UpdateAddressResponse = Either<
 export class UpdateAddressUseCase {
   constructor(
     @Inject(IAddressRepository)
-    private readonly addressRepo: IAddressRepository) {}
+    private readonly addressRepo: IAddressRepository,
+  ) {}
 
-  async execute(
-    request: UpdateAddressRequest
-  ): Promise<UpdateAddressResponse> {
+  async execute(request: UpdateAddressRequest): Promise<UpdateAddressResponse> {
     const {
       id,
       street,
@@ -44,11 +43,9 @@ export class UpdateAddressUseCase {
       postalCode,
     } = request;
 
-
     if (!id) {
       return left(new InvalidInputError('Missing id', []));
     }
-
 
     const hasAnyField =
       street !== undefined ||
@@ -62,7 +59,10 @@ export class UpdateAddressUseCase {
 
     if (!hasAnyField) {
       return left(
-        new InvalidInputError('At least one field to update must be provided', [])
+        new InvalidInputError(
+          'At least one field to update must be provided',
+          [],
+        ),
       );
     }
 
@@ -83,7 +83,6 @@ export class UpdateAddressUseCase {
       return left(new ResourceNotFoundError('Address not found'));
     }
 
-
     if (street !== undefined) foundAddr.street = street;
     if (number !== undefined) foundAddr.number = number;
     if (complement !== undefined) foundAddr.complement = complement;
@@ -98,7 +97,7 @@ export class UpdateAddressUseCase {
       if (updateResult.isLeft()) {
         return left(updateResult.value);
       }
- 
+
       return right(foundAddr);
     } catch (err: any) {
       return left(new Error(err.message));

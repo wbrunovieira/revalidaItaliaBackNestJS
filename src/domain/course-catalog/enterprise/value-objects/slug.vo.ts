@@ -11,14 +11,13 @@ export class SlugVO {
   }
 
   public static create(raw: string): SlugVO {
-
     const normalized = raw
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
 
     if (normalized.length < 3) {
-      throw new Error("Slug must be at least 3 characters long"); // ou crie um InvalidSlugError
+      throw new Error('Slug must be at least 3 characters long'); // ou crie um InvalidSlugError
     }
 
     return new SlugVO(normalized);

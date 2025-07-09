@@ -55,7 +55,7 @@ export class GetModulesUseCase {
       if (allOrError.isLeft()) {
         return left(new RepositoryError(allOrError.value.message));
       }
-      const domainModules = allOrError.value as ModuleEntity[];
+      const domainModules = allOrError.value;
 
       const payloadModules = domainModules.map((mod) => ({
         id: mod.id.toString(),

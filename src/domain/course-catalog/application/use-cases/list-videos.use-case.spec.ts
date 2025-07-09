@@ -5,6 +5,7 @@ import { Video } from '@/domain/course-catalog/enterprise/entities/video.entity'
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
+import { VideoTranslationVO } from '@/domain/course-catalog/enterprise/value-objects/video-translation.vo';
 import { ListVideosUseCase } from './list-videos.use-case';
 
 describe('ListVideosUseCase', () => {
@@ -18,10 +19,9 @@ describe('ListVideosUseCase', () => {
     return Video.reconstruct(
       {
         slug: 'v1',
-        title: 'T',
         providerVideoId: 'pid',
         durationInSeconds: 10,
-        isSeen: false,
+        translations: [new VideoTranslationVO('pt', 'T', 'Description')],
         createdAt: now,
         updatedAt: now,
       },

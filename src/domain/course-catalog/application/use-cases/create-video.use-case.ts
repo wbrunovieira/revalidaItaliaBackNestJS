@@ -1,8 +1,10 @@
+//src/domain/course-catalog/application/use-cases/create-video.use-case.ts
 import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
 
 import { SlugVO } from '@/domain/course-catalog/enterprise/value-objects/slug.vo';
 import { Video } from '@/domain/course-catalog/enterprise/entities/video.entity';
+import { VideoTranslationVO } from '@/domain/course-catalog/enterprise/value-objects/video-translation.vo';
 import { IVideoRepository } from '../repositories/i-video-repository';
 import { VideoHostProvider } from '../providers/video-host.provider';
 import { InvalidInputError } from './errors/invalid-input-error';
@@ -28,7 +30,16 @@ export type CreateVideoUseCaseResponse = Either<
       title: string;
       providerVideoId: string;
       durationInSeconds: number;
+      imageUrl?: string;
+      lessonId?: string;
       isSeen: boolean;
+      translations: Array<{
+        locale: 'pt' | 'it' | 'es';
+        title: string;
+        description: string;
+      }>;
+      createdAt: Date;
+      updatedAt: Date;
     };
     translations: Array<{
       locale: 'pt' | 'it' | 'es';
@@ -64,7 +75,7 @@ export class CreateVideoUseCase {
       }));
       return left(new InvalidInputError('Validation failed', details));
     }
-    const data = parseResult.data as CreateVideoSchema;
+    const data = parseResult.data;
 
     // 2) Check that the lesson exists
     const lessonOrErr = await this.lessonRepo.findById(data.lessonId);
@@ -106,12 +117,15 @@ export class CreateVideoUseCase {
     }
 
     // 6) Build our domain Video
-    const ptTr = data.translations.find((t) => t.locale === 'pt')!;
+    const translations = data.translations.map(
+      (t) => new VideoTranslationVO(t.locale, t.title, t.description),
+    );
+
     const videoEntity = Video.create({
       slug,
-      title: ptTr.title,
       providerVideoId: data.providerVideoId,
       durationInSeconds,
+      translations,
     });
 
     // 7) Persist under that lesson
@@ -132,7 +146,12 @@ export class CreateVideoUseCase {
         title: videoEntity.title,
         providerVideoId: videoEntity.providerVideoId,
         durationInSeconds: videoEntity.durationInSeconds,
-        isSeen: videoEntity.isSeen,
+        imageUrl: videoEntity.imageUrl,
+        lessonId: videoEntity.lessonId,
+        isSeen: videoEntity.isSeen(), // Por enquanto sempre false
+        translations: data.translations,
+        createdAt: videoEntity.createdAt,
+        updatedAt: videoEntity.updatedAt,
       },
       translations: data.translations,
     });

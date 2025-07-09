@@ -60,7 +60,7 @@ export class AttemptAnswer extends Entity<AttemptAnswerProps> {
     if (!this.status.isInProgress()) {
       throw new Error('Can only select options for answers in progress');
     }
-    
+
     this.props.selectedOptionId = optionId;
     this.props.textAnswer = undefined; // Clear text answer when selecting option
     this.touch();
@@ -70,7 +70,7 @@ export class AttemptAnswer extends Entity<AttemptAnswerProps> {
     if (!this.status.isInProgress()) {
       throw new Error('Can only answer text for answers in progress');
     }
-    
+
     this.props.textAnswer = text;
     this.props.selectedOptionId = undefined; // Clear option when answering text
     this.touch();
@@ -80,7 +80,7 @@ export class AttemptAnswer extends Entity<AttemptAnswerProps> {
     if (!this.status.isInProgress()) {
       throw new Error('Can only submit answers that are in progress');
     }
-    
+
     this.props.status = new AttemptStatusVO('SUBMITTED');
     this.touch();
   }
@@ -89,7 +89,7 @@ export class AttemptAnswer extends Entity<AttemptAnswerProps> {
     if (!this.status.isSubmitted() && !this.status.isGrading()) {
       throw new Error('Can only grade submitted or grading answers');
     }
-    
+
     this.props.status = new AttemptStatusVO('GRADED');
     this.props.isCorrect = isCorrect;
     this.props.teacherComment = teacherComment;
@@ -180,7 +180,10 @@ export class AttemptAnswer extends Entity<AttemptAnswerProps> {
     );
   }
 
-  public static reconstruct(props: AttemptAnswerProps, id: UniqueEntityID): AttemptAnswer {
+  public static reconstruct(
+    props: AttemptAnswerProps,
+    id: UniqueEntityID,
+  ): AttemptAnswer {
     return new AttemptAnswer(props, id);
   }
 }

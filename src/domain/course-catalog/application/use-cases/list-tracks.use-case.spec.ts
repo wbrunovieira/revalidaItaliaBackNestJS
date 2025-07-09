@@ -1,6 +1,9 @@
 // src/domain/course-catalog/application/use-cases/list-tracks.use-case.spec.ts
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ListTracksUseCase, ListTracksResponse } from '@/domain/course-catalog/application/use-cases/list-tracks.use-case';
+import {
+  ListTracksUseCase,
+  ListTracksResponse,
+} from '@/domain/course-catalog/application/use-cases/list-tracks.use-case';
 import { InMemoryTrackRepository } from '@/test/repositories/in-memory-track-repository';
 import { Track } from '@/domain/course-catalog/enterprise/entities/track.entity';
 import { TrackTranslationVO } from '@/domain/course-catalog/enterprise/value-objects/track-translation.vo';
@@ -27,8 +30,22 @@ describe('ListTracksUseCase', () => {
 
   it('returns list of tracks on success', async () => {
     // Seed two tracks
-    const t1 = Track.create({ slug: 's1', courseIds: ['c1'], translations: [new TrackTranslationVO('pt','T1','D1')] }, new UniqueEntityID('id1'));
-    const t2 = Track.create({ slug: 's2', courseIds: ['c2'], translations: [new TrackTranslationVO('pt','T2','D2')] }, new UniqueEntityID('id2'));
+    const t1 = Track.create(
+      {
+        slug: 's1',
+        courseIds: ['c1'],
+        translations: [new TrackTranslationVO('pt', 'T1', 'D1')],
+      },
+      new UniqueEntityID('id1'),
+    );
+    const t2 = Track.create(
+      {
+        slug: 's2',
+        courseIds: ['c2'],
+        translations: [new TrackTranslationVO('pt', 'T2', 'D2')],
+      },
+      new UniqueEntityID('id2'),
+    );
     repo.items.push(t1, t2);
 
     const result = await useCase.execute();
@@ -38,15 +55,27 @@ describe('ListTracksUseCase', () => {
       expect(tracks).toHaveLength(2);
       expect(tracks).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ id: 'id1', slug: 's1', courseIds: ['c1'], translations: expect.any(Array) }),
-          expect.objectContaining({ id: 'id2', slug: 's2', courseIds: ['c2'], translations: expect.any(Array) }),
-        ])
+          expect.objectContaining({
+            id: 'id1',
+            slug: 's1',
+            courseIds: ['c1'],
+            translations: expect.any(Array),
+          }),
+          expect.objectContaining({
+            id: 'id2',
+            slug: 's2',
+            courseIds: ['c2'],
+            translations: expect.any(Array),
+          }),
+        ]),
       );
     }
   });
 
   it('handles repository left as error', async () => {
-    vi.spyOn(repo, 'findAll').mockResolvedValueOnce(left(new Error('fail')) as any);
+    vi.spyOn(repo, 'findAll').mockResolvedValueOnce(
+      left(new Error('fail')) as any,
+    );
     const result = await useCase.execute();
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
@@ -56,7 +85,9 @@ describe('ListTracksUseCase', () => {
   });
 
   it('handles exception thrown by repo', async () => {
-    vi.spyOn(repo, 'findAll').mockImplementationOnce(() => { throw new Error('crash'); });
+    vi.spyOn(repo, 'findAll').mockImplementationOnce(() => {
+      throw new Error('crash');
+    });
     const result = await useCase.execute();
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {

@@ -4,11 +4,11 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { Either, left, right } from '@/core/either';
 import { IModuleRepository } from '@/domain/course-catalog/application/repositories/i-module-repository';
 import { Module } from '@/domain/course-catalog/enterprise/entities/module.entity';
+import { UniqueEntityID } from '@/core/unique-entity-id';
 import {
   ModuleDependencyInfo,
   ModuleDependency,
 } from '@/domain/course-catalog/application/dtos/module-dependencies.dto';
-import { UniqueEntityID } from '@/core/unique-entity-id';
 
 @Injectable()
 export class PrismaModuleRepository implements IModuleRepository {
@@ -20,20 +20,13 @@ export class PrismaModuleRepository implements IModuleRepository {
   ): Promise<Either<Error, Module>> {
     try {
       const data = await this.prisma.module.findFirst({
-        where: {
-          courseId,
-          order,
-        },
-        include: {
-          translations: true,
-        },
+        where: { courseId, order },
+        include: { translations: true },
       });
 
-      if (!data) {
-        return left(new Error('Module not found'));
-      }
+      if (!data) return left(new Error('Module not found'));
 
-      const translationsVO = data.translations.map((tr) => ({
+      const translations = data.translations.map((tr) => ({
         locale: tr.locale as 'pt' | 'it' | 'es',
         title: tr.title,
         description: tr.description,
@@ -42,8 +35,8 @@ export class PrismaModuleRepository implements IModuleRepository {
       const moduleEntity = Module.reconstruct(
         {
           slug: data.slug,
-          imageUrl: data.imageUrl || undefined,
-          translations: translationsVO,
+          imageUrl: data.imageUrl ?? undefined,
+          translations,
           order: data.order,
           videos: [],
           createdAt: data.createdAt,
@@ -60,23 +53,21 @@ export class PrismaModuleRepository implements IModuleRepository {
 
   async create(courseId: string, module: Module): Promise<Either<Error, void>> {
     try {
-      const modTranslations = module.translations;
-
       await this.prisma.module.create({
         data: {
           id: module.id.toString(),
           slug: module.slug,
-          imageUrl: module.imageUrl || null,
+          imageUrl: module.imageUrl ?? null,
           order: module.order,
           courseId,
           createdAt: module.createdAt,
           updatedAt: module.updatedAt,
           translations: {
-            create: modTranslations.map((mt) => ({
+            create: module.translations.map((tr) => ({
               id: new UniqueEntityID().toString(),
-              locale: mt.locale,
-              title: mt.title,
-              description: mt.description,
+              locale: tr.locale,
+              title: tr.title,
+              description: tr.description,
             })),
           },
         },
@@ -91,14 +82,12 @@ export class PrismaModuleRepository implements IModuleRepository {
     try {
       const data = await this.prisma.module.findMany({
         where: { courseId },
-        include: {
-          translations: true,
-        },
+        include: { translations: true },
         orderBy: { order: 'asc' },
       });
 
       const modules = data.map((mod) => {
-        const translationsVO = mod.translations.map((tr) => ({
+        const translations = mod.translations.map((tr) => ({
           locale: tr.locale as 'pt' | 'it' | 'es',
           title: tr.title,
           description: tr.description,
@@ -107,8 +96,8 @@ export class PrismaModuleRepository implements IModuleRepository {
         return Module.reconstruct(
           {
             slug: mod.slug,
-            imageUrl: mod.imageUrl || undefined,
-            translations: translationsVO,
+            imageUrl: mod.imageUrl ?? undefined,
+            translations,
             order: mod.order,
             videos: [],
             createdAt: mod.createdAt,
@@ -131,11 +120,9 @@ export class PrismaModuleRepository implements IModuleRepository {
         include: { translations: true },
       });
 
-      if (!mod) {
-        return left(new Error('Module not found'));
-      }
+      if (!mod) return left(new Error('Module not found'));
 
-      const translationsVO = mod.translations.map((tr) => ({
+      const translations = mod.translations.map((tr) => ({
         locale: tr.locale as 'pt' | 'it' | 'es',
         title: tr.title,
         description: tr.description,
@@ -145,8 +132,8 @@ export class PrismaModuleRepository implements IModuleRepository {
         Module.reconstruct(
           {
             slug: mod.slug,
-            imageUrl: mod.imageUrl || undefined,
-            translations: translationsVO,
+            imageUrl: mod.imageUrl ?? undefined,
+            translations,
             order: mod.order,
             videos: [],
             createdAt: mod.createdAt,
@@ -164,63 +151,55 @@ export class PrismaModuleRepository implements IModuleRepository {
     moduleId: string,
   ): Promise<Either<Error, ModuleDependencyInfo>> {
     try {
-      // Verificar se o módulo existe e buscar suas dependências
-      const module = await this.prisma.module.findUnique({
+      const mod = await this.prisma.module.findUnique({
         where: { id: moduleId },
         include: {
           lessons: {
             include: {
               translations: true,
-              Video: true,
+              video: true,
               documents: true,
+              Assessment: true,
             },
           },
         },
       });
 
-      if (!module) {
-        return left(new Error('Module not found'));
-      }
+      if (!mod) return left(new Error('Module not found'));
 
       const dependencies: ModuleDependency[] = [];
+      let totalVideos = 0;
 
-      // Adicionar lições como dependências
-      for (const lesson of module.lessons) {
-        const ptTranslation = lesson.translations.find(
-          (t) => t.locale === 'pt',
-        );
-        const lessonName = ptTranslation?.title || `Lesson ${lesson.id}`;
+      mod.lessons.forEach((lesson) => {
+        const pt = lesson.translations.find((t) => t.locale === 'pt');
+        const name = pt?.title || `Lesson ${lesson.id}`;
+        const videosCount = lesson.video ? 1 : 0;
+        totalVideos += videosCount;
 
         dependencies.push({
           type: 'lesson',
           id: lesson.id,
-          name: lessonName,
+          name,
           relatedEntities: {
-            videos: lesson.Video.length,
+            videos: videosCount,
             documents: lesson.documents.length,
             flashcards: lesson.flashcardIds.length,
-            quizzes: lesson.quizIds.length,
+            quizzes: lesson.Assessment.length,
           },
         });
-      }
+      });
 
-      // Contar vídeos totais (através das lições)
-      const totalVideos = module.lessons.reduce(
-        (sum, lesson) => sum + lesson.Video.length,
-        0,
-      );
-
-      const canDelete = dependencies.length === 0;
-
-      return right({
-        canDelete,
+      const info: ModuleDependencyInfo = {
+        canDelete: dependencies.length === 0,
         totalDependencies: dependencies.length,
         summary: {
-          lessons: module.lessons.length,
+          lessons: mod.lessons.length,
           videos: totalVideos,
         },
         dependencies,
-      });
+      };
+
+      return right(info);
     } catch (err: any) {
       return left(new Error(`Failed to check dependencies: ${err.message}`));
     }
@@ -228,54 +207,31 @@ export class PrismaModuleRepository implements IModuleRepository {
 
   async delete(moduleId: string): Promise<Either<Error, void>> {
     try {
-      // Usar transação para garantir atomicidade
       await this.prisma.$transaction(async (tx) => {
-        // Verificar se o módulo existe
-        const moduleExists = await tx.module.findUnique({
-          where: { id: moduleId },
-        });
+        const exists = await tx.module.findUnique({ where: { id: moduleId } });
+        if (!exists) throw new Error('Module not found');
 
-        if (!moduleExists) {
-          throw new Error('Module not found');
-        }
-
-        // Deletar traduções do módulo
-        await tx.moduleTranslation.deleteMany({
-          where: { moduleId },
-        });
-
-        // Deletar video links do módulo
-        await tx.moduleVideoLink.deleteMany({
-          where: { moduleId },
-        });
-
-        // Deletar o módulo
-        await tx.module.delete({
-          where: { id: moduleId },
-        });
+        await tx.moduleTranslation.deleteMany({ where: { moduleId } });
+        await tx.moduleVideoLink.deleteMany({ where: { moduleId } });
+        await tx.module.delete({ where: { id: moduleId } });
       });
-
       return right(undefined);
     } catch (err: any) {
-      if (err.message === 'Module not found') {
+      if (err.message === 'Module not found')
         return left(new Error('Module not found'));
-      }
       return left(new Error(`Failed to delete module: ${err.message}`));
     }
   }
 
   async findBySlug(slug: string): Promise<Either<Error, Module | null>> {
     try {
-      const module = await this.prisma.module.findUnique({
+      const mod = await this.prisma.module.findUnique({
         where: { slug },
         include: { translations: true },
       });
+      if (!mod) return right(null);
 
-      if (!module) {
-        return right(null);
-      }
-
-      const translationsVO = module.translations.map((tr) => ({
+      const translations = mod.translations.map((tr) => ({
         locale: tr.locale as 'pt' | 'it' | 'es',
         title: tr.title,
         description: tr.description,
@@ -284,15 +240,15 @@ export class PrismaModuleRepository implements IModuleRepository {
       return right(
         Module.reconstruct(
           {
-            slug: module.slug,
-            imageUrl: module.imageUrl || undefined,
-            translations: translationsVO,
-            order: module.order,
+            slug: mod.slug,
+            imageUrl: mod.imageUrl ?? undefined,
+            translations,
+            order: mod.order,
             videos: [],
-            createdAt: module.createdAt,
-            updatedAt: module.updatedAt,
+            createdAt: mod.createdAt,
+            updatedAt: mod.updatedAt,
           },
-          new UniqueEntityID(module.id),
+          new UniqueEntityID(mod.id),
         ),
       );
     } catch (err: any) {
@@ -303,23 +259,18 @@ export class PrismaModuleRepository implements IModuleRepository {
   async update(module: Module): Promise<Either<Error, void>> {
     try {
       await this.prisma.$transaction(async (tx) => {
-        // Atualizar o módulo principal
         await tx.module.update({
           where: { id: module.id.toString() },
           data: {
             slug: module.slug,
-            imageUrl: module.imageUrl || null,
+            imageUrl: module.imageUrl ?? null,
             order: module.order,
             updatedAt: module.updatedAt,
           },
         });
-
-        // Deletar traduções existentes
         await tx.moduleTranslation.deleteMany({
           where: { moduleId: module.id.toString() },
         });
-
-        // Criar novas traduções
         await tx.moduleTranslation.createMany({
           data: module.translations.map((tr) => ({
             id: new UniqueEntityID().toString(),
@@ -341,16 +292,12 @@ export class PrismaModuleRepository implements IModuleRepository {
     moduleId: string,
   ): Promise<Either<Error, string>> {
     try {
-      const module = await this.prisma.module.findUnique({
+      const mod = await this.prisma.module.findUnique({
         where: { id: moduleId },
         select: { courseId: true },
       });
-
-      if (!module) {
-        return left(new Error('Module not found'));
-      }
-
-      return right(module.courseId);
+      if (!mod) return left(new Error('Module not found'));
+      return right(mod.courseId);
     } catch (err: any) {
       return left(new Error(`Database error: ${err.message}`));
     }

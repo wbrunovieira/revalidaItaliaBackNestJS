@@ -60,8 +60,7 @@ CREATE TABLE "Video" (
     "imageUrl" TEXT,
     "providerVideoId" TEXT NOT NULL,
     "durationInSeconds" INTEGER NOT NULL,
-    "isSeen" BOOLEAN NOT NULL DEFAULT false,
-    "lessonId" TEXT NOT NULL,
+    "lessonId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -193,10 +192,10 @@ CREATE TABLE "Address" (
 -- CreateTable
 CREATE TABLE "Lesson" (
     "id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
     "moduleId" TEXT NOT NULL,
     "imageUrl" TEXT,
     "order" INTEGER NOT NULL DEFAULT 1,
-    "videoId" TEXT,
     "flashcardIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "commentIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -241,6 +240,7 @@ CREATE TABLE "LessonDocumentTranslation" (
 -- CreateTable
 CREATE TABLE "Assessment" (
     "id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
     "type" "AssessmentType" NOT NULL,
@@ -317,7 +317,6 @@ CREATE TABLE "AnswerTranslation" (
 CREATE TABLE "Attempt" (
     "id" TEXT NOT NULL,
     "status" "AttemptStatus" NOT NULL,
-    "score" DOUBLE PRECISION,
     "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "submittedAt" TIMESTAMP(3),
     "gradedAt" TIMESTAMP(3),
@@ -359,6 +358,9 @@ CREATE UNIQUE INDEX "Module_slug_key" ON "Module"("slug");
 CREATE UNIQUE INDEX "Video_slug_key" ON "Video"("slug");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Video_lessonId_key" ON "Video"("lessonId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "TrackTranslation_trackId_locale_key" ON "TrackTranslation"("trackId", "locale");
 
 -- CreateIndex
@@ -389,10 +391,16 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "User_cpf_key" ON "User"("cpf");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Lesson_slug_key" ON "Lesson"("slug");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "LessonTranslation_lessonId_locale_key" ON "LessonTranslation"("lessonId", "locale");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "LessonDocumentTranslation_documentId_locale_key" ON "LessonDocumentTranslation"("documentId", "locale");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Assessment_slug_key" ON "Assessment"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Answer_questionId_key" ON "Answer"("questionId");
@@ -416,7 +424,7 @@ ALTER TABLE "TrackCourse" ADD CONSTRAINT "TrackCourse_courseId_fkey" FOREIGN KEY
 ALTER TABLE "Module" ADD CONSTRAINT "Module_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Video" ADD CONSTRAINT "Video_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Video" ADD CONSTRAINT "Video_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "TrackTranslation" ADD CONSTRAINT "TrackTranslation_trackId_fkey" FOREIGN KEY ("trackId") REFERENCES "Track"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

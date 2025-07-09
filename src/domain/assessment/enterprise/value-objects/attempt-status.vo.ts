@@ -1,5 +1,9 @@
 // src/domain/assessment/enterprise/value-objects/attempt-status.vo.ts
-export type AttemptStatusValue = 'IN_PROGRESS' | 'SUBMITTED' | 'GRADING' | 'GRADED';
+export type AttemptStatusValue =
+  | 'IN_PROGRESS'
+  | 'SUBMITTED'
+  | 'GRADING'
+  | 'GRADED';
 
 export class AttemptStatusVO {
   constructor(private readonly value: AttemptStatusValue) {
@@ -7,7 +11,12 @@ export class AttemptStatusVO {
   }
 
   private validate(): void {
-    const validStatuses: AttemptStatusValue[] = ['IN_PROGRESS', 'SUBMITTED', 'GRADING', 'GRADED'];
+    const validStatuses: AttemptStatusValue[] = [
+      'IN_PROGRESS',
+      'SUBMITTED',
+      'GRADING',
+      'GRADED',
+    ];
     if (!validStatuses.includes(this.value)) {
       throw new Error(`Invalid attempt status: ${this.value}`);
     }
@@ -38,7 +47,7 @@ export class AttemptStatusVO {
       IN_PROGRESS: ['SUBMITTED'],
       SUBMITTED: ['GRADING', 'GRADED'],
       GRADING: ['GRADED'],
-      GRADED: []
+      GRADED: [],
     };
 
     return transitions[this.value].includes(newStatus);

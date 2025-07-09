@@ -28,12 +28,24 @@ describe('CreateModuleUseCase', () => {
       {
         slug: 'curso-principal',
         translations: [
-          { locale: 'pt', title: 'Curso Principal', description: 'Descrição Principal' },
-          { locale: 'it', title: 'Corso Principale', description: 'Descrizione Principale' },
-          { locale: 'es', title: 'Curso Principal', description: 'Descripción Principal' },
+          {
+            locale: 'pt',
+            title: 'Curso Principal',
+            description: 'Descrição Principal',
+          },
+          {
+            locale: 'it',
+            title: 'Corso Principale',
+            description: 'Descrizione Principale',
+          },
+          {
+            locale: 'es',
+            title: 'Curso Principal',
+            description: 'Descripción Principal',
+          },
         ],
       },
-      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+      new UniqueEntityID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
     );
   }
 
@@ -42,9 +54,21 @@ describe('CreateModuleUseCase', () => {
       courseId,
       slug: 'modulo-exemplo',
       translations: [
-        { locale: 'pt', title: 'Módulo Exemplo', description: 'Descrição Módulo' },
-        { locale: 'it', title: 'Modulo Esempio', description: 'Descrizione Modulo' },
-        { locale: 'es', title: 'Módulo Ejemplo', description: 'Descripción Módulo' },
+        {
+          locale: 'pt',
+          title: 'Módulo Exemplo',
+          description: 'Descrição Módulo',
+        },
+        {
+          locale: 'it',
+          title: 'Modulo Esempio',
+          description: 'Descrizione Modulo',
+        },
+        {
+          locale: 'es',
+          title: 'Módulo Ejemplo',
+          description: 'Descripción Módulo',
+        },
       ],
       order: 1,
     };
@@ -65,10 +89,22 @@ describe('CreateModuleUseCase', () => {
       expect(module.order).toBe(1);
       expect(module.translations).toEqual(
         expect.arrayContaining([
-          { locale: 'pt', title: 'Módulo Exemplo', description: 'Descrição Módulo' },
-          { locale: 'it', title: 'Modulo Esempio', description: 'Descrizione Modulo' },
-          { locale: 'es', title: 'Módulo Ejemplo', description: 'Descripción Módulo' },
-        ])
+          {
+            locale: 'pt',
+            title: 'Módulo Exemplo',
+            description: 'Descrição Módulo',
+          },
+          {
+            locale: 'it',
+            title: 'Modulo Esempio',
+            description: 'Descrizione Modulo',
+          },
+          {
+            locale: 'es',
+            title: 'Módulo Ejemplo',
+            description: 'Descripción Módulo',
+          },
+        ]),
       );
       expect(moduleRepo.items).toHaveLength(1);
       expect(moduleRepo.items[0].courseId).toBe(course.id.toString());
@@ -108,9 +144,7 @@ describe('CreateModuleUseCase', () => {
     const badReq: any = {
       courseId: course.id.toString(),
       slug: 'mod-bad',
-      translations: [
-        { locale: 'it', title: 'Bad', description: 'Bad desc' },
-      ],
+      translations: [{ locale: 'it', title: 'Bad', description: 'Bad desc' }],
       order: 1,
     };
     const result = await sut.execute(badReq);
@@ -124,13 +158,15 @@ describe('CreateModuleUseCase', () => {
             message: 'At least a Portuguese translation is required',
             path: expect.arrayContaining(['translations']),
           }),
-        ])
+        ]),
       );
     }
   });
 
   it('handles repository error on findById', async () => {
-    vi.spyOn(courseRepo, 'findById').mockRejectedValueOnce(new Error('DB down'));
+    vi.spyOn(courseRepo, 'findById').mockRejectedValueOnce(
+      new Error('DB down'),
+    );
     const req = baseRequest('cccccccc-cccc-cccc-cccc-cccccccccccc');
     const result = await sut.execute(req);
     expect(result.isLeft()).toBe(true);
@@ -144,7 +180,9 @@ describe('CreateModuleUseCase', () => {
   it('handles repository error on findByCourseIdAndOrder', async () => {
     const course = baseCourse();
     await courseRepo.create(course);
-    vi.spyOn(moduleRepo, 'findByCourseIdAndOrder').mockRejectedValueOnce(new Error('Error O'));
+    vi.spyOn(moduleRepo, 'findByCourseIdAndOrder').mockRejectedValueOnce(
+      new Error('Error O'),
+    );
 
     const req = baseRequest(course.id.toString());
     const result = await sut.execute(req);
@@ -159,7 +197,9 @@ describe('CreateModuleUseCase', () => {
   it('handles repository error on create', async () => {
     const course = baseCourse();
     await courseRepo.create(course);
-    vi.spyOn(moduleRepo, 'create').mockResolvedValueOnce(left(new Error('Insert fail')) as any);
+    vi.spyOn(moduleRepo, 'create').mockResolvedValueOnce(
+      left(new Error('Insert fail')) as any,
+    );
 
     const req = baseRequest(course.id.toString());
     const result = await sut.execute(req);

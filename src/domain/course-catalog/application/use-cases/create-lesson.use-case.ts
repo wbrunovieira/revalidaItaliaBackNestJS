@@ -5,6 +5,7 @@ import { IModuleRepository } from '../repositories/i-module-repository';
 import { ILessonRepository } from '../repositories/i-lesson-repository';
 import { IVideoRepository } from '../repositories/i-video-repository';
 import { Lesson } from '@/domain/course-catalog/enterprise/entities/lesson.entity';
+import { Video } from '@/domain/course-catalog/enterprise/entities/video.entity';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { ModuleNotFoundError } from './errors/module-not-found-error';
 import { RepositoryError } from './errors/repository-error';
@@ -23,15 +24,18 @@ export type CreateLessonUseCaseResponse = Either<
   {
     lesson: {
       id: string;
+      slug: string;
       moduleId: string;
       order: number;
-      videoId?: string;
       imageUrl?: string;
+      flashcardIds: string[];
+      commentIds: string[];
       translations: Array<{
         locale: 'pt' | 'it' | 'es';
         title: string;
         description?: string;
       }>;
+      videoAssociated?: boolean; // Indica se video foi associado
     };
   }
 >;
@@ -68,47 +72,71 @@ export class CreateLessonUseCase {
       return left(new ModuleNotFoundError());
     }
 
-    // 3) se vier videoId, valida existência
+    // 3) se vier videoId, valida existência e se está disponível
+    let videoToAssociate: Video | null = null;
     if (data.videoId) {
       const foundVideo = await this.videoRepo.findById(data.videoId);
       if (foundVideo.isLeft()) {
-        // se for erro de não encontrado, propaga VideoNotFoundError
-        if (foundVideo.value instanceof VideoNotFoundError) {
-          return left(new VideoNotFoundError());
-        }
-        // qualquer outro => RepositoryError
-        return left(new RepositoryError(foundVideo.value.message));
+        return left(new VideoNotFoundError());
       }
+
+      // Verifica se o video já está associado a outra lesson
+      const { video } = foundVideo.value;
+      if (video.lessonId) {
+        return left(
+          new InvalidInputError(
+            'Video is already associated with another lesson',
+          ),
+        );
+      }
+
+      videoToAssociate = video;
     }
 
     // 4) monta entidade
     const lessonEntity = Lesson.create({
+      slug: data.slug,
       moduleId: data.moduleId,
       order: data.order,
-      videoId: data.videoId,
       imageUrl: data.imageUrl,
-      flashcardIds: [],
-      quizIds: [],
-      commentIds: [],
+      flashcardIds: data.flashcardIds || [],
+      commentIds: data.commentIds || [],
       translations: data.translations,
     });
 
-    // 5) persiste
+    // 5) persiste lesson
     const result = await this.lessonRepo.create(lessonEntity);
     if (result.isLeft()) {
       return left(new RepositoryError(result.value.message));
     }
 
-    // 6) retorna
+    // 6) se houver video, associa à lesson
+    let videoAssociated = false;
+    if (videoToAssociate) {
+      // Atualiza o video com o lessonId
+      videoToAssociate.updateLessonId(lessonEntity.id.toString());
+      const updateResult = await this.videoRepo.update(videoToAssociate);
+      if (updateResult.isLeft()) {
+        // Se falhar, pode optar por reverter a lesson criada ou continuar
+        return left(
+          new RepositoryError('Failed to associate video with lesson'),
+        );
+      }
+      videoAssociated = true;
+    }
+
+    // 7) retorna
     return right({
       lesson: {
         id: lessonEntity.id.toString(),
+        slug: lessonEntity.slug,
         moduleId: lessonEntity.moduleId,
         order: lessonEntity.order,
         imageUrl: lessonEntity.imageUrl,
-
-        videoId: lessonEntity.videoId,
+        flashcardIds: lessonEntity.flashcardIds,
+        commentIds: lessonEntity.commentIds,
         translations: lessonEntity.translations,
+        videoAssociated,
       },
     });
   }

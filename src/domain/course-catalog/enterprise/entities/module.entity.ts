@@ -1,6 +1,5 @@
-// ─────────────────────────────────────────────────────────────────
 // src/domain/course-catalog/enterprise/entities/module.entity.ts
-// ─────────────────────────────────────────────────────────────────
+
 import { Entity } from '@/core/entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { Video } from './video.entity';
@@ -14,9 +13,7 @@ export interface ModuleTranslationVO {
 export interface ModuleProps {
   slug: string;
   imageUrl?: string;
-
   translations: ModuleTranslationVO[];
-
   order: number;
   videos: Video[];
   createdAt: Date;
@@ -76,23 +73,29 @@ export class Module extends Entity<ModuleProps> {
     order?: number;
     slug?: string;
   }) {
+    let touched = false;
+
     if (updates.slug) {
       this.props.slug = updates.slug;
-      this.touch();
+      touched = true;
     }
+
     if (updates.title) {
       const ptIndex = this.props.translations.findIndex(
         (t) => t.locale === 'pt',
       );
       if (ptIndex >= 0) {
         this.props.translations[ptIndex].title = updates.title;
+        touched = true;
       }
-      this.touch();
     }
+
     if (typeof updates.order === 'number') {
       this.props.order = updates.order;
-      this.touch();
+      touched = true;
     }
+
+    if (touched) this.touch();
   }
 
   public addVideo(video: Video) {
@@ -120,8 +123,9 @@ export class Module extends Entity<ModuleProps> {
     const videoSummaries = this.props.videos.map((vid) => ({
       id: vid.id.toString(),
       title: vid.title,
-      isSeen: vid.isSeen,
+      isSeen: vid.isSeen(), // chama o método para obter boolean
     }));
+
     return {
       id: this.id.toString(),
       slug: this.slug,

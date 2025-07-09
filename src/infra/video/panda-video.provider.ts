@@ -1,5 +1,9 @@
 // src/infra/video/panda-video.provider.ts
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
@@ -13,10 +17,10 @@ export class PandaVideoProvider implements VideoHostProvider {
 
   constructor(
     private readonly http: HttpService,
-    private readonly config: ConfigService
+    private readonly config: ConfigService,
   ) {
     this.baseUrl = this.config.get<string>('PANDA_API_BASE_URL')!;
-    this.apiKey   = this.config.get<string>('PANDA_API_KEY')!;
+    this.apiKey = this.config.get<string>('PANDA_API_KEY')!;
     this.logger.debug(`Loaded PANDA_API_BASE_URL=${this.baseUrl}`);
   }
 
@@ -27,17 +31,17 @@ export class PandaVideoProvider implements VideoHostProvider {
       const resp = await firstValueFrom(
         this.http.get<{ length: number }>(url, {
           headers: {
-            accept:        'application/json',
-            Authorization: this.apiKey,   // conforme doc “Get video properties”
+            accept: 'application/json',
+            Authorization: this.apiKey, // conforme doc “Get video properties”
           },
-        })
+        }),
       );
       this.logger.log(`Received length=${resp.data.length}`);
       return { durationInSeconds: resp.data.length };
     } catch (err: any) {
       this.logger.error(
         `Failed to fetch metadata for videoId=${videoId}; status=${err.response?.status}`,
-        err.response?.data || err.stack
+        err.response?.data || err.stack,
       );
       throw new InternalServerErrorException('Failed to fetch video metadata');
     }

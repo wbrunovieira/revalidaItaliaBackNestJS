@@ -74,7 +74,10 @@ export class Argument extends Entity<ArgumentProps> {
     );
   }
 
-  public static reconstruct(props: ArgumentProps, id: UniqueEntityID): Argument {
+  public static reconstruct(
+    props: ArgumentProps,
+    id: UniqueEntityID,
+  ): Argument {
     return new Argument(props, id);
   }
 }

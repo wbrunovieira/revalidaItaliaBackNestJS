@@ -1,16 +1,17 @@
 // ─────────────────────────────────────────────────────────────────
 // src/domain/course-catalog/enterprise/entities/video.entity.ts
 // ─────────────────────────────────────────────────────────────────
-import { Entity } from "@/core/entity";
-import { UniqueEntityID } from "@/core/unique-entity-id";
+import { Entity } from '@/core/entity';
+import { UniqueEntityID } from '@/core/unique-entity-id';
+import { VideoTranslationVO } from '../value-objects/video-translation.vo';
 
 export interface VideoProps {
   slug: string;
-
-  title: string;
+  imageUrl?: string;
   providerVideoId: string;
   durationInSeconds: number;
-  isSeen: boolean;
+  lessonId?: string;
+  translations: VideoTranslationVO[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,8 +25,8 @@ export class Video extends Entity<VideoProps> {
     return this.props.slug;
   }
 
-  public get title(): string {
-    return this.props.title;
+  public get imageUrl(): string | undefined {
+    return this.props.imageUrl;
   }
 
   public get providerVideoId(): string {
@@ -36,8 +37,24 @@ export class Video extends Entity<VideoProps> {
     return this.props.durationInSeconds;
   }
 
-  public get isSeen(): boolean {
-    return this.props.isSeen;
+  public get lessonId(): string | undefined {
+    return this.props.lessonId;
+  }
+
+  public get translations(): VideoTranslationVO[] {
+    return this.props.translations;
+  }
+
+  public get title(): string {
+    // Retorna o título em português por padrão
+    const ptTranslation = this.props.translations.find(t => t.locale === 'pt');
+    return ptTranslation?.title || '';
+  }
+
+  public isSeen(userId?: string): boolean {
+    // Por enquanto retorna false, pois precisaria consultar a tabela VideoSeen
+    // Isso seria implementado no repository/service layer
+    return false;
   }
 
   public get createdAt(): Date {
@@ -48,73 +65,81 @@ export class Video extends Entity<VideoProps> {
     return this.props.updatedAt;
   }
 
-  public updateDetails(updates: { title?: string; durationInSeconds?: number; slug?: string }) {
+  public updateDetails(updates: {
+    slug?: string;
+    imageUrl?: string;
+    durationInSeconds?: number;
+    providerVideoId?: string;
+  }) {
     if (updates.slug) {
       this.props.slug = updates.slug;
       this.touch();
     }
-    if (updates.title) {
-      this.props.title = updates.title;
+    if (updates.imageUrl !== undefined) {
+      this.props.imageUrl = updates.imageUrl;
       this.touch();
     }
-    if (typeof updates.durationInSeconds === "number") {
+    if (typeof updates.durationInSeconds === 'number') {
       this.props.durationInSeconds = updates.durationInSeconds;
       this.touch();
     }
-  }
-
-  public markAsSeen() {
-    if (!this.props.isSeen) {
-      this.props.isSeen = true;
+    if (updates.providerVideoId) {
+      this.props.providerVideoId = updates.providerVideoId;
       this.touch();
     }
   }
 
-  public markAsUnseen() {
-    if (this.props.isSeen) {
-      this.props.isSeen = false;
-      this.touch();
-    }
+  public updateTranslations(translations: VideoTranslationVO[]) {
+    this.props.translations = translations;
+    this.touch();
+  }
+
+  public updateLessonId(lessonId: string | undefined) {
+    this.props.lessonId = lessonId;
+    this.touch();
   }
 
   public toResponseObject(): {
     id: string;
     slug: string;
-    title: string;
+    imageUrl?: string;
     providerVideoId: string;
     durationInSeconds: number;
-    isSeen: boolean;
+    lessonId?: string;
+    translations: VideoTranslationVO[];
     createdAt: Date;
     updatedAt: Date;
   } {
     return {
       id: this.id.toString(),
       slug: this.slug,
-      title: this.props.title,
+      imageUrl: this.props.imageUrl,
       providerVideoId: this.props.providerVideoId,
       durationInSeconds: this.props.durationInSeconds,
-      isSeen: this.props.isSeen,
+      lessonId: this.props.lessonId,
+      translations: this.props.translations,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
     };
   }
 
   public static create(
-    props: Omit<VideoProps, "createdAt" | "updatedAt" | "isSeen"> & { isSeen?: boolean },
-    id?: UniqueEntityID
+    props: Omit<VideoProps, 'createdAt' | 'updatedAt'>,
+    id?: UniqueEntityID,
   ): Video {
     const now = new Date();
     return new Video(
       {
         slug: props.slug,
-        title: props.title,
+        imageUrl: props.imageUrl,
         providerVideoId: props.providerVideoId,
         durationInSeconds: props.durationInSeconds,
-        isSeen: props.isSeen ?? false,
+        lessonId: props.lessonId,
+        translations: props.translations,
         createdAt: now,
         updatedAt: now,
       },
-      id
+      id,
     );
   }
 

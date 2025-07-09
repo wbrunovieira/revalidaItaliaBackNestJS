@@ -2,7 +2,6 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAddressDto {
-  
   @IsString()
   @IsNotEmpty({ message: 'userId must be provided' })
   userId!: string;
@@ -25,7 +24,7 @@ export class CreateAddressDto {
 
   @IsString()
   @IsOptional()
-  complement?: string ;
+  complement?: string;
 
   @IsString()
   @IsOptional()

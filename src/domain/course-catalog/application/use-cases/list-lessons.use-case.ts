@@ -23,7 +23,7 @@ interface LessonWithOptionalVideo {
   id: UniqueEntityID;
   moduleId: string;
   videoId?: string;
-  order?: number;
+  order: number;
   translations: Array<{
     locale: 'pt' | 'it' | 'es';
     title: string;
@@ -92,13 +92,13 @@ export class ListLessonsUseCase {
 
     const { lessons, total } = lessonsResult.value;
 
-    // 4) If includeVideo is true, fetch video data for lessons that have videoId
+    // 4) If includeVideo is true, fetch video data for lessons that have video
     let lessonsWithVideos: LessonWithOptionalVideo[] = lessons.map(
       (lesson, index): LessonWithOptionalVideo => ({
         id: lesson.id,
         moduleId: lesson.moduleId,
-        videoId: lesson.videoId,
-        order: 'order' in lesson ? (lesson as any).order : index + 1, // Use index as fallback order
+        videoId: lesson.video?.id,
+        order: lesson.order,
         translations: lesson.translations,
         createdAt: lesson.createdAt,
         updatedAt: lesson.updatedAt,
@@ -107,34 +107,28 @@ export class ListLessonsUseCase {
     );
 
     if (data.includeVideo) {
-      const videoPromises = lessons.map(
-        async (lesson, index): Promise<LessonWithOptionalVideo> => {
-          if (!lesson.videoId) {
-            return lessonsWithVideos[index];
-          }
-
-          const videoResult = await this.videoRepo.findById(lesson.videoId);
-          if (videoResult.isLeft()) {
-            // If video not found, just return lesson without video data
-            return lessonsWithVideos[index];
-          }
-
-          const { video } = videoResult.value;
-          return {
-            ...lessonsWithVideos[index],
-            video: {
-              id: video.id.toString(),
-              slug: video.slug,
-              title: video.title,
-              providerVideoId: video.providerVideoId,
-              durationInSeconds: video.durationInSeconds,
-              isSeen: video.isSeen,
-            },
-          };
-        },
+      lessonsWithVideos = lessons.map(
+        (lesson, index): LessonWithOptionalVideo => ({
+          id: lesson.id,
+          moduleId: lesson.moduleId,
+          videoId: lesson.video?.id,
+          order: lesson.order,
+          translations: lesson.translations,
+          createdAt: lesson.createdAt,
+          updatedAt: lesson.updatedAt,
+          video: lesson.video
+            ? {
+                id: lesson.video.id,
+                slug: lesson.video.slug,
+                title:
+                  lesson.video.translations?.[0]?.title || 'Untitled Video',
+                providerVideoId: lesson.video.providerVideoId,
+                durationInSeconds: lesson.video.durationInSeconds,
+                isSeen: false, // This would need to be determined from user context
+              }
+            : undefined,
+        }),
       );
-
-      lessonsWithVideos = await Promise.all(videoPromises);
     }
 
     // 5) Build response with pagination

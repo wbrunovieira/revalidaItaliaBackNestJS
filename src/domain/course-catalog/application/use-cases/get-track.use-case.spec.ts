@@ -24,11 +24,14 @@ describe('GetTrackUseCase', () => {
       new TrackTranslationVO('it', 'Titolo IT', 'Descrizione IT'),
       new TrackTranslationVO('es', 'Título ES', 'Descripción ES'),
     ];
-    const trackEntity = Track.create({
-      slug: 'slug-track',
-      courseIds: ['c1', 'c2'],
-      translations,
-    }, new UniqueEntityID('00000000-0000-0000-0000-000000000001'));
+    const trackEntity = Track.create(
+      {
+        slug: 'slug-track',
+        courseIds: ['c1', 'c2'],
+        translations,
+      },
+      new UniqueEntityID('00000000-0000-0000-0000-000000000001'),
+    );
     repo.items.push(trackEntity);
 
     const result = await useCase.execute({ id: trackEntity.id.toString() });
@@ -46,7 +49,7 @@ describe('GetTrackUseCase', () => {
           { locale: 'pt', title: 'Título PT', description: 'Descrição PT' },
           { locale: 'it', title: 'Titolo IT', description: 'Descrizione IT' },
           { locale: 'es', title: 'Título ES', description: 'Descripción ES' },
-        ])
+        ]),
       );
     }
   });
@@ -57,7 +60,7 @@ describe('GetTrackUseCase', () => {
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidInputError);
       const err = result.value as InvalidInputError;
-      expect(err.details.some(d => d.path.join('.') === 'id')).toBe(true);
+      expect(err.details.some((d) => d.path.join('.') === 'id')).toBe(true);
     }
   });
 
@@ -72,7 +75,9 @@ describe('GetTrackUseCase', () => {
 
   it('throws RepositoryError when repository throws', async () => {
     const id = '00000000-0000-0000-0000-000000000003';
-    vi.spyOn(repo, 'findById').mockImplementationOnce(() => { throw new Error('DB crashed'); });
+    vi.spyOn(repo, 'findById').mockImplementationOnce(() => {
+      throw new Error('DB crashed');
+    });
     const result = await useCase.execute({ id });
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {

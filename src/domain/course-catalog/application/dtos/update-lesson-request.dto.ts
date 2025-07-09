@@ -14,5 +14,6 @@ export interface UpdateLessonRequest {
   videoId?: string | null;
   flashcardIds?: string[];
   quizIds?: string[];
+  assessments?: string[];
   commentIds?: string[];
 }

@@ -60,7 +60,7 @@ export const createDocumentSchema = z
     mimeType: z
       .enum(allowedMimeTypes as any)
       .refine(
-        (type) => allowedMimeTypes.includes(type as any),
+        (type) => allowedMimeTypes.includes(type),
         'Unsupported file type',
       ),
 

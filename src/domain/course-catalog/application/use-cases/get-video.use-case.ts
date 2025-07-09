@@ -45,7 +45,7 @@ export class GetVideoUseCase {
       }));
       return left(new InvalidInputError('Validation failed', details));
     }
-    const { id } = parsed.data as GetVideoSchema;
+    const { id } = parsed.data;
     console.log('usecase get video:', parsed.data);
 
     // busca no repo

@@ -36,10 +36,11 @@ describe('GetDocumentUseCase', () => {
     // arrange: lesson
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },
@@ -158,10 +159,11 @@ describe('GetDocumentUseCase', () => {
     // lesson exists, but no docs
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },
@@ -178,12 +180,13 @@ describe('GetDocumentUseCase', () => {
     // two lessons
     const lesson1 = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [
           { locale: 'pt', title: 'Aula PT 1', description: 'Desc' },
         ],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },
@@ -196,9 +199,10 @@ describe('GetDocumentUseCase', () => {
           { locale: 'pt', title: 'Aula PT 2', description: 'Desc' },
         ],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
+        slug: '',
       },
       new UniqueEntityID('cccccccc-cccc-cccc-cccc-cccccccccccc'),
     );
@@ -233,10 +237,11 @@ describe('GetDocumentUseCase', () => {
     // lesson exists
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },

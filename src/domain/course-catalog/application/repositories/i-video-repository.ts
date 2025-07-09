@@ -47,4 +47,5 @@ export interface IVideoRepository {
     id: string,
   ): Promise<Either<Error, VideoDependencyInfo>>;
   delete(id: string): Promise<Either<Error, void>>;
+  update(video: Video): Promise<Either<Error, void>>;
 }

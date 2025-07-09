@@ -32,10 +32,11 @@ describe('ListDocumentsUseCase', () => {
     // Arrange lesson
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },
@@ -138,10 +139,11 @@ describe('ListDocumentsUseCase', () => {
   it('returns empty array when lesson has no documents', async () => {
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },
@@ -171,10 +173,11 @@ describe('ListDocumentsUseCase', () => {
   it('propagates repository errors as RepositoryError', async () => {
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },
@@ -194,10 +197,11 @@ describe('ListDocumentsUseCase', () => {
   it('includes all translations for each document', async () => {
     const lesson = Lesson.create(
       {
+        slug: 'lesson-test',
         moduleId: 'mod-1',
         translations: [{ locale: 'pt', title: 'Aula PT', description: 'Desc' }],
         flashcardIds: [],
-        quizIds: [],
+        assessments: [],
         commentIds: [],
         order: 0,
       },

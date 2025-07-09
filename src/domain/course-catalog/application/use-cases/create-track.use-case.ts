@@ -45,7 +45,7 @@ export class CreateTrackUseCase {
       }));
       return left(new InvalidInputError('Validation failed', details));
     }
-    const data = parse.data as CreateTrackSchema;
+    const data = parse.data;
 
     try {
       const exists = await this.trackRepo.findBySlug(data.slug);

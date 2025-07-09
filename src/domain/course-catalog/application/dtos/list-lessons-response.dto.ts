@@ -5,7 +5,7 @@ export interface LessonDto {
   id: string;
   moduleId: string;
   videoId?: string;
-  order?: number;
+  order: number;
   translations: TranslationDto[];
   createdAt: Date;
   updatedAt: Date;

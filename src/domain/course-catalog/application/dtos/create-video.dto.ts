@@ -35,8 +35,12 @@ export class CreateVideoDto {
   providerVideoId!: string;
 
   @IsArray()
-  @ArrayMinSize(3, { message: 'Exactly three translations required (pt, it & es)' })
-  @ArrayMaxSize(3, { message: 'Exactly three translations required (pt, it & es)' })
+  @ArrayMinSize(3, {
+    message: 'Exactly three translations required (pt, it & es)',
+  })
+  @ArrayMaxSize(3, {
+    message: 'Exactly three translations required (pt, it & es)',
+  })
   @ValidateNested({ each: true })
   @Type(() => VideoTranslationDto)
   translations!: VideoTranslationDto[];

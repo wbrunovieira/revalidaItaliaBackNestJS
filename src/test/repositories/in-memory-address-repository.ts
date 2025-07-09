@@ -1,32 +1,32 @@
 // src/test/repositories/in-memory-address-repository.ts
-import { Either, right } from "@/core/either"
-import { IAddressRepository } from "@/domain/auth/application/repositories/i-address-repository"
-import { Address } from "@/domain/auth/enterprise/entities/address.entity"
+import { Either, right } from '@/core/either';
+import { IAddressRepository } from '@/domain/auth/application/repositories/i-address-repository';
+import { Address } from '@/domain/auth/enterprise/entities/address.entity';
 
 export class InMemoryAddressRepository implements IAddressRepository {
-  public items: Address[] = []
+  public items: Address[] = [];
 
   async create(address: Address): Promise<Either<Error, void>> {
-    this.items.push(address)
-    return right(undefined)
+    this.items.push(address);
+    return right(undefined);
   }
 
   async findByUserId(userId: string): Promise<Either<Error, Address[]>> {
-    return right(this.items.filter(a => a.userId.toString() === userId))
+    return right(this.items.filter((a) => a.userId.toString() === userId));
   }
 
   async findById(id: string): Promise<Either<Error, Address | undefined>> {
-    return right(this.items.find(a => a.id.toString() === id))
+    return right(this.items.find((a) => a.id.toString() === id));
   }
 
   async update(address: Address): Promise<Either<Error, void>> {
-    const idx = this.items.findIndex(a => a.id.equals(address.id))
-    if (idx >= 0) this.items[idx] = address
-    return right(undefined)
+    const idx = this.items.findIndex((a) => a.id.equals(address.id));
+    if (idx >= 0) this.items[idx] = address;
+    return right(undefined);
   }
 
   async delete(id: string): Promise<Either<Error, void>> {
-    const idx = this.items.findIndex(a => a.id.toString() === id);
+    const idx = this.items.findIndex((a) => a.id.toString() === id);
     if (idx >= 0) {
       this.items.splice(idx, 1);
     }

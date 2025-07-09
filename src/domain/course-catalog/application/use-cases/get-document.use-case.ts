@@ -60,7 +60,7 @@ export class GetDocumentUseCase {
       }));
       return left(new InvalidInputError('Validation failed', details));
     }
-    const data = parseResult.data as GetDocumentSchema;
+    const data = parseResult.data;
 
     // 2) verifica existência da aula
     const lessonOrErr = await this.lessonRepo.findById(data.lessonId);

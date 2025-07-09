@@ -1,3 +1,5 @@
+// src/infra/database/prisma/repositories/prisma-video.repository.ts
+
 import {
   Injectable,
   ConflictException,
@@ -24,16 +26,17 @@ export class PrismaVideoRepository implements IVideoRepository {
       });
       if (!row) return left(new Error('Video not found'));
 
-      const ptTr = row.translations.find((t) => t.locale === 'pt');
-      if (!ptTr) return left(new Error('Portuguese translation missing'));
-
       const videoEntity = Video.reconstruct(
         {
           slug: row.slug,
-          title: ptTr.title,
           providerVideoId: row.providerVideoId,
           durationInSeconds: row.durationInSeconds,
-          isSeen: row.isSeen,
+          lessonId: row.lessonId ?? undefined,
+          translations: row.translations.map((t) => ({
+            locale: t.locale as 'pt' | 'it' | 'es',
+            title: t.title,
+            description: t.description,
+          })),
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
         },
@@ -62,8 +65,7 @@ export class PrismaVideoRepository implements IVideoRepository {
           slug: video.slug,
           providerVideoId: video.providerVideoId,
           durationInSeconds: video.durationInSeconds,
-          isSeen: video.isSeen,
-          lessonId, // ← use the real lessonId
+          lessonId,
           translations: {
             create: translations.map((t) => ({
               id: new UniqueEntityID().toString(),
@@ -105,7 +107,6 @@ export class PrismaVideoRepository implements IVideoRepository {
     >
   > {
     try {
-      console.log('prisma video findById id', id);
       const row = await this.prisma.video.findUnique({
         where: { id },
         include: { translations: true },
@@ -115,23 +116,24 @@ export class PrismaVideoRepository implements IVideoRepository {
       const videoEntity = Video.reconstruct(
         {
           slug: row.slug,
-          title: row.translations.find((t) => t.locale === 'pt')!.title,
           providerVideoId: row.providerVideoId,
           durationInSeconds: row.durationInSeconds,
-          isSeen: row.isSeen,
+          lessonId: row.lessonId ?? undefined,
+          translations: row.translations.map((t) => ({
+            locale: t.locale as 'pt' | 'it' | 'es',
+            title: t.title,
+            description: t.description,
+          })),
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
         },
         new UniqueEntityID(row.id),
       );
 
-      const translationsData = row.translations.map((t) => ({
-        locale: t.locale as 'pt' | 'it' | 'es',
-        title: t.title,
-        description: t.description,
-      }));
-
-      return right({ video: videoEntity, translations: translationsData });
+      return right({
+        video: videoEntity,
+        translations: videoEntity.translations,
+      });
     } catch (err: any) {
       return left(new Error(`Database error: ${err.message}`));
     }
@@ -157,26 +159,27 @@ export class PrismaVideoRepository implements IVideoRepository {
       });
 
       const result = rows.map((row) => {
-        const videoEntity = Video.reconstruct(
+        const video = Video.reconstruct(
           {
             slug: row.slug,
-            title: row.translations.find((t) => t.locale === 'pt')!.title,
             providerVideoId: row.providerVideoId,
             durationInSeconds: row.durationInSeconds,
-            isSeen: row.isSeen,
+            lessonId: row.lessonId ?? undefined,
+            translations: row.translations.map((t) => ({
+              locale: t.locale as 'pt' | 'it' | 'es',
+              title: t.title,
+              description: t.description,
+            })),
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
           },
           new UniqueEntityID(row.id),
         );
 
-        const translationsData = row.translations.map((t) => ({
-          locale: t.locale as 'pt' | 'it' | 'es',
-          title: t.title,
-          description: t.description,
-        }));
-
-        return { video: videoEntity, translations: translationsData };
+        return {
+          video,
+          translations: video.translations,
+        };
       });
 
       return right(result);
@@ -189,7 +192,6 @@ export class PrismaVideoRepository implements IVideoRepository {
     id: string,
   ): Promise<Either<Error, VideoDependencyInfo>> {
     try {
-      // Buscar APENAS as dependências que realmente impedem a exclusão
       const videosSeen = await this.prisma.videoSeen.findMany({
         where: { videoId: id },
         include: {
@@ -199,17 +201,13 @@ export class PrismaVideoRepository implements IVideoRepository {
         },
       });
 
-      // Contar dependências que podem ser deletadas (para info apenas)
       const [translations, videoLinks] = await Promise.all([
         this.prisma.videoTranslation.count({ where: { videoId: id } }),
         this.prisma.videoLink.count({ where: { videoId: id } }),
       ]);
 
-      const dependencies: VideoDependencyInfo['dependencies'] = [];
-
-      // APENAS VideoSeen impede a exclusão (dados de progresso do usuário)
-      videosSeen.forEach((seen) => {
-        dependencies.push({
+      const dependencies: VideoDependencyInfo['dependencies'] = videosSeen.map(
+        (seen) => ({
           type: 'video_seen',
           id: seen.id,
           name: `Viewed by ${seen.user.name}`,
@@ -217,16 +215,16 @@ export class PrismaVideoRepository implements IVideoRepository {
             userId: seen.userId,
             userName: seen.user.name,
           },
-        });
-      });
+        }),
+      );
 
       const info: VideoDependencyInfo = {
-        canDelete: videosSeen.length === 0, // Só videosSeen impede
+        canDelete: videosSeen.length === 0,
         totalDependencies: videosSeen.length,
         summary: {
           videosSeen: videosSeen.length,
-          translations: translations, // Info apenas
-          videoLinks: videoLinks, // Info apenas
+          translations,
+          videoLinks,
         },
         dependencies,
       };
@@ -241,47 +239,58 @@ export class PrismaVideoRepository implements IVideoRepository {
 
   async delete(id: string): Promise<Either<Error, void>> {
     try {
-      // Use transaction para garantir integridade
       await this.prisma.$transaction(async (tx) => {
-        // Verificar se o vídeo existe
-        const existingVideo = await tx.video.findUnique({
-          where: { id },
-        });
+        const existingVideo = await tx.video.findUnique({ where: { id } });
+        if (!existingVideo) throw new Error('Video not found');
 
-        if (!existingVideo) {
-          throw new Error('Video not found');
-        }
-
-        // Deletar todas as entidades relacionadas primeiro
         await Promise.all([
-          // Deletar VideoSeen
-          tx.videoSeen.deleteMany({
-            where: { videoId: id },
-          }),
-
-          // Deletar VideoTranslation
-          tx.videoTranslation.deleteMany({
-            where: { videoId: id },
-          }),
-
-          // Deletar VideoLink
-          tx.videoLink.deleteMany({
-            where: { videoId: id },
-          }),
+          tx.videoSeen.deleteMany({ where: { videoId: id } }),
+          tx.videoTranslation.deleteMany({ where: { videoId: id } }),
+          tx.videoLink.deleteMany({ where: { videoId: id } }),
         ]);
 
-        // Por último, deletar o próprio vídeo
-        await tx.video.delete({
-          where: { id },
+        await tx.video.delete({ where: { id } });
+      });
+
+      return right(undefined);
+    } catch (err: any) {
+      return left(new Error(`Failed to delete video: ${err.message}`));
+    }
+  }
+
+  async update(video: Video): Promise<Either<Error, void>> {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.video.update({
+          where: { id: video.id.toString() },
+          data: {
+            slug: video.slug,
+            imageUrl: video.imageUrl,
+            providerVideoId: video.providerVideoId,
+            durationInSeconds: video.durationInSeconds,
+            lessonId: video.lessonId,
+            updatedAt: video.updatedAt,
+          },
+        });
+
+        await tx.videoTranslation.deleteMany({
+          where: { videoId: video.id.toString() },
+        });
+
+        await tx.videoTranslation.createMany({
+          data: video.translations.map((t) => ({
+            id: new UniqueEntityID().toString(),
+            videoId: video.id.toString(),
+            locale: t.locale,
+            title: t.title,
+            description: t.description,
+          })),
         });
       });
 
       return right(undefined);
     } catch (err: any) {
-      if (err.message === 'Video not found') {
-        return left(new Error('Video not found'));
-      }
-      return left(new Error(`Failed to delete video: ${err.message}`));
+      return left(new Error(`Failed to update video: ${err.message}`));
     }
   }
 }

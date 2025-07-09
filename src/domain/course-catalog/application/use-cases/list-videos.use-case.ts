@@ -52,7 +52,7 @@ export class ListVideosUseCase {
       }));
       return left(new InvalidInputError('Validation failed', details));
     }
-    const { lessonId } = parsed.data as ListVideosSchema;
+    const { lessonId } = parsed.data;
 
     // 2) busca vídeos da aula
     try {

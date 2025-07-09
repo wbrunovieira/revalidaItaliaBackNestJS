@@ -1,13 +1,11 @@
 // src/infra/controllers/auth.controller.ts
-import {
-  Controller,
-  Post,
-  Body,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
 import { AuthenticateUserUseCase } from '@/domain/auth/application/use-cases/authenticate-user.use-case';
 import { AuthenticateUserRequest } from '@/domain/auth/application/use-cases/authenticate-user.use-case';
-import { IS_PUBLIC_KEY, Public } from '@/infra/auth/decorators/public.decorator';
+import {
+  IS_PUBLIC_KEY,
+  Public,
+} from '@/infra/auth/decorators/public.decorator';
 import { JwtService } from '@nestjs/jwt';
 
 @Controller('auth')
@@ -23,7 +21,6 @@ export class AuthController {
     const result = await this.authenticateUser.execute(dto);
 
     if (result.isLeft()) {
-
       throw new UnauthorizedException(result.value.message);
     }
 
