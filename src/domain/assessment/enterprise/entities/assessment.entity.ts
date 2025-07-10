@@ -75,20 +75,14 @@ export class Assessment extends Entity<AssessmentProps> {
   public update(props: Partial<AssessmentProps>) {
     if (props.title !== undefined) this.props.title = props.title;
     if (props.slug !== undefined) this.props.slug = props.slug;
-    if (props.description !== undefined)
-      this.props.description = props.description;
+    this.props.description = props.description; // Allow explicit undefined/null to unset
     if (props.type !== undefined) this.props.type = props.type;
-    if (props.quizPosition !== undefined)
-      this.props.quizPosition = props.quizPosition;
-    if (props.passingScore !== undefined)
-      this.props.passingScore = props.passingScore;
-    if (props.timeLimitInMinutes !== undefined)
-      this.props.timeLimitInMinutes = props.timeLimitInMinutes;
-    if (props.randomizeQuestions !== undefined)
-      this.props.randomizeQuestions = props.randomizeQuestions;
-    if (props.randomizeOptions !== undefined)
-      this.props.randomizeOptions = props.randomizeOptions;
-    if (props.lessonId !== undefined) this.props.lessonId = props.lessonId;
+    this.props.quizPosition = props.quizPosition; // Allow explicit undefined/null to unset
+    if (props.passingScore !== undefined) this.props.passingScore = props.passingScore;
+    this.props.timeLimitInMinutes = props.timeLimitInMinutes; // Allow explicit undefined/null to unset
+    if (props.randomizeQuestions !== undefined) this.props.randomizeQuestions = props.randomizeQuestions;
+    if (props.randomizeOptions !== undefined) this.props.randomizeOptions = props.randomizeOptions;
+    this.props.lessonId = props.lessonId; // Allow explicit undefined/null to unset
     this.touch();
   }
 
