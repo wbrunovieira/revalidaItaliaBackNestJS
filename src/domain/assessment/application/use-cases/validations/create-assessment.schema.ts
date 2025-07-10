@@ -1,5 +1,3 @@
-// src/domain/assessment/application/use-cases/validations/create-assessment.schema.ts
-
 import { z } from 'zod';
 
 export const createAssessmentSchema = z
@@ -28,7 +26,6 @@ export const createAssessmentSchema = z
     randomizeOptions: z.boolean().default(false),
     lessonId: z.string().uuid('Lesson ID must be a valid UUID').optional(),
   })
-  .strict()
   .superRefine((data, ctx) => {
     // Quiz-specific validations
     if (data.type === 'QUIZ') {
@@ -76,7 +73,6 @@ export const createAssessmentSchema = z
         });
       }
     }
-    
   });
 
 export type CreateAssessmentSchema = z.infer<typeof createAssessmentSchema>;

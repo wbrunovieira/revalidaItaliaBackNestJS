@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────
-// src/infra/course-catalog/dtos/create-course.dto.ts
+// src/domain/application/course-catalog/dtos/create-course.dto.ts
 // ─────────────────────────────────────────────────────────────────
 import {
   IsEnum,

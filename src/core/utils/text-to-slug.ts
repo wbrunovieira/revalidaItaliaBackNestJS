@@ -1,3 +1,4 @@
+//src/core/utils/text-to-slug.ts
 export function textToSlug(text: string): string {
   return text
     .normalize('NFD') // Normaliza para decompor acentos
