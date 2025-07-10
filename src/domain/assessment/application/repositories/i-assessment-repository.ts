@@ -3,6 +3,11 @@ import { Either } from '@/core/either';
 import { Assessment } from '@/domain/assessment/enterprise/entities/assessment.entity';
 import { PaginationParams } from '@/core/repositories/pagination-params';
 
+export interface PaginatedAssessmentsResult {
+  assessments: Assessment[];
+  total: number;
+}
+
 export abstract class IAssessmentRepository {
   abstract findById(id: string): Promise<Either<Error, Assessment>>;
 
@@ -17,6 +22,11 @@ export abstract class IAssessmentRepository {
   abstract findAll(
     params?: PaginationParams,
   ): Promise<Either<Error, Assessment[]>>;
+
+  abstract findAllPaginated(
+    limit: number,
+    offset: number,
+  ): Promise<Either<Error, PaginatedAssessmentsResult>>;
 
   abstract update(assessment: Assessment): Promise<Either<Error, void>>;
 

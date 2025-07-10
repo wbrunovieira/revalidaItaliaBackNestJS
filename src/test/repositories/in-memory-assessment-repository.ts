@@ -1,7 +1,7 @@
 // src/test/repositories/in-memory-assessment-repository.ts
 import { Either, left, right } from '@/core/either';
 import { Assessment } from '@/domain/assessment/enterprise/entities/assessment.entity';
-import { IAssessmentRepository } from '@/domain/assessment/application/repositories/i-assessment-repository';
+import { IAssessmentRepository, PaginatedAssessmentsResult } from '@/domain/assessment/application/repositories/i-assessment-repository';
 import { PaginationParams } from '@/core/repositories/pagination-params';
 
 export class InMemoryAssessmentRepository implements IAssessmentRepository {
@@ -38,6 +38,18 @@ export class InMemoryAssessmentRepository implements IAssessmentRepository {
 
   async findAll(): Promise<Either<Error, Assessment[]>> {
     return right([...this.items]);
+  }
+
+  async findAllPaginated(
+    limit: number,
+    offset: number,
+  ): Promise<Either<Error, PaginatedAssessmentsResult>> {
+    const sortedItems = [...this.items].sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
+    const assessments = sortedItems.slice(offset, offset + limit);
+    const total = this.items.length;
+    return right({ assessments, total });
   }
 
   async update(assessment: Assessment): Promise<Either<Error, void>> {

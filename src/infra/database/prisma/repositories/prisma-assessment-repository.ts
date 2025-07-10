@@ -2,7 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Either, left, right } from '@/core/either';
-import { IAssessmentRepository } from '@/domain/assessment/application/repositories/i-assessment-repository';
+import { IAssessmentRepository, PaginatedAssessmentsResult } from '@/domain/assessment/application/repositories/i-assessment-repository';
 import { Assessment } from '@/domain/assessment/enterprise/entities/assessment.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { PaginationParams } from '@/core/repositories/pagination-params';
@@ -170,6 +170,27 @@ export class PrismaAssessmentRepository implements IAssessmentRepository {
       }
 
       return right(this.mapToEntity(data));
+    } catch (err: any) {
+      return left(new Error('Database error'));
+    }
+  }
+
+  async findAllPaginated(
+    limit: number,
+    offset: number,
+  ): Promise<Either<Error, PaginatedAssessmentsResult>> {
+    try {
+      const [assessments, total] = await Promise.all([
+        this.prisma.assessment.findMany({
+          skip: offset,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.assessment.count(),
+      ]);
+
+      const mappedAssessments = assessments.map((item) => this.mapToEntity(item));
+      return right({ assessments: mappedAssessments, total });
     } catch (err: any) {
       return left(new Error('Database error'));
     }

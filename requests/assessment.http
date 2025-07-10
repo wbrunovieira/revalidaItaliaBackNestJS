@@ -36,15 +36,17 @@ Content-Type: {{contentType}}
 }
 
 ### 3. Criar Assessment tipo PROVA_ABERTA - Sucesso
+
 POST {{BASE_URL}}/assessments
 Content-Type: {{contentType}}
 
 {
-  "title": "Prova Dissertativa de Cardiologia 2",
+  "title": "Prova Dissertativa de Cardiologia 3",
   "description": "Avaliação com questões dissertativas sobre cardiologia",
   "type": "PROVA_ABERTA",
   "passingScore": 50,
   "randomizeQuestions": false,
+
   "randomizeOptions": false,
    "lessonId": "0ef04e01-8faa-45f3-813d-6f6d0b2d959f"
 }
@@ -54,7 +56,7 @@ POST {{BASE_URL}}/assessments
 Content-Type: {{contentType}}
 
 {
-  "title": "Pré-teste de Farmacologia",
+  "title": "Pré-teste de Farmacologia 2",
   "type": "QUIZ",
   "quizPosition": "BEFORE_LESSON",
   "passingScore": 40,
