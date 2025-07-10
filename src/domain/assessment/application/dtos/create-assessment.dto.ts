@@ -13,6 +13,7 @@ import {
   IsInt,
 } from 'class-validator';
 
+// src/domain/assessment/application/dtos/create-assessment.dto.ts
 export class CreateAssessmentDto {
   @IsString()
   @MinLength(3)
@@ -47,7 +48,8 @@ export class CreateAssessmentDto {
   @IsBoolean()
   randomizeOptions: boolean = false;
 
-  @ValidateIf((o) => o.type === 'QUIZ')
+  // 🔧 ALTERAR AQUI: permitir sempre
+  @IsOptional()
   @IsUUID()
   lessonId?: string;
 }

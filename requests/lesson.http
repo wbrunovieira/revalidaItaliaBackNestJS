@@ -3,12 +3,13 @@
 #@BASE_URL = http://18.216.107.74:3333
 
 ### Create Lesson
-POST {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef/lessons
+POST {{BASE_URL}}/courses/8adec2b1-7297-4345-9c02-807e1e7d4277/modules/de61abd2-6120-492b-8333-156eaaf4d1f5/lessons
 Content-Type: application/json
 
 {
   "moduleId": "64436979-2173-4518-be2f-6415961d9cef", 
   "imageUrl": "/images/capa-track.avif",
+   "slug": "aula-teste-8",
   "translations": [
     { "locale": "pt", "title": "Aula PT teste 8", "description": "Descrição PT" },
     { "locale": "it", "title": "Lezione IT teste 8", "description": "Descrizione IT" },
@@ -31,7 +32,7 @@ Content-Type: application/json
 }
 
 ### List Lessons
-GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef/lessons
+GET {{BASE_URL}}/courses/8adec2b1-7297-4345-9c02-807e1e7d4277/modules/64436979-2173-4518-be2f-6415961d9cef/lessons
 
 ### List Lessons (with pagination)
 GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef/lessons?page=1&limit=5&includeVideo=true

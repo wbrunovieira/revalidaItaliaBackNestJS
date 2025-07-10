@@ -23,10 +23,8 @@ describe('Create Module (E2E)', () => {
 
     prisma = app.get(PrismaService);
 
-    await prisma.moduleTranslation.deleteMany({});
-    await prisma.module.deleteMany({});
-    await prisma.courseTranslation.deleteMany({});
-    await prisma.course.deleteMany({});
+    // Clean database in correct order respecting foreign keys
+    await cleanDatabase();
 
     const courseRes = await request(app.getHttpServer())
       .post('/courses')
@@ -54,12 +52,47 @@ describe('Create Module (E2E)', () => {
   });
 
   afterAll(async () => {
-    await prisma.moduleTranslation.deleteMany({});
-    await prisma.module.deleteMany({});
-    await prisma.courseTranslation.deleteMany({});
-    await prisma.course.deleteMany({});
+    await cleanDatabase();
     await app.close();
   });
+
+  const cleanDatabase = async () => {
+    // Clean in correct order respecting foreign keys
+    await prisma.lessonDocumentTranslation.deleteMany();
+    await prisma.lessonDocument.deleteMany();
+
+    await prisma.videoSeen.deleteMany();
+    await prisma.videoTranslation.deleteMany();
+    await prisma.videoLink.deleteMany();
+    await prisma.video.deleteMany();
+
+    await prisma.attemptAnswer.deleteMany();
+    await prisma.attempt.deleteMany();
+    await prisma.answerTranslation.deleteMany();
+    await prisma.answer.deleteMany();
+    await prisma.questionOption.deleteMany();
+    await prisma.question.deleteMany();
+    await prisma.argument.deleteMany();
+    await prisma.assessment.deleteMany();
+
+    await prisma.lessonTranslation.deleteMany();
+    await prisma.lesson.deleteMany();
+
+    await prisma.moduleTranslation.deleteMany();
+    await prisma.moduleVideoLink.deleteMany();
+    await prisma.module.deleteMany();
+
+    await prisma.courseTranslation.deleteMany();
+    await prisma.courseVideoLink.deleteMany();
+    await prisma.trackCourse.deleteMany();
+    await prisma.course.deleteMany();
+
+    await prisma.trackTranslation.deleteMany();
+    await prisma.track.deleteMany();
+
+    await prisma.address.deleteMany();
+    await prisma.user.deleteMany();
+  };
 
   it('[POST] /courses/:courseId/modules - Success', async () => {
     const payload = {
@@ -985,11 +1018,13 @@ describe('Create Module (E2E)', () => {
 
       const moduleId = moduleRes.body.id;
 
-      // Create a lesson for this module
+      // Create a lesson for this module with required fields
       await prisma.lesson.create({
         data: {
           id: 'lesson-1',
+          slug: 'lesson-1-slug', // Required field
           moduleId: moduleId,
+          order: 1, // Required field
           translations: {
             create: [
               {

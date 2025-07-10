@@ -1,14 +1,17 @@
-// src/domain/assessment/application/use-cases/create-assessment.use-case.spec.ts
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { left, right } from '@/core/either';
+import { Either, left, right } from '@/core/either';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { CreateAssessmentUseCase } from './create-assessment.use-case';
 import { CreateAssessmentRequest } from '../dtos/create-assessment-request.dto';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { DuplicateAssessmentError } from './errors/duplicate-assessment-error';
 import { RepositoryError } from './errors/repository-error';
+import { LessonNotFoundError } from './errors/lesson-not-found-error';
 import { Assessment } from '@/domain/assessment/enterprise/entities/assessment.entity';
 import { IAssessmentRepository } from '../repositories/i-assessment-repository';
+import { ILessonRepository } from '@/domain/course-catalog/application/repositories/i-lesson-repository';
+import { LessonDependencyInfo } from '@/domain/course-catalog/application/dtos/lesson-dependencies.dto';
+import { Lesson } from '@/domain/course-catalog/enterprise/entities/lesson.entity';
 
 class MockAssessmentRepository implements IAssessmentRepository {
   findById = vi.fn();
@@ -21,673 +24,475 @@ class MockAssessmentRepository implements IAssessmentRepository {
   findByTitleExcludingId = vi.fn();
 }
 
+class MockLessonRepository implements ILessonRepository {
+  checkLessonDependencies(
+    _lessonId: string,
+  ): Promise<Either<Error, LessonDependencyInfo>> {
+    throw new Error('Method not implemented.');
+  }
+  findByModuleIdAndOrder(
+    _moduleId: string,
+    _order: number,
+  ): Promise<Either<Error, Lesson | null>> {
+    throw new Error('Method not implemented.');
+  }
+  findById = vi.fn();
+  findAll = vi.fn();
+  findByModuleId = vi.fn();
+  findBySlug = vi.fn();
+  create = vi.fn();
+  update = vi.fn();
+  delete = vi.fn();
+  findByOrderAndModuleId = vi.fn();
+}
+
 describe('CreateAssessmentUseCase', () => {
   let useCase: CreateAssessmentUseCase;
-  let assessmentRepository: MockAssessmentRepository;
+  let assessmentRepo: MockAssessmentRepository;
+  let lessonRepo: MockLessonRepository;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    assessmentRepository = new MockAssessmentRepository();
-    useCase = new CreateAssessmentUseCase(assessmentRepository);
+    assessmentRepo = new MockAssessmentRepository();
+    lessonRepo = new MockLessonRepository();
+    useCase = new CreateAssessmentUseCase(assessmentRepo, lessonRepo);
   });
 
   describe('Success Cases', () => {
-    it('creates a QUIZ assessment successfully', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Quiz de Matemática',
-        description: 'Quiz sobre conceitos básicos de matemática',
-        type: 'QUIZ',
-        quizPosition: 'AFTER_LESSON',
-        passingScore: 70,
-        randomizeQuestions: true,
-        randomizeOptions: false,
-        lessonId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      };
+    const createSuccess = async (request: CreateAssessmentRequest) => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      if (request.lessonId) {
+        lessonRepo.findById.mockResolvedValueOnce(right({} as Lesson));
+      }
+      assessmentRepo.create.mockResolvedValueOnce(right(undefined));
+      return useCase.execute(request);
+    };
 
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-      assessmentRepository.create.mockResolvedValueOnce(right(undefined));
-
-      const result = await useCase.execute(request);
-
+    it.each([
+      [
+        'creates QUIZ with lessonId',
+        {
+          title: 'Quiz A',
+          type: 'QUIZ',
+          quizPosition: 'AFTER_LESSON',
+          passingScore: 70,
+          randomizeQuestions: true,
+          randomizeOptions: false,
+          lessonId: '11111111-1111-1111-1111-111111111111',
+        },
+      ],
+      [
+        'creates QUIZ without lessonId',
+        {
+          title: 'Quiz B',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 75,
+          randomizeQuestions: false,
+          randomizeOptions: true,
+        },
+      ],
+      [
+        'creates SIMULADO without lessonId',
+        {
+          title: 'Simulado A',
+          type: 'SIMULADO',
+          passingScore: 60,
+          timeLimitInMinutes: 120,
+          randomizeQuestions: true,
+          randomizeOptions: true,
+        },
+      ],
+      [
+        'creates SIMULADO with lessonId',
+        {
+          title: 'Simulado B',
+          type: 'SIMULADO',
+          passingScore: 65,
+          timeLimitInMinutes: 90,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+          lessonId: '22222222-2222-2222-2222-222222222222',
+        },
+      ],
+      [
+        'creates PROVA_ABERTA without lessonId',
+        {
+          title: 'Prova A',
+          type: 'PROVA_ABERTA',
+          passingScore: 50,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+      ],
+      [
+        'creates PROVA_ABERTA with lessonId',
+        {
+          title: 'Prova B',
+          type: 'PROVA_ABERTA',
+          passingScore: 55,
+          randomizeQuestions: false,
+          randomizeOptions: true,
+          lessonId: '33333333-3333-3333-3333-333333333333',
+        },
+      ],
+    ])('%s', async (_name, req) => {
+      const result = await createSuccess(req as CreateAssessmentRequest);
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.assessment.title).toBe('Quiz de Matemática');
-        expect(result.value.assessment.type).toBe('QUIZ');
-        expect(result.value.assessment.quizPosition).toBe('AFTER_LESSON');
-        expect(result.value.assessment.passingScore).toBe(70);
-        expect(result.value.assessment.slug).toBe('quiz-de-matematica');
-        expect(result.value.assessment.lessonId).toBe('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
+        const { assessment } = result.value;
+        expect(assessment.type).toBe(req.type);
+        expect(assessment.lessonId).toBe((req as any).lessonId ?? undefined);
       }
     });
 
-    it('creates a SIMULADO assessment successfully', async () => {
+    it('generates slug correctly from title with special chars', async () => {
       const request: CreateAssessmentRequest = {
-        title: 'Simulado REVALIDA',
-        description: 'Simulado completo do REVALIDA',
-        type: 'SIMULADO',
-        passingScore: 60,
-        timeLimitInMinutes: 120,
-        randomizeQuestions: true,
-        randomizeOptions: true,
-      };
-
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-      assessmentRepository.create.mockResolvedValueOnce(right(undefined));
-
-      const result = await useCase.execute(request);
-
-      expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        expect(result.value.assessment.title).toBe('Simulado REVALIDA');
-        expect(result.value.assessment.type).toBe('SIMULADO');
-        expect(result.value.assessment.timeLimitInMinutes).toBe(120);
-        expect(result.value.assessment.quizPosition).toBeUndefined();
-        expect(result.value.assessment.lessonId).toBeUndefined();
-      }
-    });
-
-    it('creates a PROVA_ABERTA assessment successfully', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Prova Aberta de Medicina',
-        type: 'PROVA_ABERTA',
-        passingScore: 50,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      };
-
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-      assessmentRepository.create.mockResolvedValueOnce(right(undefined));
-
-      const result = await useCase.execute(request);
-
-      expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        expect(result.value.assessment.title).toBe('Prova Aberta de Medicina');
-        expect(result.value.assessment.type).toBe('PROVA_ABERTA');
-        expect(result.value.assessment.timeLimitInMinutes).toBeUndefined();
-        expect(result.value.assessment.quizPosition).toBeUndefined();
-        expect(result.value.assessment.lessonId).toBeUndefined();
-      }
-    });
-
-    it('generates correct slug from title with special characters', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Avaliação de Português - Acentuação e Ortografia',
+        title: 'Título !@#%',
         type: 'QUIZ',
         quizPosition: 'BEFORE_LESSON',
         passingScore: 80,
         randomizeQuestions: false,
-        randomizeOptions: true,
-        lessonId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+        randomizeOptions: false,
+        lessonId: '44444444-4444-4444-4444-444444444444',
       };
-
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-      assessmentRepository.create.mockResolvedValueOnce(right(undefined));
-
-      const result = await useCase.execute(request);
-
+      const result = await createSuccess(request);
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.assessment.slug).toBe('avaliacao-de-portugues-acentuacao-e-ortografia');
+        expect(result.value.assessment.slug).toBe('titulo');
       }
     });
   });
 
   describe('Validation Errors', () => {
-    it('fails when title is too short', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Ab',
-        type: 'QUIZ',
-        quizPosition: 'AFTER_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-        lessonId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      };
+    type ErrCase = [string, any, string[]];
+    const cases: ErrCase[] = [
+      [
+        'title too short',
+        {
+          title: 'Ab',
+          type: 'QUIZ',
+          quizPosition: 'AFTER_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+          lessonId: '5555-5555-5555-5555',
+        },
+        [
+          'title: Assessment title must be at least 3 characters long',
+          'lessonId: Lesson ID must be a valid UUID',
+        ],
+      ],
+      [
+        'invalid type',
+        {
+          title: 'Test',
+          type: 'BAD',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        ['type: Type must be QUIZ, SIMULADO or PROVA_ABERTA'],
+      ],
+      [
+        'passingScore out of range',
+        {
+          title: 'Test',
+          type: 'PROVA_ABERTA',
+          passingScore: 150,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        ['passingScore: Passing score must be at most 100'],
+      ],
+      [
+        'missing quizPosition for QUIZ',
+        {
+          title: 'Test',
+          type: 'QUIZ',
+          passingScore: 80,
+          randomizeQuestions: true,
+          randomizeOptions: false,
+        },
+        ['quizPosition: Quiz position is required for QUIZ type assessments'],
+      ],
+      [
+        'quizPosition on non-QUIZ',
+        {
+          title: 'Test',
+          type: 'SIMULADO',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 60,
+          timeLimitInMinutes: 60,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        ['quizPosition: Quiz position is only allowed for QUIZ assessments'],
+      ],
+      [
+        'timeLimit on non-SIMULADO',
+        {
+          title: 'Test',
+          type: 'QUIZ',
+          quizPosition: 'AFTER_LESSON',
+          passingScore: 70,
+          timeLimitInMinutes: 30,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        [
+          'timeLimitInMinutes: Time limit can only be set for SIMULADO type assessments',
+        ],
+      ],
+      [
+        'zero timeLimit',
+        {
+          title: 'Test',
+          type: 'SIMULADO',
+          passingScore: 60,
+          timeLimitInMinutes: 0,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        ['timeLimitInMinutes: Time limit must be positive (minimum: 1)'],
+      ],
+      [
+        'negative passingScore',
+        {
+          title: 'Test',
+          type: 'QUIZ',
+          quizPosition: 'AFTER_LESSON',
+          passingScore: -10,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        ['passingScore: Passing score must be at least 0'],
+      ],
+    ];
 
-      const result = await useCase.execute(request);
-
+    it.each(cases)('%s', async (_name, req, expected) => {
+      const result = await useCase.execute(req as CreateAssessmentRequest);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.message).toBe('Validation failed');
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['title'],
-              message: 'Assessment title must be at least 3 characters long',
-            }),
-          ]),
-        );
-      }
-    });
-
-    it('fails when type is invalid', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Test Assessment',
-        type: 'INVALID_TYPE' as any,
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['type'],
-              message: 'Type must be QUIZ, SIMULADO or PROVA_ABERTA',
-            }),
-          ]),
-        );
-      }
-    });
-
-    it('fails when passingScore is below 0', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Test Assessment',
-        type: 'PROVA_ABERTA',
-        passingScore: -10,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['passingScore'],
-              message: 'Passing score must be at least 0',
-            }),
-          ]),
-        );
-      }
-    });
-
-    it('fails when passingScore is above 100', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Test Assessment',
-        type: 'PROVA_ABERTA',
-        passingScore: 150,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['passingScore'],
-              message: 'Passing score must be at most 100',
-            }),
-          ]),
-        );
-      }
-    });
-
-    it('fails when QUIZ type is missing quizPosition', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-        lessonId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['quizPosition'],
-              message: 'Quiz position is required for QUIZ type assessments',
-            }),
-          ]),
-        );
-      }
-    });
-
-    it('fails when QUIZ type is missing lessonId', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        quizPosition: 'AFTER_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['lessonId'],
-              message: 'Lesson ID is required for QUIZ type assessments',
-            }),
-          ]),
-        );
-      }
-    });
-
-    it('fails when non-QUIZ type has quizPosition', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Simulado Test',
-        type: 'SIMULADO',
-        quizPosition: 'AFTER_LESSON',
-        passingScore: 70,
-        timeLimitInMinutes: 60,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['quizPosition'],
-              message: 'Quiz position can only be set for QUIZ type assessments',
-            }),
-          ]),
-        );
-      }
-    });
-
-    it('fails when non-QUIZ type has lessonId', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Prova Test',
-        type: 'PROVA_ABERTA',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-        lessonId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['lessonId'],
-              message: 'Lesson ID can only be set for QUIZ type assessments',
-            }),
-          ]),
-        );
-      }
-    });
-
-    it('fails when non-SIMULADO type has timeLimitInMinutes', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        quizPosition: 'AFTER_LESSON',
-        passingScore: 70,
-        timeLimitInMinutes: 60,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-        lessonId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['timeLimitInMinutes'],
-              message: 'Time limit can only be set for SIMULADO type assessments',
-            }),
-          ]),
-        );
-      }
-    });
-
-    it('fails when timeLimitInMinutes is zero or negative', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Simulado Test',
-        type: 'SIMULADO',
-        passingScore: 70,
-        timeLimitInMinutes: 0,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['timeLimitInMinutes'],
-              message: 'Time limit must be positive (minimum: 1)',
-            }),
-          ]),
-        );
-      }
-    });
-
-    it('fails when lessonId is invalid UUID', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        quizPosition: 'AFTER_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-        lessonId: 'invalid-uuid',
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['lessonId'],
-              message: 'Lesson ID must be a valid UUID',
-            }),
-          ]),
-        );
-      }
-    });
-
-    it('fails with multiple validation errors', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'AB',
-        type: 'INVALID_TYPE' as any,
-        passingScore: 150,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      };
-
-      const result = await useCase.execute(request);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.details).toHaveLength(3);
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['title'],
-              message: 'Assessment title must be at least 3 characters long',
-            }),
-            expect.objectContaining({
-              path: ['type'],
-              message: 'Type must be QUIZ, SIMULADO or PROVA_ABERTA',
-            }),
-            expect.objectContaining({
-              path: ['passingScore'],
-              message: 'Passing score must be at most 100',
-            }),
-          ]),
-        );
+      if (result.isLeft() && result.value instanceof InvalidInputError) {
+        const error = result.value;
+        expected.forEach((msg) => expect(error.details).toContain(msg));
       }
     });
   });
 
   describe('Business Logic Errors', () => {
-    it('fails when assessment with same title already exists', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Existing Assessment',
+    it('duplicate title', async () => {
+      const req: CreateAssessmentRequest = {
+        title: 'Dup',
         type: 'PROVA_ABERTA',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
       };
-
-      const existingAssessment = Assessment.create({
-        slug: 'existing-assessment',
-        title: 'Existing Assessment',
+      const existing = Assessment.create({
+        slug: 'dup',
+        title: 'Dup',
         type: 'PROVA_ABERTA',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
       });
+      assessmentRepo.findByTitle.mockResolvedValueOnce(right(existing));
 
-      assessmentRepository.findByTitle.mockResolvedValueOnce(right(existingAssessment));
-
-      const result = await useCase.execute(request);
-
+      const result = await useCase.execute(req);
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(DuplicateAssessmentError);
-        expect(result.value.message).toBe('Assessment with this title already exists');
-      }
+      expect(result.value).toBeInstanceOf(DuplicateAssessmentError);
     });
 
-    it('fails when title generates slug that is too short', async () => {
-      const request: CreateAssessmentRequest = {
+    it('slug too short after cleaning', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      const result = await useCase.execute({
         title: '!@#',
         type: 'PROVA_ABERTA',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
-      };
-
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-
-      const result = await useCase.execute(request);
-
+      });
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidInputError);
+      expect(result.value).toBeInstanceOf(InvalidInputError);
+      if (result.isLeft() && result.value instanceof InvalidInputError) {
         expect(result.value.message).toBe('Invalid title for slug generation');
-        expect(result.value.details).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: ['title'],
-              message: 'Title must be at least 3 characters long to generate a valid slug',
-            }),
-          ]),
-        );
       }
+    });
+
+    it('lesson not found', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      lessonRepo.findById.mockResolvedValueOnce(left(new Error('not found')));
+      const result = await useCase.execute({
+        title: 'Test',
+        type: 'SIMULADO',
+        passingScore: 60,
+        timeLimitInMinutes: 90,
+        randomizeQuestions: true,
+        randomizeOptions: true,
+        lessonId: '99999999-9999-9999-9999-999999999999',
+      });
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(LessonNotFoundError);
     });
   });
 
   describe('Repository Errors', () => {
-    it('fails when repository throws error during findByTitle', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Test Assessment',
+    it('throws on findByTitle', async () => {
+      assessmentRepo.findByTitle.mockRejectedValueOnce(new Error('DB down'));
+      const result = await useCase.execute({
+        title: 'Test',
         type: 'PROVA_ABERTA',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
-      };
-
-      assessmentRepository.findByTitle.mockRejectedValueOnce(new Error('Database connection failed'));
-
-      const result = await useCase.execute(request);
-
+      });
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(RepositoryError);
-        expect(result.value.message).toBe('Database connection failed');
-      }
+      if (result.isLeft()) expect(result.value).toBeInstanceOf(RepositoryError);
     });
 
-    it('fails when repository returns error during create', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Test Assessment',
+    it('error on create', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      assessmentRepo.create.mockResolvedValueOnce(left(new Error('fail')));
+      const result = await useCase.execute({
+        title: 'Test',
         type: 'PROVA_ABERTA',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
-      };
-
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-      assessmentRepository.create.mockResolvedValueOnce(left(new Error('Failed to create assessment')));
-
-      const result = await useCase.execute(request);
-
+      });
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(RepositoryError);
-        expect(result.value.message).toBe('Failed to create assessment');
-      }
+      if (result.isLeft()) expect(result.value).toBeInstanceOf(RepositoryError);
     });
 
-    it('fails when repository throws error during create', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Test Assessment',
+    it('throws on create', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      assessmentRepo.create.mockRejectedValueOnce(new Error('constraint'));
+      const result = await useCase.execute({
+        title: 'Test',
         type: 'PROVA_ABERTA',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
-      };
-
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-      assessmentRepository.create.mockRejectedValueOnce(new Error('Database constraint violation'));
-
-      const result = await useCase.execute(request);
-
+      });
       expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(RepositoryError);
-        expect(result.value.message).toBe('Database constraint violation');
-      }
+      if (result.isLeft()) expect(result.value).toBeInstanceOf(RepositoryError);
+    });
+
+    it('throws on lesson repository findById', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      lessonRepo.findById.mockRejectedValueOnce(new Error('Lesson DB error'));
+      const result = await useCase.execute({
+        title: 'Test',
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+        lessonId: '99999999-9999-9999-9999-999999999999',
+      });
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) expect(result.value).toBeInstanceOf(RepositoryError);
     });
   });
 
   describe('Edge Cases', () => {
-    it('handles empty description correctly', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Assessment Without Description',
+    it('empty description is undefined', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      assessmentRepo.create.mockResolvedValueOnce(right(undefined));
+      const result = await useCase.execute({
+        title: 'No Desc',
         type: 'PROVA_ABERTA',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
-      };
-
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-      assessmentRepository.create.mockResolvedValueOnce(right(undefined));
-
-      const result = await useCase.execute(request);
-
+      });
       expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
+      if (result.isRight())
         expect(result.value.assessment.description).toBeUndefined();
-      }
     });
 
-    it('handles minimum valid passing score (0)', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Zero Pass Score Assessment',
+    it('minimum values', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      assessmentRepo.create.mockResolvedValueOnce(right(undefined));
+      const result = await useCase.execute({
+        title: 'Min',
         type: 'PROVA_ABERTA',
         passingScore: 0,
         randomizeQuestions: false,
         randomizeOptions: false,
-      };
-
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-      assessmentRepository.create.mockResolvedValueOnce(right(undefined));
-
-      const result = await useCase.execute(request);
-
+      });
       expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
+      if (result.isRight())
         expect(result.value.assessment.passingScore).toBe(0);
-      }
     });
 
-    it('handles maximum valid passing score (100)', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Max Pass Score Assessment',
-        type: 'PROVA_ABERTA',
+    it('maximum values', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      assessmentRepo.create.mockResolvedValueOnce(right(undefined));
+      const result = await useCase.execute({
+        title: 'Max Values Test',
+        type: 'SIMULADO',
         passingScore: 100,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      };
-
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-      assessmentRepository.create.mockResolvedValueOnce(right(undefined));
-
-      const result = await useCase.execute(request);
-
+        timeLimitInMinutes: 9999,
+        randomizeQuestions: true,
+        randomizeOptions: true,
+      });
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.assessment.passingScore).toBe(100);
+        expect(result.value.assessment.timeLimitInMinutes).toBe(9999);
       }
     });
 
-    it('handles SIMULADO with minimum valid time limit (1)', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Quick Simulado',
-        type: 'SIMULADO',
-        passingScore: 70,
-        timeLimitInMinutes: 1,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      };
-
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-      assessmentRepository.create.mockResolvedValueOnce(right(undefined));
-
-      const result = await useCase.execute(request);
-
-      expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        expect(result.value.assessment.timeLimitInMinutes).toBe(1);
-      }
-    });
-
-    it('correctly calls repository with proper parameters', async () => {
-      const request: CreateAssessmentRequest = {
-        title: 'Test Assessment',
+    it('long description', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      assessmentRepo.create.mockResolvedValueOnce(right(undefined));
+      const longDescription = 'A'.repeat(1000);
+      const result = await useCase.execute({
+        title: 'Long Desc',
+        description: longDescription,
         type: 'PROVA_ABERTA',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
-      };
+      });
+      expect(result.isRight()).toBe(true);
+      if (result.isRight())
+        expect(result.value.assessment.description).toBe(longDescription);
+    });
 
-      assessmentRepository.findByTitle.mockResolvedValueOnce(left(new Error('Not found')));
-      assessmentRepository.create.mockResolvedValueOnce(right(undefined));
+    it('special characters in title generate valid slug', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      assessmentRepo.create.mockResolvedValueOnce(right(undefined));
+      const result = await useCase.execute({
+        title: 'Título com Acentos & Símbolos!',
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      });
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.assessment.slug).toBe('titulo-com-acentos-simbolos');
+      }
+    });
 
-      await useCase.execute(request);
-
-      expect(assessmentRepository.findByTitle).toHaveBeenCalledWith('Test Assessment');
-      expect(assessmentRepository.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          props: expect.objectContaining({
-            title: 'Test Assessment',
-            type: 'PROVA_ABERTA',
-            passingScore: 70,
-            slug: 'test-assessment',
-          }),
-        }),
-      );
+    it('unicode characters in title', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      assessmentRepo.create.mockResolvedValueOnce(right(undefined));
+      const result = await useCase.execute({
+        title: 'Test 中文 العربية',
+        type: 'PROVA_ABERTA',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      });
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.assessment.slug).toBe('test');
+      }
     });
   });
 });

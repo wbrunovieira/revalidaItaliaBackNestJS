@@ -10,22 +10,22 @@ Content-Type: application/json
   "slug": "minha-trilha2",
    "imageUrl": "/images/capa-track.avif",
   "courseIds": [
-    "658a63c9-ab41-4d8b-a131-a6f402938b59"
+    "8adec2b1-7297-4345-9c02-807e1e7d4277"
   ],
   "translations": [
     {
       "locale": "pt",
-      "title": "Trilha de Exemplo PT2",
+      "title": "Trilha de Exemplo PT",
       "description": "Uma descrição em português para a trilha."
     },
     {
       "locale": "it",
-      "title": "Traccia di Esempio IT2",
+      "title": "Traccia di Esempio IT",
       "description": "Una descrizione in italiano per la traccia."
     },
     {
       "locale": "es",
-      "title": "Pista de Ejemplo ES2",
+      "title": "Pista de Ejemplo ES",
       "description": "Una descripción en español para la pista."
     }
   ]

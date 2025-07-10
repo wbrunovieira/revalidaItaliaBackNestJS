@@ -73,17 +73,42 @@ export class Assessment extends Entity<AssessmentProps> {
 
   // Methods
   public update(props: Partial<AssessmentProps>) {
-    if (props.title) this.props.title = props.title;
-    if (props.slug) this.props.slug = props.slug;
-    if (props.description) this.props.description = props.description;
-    if (props.type) this.props.type = props.type;
-    if (props.quizPosition) this.props.quizPosition = props.quizPosition;
-    if (props.passingScore) this.props.passingScore = props.passingScore;
-    if (props.timeLimitInMinutes) this.props.timeLimitInMinutes = props.timeLimitInMinutes;
-    if (props.randomizeQuestions) this.props.randomizeQuestions = props.randomizeQuestions;
-    if (props.randomizeOptions) this.props.randomizeOptions = props.randomizeOptions;
-    if (props.lessonId) this.props.lessonId = props.lessonId;
+    if (props.title !== undefined) this.props.title = props.title;
+    if (props.slug !== undefined) this.props.slug = props.slug;
+    if (props.description !== undefined)
+      this.props.description = props.description;
+    if (props.type !== undefined) this.props.type = props.type;
+    if (props.quizPosition !== undefined)
+      this.props.quizPosition = props.quizPosition;
+    if (props.passingScore !== undefined)
+      this.props.passingScore = props.passingScore;
+    if (props.timeLimitInMinutes !== undefined)
+      this.props.timeLimitInMinutes = props.timeLimitInMinutes;
+    if (props.randomizeQuestions !== undefined)
+      this.props.randomizeQuestions = props.randomizeQuestions;
+    if (props.randomizeOptions !== undefined)
+      this.props.randomizeOptions = props.randomizeOptions;
+    if (props.lessonId !== undefined) this.props.lessonId = props.lessonId;
     this.touch();
+  }
+
+  // Response Mapping
+  public toResponseObject() {
+    return {
+      id: this.id.toString(),
+      slug: this.slug,
+      title: this.title,
+      description: this.description,
+      type: this.type,
+      quizPosition: this.quizPosition,
+      passingScore: this.passingScore,
+      timeLimitInMinutes: this.timeLimitInMinutes,
+      randomizeQuestions: this.randomizeQuestions,
+      randomizeOptions: this.randomizeOptions,
+      lessonId: this.lessonId?.toString(),
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+    };
   }
 
   // Factory Methods

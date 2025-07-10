@@ -28,14 +28,31 @@ describe('LessonController (E2E)', () => {
   });
 
   beforeEach(async () => {
-    // Cleanup in relational order
+    // Cleanup in relational order - delete dependent tables first
+    await prisma.attemptAnswer.deleteMany();
+    await prisma.attempt.deleteMany();
+    await prisma.answerTranslation.deleteMany();
+    await prisma.answer.deleteMany();
+    await prisma.questionOption.deleteMany();
+    await prisma.question.deleteMany();
+    await prisma.argument.deleteMany();
+    await prisma.assessment.deleteMany();
     await prisma.lessonTranslation.deleteMany();
+    await prisma.lessonDocumentTranslation.deleteMany();
+    await prisma.lessonDocument.deleteMany();
+    await prisma.videoTranslation.deleteMany();
+    await prisma.videoLink.deleteMany();
     await prisma.video.deleteMany();
     await prisma.lesson.deleteMany();
     await prisma.moduleTranslation.deleteMany();
+    await prisma.moduleVideoLink.deleteMany();
     await prisma.module.deleteMany();
     await prisma.courseTranslation.deleteMany();
+    await prisma.courseVideoLink.deleteMany();
+    await prisma.trackCourse.deleteMany();
     await prisma.course.deleteMany();
+    await prisma.trackTranslation.deleteMany();
+    await prisma.track.deleteMany();
 
     // Create course
     const course = await prisma.course.create({
@@ -75,6 +92,7 @@ describe('LessonController (E2E)', () => {
   describe('[POST] create lesson', () => {
     it('should create lesson successfully without video', async () => {
       const payload = {
+        slug: 'lesson-intro',
         translations: [
           { locale: 'pt', title: 'Aula PT', description: 'Desc PT' },
           { locale: 'it', title: 'Lezione IT', description: 'Desc IT' },
@@ -89,6 +107,7 @@ describe('LessonController (E2E)', () => {
       expect(res.body).toEqual(
         expect.objectContaining({
           id: expect.any(String),
+          slug: 'lesson-intro',
           moduleId,
           translations: payload.translations,
           order: payload.order,
@@ -99,6 +118,7 @@ describe('LessonController (E2E)', () => {
 
     it('should return 400 when missing translation locale pt', async () => {
       const payload = {
+        slug: 'lesson-without-pt',
         translations: [
           { locale: 'it', title: 'Lezione IT', description: 'Desc IT' },
           { locale: 'es', title: 'Lección ES', description: 'Desc ES' },
@@ -121,6 +141,7 @@ describe('LessonController (E2E)', () => {
 
     it('should return 400 on unsupported locale', async () => {
       const payload = {
+        slug: 'lesson-bad-locale',
         translations: [
           { locale: 'pt', title: 'Aula PT', description: 'Desc PT' },
           { locale: 'en' as any, title: 'Lesson EN', description: 'Desc EN' },
@@ -145,7 +166,7 @@ describe('LessonController (E2E)', () => {
     it('should return 400 on empty translations array', async () => {
       const res = await request(app.getHttpServer())
         .post(endpoint())
-        .send({ translations: [], order: 1 });
+        .send({ slug: 'lesson-empty', translations: [], order: 1 });
       expect(res.status).toBe(400);
       expect(res.body).toEqual(
         expect.arrayContaining([
@@ -161,7 +182,11 @@ describe('LessonController (E2E)', () => {
       const badId = 'abc';
       const res = await request(app.getHttpServer())
         .post(`/courses/${courseId}/modules/${badId}/lessons`)
-        .send({ translations: [{ locale: 'pt', title: 'A' }], order: 1 });
+        .send({
+          slug: 'lesson-test',
+          translations: [{ locale: 'pt', title: 'A' }],
+          order: 1,
+        });
       expect(res.status).toBe(400);
     });
 
@@ -169,7 +194,11 @@ describe('LessonController (E2E)', () => {
       const non = '00000000-0000-0000-0000-000000000000';
       const res = await request(app.getHttpServer())
         .post(`/courses/${courseId}/modules/${non}/lessons`)
-        .send({ translations: [{ locale: 'pt', title: 'A' }], order: 1 });
+        .send({
+          slug: 'lesson-test',
+          translations: [{ locale: 'pt', title: 'A' }],
+          order: 1,
+        });
       expect(res.status).toBe(400); // Atualizado: módulo não encontrado retorna 400 devido ao ValidationPipe
     });
   });
@@ -178,6 +207,7 @@ describe('LessonController (E2E)', () => {
     beforeEach(async () => {
       await prisma.lesson.create({
         data: {
+          slug: 'lesson-1',
           moduleId,
           order: 2,
           translations: { create: [{ locale: 'pt', title: 'L1' }] },
@@ -223,11 +253,11 @@ describe('LessonController (E2E)', () => {
     it('should return lesson with all fields', async () => {
       const lesson = await prisma.lesson.create({
         data: {
+          slug: 'lesson-detailed',
           moduleId,
           order: 3,
           imageUrl: '/img',
           flashcardIds: ['f1'],
-          quizIds: ['q1'],
           commentIds: ['c1'],
           translations: { create: [{ locale: 'pt', title: 'T' }] },
         },
@@ -238,6 +268,7 @@ describe('LessonController (E2E)', () => {
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({
         id: lesson.id,
+        slug: 'lesson-detailed',
         moduleId,
         order: 3,
         imageUrl: '/img',
@@ -260,17 +291,17 @@ describe('LessonController (E2E)', () => {
   describe('[PUT] update lesson', () => {
     let existingLessonId: string;
     let secondLessonId: string;
+    let videoId: string;
 
     beforeEach(async () => {
       // Create first lesson
       const lesson1 = await prisma.lesson.create({
         data: {
+          slug: 'lesson-original',
           moduleId,
           order: 1,
           imageUrl: '/original-image.jpg',
-          videoId: 'original-video-id',
           flashcardIds: ['flash-1'],
-          quizIds: ['quiz-1'],
           commentIds: ['comment-1'],
           translations: {
             create: [
@@ -290,9 +321,26 @@ describe('LessonController (E2E)', () => {
       });
       existingLessonId = lesson1.id;
 
+      // Create video associated with the lesson
+      const video = await prisma.video.create({
+        data: {
+          slug: 'video-original',
+          providerVideoId: 'original-video-id',
+          durationInSeconds: 300,
+          lessonId: existingLessonId,
+          translations: {
+            create: [
+              { locale: 'pt', title: 'Video PT', description: 'Video Desc PT' },
+            ],
+          },
+        },
+      });
+      videoId = video.id;
+
       // Create second lesson for order conflict tests
       const lesson2 = await prisma.lesson.create({
         data: {
+          slug: 'lesson-second',
           moduleId,
           order: 2,
           translations: {
@@ -331,9 +379,7 @@ describe('LessonController (E2E)', () => {
             },
           ],
           order: 5,
-          videoId: 'new-video-id-123',
           flashcardIds: ['flashcard-1', 'flashcard-2'],
-          quizIds: ['quiz-1', 'quiz-2'],
           commentIds: ['comment-1', 'comment-2'],
         };
 
@@ -347,9 +393,7 @@ describe('LessonController (E2E)', () => {
           moduleId,
           order: 5,
           imageUrl: '/updated-lesson-image.avif',
-          videoId: 'new-video-id-123',
           flashcardIds: ['flashcard-1', 'flashcard-2'],
-          quizIds: ['quiz-1', 'quiz-2'],
           commentIds: ['comment-1', 'comment-2'],
           translations: expect.arrayContaining([
             expect.objectContaining({
@@ -399,9 +443,8 @@ describe('LessonController (E2E)', () => {
             }),
           ],
         });
-        // Should keep original imageUrl and videoId
+        // Should keep original imageUrl
         expect(res.body.imageUrl).toBe('/original-image.jpg');
-        expect(res.body.videoId).toBe('original-video-id');
       });
 
       it('should update with relative path imageUrl', async () => {
@@ -438,18 +481,7 @@ describe('LessonController (E2E)', () => {
           .send(payload);
 
         expect(res.status).toBe(200);
-        expect(res.body.imageUrl).toBeUndefined(); // ✅ Ajustado para undefined
-      });
-
-      it('should remove videoId when set to null', async () => {
-        const payload = { videoId: null };
-
-        const res = await request(app.getHttpServer())
-          .put(`${endpoint()}/${existingLessonId}`)
-          .send(payload);
-
-        expect(res.status).toBe(200);
-        expect(res.body.videoId).toBeUndefined(); // ✅ Ajustado para undefined
+        expect(res.body.imageUrl).toBeUndefined();
       });
 
       it('should update arrays and handle empty arrays', async () => {
@@ -459,7 +491,6 @@ describe('LessonController (E2E)', () => {
             'new-flashcard-2',
             'new-flashcard-3',
           ],
-          quizIds: [], // Empty array to clear
           commentIds: ['important-comment'],
         };
 
@@ -473,7 +504,6 @@ describe('LessonController (E2E)', () => {
           'new-flashcard-2',
           'new-flashcard-3',
         ]);
-        expect(res.body.quizIds).toEqual([]);
         expect(res.body.commentIds).toEqual(['important-comment']);
       });
 
@@ -750,24 +780,6 @@ describe('LessonController (E2E)', () => {
         );
       });
 
-      it('should return 400 when videoId is empty string', async () => {
-        const payload = { videoId: '' };
-
-        const res = await request(app.getHttpServer())
-          .put(`${endpoint()}/${existingLessonId}`)
-          .send(payload);
-
-        expect(res.status).toBe(400);
-        expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['videoId']),
-              message: 'Video ID cannot be empty',
-            }),
-          ]),
-        );
-      });
-
       it('should handle multiple validation errors simultaneously', async () => {
         const payload = {
           translations: [
@@ -843,10 +855,10 @@ describe('LessonController (E2E)', () => {
         // Create lesson with minimal required fields only
         const minimalLesson = await prisma.lesson.create({
           data: {
+            slug: 'lesson-minimal',
             moduleId,
             order: 99,
             flashcardIds: [],
-            quizIds: [],
             commentIds: [],
             translations: {
               create: [
@@ -886,9 +898,6 @@ describe('LessonController (E2E)', () => {
           flashcardIds: Array(50)
             .fill(0)
             .map((_, i) => `flashcard-${i}`), // Many IDs
-          quizIds: Array(30)
-            .fill(0)
-            .map((_, i) => `quiz-${i}`),
           commentIds: Array(20)
             .fill(0)
             .map((_, i) => `comment-${i}`),
@@ -900,7 +909,6 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(200);
         expect(res.body.flashcardIds).toHaveLength(50);
-        expect(res.body.quizIds).toHaveLength(30);
         expect(res.body.commentIds).toHaveLength(20);
       });
 
@@ -998,7 +1006,6 @@ describe('LessonController (E2E)', () => {
           id: originalData.id,
           order: originalData.order,
           imageUrl: originalData.imageUrl,
-          videoId: originalData.videoId,
           translations: originalData.translations,
         });
       });
@@ -1098,7 +1105,6 @@ describe('LessonController (E2E)', () => {
             moduleId: expect.any(String),
             order: expect.any(Number),
             flashcardIds: expect.any(Array),
-            quizIds: expect.any(Array),
             commentIds: expect.any(Array),
             translations: expect.arrayContaining([
               expect.objectContaining({
@@ -1127,7 +1133,7 @@ describe('LessonController (E2E)', () => {
           .send(payload);
 
         expect(res.status).toBe(200);
-        expect(res.body.imageUrl).toBeUndefined(); // ✅ Ajustado para undefined
+        expect(res.body.imageUrl).toBeUndefined();
         expect(res.body).not.toHaveProperty('undefinedField');
       });
     });
@@ -1159,9 +1165,6 @@ describe('LessonController (E2E)', () => {
           flashcardIds: Array(100)
             .fill(0)
             .map((_, i) => `perf-flashcard-${i.toString().padStart(3, '0')}`),
-          quizIds: Array(50)
-            .fill(0)
-            .map((_, i) => `perf-quiz-${i.toString().padStart(3, '0')}`),
           commentIds: Array(75)
             .fill(0)
             .map((_, i) => `perf-comment-${i.toString().padStart(3, '0')}`),
@@ -1175,7 +1178,6 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(200);
         expect(res.body.flashcardIds).toHaveLength(100);
-        expect(res.body.quizIds).toHaveLength(50);
         expect(res.body.commentIds).toHaveLength(75);
         expect(endTime - startTime).toBeLessThan(5000); // Should complete within 5 seconds
       });
@@ -1246,6 +1248,7 @@ describe('LessonController (E2E)', () => {
     beforeEach(async () => {
       const lesson = await prisma.lesson.create({
         data: {
+          slug: 'lesson-to-delete',
           moduleId,
           order: 4,
           translations: {

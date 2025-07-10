@@ -1,0 +1,334 @@
+@BASE_URL = http://localhost:3333
+
+#@BASE_URL = http://18.216.107.74:3333
+
+@contentType = application/json
+
+### 1. Criar Assessment tipo QUIZ - Sucesso
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Quiz de Anatomia Humana",
+  "description": "Quiz sobre os sistemas do corpo humano",
+  "type": "QUIZ",
+  "quizPosition": "AFTER_LESSON",
+  "passingScore": 70,
+  "randomizeQuestions": true,
+  "randomizeOptions": false,
+  "lessonId": "0ef04e01-8faa-45f3-813d-6f6d0b2d959f"
+}
+
+### 2. Criar Assessment tipo SIMULADO - Sucesso
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Simulado REVALIDA 2025-2",
+  "description": "Simulado completo baseado nas questões do REVALIDA",
+  "type": "SIMULADO",
+  "passingScore": 60,
+  "timeLimitInMinutes": 180,
+  "randomizeQuestions": true,
+  "randomizeOptions": true,
+   "lessonId": "0ef04e01-8faa-45f3-813d-6f6d0b2d959f"
+
+}
+
+### 3. Criar Assessment tipo PROVA_ABERTA - Sucesso
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Prova Dissertativa de Cardiologia 2",
+  "description": "Avaliação com questões dissertativas sobre cardiologia",
+  "type": "PROVA_ABERTA",
+  "passingScore": 50,
+  "randomizeQuestions": false,
+  "randomizeOptions": false,
+   "lessonId": "0ef04e01-8faa-45f3-813d-6f6d0b2d959f"
+}
+
+### 4. QUIZ com posição BEFORE_LESSON
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Pré-teste de Farmacologia",
+  "type": "QUIZ",
+  "quizPosition": "BEFORE_LESSON",
+  "passingScore": 40,
+  "randomizeQuestions": false,
+  "randomizeOptions": true,
+  "lessonId": "456e7890-e89b-12d3-a456-426614174111"
+}
+
+### 5. Assessment sem descrição - Sucesso
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Quiz Rápido de Microbiologia",
+  "type": "QUIZ",
+  "quizPosition": "AFTER_LESSON",
+  "passingScore": 80,
+  "randomizeQuestions": true,
+  "randomizeOptions": true,
+  "lessonId": "789e0123-e89b-12d3-a456-426614174222"
+}
+
+### 6. SIMULADO com tempo mínimo (1 minuto)
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Simulado Express",
+  "type": "SIMULADO",
+  "passingScore": 70,
+  "timeLimitInMinutes": 1,
+  "randomizeQuestions": true,
+  "randomizeOptions": false
+}
+
+### 7. Assessment com título contendo caracteres especiais
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Avaliação de Neurologia - Módulo III: Sistema Nervoso Central & Periférico",
+  "type": "PROVA_ABERTA",
+  "passingScore": 65,
+  "randomizeQuestions": false,
+  "randomizeOptions": false
+}
+
+### 8. Assessment com nota de aprovação 0
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Quiz Diagnóstico Inicial",
+  "type": "QUIZ",
+  "quizPosition": "BEFORE_LESSON",
+  "passingScore": 0,
+  "randomizeQuestions": false,
+  "randomizeOptions": false,
+  "lessonId": "abc12345-e89b-12d3-a456-426614174333"
+}
+
+### 9. Assessment com nota de aprovação 100
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Prova de Certificação Final",
+  "type": "PROVA_ABERTA",
+  "passingScore": 100,
+  "randomizeQuestions": false,
+  "randomizeOptions": false
+}
+
+### ==================== CENÁRIOS DE ERRO ====================
+
+### 10. ERRO - Título muito curto
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Ab",
+  "type": "PROVA_ABERTA",
+  "passingScore": 70,
+  "randomizeQuestions": false,
+  "randomizeOptions": false
+}
+
+### 11. ERRO - Tipo inválido
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Assessment com Tipo Inválido",
+  "type": "EXAME_FINAL",
+  "passingScore": 70,
+  "randomizeQuestions": false,
+  "randomizeOptions": false
+}
+
+### 12. ERRO - Nota de aprovação negativa
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Quiz com Nota Negativa",
+  "type": "QUIZ",
+  "quizPosition": "AFTER_LESSON",
+  "passingScore": -10,
+  "randomizeQuestions": false,
+  "randomizeOptions": false,
+  "lessonId": "def45678-e89b-12d3-a456-426614174444"
+}
+
+### 13. ERRO - Nota de aprovação acima de 100
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Prova com Nota Inválida",
+  "type": "PROVA_ABERTA",
+  "passingScore": 150,
+  "randomizeQuestions": false,
+  "randomizeOptions": false
+}
+
+### 14. ERRO - QUIZ sem quizPosition
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Quiz sem Posição",
+  "type": "QUIZ",
+  "passingScore": 70,
+  "randomizeQuestions": false,
+  "randomizeOptions": false,
+  "lessonId": "ghi78901-e89b-12d3-a456-426614174555"
+}
+
+### 15. ERRO - QUIZ sem lessonId
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Quiz sem Lesson",
+  "type": "QUIZ",
+  "quizPosition": "AFTER_LESSON",
+  "passingScore": 70,
+  "randomizeQuestions": false,
+  "randomizeOptions": false
+}
+
+### 16. ERRO - SIMULADO com quizPosition
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Simulado com Campo Inválido",
+  "type": "SIMULADO",
+  "quizPosition": "AFTER_LESSON",
+  "passingScore": 60,
+  "timeLimitInMinutes": 60,
+  "randomizeQuestions": false,
+  "randomizeOptions": false
+}
+
+### 17. ERRO - PROVA_ABERTA com lessonId
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Prova com Lesson Inválida",
+  "type": "PROVA_ABERTA",
+  "passingScore": 70,
+  "randomizeQuestions": false,
+  "randomizeOptions": false,
+  "lessonId": "jkl01234-e89b-12d3-a456-426614174666"
+}
+
+### 18. ERRO - QUIZ com timeLimitInMinutes
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Quiz com Tempo Limite",
+  "type": "QUIZ",
+  "quizPosition": "BEFORE_LESSON",
+  "passingScore": 70,
+  "timeLimitInMinutes": 30,
+  "randomizeQuestions": false,
+  "randomizeOptions": false,
+  "lessonId": "mno34567-e89b-12d3-a456-426614174777"
+}
+
+### 19. ERRO - SIMULADO com tempo zero
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Simulado Tempo Zero",
+  "type": "SIMULADO",
+  "passingScore": 60,
+  "timeLimitInMinutes": 0,
+  "randomizeQuestions": true,
+  "randomizeOptions": true
+}
+
+### 20. ERRO - LessonId inválido (não é UUID)
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Quiz com UUID Inválido",
+  "type": "QUIZ",
+  "quizPosition": "AFTER_LESSON",
+  "passingScore": 70,
+  "randomizeQuestions": false,
+  "randomizeOptions": false,
+  "lessonId": "lesson-invalida-123"
+}
+
+### 21. ERRO - Múltiplos erros de validação
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "AB",
+  "type": "TIPO_INVALIDO",
+  "passingScore": 200,
+  "randomizeQuestions": false,
+  "randomizeOptions": false
+}
+
+### 22. ERRO - Título com apenas caracteres especiais
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "!@#",
+  "type": "PROVA_ABERTA",
+  "passingScore": 70,
+  "randomizeQuestions": false,
+  "randomizeOptions": false
+}
+
+### 23. ERRO - Assessment duplicado (executar duas vezes)
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Assessment Único para Teste de Duplicação",
+  "type": "PROVA_ABERTA",
+  "passingScore": 75,
+  "randomizeQuestions": false,
+  "randomizeOptions": false
+}
+
+### 24. ERRO - Campos obrigatórios ausentes
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "description": "Apenas descrição sem campos obrigatórios"
+}
+
+### 25. ERRO - Tipo de dado incorreto para passingScore
+POST {{BASE_URL}}/assessments
+Content-Type: {{contentType}}
+
+{
+  "title": "Quiz com Nota String",
+  "type": "QUIZ",
+  "quizPosition": "AFTER_LESSON",
+  "passingScore": "setenta",
+  "randomizeQuestions": false,
+  "randomizeOptions": false,
+  "lessonId": "pqr56789-e89b-12d3-a456-426614174888"
+}

@@ -7,22 +7,22 @@ POST {{BASE_URL}}/courses
 Content-Type: application/json
 
 {
-  "slug": "curso-teste5",
+  "slug": "curso-teste",
    "imageUrl": "/images/capa-track.avif",
   "translations": [
     {
       "locale": "pt",
-      "title": "Titulo Curso pt5",
+      "title": "Titulo Curso pt",
       "description": "Descricao curso pt."
     },
     {
       "locale": "it",
-      "title": "Titulo Curso it5",
+      "title": "Titulo Curso it",
       "description": "Descricao curso it."
     },
     {
       "locale": "es",
-      "title": "Titulo Curso pt5",
+      "title": "Titulo Curso pt",
       "description": "Descricao curso es."
     }
   ]

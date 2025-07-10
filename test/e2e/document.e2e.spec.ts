@@ -1,3 +1,4 @@
+//test/e2e/document.e2e.spec.ts
 import request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -46,15 +47,41 @@ describe('DocumentController (E2E)', () => {
   });
 
   const cleanDatabase = async () => {
+    // Clean in correct order respecting foreign keys
     await prisma.lessonDocumentTranslation.deleteMany();
     await prisma.lessonDocument.deleteMany();
+
+    await prisma.videoSeen.deleteMany();
     await prisma.videoTranslation.deleteMany();
+    await prisma.videoLink.deleteMany();
     await prisma.video.deleteMany();
+
+    await prisma.attemptAnswer.deleteMany();
+    await prisma.attempt.deleteMany();
+    await prisma.answerTranslation.deleteMany();
+    await prisma.answer.deleteMany();
+    await prisma.questionOption.deleteMany();
+    await prisma.question.deleteMany();
+    await prisma.argument.deleteMany();
+    await prisma.assessment.deleteMany();
+
+    await prisma.lessonTranslation.deleteMany();
     await prisma.lesson.deleteMany();
+
     await prisma.moduleTranslation.deleteMany();
+    await prisma.moduleVideoLink.deleteMany();
     await prisma.module.deleteMany();
+
     await prisma.courseTranslation.deleteMany();
+    await prisma.courseVideoLink.deleteMany();
+    await prisma.trackCourse.deleteMany();
     await prisma.course.deleteMany();
+
+    await prisma.trackTranslation.deleteMany();
+    await prisma.track.deleteMany();
+
+    await prisma.address.deleteMany();
+    await prisma.user.deleteMany();
   };
 
   const setupTestData = async () => {
@@ -90,9 +117,16 @@ describe('DocumentController (E2E)', () => {
     });
     moduleId = module.id;
 
-    // Create lesson
+    // Create lesson with required slug field
     const lesson = await prisma.lesson.create({
-      data: { moduleId },
+      data: {
+        slug: 'test-lesson-doc',
+        moduleId,
+        order: 1,
+        translations: {
+          create: [{ locale: 'pt', title: 'Aula PT', description: 'Desc PT' }],
+        },
+      },
     });
     lessonId = lesson.id;
   };
@@ -1013,7 +1047,16 @@ describe('DocumentController (E2E)', () => {
       });
 
       const otherLesson = await prisma.lesson.create({
-        data: { moduleId: otherModule.id },
+        data: {
+          slug: 'other-lesson-update',
+          moduleId: otherModule.id,
+          order: 2,
+          translations: {
+            create: [
+              { locale: 'pt', title: 'Outra Aula PT', description: 'Desc PT' },
+            ],
+          },
+        },
       });
 
       const otherLessonEndpoint = `/lessons/${otherLesson.id}/documents`;
@@ -1317,7 +1360,20 @@ describe('DocumentController (E2E)', () => {
       otherModuleId = otherModule.id;
 
       const otherLesson = await prisma.lesson.create({
-        data: { moduleId: otherModuleId },
+        data: {
+          slug: 'other-lesson-cross',
+          moduleId: otherModuleId,
+          order: 2,
+          translations: {
+            create: [
+              {
+                locale: 'pt',
+                title: 'Outra Aula Cross PT',
+                description: 'Desc PT',
+              },
+            ],
+          },
+        },
       });
       otherLessonId = otherLesson.id;
 

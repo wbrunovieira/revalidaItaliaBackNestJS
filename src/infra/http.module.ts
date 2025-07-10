@@ -11,7 +11,8 @@ import { CourseModule } from '@/infra/course.module';
 import { ModuleModule } from './module.module';
 import { VideoModule } from './video.module';
 import { VideoController } from './controllers/video.controller';
-// import { AssessmentModule } from './assessment.module';
+import { AssessmentModule } from './assessment.module';
+import { AssessmentController } from './controllers/assessment.controller';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { VideoController } from './controllers/video.controller';
     DatabaseModule,
     ModuleModule,
     VideoModule,
-    // AssessmentModule,
+    AssessmentModule,
   ],
   controllers: [
     StudentsController,

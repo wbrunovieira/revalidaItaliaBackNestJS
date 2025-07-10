@@ -12,6 +12,7 @@ export class InMemoryAssessmentRepository implements IAssessmentRepository {
     if (!assessment) {
       return left(new Error('Assessment not found'));
     }
+
     return right(assessment);
   }
 
@@ -24,7 +25,9 @@ export class InMemoryAssessmentRepository implements IAssessmentRepository {
   }
 
   async findByLessonId(lessonId: string): Promise<Either<Error, Assessment[]>> {
-    const assessments = this.items.filter((item) => item.lessonId === lessonId);
+    const assessments = this.items.filter(
+      (item) => item.lessonId?.toString() === lessonId,
+    );
     return right(assessments);
   }
 
