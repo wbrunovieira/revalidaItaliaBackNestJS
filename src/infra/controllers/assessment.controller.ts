@@ -3,6 +3,7 @@ import { CreateAssessmentDto } from '@/domain/assessment/application/dtos/create
 import { CreateAssessmentUseCase } from '@/domain/assessment/application/use-cases/create-assessment.use-case';
 import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
 import { GetAssessmentUseCase } from '@/domain/assessment/application/use-cases/get-assessment.use-case';
+import { DeleteAssessmentUseCase } from '@/domain/assessment/application/use-cases/delete-assessment.use-case';
 import { DuplicateAssessmentError } from '@/domain/assessment/application/use-cases/errors/duplicate-assessment-error';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { LessonNotFoundError } from '@/domain/assessment/application/use-cases/errors/lesson-not-found-error';
@@ -12,6 +13,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Query,
   Param,
@@ -31,6 +33,8 @@ export class AssessmentController {
     private readonly listAssessmentsUseCase: ListAssessmentsUseCase,
     @Inject(GetAssessmentUseCase)
     private readonly getAssessmentUseCase: GetAssessmentUseCase,
+    @Inject(DeleteAssessmentUseCase)
+    private readonly deleteAssessmentUseCase: DeleteAssessmentUseCase,
   ) {}
 
   @Post()
@@ -183,5 +187,44 @@ export class AssessmentController {
     }
 
     return result.value;
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    const result = await this.deleteAssessmentUseCase.execute({ id });
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof AssessmentNotFoundError) {
+        throw new NotFoundException({
+          error: 'ASSESSMENT_NOT_FOUND',
+          message: 'Assessment not found',
+        });
+      }
+
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException({
+          error: 'REPOSITORY_ERROR',
+          message: error.message,
+        });
+      }
+
+      // Fallback para erros não mapeados
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: 'An unexpected error occurred',
+      });
+    }
+
+    return { success: true };
   }
 }

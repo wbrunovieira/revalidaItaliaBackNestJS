@@ -8,6 +8,7 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { CreateAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/create-assessment.use-case';
 import { ListAssessmentsUseCase } from '../../src/domain/assessment/application/use-cases/list-assessments.use-case';
 import { GetAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/get-assessment.use-case';
+import { DeleteAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/delete-assessment.use-case';
 import { AssessmentController } from '../../src/infra/controllers/assessment.controller';
 import { PrismaAssessmentRepository } from '../../src/infra/database/prisma/repositories/prisma-assessment-repository';
 import { PrismaLessonRepository } from '../../src/infra/database/prisma/repositories/prisma-lesson-repository';
@@ -19,6 +20,7 @@ import { Module } from '@nestjs/common';
     CreateAssessmentUseCase,
     ListAssessmentsUseCase,
     GetAssessmentUseCase,
+    DeleteAssessmentUseCase,
     PrismaService,
     {
       provide: 'AssessmentRepository',
@@ -1532,6 +1534,57 @@ describe('Assessments Controller (E2E)', () => {
 
       expect(res.status).toBe(400);
       expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+    });
+  });
+
+  describe('[DELETE] /assessments/:id - Delete Assessment', () => {
+    let assessmentId: string;
+
+    beforeEach(async () => {
+      const assessment = await prisma.assessment.create({
+        data: {
+          slug: 'delete-test',
+          title: 'Delete Test',
+          type: 'QUIZ',
+          quizPosition: 'AFTER_LESSON',
+          passingScore: 75,
+          randomizeQuestions: true,
+          randomizeOptions: true,
+          lessonId: lessonId,
+        },
+      });
+      assessmentId = assessment.id;
+    });
+
+    it('should delete an assessment successfully', async () => {
+      const res = await request(app.getHttpServer()).delete(
+        `/assessments/${assessmentId}`,
+      );
+
+      expect(res.status).toBe(200);
+
+      const deletedAssessment = await prisma.assessment.findUnique({
+        where: { id: assessmentId },
+      });
+      expect(deletedAssessment).toBeNull();
+    });
+
+    it('should return 404 when trying to delete an assessment that does not exist', async () => {
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+      const res = await request(app.getHttpServer()).delete(
+        `/assessments/${nonExistentId}`,
+      );
+
+      expect(res.status).toBe(404);
+    });
+
+    it('should return 400 for an invalid UUID', async () => {
+      const invalidId = 'invalid-uuid';
+      const res = await request(app.getHttpServer()).delete(
+        `/assessments/${invalidId}`,
+      );
+
+      expect(res.status).toBe(400);
     });
   });
 });

@@ -9,6 +9,7 @@ import { DatabaseModule } from '@/infra/database/database.module';
 import { AssessmentController } from './controllers/assessment.controller';
 import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
 import { GetAssessmentUseCase } from '@/domain/assessment/application/use-cases/get-assessment.use-case';
+import { DeleteAssessmentUseCase } from '@/domain/assessment/application/use-cases/delete-assessment.use-case';
 
 @Module({
   imports: [DatabaseModule],
@@ -17,6 +18,8 @@ import { GetAssessmentUseCase } from '@/domain/assessment/application/use-cases/
     CreateAssessmentUseCase,
     ListAssessmentsUseCase,
     GetAssessmentUseCase,
+    DeleteAssessmentUseCase,
+
     {
       provide: 'AssessmentRepository',
       useClass: PrismaAssessmentRepository,

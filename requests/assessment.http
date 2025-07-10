@@ -1,3 +1,4 @@
+#requests/assessment.http
 @BASE_URL = http://localhost:3333
 
 #@BASE_URL = http://18.216.107.74:3333
@@ -397,4 +398,41 @@ GET {{BASE_URL}}/assessments?page=-1&limit=200&type=WRONG
 GET {{BASE_URL}}/assessments?page=abc&limit=xyz
 
 ### 45. Buscar assessment por ID
+GET {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+
+### ==================== ROTAS DE REMOÇÃO ====================
+
+### 46. Deletar assessment por ID - Sucesso
+DELETE {{BASE_URL}}/assessments/36286128-86d6-47c3-b0a3-202cafb746b8
+
+### 47. Deletar assessment específico - QUIZ
+DELETE {{BASE_URL}}/assessments/0ef04e01-8faa-45f3-813d-6f6d0b2d959f
+
+### 48. Deletar assessment específico - SIMULADO
+DELETE {{BASE_URL}}/assessments/456e7890-e89b-12d3-a456-426614174111
+
+### 49. Deletar assessment específico - PROVA_ABERTA
+DELETE {{BASE_URL}}/assessments/789e0123-e89b-12d3-a456-426614174222
+
+### ==================== CENÁRIOS DE ERRO NA REMOÇÃO ====================
+
+### 50. ERRO - Deletar assessment com ID inválido (não é UUID)
+DELETE {{BASE_URL}}/assessments/invalid-uuid-format
+
+### 51. ERRO - Deletar assessment que não existe
+DELETE {{BASE_URL}}/assessments/00000000-0000-0000-0000-000000000000
+
+### 52. ERRO - Deletar assessment já removido (executar 46 duas vezes)
+DELETE {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+
+### 53. ERRO - ID vazio
+DELETE {{BASE_URL}}/assessments/
+
+### 54. ERRO - UUID com formato incorreto
+DELETE {{BASE_URL}}/assessments/123-456-789
+
+### 55. ERRO - UUID com caracteres especiais
+DELETE {{BASE_URL}}/assessments/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa!
+
+### 56. Verificar se assessment foi realmente deletado (deve retornar 404)
 GET {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9

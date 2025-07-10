@@ -11,6 +11,7 @@ import { CreateAssessmentDto } from '@/domain/assessment/application/dtos/create
 import { CreateAssessmentUseCase } from '@/domain/assessment/application/use-cases/create-assessment.use-case';
 import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
 import { GetAssessmentUseCase } from '@/domain/assessment/application/use-cases/get-assessment.use-case';
+import { DeleteAssessmentUseCase } from '@/domain/assessment/application/use-cases/delete-assessment.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { DuplicateAssessmentError } from '@/domain/assessment/application/use-cases/errors/duplicate-assessment-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
@@ -29,11 +30,16 @@ class MockGetAssessmentUseCase {
   execute = vi.fn();
 }
 
+class MockDeleteAssessmentUseCase {
+  execute = vi.fn();
+}
+
 describe('AssessmentController', () => {
   let controller: AssessmentController;
   let createUseCase: MockCreateAssessmentUseCase;
   let listUseCase: MockListAssessmentsUseCase;
   let getUseCase: MockGetAssessmentUseCase;
+  let deleteUseCase: MockDeleteAssessmentUseCase;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,10 +47,12 @@ describe('AssessmentController', () => {
     createUseCase = new MockCreateAssessmentUseCase();
     listUseCase = new MockListAssessmentsUseCase();
     getUseCase = new MockGetAssessmentUseCase();
+    deleteUseCase = new MockDeleteAssessmentUseCase();
     controller = new AssessmentController(
       createUseCase as any,
       listUseCase as any,
       getUseCase as any,
+      deleteUseCase as any,
     );
   });
 
@@ -1474,6 +1482,166 @@ describe('AssessmentController', () => {
           message: 'An unexpected error occurred',
         });
       }
+    });
+  });
+
+  describe('delete()', () => {
+    const assessmentId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+
+    it('should successfully delete an assessment', async () => {
+      deleteUseCase.execute.mockResolvedValue(right({}));
+
+      const result = await controller.delete(assessmentId);
+
+      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: assessmentId });
+      expect(result).toEqual({ success: true });
+    });
+
+    it('should throw NotFoundException when assessment is not found', async () => {
+      deleteUseCase.execute.mockResolvedValue(left(new AssessmentNotFoundError()));
+
+      await expect(controller.delete(assessmentId)).rejects.toThrow(
+        NotFoundException,
+      );
+
+      try {
+        await controller.delete(assessmentId);
+      } catch (error) {
+        expect(error.getResponse()).toEqual({
+          error: 'ASSESSMENT_NOT_FOUND',
+          message: 'Assessment not found',
+        });
+      }
+    });
+
+    it('should throw BadRequestException on InvalidInputError', async () => {
+      const details = ['id: ID must be a valid UUID'];
+      deleteUseCase.execute.mockResolvedValue(
+        left(new InvalidInputError('Validation failed', details)),
+      );
+
+      await expect(controller.delete('invalid-id')).rejects.toThrow(
+        BadRequestException,
+      );
+
+      try {
+        await controller.delete('invalid-id');
+      } catch (error) {
+        expect(error.getResponse()).toEqual({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details,
+        });
+      }
+    });
+
+    it('should throw InternalServerErrorException on RepositoryError', async () => {
+      deleteUseCase.execute.mockResolvedValue(
+        left(new RepositoryError('Database error')),
+      );
+
+      await expect(controller.delete(assessmentId)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+
+      try {
+        await controller.delete(assessmentId);
+      } catch (error) {
+        expect(error.getResponse()).toEqual({
+          error: 'REPOSITORY_ERROR',
+          message: 'Database error',
+        });
+      }
+    });
+
+    it('should throw InternalServerErrorException on unexpected errors', async () => {
+      deleteUseCase.execute.mockResolvedValue(
+        left(new Error('An unexpected error occurred')),
+      );
+
+      await expect(controller.delete(assessmentId)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+
+      try {
+        await controller.delete(assessmentId);
+      } catch (error) {
+        expect(error.getResponse()).toEqual({
+          error: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
+        });
+      }
+    });
+
+    it('should handle empty string ID', async () => {
+      const details = ['id: ID must be a valid UUID'];
+      deleteUseCase.execute.mockResolvedValue(
+        left(new InvalidInputError('Validation failed', details)),
+      );
+
+      await expect(controller.delete('')).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: '' });
+    });
+
+    it('should handle null/undefined ID gracefully', async () => {
+      const details = ['id: ID must be a valid UUID'];
+      deleteUseCase.execute.mockResolvedValue(
+        left(new InvalidInputError('Validation failed', details)),
+      );
+
+      await expect(controller.delete(null as any)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: null });
+    });
+
+    it('should handle malformed UUID', async () => {
+      const malformedId = '123-456-789';
+      const details = ['id: ID must be a valid UUID'];
+      deleteUseCase.execute.mockResolvedValue(
+        left(new InvalidInputError('Validation failed', details)),
+      );
+
+      await expect(controller.delete(malformedId)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: malformedId });
+    });
+
+    it('should verify use case is called with correct parameters', async () => {
+      const testId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+      deleteUseCase.execute.mockResolvedValue(right({}));
+
+      await controller.delete(testId);
+
+      expect(deleteUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: testId });
+    });
+
+    it('should handle concurrent delete requests', async () => {
+      const id1 = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+      const id2 = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+      
+      deleteUseCase.execute.mockImplementation(({ id }) => {
+        if (id === id1) return Promise.resolve(right({}));
+        if (id === id2) return Promise.resolve(left(new AssessmentNotFoundError()));
+      });
+
+      const [result1, result2] = await Promise.allSettled([
+        controller.delete(id1),
+        controller.delete(id2).catch(err => err),
+      ]);
+
+      expect(result1.status).toBe('fulfilled');
+      expect((result1 as any).value).toEqual({ success: true });
+      
+      expect(result2.status).toBe('fulfilled');
+      expect((result2 as any).value).toBeInstanceOf(NotFoundException);
     });
   });
 });
