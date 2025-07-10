@@ -334,3 +334,64 @@ Content-Type: {{contentType}}
   "randomizeOptions": false,
   "lessonId": "pqr56789-e89b-12d3-a456-426614174888"
 }
+
+### ==================== ROTAS DE LISTAGEM ====================
+
+### 26. Listar todos os assessments (paginação padrão: página 1, limite 10)
+GET {{BASE_URL}}/assessments
+
+### 27. Listar assessments com paginação customizada
+GET {{BASE_URL}}/assessments?page=2&limit=5
+
+### 28. Filtrar assessments por tipo - QUIZ
+GET {{BASE_URL}}/assessments?type=QUIZ
+
+### 29. Filtrar assessments por tipo - SIMULADO
+GET {{BASE_URL}}/assessments?type=SIMULADO&page=1&limit=20
+
+### 30. Filtrar assessments por tipo - PROVA_ABERTA
+GET {{BASE_URL}}/assessments?type=PROVA_ABERTA
+
+### 31. Filtrar assessments por lessonId
+GET {{BASE_URL}}/assessments?lessonId=0ef04e01-8faa-45f3-813d-6f6d0b2d959f
+
+### 32. Filtrar por tipo e lessonId combinados
+GET {{BASE_URL}}/assessments?type=QUIZ&lessonId=0ef04e01-8faa-45f3-813d-6f6d0b2d959f
+
+### 33. Filtrar com paginação completa
+GET {{BASE_URL}}/assessments?page=1&limit=3&type=QUIZ&lessonId=0ef04e01-8faa-45f3-813d-6f6d0b2d959f
+
+### 34. Testar limite máximo de paginação
+GET {{BASE_URL}}/assessments?limit=100
+
+### 35. Primeira página com limite pequeno
+GET {{BASE_URL}}/assessments?page=1&limit=2
+
+### 36. Página que pode não existir (depende do número de assessments)
+GET {{BASE_URL}}/assessments?page=50&limit=10
+
+### ==================== CENÁRIOS DE ERRO NA LISTAGEM ====================
+
+### 37. ERRO - Página zero ou negativa
+GET {{BASE_URL}}/assessments?page=0
+
+### 38. ERRO - Limite zero ou negativo
+GET {{BASE_URL}}/assessments?limit=0
+
+### 39. ERRO - Limite acima do máximo (101)
+GET {{BASE_URL}}/assessments?limit=101
+
+### 40. ERRO - Tipo inválido no filtro
+GET {{BASE_URL}}/assessments?type=INVALID_TYPE
+
+### 41. ERRO - LessonId com formato inválido
+GET {{BASE_URL}}/assessments?lessonId=invalid-uuid-format
+
+### 42. ERRO - LessonId que não existe
+GET {{BASE_URL}}/assessments?lessonId=00000000-0000-0000-0000-000000000000
+
+### 43. ERRO - Múltiplos parâmetros inválidos
+GET {{BASE_URL}}/assessments?page=-1&limit=200&type=WRONG
+
+### 44. ERRO - Valores não numéricos para page e limit
+GET {{BASE_URL}}/assessments?page=abc&limit=xyz

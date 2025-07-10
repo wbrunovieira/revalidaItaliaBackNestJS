@@ -7,12 +7,14 @@ import { PrismaAssessmentRepository } from '@/infra/database/prisma/repositories
 import { PrismaLessonRepository } from '@/infra/database/prisma/repositories/prisma-lesson-repository';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { AssessmentController } from './controllers/assessment.controller';
+import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
 
 @Module({
   imports: [DatabaseModule],
   controllers: [AssessmentController], // Adicione o controller aqui
   providers: [
     CreateAssessmentUseCase,
+    ListAssessmentsUseCase,
     {
       provide: 'AssessmentRepository',
       useClass: PrismaAssessmentRepository,
@@ -22,6 +24,10 @@ import { AssessmentController } from './controllers/assessment.controller';
       useClass: PrismaLessonRepository,
     } as const,
   ],
-  exports: ['AssessmentRepository', CreateAssessmentUseCase], // Exporte o use case se necessário
+  exports: [
+    'AssessmentRepository',
+    CreateAssessmentUseCase,
+    ListAssessmentsUseCase,
+  ], // Exporte o use case se necessário
 })
 export class AssessmentModule {}

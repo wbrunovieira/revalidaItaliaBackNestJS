@@ -1,16 +1,22 @@
 // src/infra/course-catalog/controllers/assessment.controller.ts
 import { CreateAssessmentDto } from '@/domain/assessment/application/dtos/create-assessment.dto';
 import { CreateAssessmentUseCase } from '@/domain/assessment/application/use-cases/create-assessment.use-case';
+import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
 import { DuplicateAssessmentError } from '@/domain/assessment/application/use-cases/errors/duplicate-assessment-error';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
+import { LessonNotFoundError } from '@/domain/assessment/application/use-cases/errors/lesson-not-found-error';
+import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
 import {
   Controller,
+  Get,
   Post,
   Body,
+  Query,
   Inject,
   BadRequestException,
   ConflictException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 
 @Controller('assessments')
@@ -18,6 +24,8 @@ export class AssessmentController {
   constructor(
     @Inject(CreateAssessmentUseCase)
     private readonly createAssessmentUseCase: CreateAssessmentUseCase,
+    @Inject(ListAssessmentsUseCase)
+    private readonly listAssessmentsUseCase: ListAssessmentsUseCase,
   ) {}
 
   @Post()
@@ -54,9 +62,24 @@ export class AssessmentController {
         });
       }
 
+      if (error instanceof LessonNotFoundError) {
+        throw new InternalServerErrorException({
+          error: 'INTERNAL_ERROR',
+          message: 'Lesson not found',
+        });
+      }
+
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException({
+          error: 'INTERNAL_ERROR',
+          message: error.message,
+        });
+      }
+
+      // Fallback para erros não mapeados
       throw new InternalServerErrorException({
         error: 'INTERNAL_ERROR',
-        message: error.message,
+        message: 'Unexpected error occurred',
       });
     }
 
@@ -65,5 +88,56 @@ export class AssessmentController {
       success: true,
       assessment,
     };
+  }
+
+  @Get()
+  async list(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('type') type?: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
+    @Query('lessonId') lessonId?: string,
+  ) {
+    const request = {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      type,
+      lessonId,
+    };
+
+    const result = await this.listAssessmentsUseCase.execute(request);
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof LessonNotFoundError) {
+        throw new NotFoundException({
+          error: 'LESSON_NOT_FOUND',
+          message: 'Lesson not found',
+        });
+      }
+
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException({
+          error: 'REPOSITORY_ERROR',
+          message: error.message,
+        });
+      }
+
+      // Fallback para erros não mapeados
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: 'An unexpected error occurred',
+      });
+    }
+
+    return result.value;
   }
 }

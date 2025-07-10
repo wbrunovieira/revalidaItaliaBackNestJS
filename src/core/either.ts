@@ -1,4 +1,4 @@
-// Error
+// src/core/either.ts
 export class Left<L, R> {
   readonly value: L;
 

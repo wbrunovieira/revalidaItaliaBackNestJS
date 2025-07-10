@@ -4,11 +4,13 @@ import {
   BadRequestException,
   ConflictException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { left, right } from '@/core/either';
 import { AssessmentController } from './assessment.controller';
 import { CreateAssessmentDto } from '@/domain/assessment/application/dtos/create-assessment.dto';
 import { CreateAssessmentUseCase } from '@/domain/assessment/application/use-cases/create-assessment.use-case';
+import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { DuplicateAssessmentError } from '@/domain/assessment/application/use-cases/errors/duplicate-assessment-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
@@ -18,15 +20,21 @@ class MockCreateAssessmentUseCase {
   execute = vi.fn();
 }
 
+class MockListAssessmentsUseCase {
+  execute = vi.fn();
+}
+
 describe('AssessmentController', () => {
   let controller: AssessmentController;
   let createUseCase: MockCreateAssessmentUseCase;
+  let listUseCase: MockListAssessmentsUseCase;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
     createUseCase = new MockCreateAssessmentUseCase();
-    controller = new AssessmentController(createUseCase as any);
+    listUseCase = new MockListAssessmentsUseCase();
+    controller = new AssessmentController(createUseCase as any, listUseCase as any);
   });
 
   describe('create()', () => {
@@ -718,6 +726,628 @@ describe('AssessmentController', () => {
       const response = await controller.create(minTimeDto);
 
       expect(response.assessment.timeLimitInMinutes).toBe(1);
+    });
+  });
+
+  describe('list()', () => {
+    const mockListResponse = {
+      assessments: [
+        {
+          id: 'assessment-1',
+          slug: 'quiz-javascript',
+          title: 'JavaScript Quiz',
+          description: 'Test JavaScript knowledge',
+          type: 'QUIZ',
+          quizPosition: 'AFTER_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+          lessonId: 'lesson-1',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-01'),
+        },
+        {
+          id: 'assessment-2',
+          slug: 'simulado-programming',
+          title: 'Programming Simulado',
+          type: 'SIMULADO',
+          passingScore: 80,
+          timeLimitInMinutes: 120,
+          randomizeQuestions: true,
+          randomizeOptions: true,
+          createdAt: new Date('2023-01-02'),
+          updatedAt: new Date('2023-01-02'),
+        },
+      ],
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 2,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      },
+    };
+
+    describe('✅ Success Cases', () => {
+      it('returns assessments list with default pagination when no parameters provided', async () => {
+        listUseCase.execute.mockResolvedValueOnce(right(mockListResponse));
+
+        const result = await controller.list();
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: undefined,
+          limit: undefined,
+          type: undefined,
+          lessonId: undefined,
+        });
+        expect(result).toEqual(mockListResponse);
+      });
+
+      it('returns assessments list with custom pagination parameters', async () => {
+        const paginatedResponse = {
+          ...mockListResponse,
+          pagination: { ...mockListResponse.pagination, page: 2, limit: 5 },
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(right(paginatedResponse));
+
+        const result = await controller.list('2', '5');
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: 2,
+          limit: 5,
+          type: undefined,
+          lessonId: undefined,
+        });
+        expect(result).toEqual(paginatedResponse);
+      });
+
+      it('returns filtered assessments by type', async () => {
+        const filteredResponse = {
+          assessments: [mockListResponse.assessments[0]], // Only QUIZ
+          pagination: { ...mockListResponse.pagination, total: 1 },
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(right(filteredResponse));
+
+        const result = await controller.list(undefined, undefined, 'QUIZ');
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: undefined,
+          limit: undefined,
+          type: 'QUIZ',
+          lessonId: undefined,
+        });
+        expect(result).toEqual(filteredResponse);
+      });
+
+      it('returns filtered assessments by lessonId', async () => {
+        const filteredResponse = {
+          assessments: [mockListResponse.assessments[0]], // Only with lesson
+          pagination: { ...mockListResponse.pagination, total: 1 },
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(right(filteredResponse));
+
+        const result = await controller.list(
+          undefined,
+          undefined,
+          undefined,
+          'lesson-1',
+        );
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: undefined,
+          limit: undefined,
+          type: undefined,
+          lessonId: 'lesson-1',
+        });
+        expect(result).toEqual(filteredResponse);
+      });
+
+      it('returns filtered assessments with all parameters combined', async () => {
+        const combinedResponse = {
+          assessments: [mockListResponse.assessments[0]],
+          pagination: {
+            page: 1,
+            limit: 3,
+            total: 1,
+            totalPages: 1,
+            hasNext: false,
+            hasPrevious: false,
+          },
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(right(combinedResponse));
+
+        const result = await controller.list('1', '3', 'QUIZ', 'lesson-1');
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: 1,
+          limit: 3,
+          type: 'QUIZ',
+          lessonId: 'lesson-1',
+        });
+        expect(result).toEqual(combinedResponse);
+      });
+
+      it('returns empty list when no assessments match filters', async () => {
+        const emptyResponse = {
+          assessments: [],
+          pagination: {
+            page: 1,
+            limit: 10,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrevious: false,
+          },
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(right(emptyResponse));
+
+        const result = await controller.list(
+          undefined,
+          undefined,
+          'PROVA_ABERTA',
+        );
+
+        expect(result).toEqual(emptyResponse);
+      });
+
+      it('handles string to number conversion for page and limit', async () => {
+        listUseCase.execute.mockResolvedValueOnce(right(mockListResponse));
+
+        await controller.list('5', '20');
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: 5,
+          limit: 20,
+          type: undefined,
+          lessonId: undefined,
+        });
+      });
+
+      it('calls listAssessmentsUseCase.execute exactly once', async () => {
+        listUseCase.execute.mockResolvedValueOnce(right(mockListResponse));
+
+        await controller.list('1', '10', 'QUIZ');
+
+        expect(listUseCase.execute).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('⚠️ Validation Errors (400)', () => {
+      it('throws BadRequestException on InvalidInputError with validation details', async () => {
+        const validationError = new InvalidInputError('Validation failed', [
+          'page: Page must be at least 1',
+          'limit: Limit cannot exceed 100',
+        ]);
+        listUseCase.execute.mockResolvedValueOnce(left(validationError));
+
+        try {
+          await controller.list('0', '101');
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: [
+              'page: Page must be at least 1',
+              'limit: Limit cannot exceed 100',
+            ],
+          });
+        }
+      });
+
+      it('throws BadRequestException on invalid page parameter', async () => {
+        const validationError = new InvalidInputError('Validation failed', [
+          'page: Page must be at least 1',
+        ]);
+        listUseCase.execute.mockResolvedValueOnce(left(validationError));
+
+        try {
+          await controller.list('-1');
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toMatchObject({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+          });
+        }
+      });
+
+      it('throws BadRequestException on invalid limit parameter', async () => {
+        const validationError = new InvalidInputError('Validation failed', [
+          'limit: Limit cannot exceed 100',
+        ]);
+        listUseCase.execute.mockResolvedValueOnce(left(validationError));
+
+        try {
+          await controller.list(undefined, '200');
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toMatchObject({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+          });
+        }
+      });
+
+      it('throws BadRequestException on invalid assessment type', async () => {
+        const validationError = new InvalidInputError('Validation failed', [
+          'type: Type must be QUIZ, SIMULADO, or PROVA_ABERTA',
+        ]);
+        listUseCase.execute.mockResolvedValueOnce(left(validationError));
+
+        try {
+          await controller.list(undefined, undefined, 'INVALID_TYPE' as any);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toMatchObject({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+          });
+        }
+      });
+
+      it('throws BadRequestException on invalid UUID format for lessonId', async () => {
+        const validationError = new InvalidInputError('Validation failed', [
+          'lessonId: Lesson ID must be a valid UUID',
+        ]);
+        listUseCase.execute.mockResolvedValueOnce(left(validationError));
+
+        try {
+          await controller.list(
+            undefined,
+            undefined,
+            undefined,
+            'invalid-uuid',
+          );
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toMatchObject({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+          });
+        }
+      });
+
+      it('throws BadRequestException with multiple validation errors', async () => {
+        const validationError = new InvalidInputError('Validation failed', [
+          'page: Page must be at least 1',
+          'limit: Limit must be at least 1',
+          'type: Type must be QUIZ, SIMULADO, or PROVA_ABERTA',
+        ]);
+        listUseCase.execute.mockResolvedValueOnce(left(validationError));
+
+        try {
+          await controller.list('0', '0', 'WRONG_TYPE' as any);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toMatchObject({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: expect.arrayContaining([
+              'page: Page must be at least 1',
+              'limit: Limit must be at least 1',
+              'type: Type must be QUIZ, SIMULADO, or PROVA_ABERTA',
+            ]),
+          });
+        }
+      });
+    });
+
+    describe('🔍 Business Logic Errors', () => {
+      it('throws NotFoundException when lesson is not found', async () => {
+        const lessonNotFoundError = new LessonNotFoundError();
+        listUseCase.execute.mockResolvedValueOnce(left(lessonNotFoundError));
+
+        try {
+          await controller.list(
+            undefined,
+            undefined,
+            undefined,
+            'non-existent-lesson-id',
+          );
+          expect.fail('Should have thrown NotFoundException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(NotFoundException);
+          expect(error.getResponse()).toEqual({
+            error: 'LESSON_NOT_FOUND',
+            message: 'Lesson not found',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on RepositoryError', async () => {
+        const repositoryError = new RepositoryError('Database connection failed');
+        listUseCase.execute.mockResolvedValueOnce(left(repositoryError));
+
+        try {
+          await controller.list();
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'REPOSITORY_ERROR',
+            message: 'Database connection failed',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on unexpected error', async () => {
+        const genericError = new Error('Unexpected error occurred');
+        listUseCase.execute.mockResolvedValueOnce(left(genericError));
+
+        try {
+          await controller.list();
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'An unexpected error occurred',
+          });
+        }
+      });
+    });
+
+    describe('🔍 Edge Cases', () => {
+      it('handles very large page numbers gracefully', async () => {
+        const largePageResponse = {
+          assessments: [],
+          pagination: {
+            page: 9999,
+            limit: 10,
+            total: 5,
+            totalPages: 1,
+            hasNext: false,
+            hasPrevious: true,
+          },
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(right(largePageResponse));
+
+        const result = await controller.list('9999');
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: 9999,
+          limit: undefined,
+          type: undefined,
+          lessonId: undefined,
+        });
+        expect(result).toEqual(largePageResponse);
+      });
+
+      it('handles maximum allowed limit (100)', async () => {
+        const maxLimitResponse = {
+          ...mockListResponse,
+          pagination: { ...mockListResponse.pagination, limit: 100 },
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(right(maxLimitResponse));
+
+        const result = await controller.list(undefined, '100');
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: undefined,
+          limit: 100,
+          type: undefined,
+          lessonId: undefined,
+        });
+        expect(result).toEqual(maxLimitResponse);
+      });
+
+      it('handles non-numeric strings for page and limit by converting to NaN', async () => {
+        listUseCase.execute.mockResolvedValueOnce(right(mockListResponse));
+
+        await controller.list('abc', 'xyz');
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: NaN,
+          limit: NaN,
+          type: undefined,
+          lessonId: undefined,
+        });
+      });
+
+      it('handles empty strings for page and limit', async () => {
+        listUseCase.execute.mockResolvedValueOnce(right(mockListResponse));
+
+        await controller.list('', '');
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: undefined, // empty strings are treated as falsy and become undefined
+          limit: undefined,
+          type: undefined,
+          lessonId: undefined,
+        });
+      });
+
+      it('preserves assessment data structure in response', async () => {
+        const detailedResponse = {
+          assessments: [
+            {
+              id: 'detailed-assessment',
+              slug: 'detailed-quiz',
+              title: 'Detailed Quiz Assessment',
+              description: 'A comprehensive quiz with all fields',
+              type: 'QUIZ',
+              quizPosition: 'BEFORE_LESSON',
+              passingScore: 85,
+              randomizeQuestions: true,
+              randomizeOptions: false,
+              lessonId: 'lesson-abc',
+              createdAt: new Date('2023-06-15'),
+              updatedAt: new Date('2023-06-16'),
+            },
+          ],
+          pagination: {
+            page: 1,
+            limit: 1,
+            total: 1,
+            totalPages: 1,
+            hasNext: false,
+            hasPrevious: false,
+          },
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(right(detailedResponse));
+
+        const result = await controller.list('1', '1');
+
+        expect(result.assessments[0]).toMatchObject({
+          id: 'detailed-assessment',
+          slug: 'detailed-quiz',
+          title: 'Detailed Quiz Assessment',
+          description: 'A comprehensive quiz with all fields',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 85,
+          randomizeQuestions: true,
+          randomizeOptions: false,
+          lessonId: 'lesson-abc',
+        });
+      });
+
+      it('handles assessments with optional fields as undefined', async () => {
+        const minimalResponse = {
+          assessments: [
+            {
+              id: 'minimal-assessment',
+              slug: 'minimal-prova',
+              title: 'Minimal Prova Aberta',
+              type: 'PROVA_ABERTA',
+              passingScore: 70,
+              randomizeQuestions: false,
+              randomizeOptions: false,
+              createdAt: new Date('2023-03-10'),
+              updatedAt: new Date('2023-03-10'),
+            },
+          ],
+          pagination: {
+            page: 1,
+            limit: 10,
+            total: 1,
+            totalPages: 1,
+            hasNext: false,
+            hasPrevious: false,
+          },
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(right(minimalResponse));
+
+        const result = await controller.list();
+
+        expect(result.assessments[0]).toMatchObject({
+          id: 'minimal-assessment',
+          type: 'PROVA_ABERTA',
+          passingScore: 70,
+        });
+        expect(result.assessments[0].description).toBeUndefined();
+        expect(result.assessments[0].quizPosition).toBeUndefined();
+        expect(result.assessments[0].timeLimitInMinutes).toBeUndefined();
+        expect(result.assessments[0].lessonId).toBeUndefined();
+      });
+    });
+
+    describe('🔄 Behavior Testing', () => {
+      it('passes correct request object to use case with all defined parameters', async () => {
+        listUseCase.execute.mockResolvedValueOnce(right(mockListResponse));
+
+        await controller.list('3', '15', 'SIMULADO', 'lesson-xyz');
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: 3,
+          limit: 15,
+          type: 'SIMULADO',
+          lessonId: 'lesson-xyz',
+        });
+      });
+
+      it('passes undefined for missing optional parameters', async () => {
+        listUseCase.execute.mockResolvedValueOnce(right(mockListResponse));
+
+        await controller.list('2');
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: 2,
+          limit: undefined,
+          type: undefined,
+          lessonId: undefined,
+        });
+      });
+
+      it('returns the exact response from use case without modification', async () => {
+        const exactResponse = {
+          assessments: [
+            {
+              id: 'test-exact',
+              slug: 'test-exact-slug',
+              title: 'Exact Test',
+              type: 'QUIZ',
+              passingScore: 90,
+              randomizeQuestions: true,
+              randomizeOptions: true,
+              createdAt: new Date('2023-12-01'),
+              updatedAt: new Date('2023-12-01'),
+            },
+          ],
+          pagination: {
+            page: 2,
+            limit: 3,
+            total: 10,
+            totalPages: 4,
+            hasNext: true,
+            hasPrevious: true,
+          },
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(right(exactResponse));
+
+        const result = await controller.list('2', '3');
+
+        expect(result).toBe(exactResponse); // Should be the exact same object reference
+      });
+
+      it('properly handles all three assessment types in filters', async () => {
+        listUseCase.execute.mockResolvedValue(right(mockListResponse));
+
+        // Test QUIZ type
+        await controller.list(undefined, undefined, 'QUIZ');
+        expect(listUseCase.execute).toHaveBeenLastCalledWith({
+          page: undefined,
+          limit: undefined,
+          type: 'QUIZ',
+          lessonId: undefined,
+        });
+
+        // Test SIMULADO type
+        await controller.list(undefined, undefined, 'SIMULADO');
+        expect(listUseCase.execute).toHaveBeenLastCalledWith({
+          page: undefined,
+          limit: undefined,
+          type: 'SIMULADO',
+          lessonId: undefined,
+        });
+
+        // Test PROVA_ABERTA type
+        await controller.list(undefined, undefined, 'PROVA_ABERTA');
+        expect(listUseCase.execute).toHaveBeenLastCalledWith({
+          page: undefined,
+          limit: undefined,
+          type: 'PROVA_ABERTA',
+          lessonId: undefined,
+        });
+      });
     });
   });
 });

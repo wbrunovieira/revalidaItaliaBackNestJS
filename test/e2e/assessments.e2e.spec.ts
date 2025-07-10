@@ -6,6 +6,7 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 
 // Create a minimal module for testing just the assessment controller
 import { CreateAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/create-assessment.use-case';
+import { ListAssessmentsUseCase } from '../../src/domain/assessment/application/use-cases/list-assessments.use-case';
 import { AssessmentController } from '../../src/infra/controllers/assessment.controller';
 import { PrismaAssessmentRepository } from '../../src/infra/database/prisma/repositories/prisma-assessment-repository';
 import { PrismaLessonRepository } from '../../src/infra/database/prisma/repositories/prisma-lesson-repository';
@@ -15,6 +16,7 @@ import { Module } from '@nestjs/common';
   controllers: [AssessmentController],
   providers: [
     CreateAssessmentUseCase,
+    ListAssessmentsUseCase,
     PrismaService,
     {
       provide: 'AssessmentRepository',
@@ -921,6 +923,560 @@ describe('Assessments Controller (E2E)', () => {
           const assessmentNumber = parseInt(titleMatch![1]);
           const expectedType = assessmentNumber % 2 === 0 ? 'SIMULADO' : 'QUIZ';
           expect(assessment.type).toBe(expectedType);
+        });
+      });
+    });
+  });
+
+  describe('[GET] /assessments - List Assessments', () => {
+    beforeEach(async () => {
+      // Create some test assessments for listing
+      await prisma.assessment.createMany({
+        data: [
+          {
+            id: '11111111-1111-1111-1111-111111111111',
+            slug: 'quiz-javascript-basics',
+            title: 'Quiz JavaScript Basics',
+            description: 'Basic JavaScript quiz',
+            type: 'QUIZ',
+            quizPosition: 'AFTER_LESSON',
+            passingScore: 70,
+            randomizeQuestions: true,
+            randomizeOptions: false,
+            lessonId: lessonId,
+          },
+          {
+            id: '22222222-2222-2222-2222-222222222222',
+            slug: 'simulado-programming',
+            title: 'Simulado Programming',
+            description: 'Programming simulation exam',
+            type: 'SIMULADO',
+            passingScore: 80,
+            timeLimitInMinutes: 120,
+            randomizeQuestions: true,
+            randomizeOptions: true,
+          },
+          {
+            id: '33333333-3333-3333-3333-333333333333',
+            slug: 'prova-aberta-advanced',
+            title: 'Prova Aberta Advanced',
+            description: 'Advanced open exam',
+            type: 'PROVA_ABERTA',
+            passingScore: 75,
+            randomizeQuestions: false,
+            randomizeOptions: false,
+          },
+          {
+            id: '44444444-4444-4444-4444-444444444444',
+            slug: 'quiz-lesson-specific',
+            title: 'Quiz Lesson Specific',
+            type: 'QUIZ',
+            quizPosition: 'BEFORE_LESSON',
+            passingScore: 65,
+            randomizeQuestions: false,
+            randomizeOptions: true,
+            lessonId: lessonId,
+          },
+        ],
+      });
+    });
+
+    describe('✅ Success Cases', () => {
+      it('should list all assessments with default pagination', async () => {
+        const res = await request(app.getHttpServer()).get('/assessments');
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty('assessments');
+        expect(res.body).toHaveProperty('pagination');
+        expect(Array.isArray(res.body.assessments)).toBe(true);
+        expect(res.body.assessments).toHaveLength(4);
+        expect(res.body.pagination).toMatchObject({
+          page: 1,
+          limit: 10,
+          total: 4,
+          totalPages: 1,
+        });
+      });
+
+      it('should list assessments with custom pagination', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ page: 1, limit: 2 });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(2);
+        expect(res.body.pagination).toMatchObject({
+          page: 1,
+          limit: 2,
+          total: 4,
+          totalPages: 2,
+        });
+      });
+
+      it('should filter assessments by type QUIZ', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ type: 'QUIZ' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(2);
+        res.body.assessments.forEach((assessment: any) => {
+          expect(assessment.type).toBe('QUIZ');
+        });
+      });
+
+      it('should filter assessments by type SIMULADO', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ type: 'SIMULADO' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(1);
+        expect(res.body.assessments[0].type).toBe('SIMULADO');
+        expect(res.body.assessments[0].title).toBe('Simulado Programming');
+      });
+
+      it('should filter assessments by type PROVA_ABERTA', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ type: 'PROVA_ABERTA' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(1);
+        expect(res.body.assessments[0].type).toBe('PROVA_ABERTA');
+        expect(res.body.assessments[0].title).toBe('Prova Aberta Advanced');
+      });
+
+      it('should filter assessments by lessonId', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ lessonId: lessonId });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(2);
+        res.body.assessments.forEach((assessment: any) => {
+          expect(assessment.lessonId).toBe(lessonId);
+        });
+      });
+
+      it('should filter by type and lessonId combined', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ type: 'QUIZ', lessonId: lessonId });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(2);
+        res.body.assessments.forEach((assessment: any) => {
+          expect(assessment.type).toBe('QUIZ');
+          expect(assessment.lessonId).toBe(lessonId);
+        });
+      });
+
+      it('should handle pagination with filtering', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ type: 'QUIZ', page: 1, limit: 1 });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(1);
+        expect(res.body.assessments[0].type).toBe('QUIZ');
+        expect(res.body.pagination).toMatchObject({
+          page: 1,
+          limit: 1,
+          total: 2,
+          totalPages: 2,
+        });
+      });
+
+      it('should return empty results when no assessments match filter', async () => {
+        // Delete all assessments and create one that won't match our filter
+        await prisma.assessment.deleteMany({});
+        await prisma.assessment.create({
+          data: {
+            id: '55555555-5555-5555-5555-555555555555',
+            slug: 'different-quiz',
+            title: 'Different Quiz',
+            type: 'QUIZ',
+            quizPosition: 'AFTER_LESSON',
+            passingScore: 70,
+            randomizeQuestions: false,
+            randomizeOptions: false,
+          },
+        });
+
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ type: 'SIMULADO' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(0);
+        expect(res.body.pagination).toMatchObject({
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+        });
+      });
+
+      it('should return correct assessment structure', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ limit: 1 });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(1);
+
+        const assessment = res.body.assessments[0];
+        expect(assessment).toHaveProperty('id');
+        expect(assessment).toHaveProperty('slug');
+        expect(assessment).toHaveProperty('title');
+        expect(assessment).toHaveProperty('type');
+        expect(assessment).toHaveProperty('passingScore');
+        expect(assessment).toHaveProperty('randomizeQuestions');
+        expect(assessment).toHaveProperty('randomizeOptions');
+        
+        // Check UUID format
+        expect(assessment.id).toMatch(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+        );
+      });
+
+      it('should handle large page numbers gracefully', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ page: 50, limit: 10 });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(0);
+        expect(res.body.pagination).toMatchObject({
+          page: 50,
+          limit: 10,
+          total: 4,
+          totalPages: 1,
+        });
+      });
+
+      it('should handle maximum limit correctly', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ limit: 100 });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(4);
+        expect(res.body.pagination.limit).toBe(100);
+      });
+    });
+
+    describe('⚠️ Validation Errors (400)', () => {
+      it('should return 400 when page is zero', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ page: 0 });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+        expect(res.body).toHaveProperty('details');
+      });
+
+      it('should return 400 when page is negative', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ page: -1 });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+      });
+
+      it('should return 400 when limit is zero', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ limit: 0 });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+      });
+
+      it('should return 400 when limit is negative', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ limit: -5 });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+      });
+
+      it('should return 400 when limit exceeds maximum', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ limit: 101 });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+      });
+
+      it('should return 400 when type is invalid', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ type: 'INVALID_TYPE' });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+      });
+
+      it('should return 400 when lessonId is not a valid UUID', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ lessonId: 'invalid-uuid' });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+      });
+
+      it('should return 400 with multiple invalid parameters', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ 
+            page: -1, 
+            limit: 200, 
+            type: 'WRONG_TYPE',
+            lessonId: 'not-uuid'
+          });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+        expect(res.body).toHaveProperty('details');
+      });
+
+      it('should return 400 when page is not a number', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ page: 'abc' });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+      });
+
+      it('should return 400 when limit is not a number', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ limit: 'xyz' });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+      });
+    });
+
+    describe('🔍 Business Logic Errors', () => {
+      it('should return 404 when lessonId does not exist', async () => {
+        const nonExistentLessonId = '00000000-0000-0000-0000-000000000000';
+        
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ lessonId: nonExistentLessonId });
+
+        expect(res.status).toBe(404);
+        expect(res.body).toHaveProperty('error', 'LESSON_NOT_FOUND');
+        expect(res.body).toHaveProperty('message', 'Lesson not found');
+      });
+
+      it('should handle lesson with no associated assessments', async () => {
+        // Create a new lesson with no assessments
+        const newLesson = await prisma.lesson.create({
+          data: {
+            slug: 'lesson-no-assessments',
+            moduleId,
+            order: 2,
+            translations: {
+              create: [
+                { locale: 'pt', title: 'Lesson No Assessments', description: 'Test' },
+              ],
+            },
+          },
+        });
+
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ lessonId: newLesson.id });
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments).toHaveLength(0);
+        expect(res.body.pagination).toMatchObject({
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+        });
+      });
+    });
+
+    describe('🔧 Edge Cases', () => {
+      it('should handle empty string parameters correctly', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ page: '', limit: '', type: '', lessonId: '' });
+
+        // Empty strings for page/limit are treated as invalid and return 400
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+      });
+
+      it('should maintain consistent ordering across paginated requests', async () => {
+        // Get first page
+        const firstPage = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ page: 1, limit: 2 });
+
+        // Get second page
+        const secondPage = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ page: 2, limit: 2 });
+
+        expect(firstPage.status).toBe(200);
+        expect(secondPage.status).toBe(200);
+        expect(firstPage.body.assessments).toHaveLength(2);
+        expect(secondPage.body.assessments).toHaveLength(2);
+
+        // Ensure no duplicates between pages
+        const firstPageIds = firstPage.body.assessments.map((a: any) => a.id);
+        const secondPageIds = secondPage.body.assessments.map((a: any) => a.id);
+        const intersection = firstPageIds.filter((id: string) => secondPageIds.includes(id));
+        expect(intersection).toHaveLength(0);
+      });
+
+      it('should handle special characters in query parameters', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ type: 'QUIZ%20SPECIAL' });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
+      });
+
+      it('should handle concurrent list requests', async () => {
+        const requests: Promise<any>[] = [
+          request(app.getHttpServer()).get('/assessments').query({ type: 'QUIZ' }),
+          request(app.getHttpServer()).get('/assessments').query({ type: 'SIMULADO' }),
+          request(app.getHttpServer()).get('/assessments').query({ lessonId: lessonId }),
+        ];
+
+        const responses = await Promise.all(requests);
+
+        responses.forEach((res: any) => {
+          expect(res.status).toBe(200);
+          expect(res.body).toHaveProperty('assessments');
+          expect(res.body).toHaveProperty('pagination');
+        });
+
+        expect(responses[0].body.assessments).toHaveLength(2); // QUIZ type
+        expect(responses[1].body.assessments).toHaveLength(1); // SIMULADO type
+        expect(responses[2].body.assessments).toHaveLength(2); // By lessonId
+      });
+    });
+
+    describe('⚡ Performance Tests', () => {
+      it('should respond quickly for large result sets', async () => {
+        // Create many assessments for performance testing
+        const manyAssessments = Array.from({ length: 50 }, (_, i) => ({
+          id: `perf-${i.toString().padStart(4, '0')}-1111-1111-1111-111111111111`,
+          slug: `performance-test-${i}`,
+          title: `Performance Test Assessment ${i}`,
+          type: 'QUIZ' as const,
+          quizPosition: 'AFTER_LESSON' as const,
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        }));
+
+        await prisma.assessment.createMany({
+          data: manyAssessments,
+        });
+
+        const startTime = Date.now();
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ limit: 100 });
+        const endTime = Date.now();
+
+        expect(res.status).toBe(200);
+        expect(res.body.assessments.length).toBeGreaterThanOrEqual(50);
+        expect(endTime - startTime).toBeLessThan(2000); // Should complete within 2 seconds
+      });
+
+      it('should handle rapid sequential pagination requests', async () => {
+        const requests: Promise<any>[] = [];
+        for (let page = 1; page <= 5; page++) {
+          requests.push(
+            request(app.getHttpServer())
+              .get('/assessments')
+              .query({ page, limit: 1 })
+          );
+        }
+
+        const responses = await Promise.all(requests);
+
+        responses.forEach((res: any, index: number) => {
+          expect(res.status).toBe(200);
+          expect(res.body.pagination.page).toBe(index + 1);
+          expect(res.body.pagination.limit).toBe(1);
+        });
+      });
+    });
+
+    describe('📊 Data Integrity Tests', () => {
+      it('should return assessments sorted by creation date (newest first)', async () => {
+        const res = await request(app.getHttpServer()).get('/assessments');
+
+        expect(res.status).toBe(200);
+        const assessments = res.body.assessments;
+        
+        // Verify ordering - should be sorted by createdAt descending
+        for (let i = 1; i < assessments.length; i++) {
+          const current = new Date(assessments[i].createdAt || 0);
+          const previous = new Date(assessments[i - 1].createdAt || 0);
+          expect(current.getTime()).toBeLessThanOrEqual(previous.getTime());
+        }
+      });
+
+      it('should include all required fields in assessment response', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ limit: 1 });
+
+        expect(res.status).toBe(200);
+        const assessment = res.body.assessments[0];
+
+        // Required fields that should always be present
+        expect(assessment).toHaveProperty('id');
+        expect(assessment).toHaveProperty('slug');
+        expect(assessment).toHaveProperty('title');
+        expect(assessment).toHaveProperty('type');
+        expect(assessment).toHaveProperty('passingScore');
+        expect(assessment).toHaveProperty('randomizeQuestions');
+        expect(assessment).toHaveProperty('randomizeOptions');
+
+        // Type-specific fields (should be present when applicable)
+        if (assessment.type === 'QUIZ') {
+          expect(assessment).toHaveProperty('quizPosition');
+        }
+        if (assessment.type === 'SIMULADO') {
+          expect(assessment).toHaveProperty('timeLimitInMinutes');
+        }
+      });
+
+      it('should maintain pagination metadata accuracy', async () => {
+        const totalRes = await request(app.getHttpServer()).get('/assessments');
+        const totalCount = totalRes.body.assessments.length;
+
+        const limitedRes = await request(app.getHttpServer())
+          .get('/assessments')
+          .query({ limit: 2 });
+
+        expect(limitedRes.status).toBe(200);
+        expect(limitedRes.body.pagination).toMatchObject({
+          page: 1,
+          limit: 2,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / 2),
         });
       });
     });
