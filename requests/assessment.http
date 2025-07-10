@@ -395,3 +395,6 @@ GET {{BASE_URL}}/assessments?page=-1&limit=200&type=WRONG
 
 ### 44. ERRO - Valores não numéricos para page e limit
 GET {{BASE_URL}}/assessments?page=abc&limit=xyz
+
+### 45. Buscar assessment por ID
+GET {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9

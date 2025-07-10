@@ -1,4 +1,3 @@
-// src/infra/controllers/assessment.controller.spec.ts
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   BadRequestException,
@@ -11,10 +10,12 @@ import { AssessmentController } from './assessment.controller';
 import { CreateAssessmentDto } from '@/domain/assessment/application/dtos/create-assessment.dto';
 import { CreateAssessmentUseCase } from '@/domain/assessment/application/use-cases/create-assessment.use-case';
 import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
+import { GetAssessmentUseCase } from '@/domain/assessment/application/use-cases/get-assessment.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { DuplicateAssessmentError } from '@/domain/assessment/application/use-cases/errors/duplicate-assessment-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
 import { LessonNotFoundError } from '@/domain/assessment/application/use-cases/errors/lesson-not-found-error';
+import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
 
 class MockCreateAssessmentUseCase {
   execute = vi.fn();
@@ -24,17 +25,27 @@ class MockListAssessmentsUseCase {
   execute = vi.fn();
 }
 
+class MockGetAssessmentUseCase {
+  execute = vi.fn();
+}
+
 describe('AssessmentController', () => {
   let controller: AssessmentController;
   let createUseCase: MockCreateAssessmentUseCase;
   let listUseCase: MockListAssessmentsUseCase;
+  let getUseCase: MockGetAssessmentUseCase;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
     createUseCase = new MockCreateAssessmentUseCase();
     listUseCase = new MockListAssessmentsUseCase();
-    controller = new AssessmentController(createUseCase as any, listUseCase as any);
+    getUseCase = new MockGetAssessmentUseCase();
+    controller = new AssessmentController(
+      createUseCase as any,
+      listUseCase as any,
+      getUseCase as any,
+    );
   });
 
   describe('create()', () => {
@@ -352,9 +363,7 @@ describe('AssessmentController', () => {
     });
 
     it('throws BadRequestException on InvalidInputError with invalid UUID', async () => {
-      const validationDetails = [
-        'lessonId: Lesson ID must be a valid UUID',
-      ];
+      const validationDetails = ['lessonId: Lesson ID must be a valid UUID'];
       createUseCase.execute.mockResolvedValueOnce(
         left(new InvalidInputError('Validation failed', validationDetails)),
       );
@@ -406,7 +415,12 @@ describe('AssessmentController', () => {
         'Invalid slug: Title must be at least 3 characters long to generate a valid slug',
       ];
       createUseCase.execute.mockResolvedValueOnce(
-        left(new InvalidInputError('Invalid title for slug generation', validationDetails)),
+        left(
+          new InvalidInputError(
+            'Invalid title for slug generation',
+            validationDetails,
+          ),
+        ),
       );
 
       const invalidDto = {
@@ -434,7 +448,12 @@ describe('AssessmentController', () => {
         'quizPosition: Quiz position is required for QUIZ type assessments',
       ];
       createUseCase.execute.mockResolvedValueOnce(
-        left(new InvalidInputError('Multiple validation errors', validationDetails)),
+        left(
+          new InvalidInputError(
+            'Multiple validation errors',
+            validationDetails,
+          ),
+        ),
       );
 
       const invalidDto = {
@@ -1068,7 +1087,9 @@ describe('AssessmentController', () => {
       });
 
       it('throws InternalServerErrorException on RepositoryError', async () => {
-        const repositoryError = new RepositoryError('Database connection failed');
+        const repositoryError = new RepositoryError(
+          'Database connection failed',
+        );
         listUseCase.execute.mockResolvedValueOnce(left(repositoryError));
 
         try {
@@ -1350,4 +1371,110 @@ describe('AssessmentController', () => {
       });
     });
   });
+
+  describe('findById()', () => {
+    const assessmentId = 'some-uuid';
+    const mockAssessment = {
+      assessment: {
+        id: assessmentId,
+        slug: 'test-assessment',
+        title: 'Test Assessment',
+        description: 'An assessment for testing.',
+        type: 'QUIZ' as const,
+        quizPosition: 'AFTER_LESSON' as const,
+        passingScore: 80,
+        randomizeQuestions: true,
+        randomizeOptions: true,
+        lessonId: 'lesson-uuid',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    };
+
+    it('should return the assessment when found', async () => {
+      getUseCase.execute.mockResolvedValue(right(mockAssessment));
+
+      const result = await controller.findById(assessmentId);
+
+      expect(getUseCase.execute).toHaveBeenCalledWith({ id: assessmentId });
+      expect(result).toEqual(mockAssessment);
+    });
+
+    it('should throw NotFoundException when assessment is not found', async () => {
+      getUseCase.execute.mockResolvedValue(left(new AssessmentNotFoundError()));
+
+      await expect(controller.findById(assessmentId)).rejects.toThrow(
+        NotFoundException,
+      );
+
+      try {
+        await controller.findById(assessmentId);
+      } catch (error) {
+        expect(error.getResponse()).toEqual({
+          error: 'ASSESSMENT_NOT_FOUND',
+          message: 'Assessment not found',
+        });
+      }
+    });
+
+    it('should throw BadRequestException on InvalidInputError', async () => {
+      const details = ['id: Invalid UUID'];
+      getUseCase.execute.mockResolvedValue(
+        left(new InvalidInputError('Validation failed', details)),
+      );
+
+      await expect(controller.findById('invalid-id')).rejects.toThrow(
+        BadRequestException,
+      );
+
+      try {
+        await controller.findById('invalid-id');
+      } catch (error) {
+        expect(error.getResponse()).toEqual({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details,
+        });
+      }
+    });
+
+    it('should throw InternalServerErrorException on RepositoryError', async () => {
+      getUseCase.execute.mockResolvedValue(
+        left(new RepositoryError('DB error')),
+      );
+
+      await expect(controller.findById(assessmentId)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+
+      try {
+        await controller.findById(assessmentId);
+      } catch (error) {
+        expect(error.getResponse()).toEqual({
+          error: 'REPOSITORY_ERROR',
+          message: 'DB error',
+        });
+      }
+    });
+
+    it('should throw InternalServerErrorException on unexpected errors', async () => {
+      getUseCase.execute.mockResolvedValue(
+        left(new Error('An unexpected error occurred')),
+      );
+
+      await expect(controller.findById(assessmentId)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+
+      try {
+        await controller.findById(assessmentId);
+      } catch (error) {
+        expect(error.getResponse()).toEqual({
+          error: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
+        });
+      }
+    });
+  });
 });
+('');

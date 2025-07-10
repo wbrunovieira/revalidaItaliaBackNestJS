@@ -7,6 +7,7 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 // Create a minimal module for testing just the assessment controller
 import { CreateAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/create-assessment.use-case';
 import { ListAssessmentsUseCase } from '../../src/domain/assessment/application/use-cases/list-assessments.use-case';
+import { GetAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/get-assessment.use-case';
 import { AssessmentController } from '../../src/infra/controllers/assessment.controller';
 import { PrismaAssessmentRepository } from '../../src/infra/database/prisma/repositories/prisma-assessment-repository';
 import { PrismaLessonRepository } from '../../src/infra/database/prisma/repositories/prisma-lesson-repository';
@@ -17,6 +18,7 @@ import { Module } from '@nestjs/common';
   providers: [
     CreateAssessmentUseCase,
     ListAssessmentsUseCase,
+    GetAssessmentUseCase,
     PrismaService,
     {
       provide: 'AssessmentRepository',
@@ -1479,6 +1481,57 @@ describe('Assessments Controller (E2E)', () => {
           totalPages: Math.ceil(totalCount / 2),
         });
       });
+    });
+  });
+
+  describe('[GET] /assessments/:id - Get Assessment By ID', () => {
+    let assessmentId: string;
+
+    beforeEach(async () => {
+      const assessment = await prisma.assessment.create({
+        data: {
+          slug: 'get-by-id-test',
+          title: 'Get By ID Test',
+          type: 'QUIZ',
+          quizPosition: 'AFTER_LESSON',
+          passingScore: 75,
+          randomizeQuestions: true,
+          randomizeOptions: true,
+          lessonId: lessonId,
+        },
+      });
+      assessmentId = assessment.id;
+    });
+
+    it('should return an assessment by its ID', async () => {
+      const res = await request(app.getHttpServer()).get(
+        `/assessments/${assessmentId}`,
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('assessment');
+      expect(res.body.assessment.id).toBe(assessmentId);
+      expect(res.body.assessment.title).toBe('Get By ID Test');
+    });
+
+    it('should return 404 when assessment is not found', async () => {
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+      const res = await request(app.getHttpServer()).get(
+        `/assessments/${nonExistentId}`,
+      );
+
+      expect(res.status).toBe(404);
+      expect(res.body).toHaveProperty('error', 'ASSESSMENT_NOT_FOUND');
+    });
+
+    it('should return 400 for an invalid UUID', async () => {
+      const invalidId = 'invalid-uuid';
+      const res = await request(app.getHttpServer()).get(
+        `/assessments/${invalidId}`,
+      );
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
     });
   });
 });
