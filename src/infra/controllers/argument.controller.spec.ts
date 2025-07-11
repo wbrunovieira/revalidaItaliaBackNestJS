@@ -11,6 +11,8 @@ import { ArgumentController } from './argument.controller';
 import { CreateArgumentDto } from '@/domain/assessment/application/dtos/create-argument.dto';
 import { CreateArgumentUseCase } from '@/domain/assessment/application/use-cases/create-argument.use-case';
 import { GetArgumentUseCase } from '@/domain/assessment/application/use-cases/get-argument.use-case';
+import { UpdateArgumentUseCase } from '@/domain/assessment/application/use-cases/update-argument.use-case';
+import { UpdateArgumentDto } from '@/domain/assessment/application/dtos/update-argument.dto';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { DuplicateArgumentError } from '@/domain/assessment/application/use-cases/errors/duplicate-argument-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
@@ -25,6 +27,10 @@ class MockGetArgumentUseCase {
   execute = vi.fn();
 }
 
+class MockUpdateArgumentUseCase {
+  execute = vi.fn();
+}
+
 class MockListArgumentsUseCase {
   execute = vi.fn();
 }
@@ -33,16 +39,19 @@ describe('ArgumentController', () => {
   let controller: ArgumentController;
   let createUseCase: MockCreateArgumentUseCase;
   let getUseCase: MockGetArgumentUseCase;
+  let updateUseCase: MockUpdateArgumentUseCase;
   let listUseCase: MockListArgumentsUseCase;
 
   beforeEach(() => {
     vi.clearAllMocks();
     createUseCase = new MockCreateArgumentUseCase();
     getUseCase = new MockGetArgumentUseCase();
+    updateUseCase = new MockUpdateArgumentUseCase();
     listUseCase = new MockListArgumentsUseCase();
     controller = new ArgumentController(
       createUseCase as any,
       getUseCase as any,
+      updateUseCase as any,
       listUseCase as any,
     );
   });
@@ -1659,6 +1668,330 @@ describe('ArgumentController', () => {
         );
         expect(result.argument.createdAt).toBe(originalArgument.createdAt);
         expect(result.argument.updatedAt).toBe(originalArgument.updatedAt);
+      });
+    });
+  });
+
+  describe('update()', () => {
+    const validArgumentId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const validUpdateDto: UpdateArgumentDto = {
+      title: 'Updated Argument Title',
+    };
+
+    // Helper function to create mock argument with toResponseObject method
+    const createMockArgument = (data: any) => ({
+      ...data,
+      toResponseObject: () => ({
+        id: data.id,
+        title: data.title,
+        assessmentId: data.assessmentId,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      }),
+    });
+
+    describe('✅ Success Cases', () => {
+      it('returns updated argument on successful update', async () => {
+        const argumentData = {
+          id: validArgumentId,
+          title: 'Updated Argument Title',
+          assessmentId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-02'),
+        };
+        const updatedArgument = createMockArgument(argumentData);
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ argument: updatedArgument }),
+        );
+
+        const response = await controller.update(validArgumentId, validUpdateDto);
+
+        expect(response).toEqual({
+          success: true,
+          argument: argumentData,
+        });
+        expect(updateUseCase.execute).toHaveBeenCalledWith({
+          id: validArgumentId,
+          title: validUpdateDto.title,
+        });
+      });
+
+      it('returns updated argument with special characters in title', async () => {
+        const specialDto: UpdateArgumentDto = {
+          title: 'Título com acentos é çàracters únicos 🫀',
+        };
+        const argumentData = {
+          id: validArgumentId,
+          title: 'Título com acentos é çàracters únicos 🫀',
+          assessmentId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-02'),
+        };
+        const updatedArgument = createMockArgument(argumentData);
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ argument: updatedArgument }),
+        );
+
+        const response = await controller.update(validArgumentId, specialDto);
+
+        expect(response.argument.title).toBe('Título com acentos é çàracters únicos 🫀');
+      });
+
+      it('returns updated argument with minimum length title', async () => {
+        const minDto: UpdateArgumentDto = {
+          title: 'ABC',
+        };
+        const argumentData = {
+          id: validArgumentId,
+          title: 'ABC',
+          assessmentId: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-02'),
+        };
+        const updatedArgument = createMockArgument(argumentData);
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ argument: updatedArgument }),
+        );
+
+        const response = await controller.update(validArgumentId, minDto);
+
+        expect(response.argument.title).toBe('ABC');
+      });
+
+      it('returns updated argument with maximum length title', async () => {
+        const maxTitle = 'A'.repeat(255);
+        const maxDto: UpdateArgumentDto = {
+          title: maxTitle,
+        };
+        const argumentData = {
+          id: validArgumentId,
+          title: maxTitle,
+          assessmentId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-02'),
+        };
+        const updatedArgument = createMockArgument(argumentData);
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ argument: updatedArgument }),
+        );
+
+        const response = await controller.update(validArgumentId, maxDto);
+
+        expect(response.argument.title).toBe(maxTitle);
+      });
+
+      it('returns updated argument when updating without title (partial update)', async () => {
+        const emptyDto: UpdateArgumentDto = {};
+        const argumentData = {
+          id: validArgumentId,
+          title: 'Original Title',
+          assessmentId: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-02'),
+        };
+        const updatedArgument = createMockArgument(argumentData);
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ argument: updatedArgument }),
+        );
+
+        const response = await controller.update(validArgumentId, emptyDto);
+
+        expect(response).toEqual({
+          success: true,
+          argument: argumentData,
+        });
+        expect(updateUseCase.execute).toHaveBeenCalledWith({
+          id: validArgumentId,
+          title: undefined,
+        });
+      });
+
+      it('returns updated argument with unicode characters', async () => {
+        const unicodeDto: UpdateArgumentDto = {
+          title: 'Medicina 中文 العربية Русский',
+        };
+        const argumentData = {
+          id: validArgumentId,
+          title: 'Medicina 中文 العربية Русский',
+          assessmentId: 'gggggggg-gggg-gggg-gggg-gggggggggggg',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-02'),
+        };
+        const updatedArgument = createMockArgument(argumentData);
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ argument: updatedArgument }),
+        );
+
+        const response = await controller.update(validArgumentId, unicodeDto);
+
+        expect(response.argument.title).toBe('Medicina 中文 العربية Русский');
+      });
+    });
+
+    describe('⚠️ Validation Errors (400)', () => {
+      it('throws BadRequestException on InvalidInputError with validation details', async () => {
+        const validationDetails = ['title: Title must be at least 3 characters'];
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        await expect(
+          controller.update(validArgumentId, { title: 'AB' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('throws BadRequestException on InvalidInputError with invalid UUID', async () => {
+        const validationDetails = ['id: Invalid UUID format'];
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        await expect(
+          controller.update('invalid-uuid', validUpdateDto),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('throws BadRequestException on InvalidInputError with multiple validation errors', async () => {
+        const validationDetails = [
+          'id: Invalid UUID format',
+          'title: Title must be at least 3 characters',
+        ];
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        await expect(
+          controller.update('invalid-uuid', { title: 'AB' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('throws BadRequestException on InvalidInputError with empty title after trimming', async () => {
+        const validationDetails = ['title: Title cannot be empty'];
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        await expect(
+          controller.update(validArgumentId, { title: '   ' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+    });
+
+    describe('🔍 Business Logic Errors', () => {
+      it('throws NotFoundException on ArgumentNotFoundError', async () => {
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new ArgumentNotFoundError()),
+        );
+
+        await expect(
+          controller.update('00000000-0000-0000-0000-000000000000', validUpdateDto),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it('throws ConflictException on DuplicateArgumentError', async () => {
+        const duplicateError = new DuplicateArgumentError();
+        updateUseCase.execute.mockResolvedValueOnce(left(duplicateError));
+
+        await expect(
+          controller.update(validArgumentId, { title: 'Duplicate Title' }),
+        ).rejects.toThrow(ConflictException);
+      });
+    });
+
+    describe('🔥 Repository Errors (500)', () => {
+      it('throws InternalServerErrorException on RepositoryError', async () => {
+        const repositoryError = new RepositoryError('Database connection failed');
+        updateUseCase.execute.mockResolvedValueOnce(left(repositoryError));
+
+        await expect(
+          controller.update(validArgumentId, validUpdateDto),
+        ).rejects.toThrow(InternalServerErrorException);
+      });
+
+      it('throws InternalServerErrorException on unexpected error', async () => {
+        updateUseCase.execute.mockResolvedValueOnce(left(new Error('Unexpected error')));
+
+        await expect(
+          controller.update(validArgumentId, validUpdateDto),
+        ).rejects.toThrow(InternalServerErrorException);
+      });
+    });
+
+    describe('🔧 Edge Cases', () => {
+      it('handles concurrent update requests', async () => {
+        const argumentData = {
+          id: validArgumentId,
+          title: 'Concurrent Update',
+          assessmentId: 'hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-02'),
+        };
+        const updatedArgument = createMockArgument(argumentData);
+
+        updateUseCase.execute.mockResolvedValue(
+          right({ argument: updatedArgument }),
+        );
+
+        const promises = [
+          controller.update(validArgumentId, { title: 'Concurrent Update 1' }),
+          controller.update(validArgumentId, { title: 'Concurrent Update 2' }),
+        ];
+
+        const results = await Promise.all(promises);
+
+        results.forEach(result => {
+          expect(result.success).toBe(true);
+          expect(result.argument.title).toBe('Concurrent Update');
+        });
+      });
+
+      it('preserves original data structure and types', async () => {
+        const argumentData = {
+          id: validArgumentId,
+          title: 'Preserved Title',
+          assessmentId: 'iiiiiiii-iiii-iiii-iiii-iiiiiiiiiiii',
+          createdAt: new Date('2023-01-01T10:00:00.000Z'),
+          updatedAt: new Date('2023-01-02T15:30:00.000Z'),
+        };
+        const originalArgument = createMockArgument(argumentData);
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ argument: originalArgument }),
+        );
+
+        const result = await controller.update(validArgumentId, validUpdateDto);
+
+        expect(result.argument).toEqual(argumentData);
+        expect(result.argument.id).toBe(argumentData.id);
+        expect(result.argument.title).toBe(argumentData.title);
+        expect(result.argument.assessmentId).toBe(argumentData.assessmentId);
+        expect(result.argument.createdAt).toBe(argumentData.createdAt);
+        expect(result.argument.updatedAt).toBe(argumentData.updatedAt);
+      });
+
+      it('calls updateArgumentUseCase.execute exactly once', async () => {
+        const argumentData = {
+          id: validArgumentId,
+          title: 'Single Call Test',
+          assessmentId: 'jjjjjjjj-jjjj-jjjj-jjjj-jjjjjjjjjjjj',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-02'),
+        };
+        const updatedArgument = createMockArgument(argumentData);
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ argument: updatedArgument }),
+        );
+
+        await controller.update(validArgumentId, validUpdateDto);
+
+        expect(updateUseCase.execute).toHaveBeenCalledTimes(1);
       });
     });
   });

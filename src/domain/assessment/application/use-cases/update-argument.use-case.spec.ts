@@ -740,7 +740,7 @@ describe('UpdateArgumentUseCase', () => {
       repository.findById.mockResolvedValueOnce(right(argument));
       repository.findByTitle.mockResolvedValueOnce(right(otherArgument));
 
-      const results = [
+      const results: Array<Awaited<ReturnType<typeof useCase.execute>>> = [
         await useCase.execute({ id: argumentId, title: 'Success Update' }),
         await useCase.execute({ id: argumentId, title: 'Not Found Update' }),
         await useCase.execute({ id: argumentId, title: 'Other' }),

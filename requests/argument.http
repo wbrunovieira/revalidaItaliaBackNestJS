@@ -338,3 +338,202 @@ Content-Type: {{contentType}}
 ### 50. GET - UUID boundary test
 GET {{BASE_URL}}/arguments/12345678-1234-1234-1234-123456789012
 Content-Type: {{contentType}}
+
+### ==================== UPDATE ARGUMENT REQUESTS ====================
+
+### 51. PUT - Update argument title - Sucesso
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "Título Atualizado para Anatomia Cardiovascular"
+}
+
+### 52. PUT - Update argument title with special characters - Sucesso
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "Título com acentos é çàracters únicos 🫀"
+}
+
+### 53. PUT - Update argument title with emojis - Sucesso
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "Cardiologia 🫀 e Neurologia 🧠 - Estudo Avançado"
+}
+
+### 54. PUT - Update with minimum length title - Sucesso
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "ABC"
+}
+
+### 55. PUT - Update with maximum length title - Sucesso
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+}
+
+### 56. PUT - Update with trimmed title - Sucesso
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "   Título com espaços extras será trimmed   "
+}
+
+### 57. PUT - Update without title (only id) - Sucesso
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{}
+
+### 58. PUT - Update with Unicode characters - Sucesso
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "Medicina 中文 العربية Русский"
+}
+
+### ==================== UPDATE ARGUMENT ERRORS ====================
+
+### 59. ERRO - PUT com UUID inválido
+PUT {{BASE_URL}}/arguments/invalid-uuid-format
+Content-Type: {{contentType}}
+
+{
+  "title": "Título Válido"
+}
+
+### 60. ERRO - PUT com UUID vazio
+PUT {{BASE_URL}}/arguments/
+Content-Type: {{contentType}}
+
+{
+  "title": "Título Válido"
+}
+
+### 61. ERRO - PUT com título muito curto (menos de 3 caracteres)
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "AB"
+}
+
+### 62. ERRO - PUT com título muito longo (mais de 255 caracteres)
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+}
+
+### 63. ERRO - PUT com título vazio
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": ""
+}
+
+### 64. ERRO - PUT com título apenas espaços
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "   "
+}
+
+### 65. ERRO - PUT com argument não encontrado
+PUT {{BASE_URL}}/arguments/00000000-0000-0000-0000-000000000000
+Content-Type: {{contentType}}
+
+{
+  "title": "Título para Argument Inexistente"
+}
+
+### 66. ERRO - PUT com título duplicado (executar após criar outro argument)
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "Argumento Único para Teste de Duplicação"
+}
+
+### 67. ERRO - PUT com tipo de dado incorreto para title
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": 123
+}
+
+### 68. ERRO - PUT com title null
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": null
+}
+
+### 69. ERRO - PUT com UUID com caracteres especiais
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4@
+Content-Type: {{contentType}}
+
+{
+  "title": "Título Válido"
+}
+
+### 70. ERRO - PUT com múltiplos erros de validação
+PUT {{BASE_URL}}/arguments/invalid-uuid
+Content-Type: {{contentType}}
+
+{
+  "title": "AB"
+}
+
+### 71. ERRO - PUT com corpo vazio
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+### 72. ERRO - PUT com JSON inválido
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "Título com JSON inválido"
+  "extra": "sem vírgula"
+}
+
+### 73. ERRO - PUT com caracteres de controle no título
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "Título\x00\x01\x02"
+}
+
+### 74. ERRO - PUT com título com quebras de linha
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+{
+  "title": "Título\nCom\nQuebras\nDe\nLinha"
+}
+
+### 75. ERRO - PUT com UUID muito longo
+PUT {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4-extra-chars
+Content-Type: {{contentType}}
+
+{
+  "title": "Título Válido"
+}

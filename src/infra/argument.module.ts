@@ -9,6 +9,7 @@ import { DatabaseModule } from '@/infra/database/database.module';
 import { ArgumentController } from './controllers/argument.controller';
 import { GetArgumentUseCase } from '@/domain/assessment/application/use-cases/get-argument.use-case';
 import { ListArgumentsUseCase } from '@/domain/assessment/application/use-cases/list-arguments.use-case';
+import { UpdateArgumentUseCase } from '@/domain/assessment/application/use-cases/update-argument.use-case';
 
 @Module({
   imports: [DatabaseModule],
@@ -17,6 +18,7 @@ import { ListArgumentsUseCase } from '@/domain/assessment/application/use-cases/
     CreateArgumentUseCase,
     GetArgumentUseCase,
     ListArgumentsUseCase,
+    UpdateArgumentUseCase,
 
     {
       provide: 'ArgumentRepository',
