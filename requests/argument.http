@@ -235,6 +235,11 @@ GET {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
 Content-Type: {{contentType}}
 
 ### 27. GET - Buscar Argument por ID com UUID válido - Sucesso
+### 26. GET - Buscar Argument por ID válido - Sucesso
+GET {{BASE_URL}}/arguments/
+Content-Type: {{contentType}}
+
+### 27. GET - Buscar Argument por ID com UUID válido - Sucesso
 GET {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
 Content-Type: {{contentType}}
 

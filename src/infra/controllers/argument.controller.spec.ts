@@ -25,16 +25,26 @@ class MockGetArgumentUseCase {
   execute = vi.fn();
 }
 
+class MockListArgumentsUseCase {
+  execute = vi.fn();
+}
+
 describe('ArgumentController', () => {
   let controller: ArgumentController;
   let createUseCase: MockCreateArgumentUseCase;
   let getUseCase: MockGetArgumentUseCase;
+  let listUseCase: MockListArgumentsUseCase;
 
   beforeEach(() => {
     vi.clearAllMocks();
     createUseCase = new MockCreateArgumentUseCase();
     getUseCase = new MockGetArgumentUseCase();
-    controller = new ArgumentController(createUseCase as any, getUseCase as any);
+    listUseCase = new MockListArgumentsUseCase();
+    controller = new ArgumentController(
+      createUseCase as any,
+      getUseCase as any,
+      listUseCase as any,
+    );
   });
 
   describe('create()', () => {
@@ -61,7 +71,9 @@ describe('ArgumentController', () => {
           right({ argument: createdArgument }),
         );
 
-        const response = await controller.create(validArgumentWithAssessmentDto);
+        const response = await controller.create(
+          validArgumentWithAssessmentDto,
+        );
 
         expect(response).toEqual({
           success: true,
@@ -85,7 +97,9 @@ describe('ArgumentController', () => {
           right({ argument: createdArgument }),
         );
 
-        const response = await controller.create(validArgumentWithoutAssessmentDto);
+        const response = await controller.create(
+          validArgumentWithoutAssessmentDto,
+        );
 
         expect(response).toEqual({
           success: true,
@@ -146,12 +160,14 @@ describe('ArgumentController', () => {
 
       it('handles argument with special characters in title', async () => {
         const specialDto: CreateArgumentDto = {
-          title: 'Neurologia - Módulo III: Sistema Nervoso Central & Periférico',
+          title:
+            'Neurologia - Módulo III: Sistema Nervoso Central & Periférico',
           assessmentId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
         };
         const createdArgument = {
           id: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
-          title: 'Neurologia - Módulo III: Sistema Nervoso Central & Periférico',
+          title:
+            'Neurologia - Módulo III: Sistema Nervoso Central & Periférico',
           assessmentId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
           createdAt: new Date('2023-01-01'),
           updatedAt: new Date('2023-01-01'),
@@ -163,7 +179,9 @@ describe('ArgumentController', () => {
 
         const response = await controller.create(specialDto);
 
-        expect(response.argument.title).toBe('Neurologia - Módulo III: Sistema Nervoso Central & Periférico');
+        expect(response.argument.title).toBe(
+          'Neurologia - Módulo III: Sistema Nervoso Central & Periférico',
+        );
       });
 
       it('handles argument with emojis in title', async () => {
@@ -185,7 +203,9 @@ describe('ArgumentController', () => {
 
         const response = await controller.create(emojiDto);
 
-        expect(response.argument.title).toBe('Cardiologia 🫀 - Análise Crítica');
+        expect(response.argument.title).toBe(
+          'Cardiologia 🫀 - Análise Crítica',
+        );
       });
 
       it('handles argument with only numbers in title', async () => {
@@ -251,7 +271,9 @@ describe('ArgumentController', () => {
 
         const response = await controller.create(whitespaceDto);
 
-        expect(response.argument.title).toBe('  Argumento  com  espaços  extras  ');
+        expect(response.argument.title).toBe(
+          '  Argumento  com  espaços  extras  ',
+        );
       });
 
       it('calls createArgumentUseCase.execute exactly once', async () => {
@@ -285,7 +307,9 @@ describe('ArgumentController', () => {
           right({ argument: createdArgument }),
         );
 
-        const response = await controller.create(validArgumentWithAssessmentDto);
+        const response = await controller.create(
+          validArgumentWithAssessmentDto,
+        );
 
         expect(response.argument).toMatchObject({
           id: createdArgument.id,
@@ -460,7 +484,12 @@ describe('ArgumentController', () => {
           'assessmentId: Assessment ID must be a valid UUID',
         ];
         createUseCase.execute.mockResolvedValueOnce(
-          left(new InvalidInputError('Multiple validation errors', validationDetails)),
+          left(
+            new InvalidInputError(
+              'Multiple validation errors',
+              validationDetails,
+            ),
+          ),
         );
 
         const invalidDto: CreateArgumentDto = {
@@ -482,9 +511,7 @@ describe('ArgumentController', () => {
       });
 
       it('throws BadRequestException on InvalidInputError with title containing control characters', async () => {
-        const validationDetails = [
-          'title: Title contains invalid characters',
-        ];
+        const validationDetails = ['title: Title contains invalid characters'];
         createUseCase.execute.mockResolvedValueOnce(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -508,9 +535,7 @@ describe('ArgumentController', () => {
       });
 
       it('throws BadRequestException on InvalidInputError with title containing newlines', async () => {
-        const validationDetails = [
-          'title: Title contains invalid characters',
-        ];
+        const validationDetails = ['title: Title contains invalid characters'];
         createUseCase.execute.mockResolvedValueOnce(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -771,7 +796,9 @@ describe('ArgumentController', () => {
 
         const response = await controller.create(tabDto);
 
-        expect(response.argument.title).toBe('Title\twith\ttabs\nand\nnewlines');
+        expect(response.argument.title).toBe(
+          'Title\twith\ttabs\nand\nnewlines',
+        );
       });
 
       it('handles concurrent creation requests', async () => {
@@ -824,7 +851,9 @@ describe('ArgumentController', () => {
 
         const response = await controller.create(formattedDto);
 
-        expect(response.argument.title).toBe('Title with 123 numbers and símbolos especiais!');
+        expect(response.argument.title).toBe(
+          'Title with 123 numbers and símbolos especiais!',
+        );
       });
 
       it('handles assessment deletion between validation and creation', async () => {
@@ -976,7 +1005,9 @@ describe('ArgumentController', () => {
 
         const response = await controller.findById(validArgumentId);
 
-        expect(response.argument.title).toBe('Argumento de Programação & Lógica!');
+        expect(response.argument.title).toBe(
+          'Argumento de Programação & Lógica!',
+        );
       });
 
       it('returns argument with unicode characters in title', async () => {
@@ -994,7 +1025,9 @@ describe('ArgumentController', () => {
 
         const response = await controller.findById(validArgumentId);
 
-        expect(response.argument.title).toBe('Argumento 中文 العربية русский 🎯');
+        expect(response.argument.title).toBe(
+          'Argumento 中文 العربية русский 🎯',
+        );
       });
 
       it('returns argument with very long title', async () => {
@@ -1083,9 +1116,7 @@ describe('ArgumentController', () => {
 
     describe('⚠️ Validation Errors (400)', () => {
       it('throws BadRequestException on InvalidInputError with invalid UUID format', async () => {
-        const validationDetails = [
-          'id: ID must be a valid UUID',
-        ];
+        const validationDetails = ['id: ID must be a valid UUID'];
         getUseCase.execute.mockResolvedValueOnce(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -1106,9 +1137,7 @@ describe('ArgumentController', () => {
       });
 
       it('throws BadRequestException on InvalidInputError with empty ID', async () => {
-        const validationDetails = [
-          'id: ID cannot be empty',
-        ];
+        const validationDetails = ['id: ID cannot be empty'];
         getUseCase.execute.mockResolvedValueOnce(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -1129,9 +1158,7 @@ describe('ArgumentController', () => {
       });
 
       it('throws BadRequestException on InvalidInputError with UUID too long', async () => {
-        const validationDetails = [
-          'id: ID must be exactly 36 characters long',
-        ];
+        const validationDetails = ['id: ID must be exactly 36 characters long'];
         getUseCase.execute.mockResolvedValueOnce(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -1152,9 +1179,7 @@ describe('ArgumentController', () => {
       });
 
       it('throws BadRequestException on InvalidInputError with UUID containing special characters', async () => {
-        const validationDetails = [
-          'id: ID must be a valid UUID',
-        ];
+        const validationDetails = ['id: ID must be a valid UUID'];
         getUseCase.execute.mockResolvedValueOnce(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -1175,9 +1200,7 @@ describe('ArgumentController', () => {
       });
 
       it('throws BadRequestException on InvalidInputError with UUID with wrong hyphen placement', async () => {
-        const validationDetails = [
-          'id: ID must have proper UUID structure',
-        ];
+        const validationDetails = ['id: ID must have proper UUID structure'];
         getUseCase.execute.mockResolvedValueOnce(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -1198,9 +1221,7 @@ describe('ArgumentController', () => {
       });
 
       it('throws BadRequestException on InvalidInputError with UUID missing hyphens', async () => {
-        const validationDetails = [
-          'id: ID must be a valid UUID',
-        ];
+        const validationDetails = ['id: ID must be a valid UUID'];
         getUseCase.execute.mockResolvedValueOnce(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -1221,9 +1242,7 @@ describe('ArgumentController', () => {
       });
 
       it('throws BadRequestException on InvalidInputError with UUID containing unicode characters', async () => {
-        const validationDetails = [
-          'id: ID must be a valid UUID',
-        ];
+        const validationDetails = ['id: ID must be a valid UUID'];
         getUseCase.execute.mockResolvedValueOnce(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -1244,9 +1263,7 @@ describe('ArgumentController', () => {
       });
 
       it('throws BadRequestException on InvalidInputError with UUID containing emojis', async () => {
-        const validationDetails = [
-          'id: ID must be a valid UUID',
-        ];
+        const validationDetails = ['id: ID must be a valid UUID'];
         getUseCase.execute.mockResolvedValueOnce(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -1397,7 +1414,11 @@ describe('ArgumentController', () => {
 
       it('throws InternalServerErrorException on RepositoryError with corrupted data', async () => {
         getUseCase.execute.mockResolvedValueOnce(
-          left(new RepositoryError('Invalid argument data retrieved from repository')),
+          left(
+            new RepositoryError(
+              'Invalid argument data retrieved from repository',
+            ),
+          ),
         );
 
         try {
@@ -1533,7 +1554,8 @@ describe('ArgumentController', () => {
       });
 
       it('handles argument with zero-width characters in title', async () => {
-        const zeroWidthTitle = 'Title\u200B\u200C\u200D\uFEFFwith zero-width chars';
+        const zeroWidthTitle =
+          'Title\u200B\u200C\u200D\uFEFFwith zero-width chars';
         const foundArgument = {
           id: validArgumentId,
           title: zeroWidthTitle,
@@ -1632,9 +1654,844 @@ describe('ArgumentController', () => {
         expect(result.argument).toEqual(originalArgument);
         expect(result.argument.id).toBe(originalArgument.id);
         expect(result.argument.title).toBe(originalArgument.title);
-        expect(result.argument.assessmentId).toBe(originalArgument.assessmentId);
+        expect(result.argument.assessmentId).toBe(
+          originalArgument.assessmentId,
+        );
         expect(result.argument.createdAt).toBe(originalArgument.createdAt);
         expect(result.argument.updatedAt).toBe(originalArgument.updatedAt);
+      });
+    });
+  });
+
+  describe('list()', () => {
+    const validAssessmentId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+
+    describe('✅ Success Cases', () => {
+      it('returns paginated arguments with default parameters', async () => {
+        const mockArguments = [
+          {
+            id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+            title: 'First Argument',
+            assessmentId: validAssessmentId,
+            createdAt: new Date('2023-01-02'),
+            updatedAt: new Date('2023-01-02'),
+          },
+          {
+            id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+            title: 'Second Argument',
+            assessmentId: validAssessmentId,
+            createdAt: new Date('2023-01-01'),
+            updatedAt: new Date('2023-01-01'),
+          },
+        ];
+
+        const mockPagination = {
+          page: 1,
+          limit: 10,
+          total: 2,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: mockArguments, pagination: mockPagination }),
+        );
+
+        const response = await controller.list(1, 10, undefined);
+
+        expect(response).toEqual({
+          success: true,
+          arguments: mockArguments,
+          pagination: mockPagination,
+        });
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
+          assessmentId: undefined,
+        });
+      });
+
+      it('returns filtered arguments by assessmentId', async () => {
+        const mockArguments = [
+          {
+            id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+            title: 'Filtered Argument 1',
+            assessmentId: validAssessmentId,
+            createdAt: new Date('2023-01-01'),
+            updatedAt: new Date('2023-01-01'),
+          },
+        ];
+
+        const mockPagination = {
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: mockArguments, pagination: mockPagination }),
+        );
+
+        const response = await controller.list(1, 10, validAssessmentId);
+
+        expect(response.arguments).toHaveLength(1);
+        expect(response.arguments[0].assessmentId).toBe(validAssessmentId);
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
+          assessmentId: validAssessmentId,
+        });
+      });
+
+      it('returns empty list when no arguments exist', async () => {
+        const mockPagination = {
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrevious: false,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: [], pagination: mockPagination }),
+        );
+
+        const response = await controller.list(1, 10, undefined);
+
+        expect(response.arguments).toHaveLength(0);
+        expect(response.pagination.total).toBe(0);
+        expect(response.pagination.totalPages).toBe(0);
+      });
+
+      it('handles custom pagination parameters', async () => {
+        const mockArguments = Array.from({ length: 5 }, (_, i) => ({
+          id: `${i}0000000-0000-0000-0000-000000000000`,
+          title: `Argument ${i + 1}`,
+          assessmentId: validAssessmentId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }));
+
+        const mockPagination = {
+          page: 2,
+          limit: 5,
+          total: 15,
+          totalPages: 3,
+          hasNext: true,
+          hasPrevious: true,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: mockArguments, pagination: mockPagination }),
+        );
+
+        const response = await controller.list(2, 5, undefined);
+
+        expect(response.arguments).toHaveLength(5);
+        expect(response.pagination.page).toBe(2);
+        expect(response.pagination.limit).toBe(5);
+        expect(response.pagination.hasNext).toBe(true);
+        expect(response.pagination.hasPrevious).toBe(true);
+      });
+
+      it('returns arguments with maximum limit', async () => {
+        const mockArguments = Array.from({ length: 100 }, (_, i) => ({
+          id: `${i.toString().padStart(8, '0')}-0000-0000-0000-000000000000`,
+          title: `Argument ${i + 1}`,
+          assessmentId: validAssessmentId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }));
+
+        const mockPagination = {
+          page: 1,
+          limit: 100,
+          total: 150,
+          totalPages: 2,
+          hasNext: true,
+          hasPrevious: false,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: mockArguments, pagination: mockPagination }),
+        );
+
+        const response = await controller.list(1, 100, undefined);
+
+        expect(response.arguments).toHaveLength(100);
+        expect(response.pagination.limit).toBe(100);
+      });
+
+      it('returns arguments without assessmentId', async () => {
+        const mockArguments = [
+          {
+            id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+            title: 'Standalone Argument',
+            assessmentId: undefined,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ];
+
+        const mockPagination = {
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: mockArguments, pagination: mockPagination }),
+        );
+
+        const response = await controller.list(1, 10, undefined);
+
+        expect(response.arguments[0].assessmentId).toBeUndefined();
+      });
+
+      it('returns arguments ordered by creation date (newest first)', async () => {
+        const mockArguments = [
+          {
+            id: 'newest-id',
+            title: 'Newest Argument',
+            assessmentId: validAssessmentId,
+            createdAt: new Date('2023-01-03'),
+            updatedAt: new Date('2023-01-03'),
+          },
+          {
+            id: 'middle-id',
+            title: 'Middle Argument',
+            assessmentId: validAssessmentId,
+            createdAt: new Date('2023-01-02'),
+            updatedAt: new Date('2023-01-02'),
+          },
+          {
+            id: 'oldest-id',
+            title: 'Oldest Argument',
+            assessmentId: validAssessmentId,
+            createdAt: new Date('2023-01-01'),
+            updatedAt: new Date('2023-01-01'),
+          },
+        ];
+
+        const mockPagination = {
+          page: 1,
+          limit: 10,
+          total: 3,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: mockArguments, pagination: mockPagination }),
+        );
+
+        const response = await controller.list(1, 10, undefined);
+
+        expect(response.arguments[0].title).toBe('Newest Argument');
+        expect(response.arguments[2].title).toBe('Oldest Argument');
+      });
+
+      it('handles page beyond available pages', async () => {
+        const mockPagination = {
+          page: 5,
+          limit: 10,
+          total: 10,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: true,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: [], pagination: mockPagination }),
+        );
+
+        const response = await controller.list(5, 10, undefined);
+
+        expect(response.arguments).toHaveLength(0);
+        expect(response.pagination.page).toBe(5);
+        expect(response.pagination.hasPrevious).toBe(true);
+      });
+
+      it('calls listArgumentsUseCase.execute exactly once', async () => {
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: [], pagination: {} as any }),
+        );
+
+        await controller.list(1, 10, undefined);
+
+        expect(listUseCase.execute).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('⚠️ Validation Errors (400)', () => {
+      it('throws BadRequestException on InvalidInputError with negative page', async () => {
+        const validationDetails = ['page: Page must be at least 1'];
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        try {
+          await controller.list(-1, 10, undefined);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with zero page', async () => {
+        const validationDetails = ['page: Page must be at least 1'];
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        try {
+          await controller.list(0, 10, undefined);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with negative limit', async () => {
+        const validationDetails = ['limit: Limit must be at least 1'];
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        try {
+          await controller.list(1, -1, undefined);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with zero limit', async () => {
+        const validationDetails = ['limit: Limit must be at least 1'];
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        try {
+          await controller.list(1, 0, undefined);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with limit exceeding maximum', async () => {
+        const validationDetails = ['limit: Limit cannot exceed 100'];
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        try {
+          await controller.list(1, 101, undefined);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with invalid assessmentId format', async () => {
+        const validationDetails = [
+          'assessmentId: Assessment ID must be a valid UUID',
+        ];
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        try {
+          await controller.list(1, 10, 'invalid-uuid');
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with non-integer page', async () => {
+        const validationDetails = ['page: Page must be an integer'];
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        try {
+          await controller.list(1.5, 10, undefined);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with non-integer limit', async () => {
+        const validationDetails = ['limit: Limit must be an integer'];
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        try {
+          await controller.list(1, 10.5, undefined);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with multiple validation errors', async () => {
+        const validationDetails = [
+          'page: Page must be at least 1',
+          'limit: Limit cannot exceed 100',
+          'assessmentId: Assessment ID must be a valid UUID',
+        ];
+        listUseCase.execute.mockResolvedValueOnce(
+          left(
+            new InvalidInputError(
+              'Multiple validation errors',
+              validationDetails,
+            ),
+          ),
+        );
+
+        try {
+          await controller.list(-1, 200, 'invalid-uuid');
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          const response = error.getResponse();
+          expect(response.error).toBe('INVALID_INPUT');
+          expect(response.message).toBe('Invalid input data');
+          expect(response.details).toEqual(validationDetails);
+          expect(response.details).toHaveLength(3);
+        }
+      });
+    });
+
+    describe('🔍 Business Logic Errors', () => {
+      it('throws NotFoundException on AssessmentNotFoundError', async () => {
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new AssessmentNotFoundError()),
+        );
+
+        const nonExistentAssessmentId = '00000000-0000-0000-0000-000000000000';
+
+        try {
+          await controller.list(1, 10, nonExistentAssessmentId);
+          expect.fail('Should have thrown NotFoundException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(NotFoundException);
+          expect(error.getResponse()).toEqual({
+            error: 'ASSESSMENT_NOT_FOUND',
+            message: 'Assessment not found',
+          });
+        }
+      });
+
+      it('throws NotFoundException when assessment is soft deleted', async () => {
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new AssessmentNotFoundError()),
+        );
+
+        const deletedAssessmentId = '11111111-1111-1111-1111-111111111111';
+
+        try {
+          await controller.list(1, 10, deletedAssessmentId);
+          expect.fail('Should have thrown NotFoundException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(NotFoundException);
+          expect(error.getResponse()).toEqual({
+            error: 'ASSESSMENT_NOT_FOUND',
+            message: 'Assessment not found',
+          });
+        }
+      });
+    });
+
+    describe('🔥 Repository Errors (500)', () => {
+      it('throws InternalServerErrorException on RepositoryError', async () => {
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new RepositoryError('Database connection failed')),
+        );
+
+        try {
+          await controller.list(1, 10, undefined);
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Database connection failed',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on RepositoryError during pagination', async () => {
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new RepositoryError('Failed to calculate pagination')),
+        );
+
+        try {
+          await controller.list(1, 10, undefined);
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Failed to calculate pagination',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on RepositoryError during filtering', async () => {
+        listUseCase.execute.mockResolvedValueOnce(
+          left(
+            new RepositoryError('Failed to filter arguments by assessmentId'),
+          ),
+        );
+
+        try {
+          await controller.list(1, 10, validAssessmentId);
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Failed to filter arguments by assessmentId',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on generic Error', async () => {
+        listUseCase.execute.mockResolvedValueOnce(
+          left(new Error('Unexpected error occurred')),
+        );
+
+        try {
+          await controller.list(1, 10, undefined);
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Unexpected error occurred',
+          });
+        }
+      });
+    });
+
+    describe('🔧 Edge Cases', () => {
+      it('handles string parameters converted to numbers', async () => {
+        const mockPagination = {
+          page: 2,
+          limit: 20,
+          total: 50,
+          totalPages: 3,
+          hasNext: true,
+          hasPrevious: true,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: [], pagination: mockPagination }),
+        );
+
+        // Simulate query params coming as strings
+        const response = await controller.list(
+          '2' as any,
+          '20' as any,
+          undefined,
+        );
+
+        expect(response.pagination.page).toBe(2);
+        expect(response.pagination.limit).toBe(20);
+      });
+
+      it('handles assessmentId with whitespace', async () => {
+        const mockPagination = {
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrevious: false,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: [], pagination: mockPagination }),
+        );
+
+        const whitespaceId = `  ${validAssessmentId}  `;
+        await controller.list(1, 10, whitespaceId);
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
+          assessmentId: whitespaceId,
+        });
+      });
+
+      it('handles empty string assessmentId as undefined', async () => {
+        const mockPagination = {
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrevious: false,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: [], pagination: mockPagination }),
+        );
+
+        await controller.list(1, 10, '');
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
+          assessmentId: '',
+        });
+      });
+
+      it('handles concurrent list requests', async () => {
+        const mockPagination1 = {
+          page: 1,
+          limit: 10,
+          total: 5,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false,
+        };
+
+        const mockPagination2 = {
+          page: 2,
+          limit: 20,
+          total: 40,
+          totalPages: 2,
+          hasNext: false,
+          hasPrevious: true,
+        };
+
+        listUseCase.execute
+          .mockResolvedValueOnce(
+            right({ arguments: [], pagination: mockPagination1 }),
+          )
+          .mockResolvedValueOnce(
+            right({ arguments: [], pagination: mockPagination2 }),
+          );
+
+        const [result1, result2] = await Promise.all([
+          controller.list(1, 10, undefined),
+          controller.list(2, 20, undefined),
+        ]);
+
+        expect(result1.pagination.page).toBe(1);
+        expect(result1.pagination.limit).toBe(10);
+        expect(result2.pagination.page).toBe(2);
+        expect(result2.pagination.limit).toBe(20);
+      });
+
+      it('handles large dataset pagination correctly', async () => {
+        const mockArguments = Array.from({ length: 10 }, (_, i) => ({
+          id: `${i}0000000-0000-0000-0000-000000000000`,
+          title: `Argument ${i + 991}`,
+          assessmentId: validAssessmentId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }));
+
+        const mockPagination = {
+          page: 100,
+          limit: 10,
+          total: 10000,
+          totalPages: 1000,
+          hasNext: true,
+          hasPrevious: true,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: mockArguments, pagination: mockPagination }),
+        );
+
+        const response = await controller.list(100, 10, undefined);
+
+        expect(response.pagination.page).toBe(100);
+        expect(response.pagination.total).toBe(10000);
+        expect(response.pagination.totalPages).toBe(1000);
+      });
+    });
+
+    describe('🔄 Behavior Testing', () => {
+      it('passes correct request object to use case', async () => {
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: [], pagination: {} as any }),
+        );
+
+        await controller.list(3, 25, validAssessmentId);
+
+        expect(listUseCase.execute).toHaveBeenCalledWith({
+          page: 3,
+          limit: 25,
+          assessmentId: validAssessmentId,
+        });
+      });
+
+      it('returns the exact response structure', async () => {
+        const exactArguments = [
+          {
+            id: 'exact-id-1',
+            title: 'Exact Argument 1',
+            assessmentId: 'exact-assessment',
+            createdAt: new Date('2023-12-01'),
+            updatedAt: new Date('2023-12-01'),
+          },
+          {
+            id: 'exact-id-2',
+            title: 'Exact Argument 2',
+            assessmentId: 'exact-assessment',
+            createdAt: new Date('2023-12-02'),
+            updatedAt: new Date('2023-12-02'),
+          },
+        ];
+
+        const exactPagination = {
+          page: 1,
+          limit: 10,
+          total: 2,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: exactArguments, pagination: exactPagination }),
+        );
+
+        const result = await controller.list(1, 10, undefined);
+
+        expect(result).toEqual({
+          success: true,
+          arguments: exactArguments,
+          pagination: exactPagination,
+        });
+      });
+
+      it('preserves exact argument data without modification', async () => {
+        const originalArguments = [
+          {
+            id: 'preserve-id',
+            title: 'Original Data Test',
+            assessmentId: 'preserve-assessment',
+            createdAt: new Date('2023-01-01T10:00:00.000Z'),
+            updatedAt: new Date('2023-01-02T15:30:00.000Z'),
+          },
+        ];
+
+        const originalPagination = {
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({
+            arguments: originalArguments,
+            pagination: originalPagination,
+          }),
+        );
+
+        const result = await controller.list(1, 10, undefined);
+
+        expect(result.arguments).toEqual(originalArguments);
+        expect(result.pagination).toEqual(originalPagination);
+      });
+
+      it('handles mixed argument types (with and without assessmentId)', async () => {
+        const mixedArguments = [
+          {
+            id: 'with-assessment',
+            title: 'Argument with Assessment',
+            assessmentId: validAssessmentId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          {
+            id: 'without-assessment',
+            title: 'Argument without Assessment',
+            assessmentId: undefined,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ];
+
+        const mockPagination = {
+          page: 1,
+          limit: 10,
+          total: 2,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false,
+        };
+
+        listUseCase.execute.mockResolvedValueOnce(
+          right({ arguments: mixedArguments, pagination: mockPagination }),
+        );
+
+        const response = await controller.list(1, 10, undefined);
+
+        expect(response.arguments[0].assessmentId).toBe(validAssessmentId);
+        expect(response.arguments[1].assessmentId).toBeUndefined();
       });
     });
   });

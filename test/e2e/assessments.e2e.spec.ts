@@ -1780,7 +1780,7 @@ describe('Assessments Controller (E2E)', () => {
         // lessonId might still be present if not explicitly removed
       });
 
-      it.skip('should remove optional fields with null', async () => {
+      it('should remove optional fields with null', async () => {
         // Skip this test as NestJS doesn't allow null in DTOs by default
         // This would require special configuration in the DTO
         const updatePayload = {
@@ -2071,7 +2071,7 @@ describe('Assessments Controller (E2E)', () => {
         expect(Array.isArray(res.body.message)).toBe(true);
       });
 
-      it.skip('should return 400 when lessonId is invalid UUID', async () => {
+      it('should return 400 when lessonId is invalid UUID', async () => {
         // This test needs DTO validation for UUID format
         const updatePayload = {
           lessonId: 'invalid-uuid',
@@ -2343,7 +2343,7 @@ describe('Assessments Controller (E2E)', () => {
         expect(assessment.slug).toMatch(/^[a-z0-9-]+$/);
       });
 
-      it.skip('should not include fields set to null in response', async () => {
+      it('should not include fields set to null in response', async () => {
         // Skip this test as it requires special DTO configuration
         const updatePayload = {
           description: null,

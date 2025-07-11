@@ -8,12 +8,14 @@ import { ArgumentController } from '../../../../src/infra/controllers/argument.c
 import { PrismaArgumentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-argument-repository';
 import { PrismaAssessmentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-assessment-repository';
 import { GetArgumentUseCase } from '@/domain/assessment/application/use-cases/get-argument.use-case';
+import { ListArgumentsUseCase } from '@/domain/assessment/application/use-cases/list-arguments.use-case';
 
 @Module({
   controllers: [ArgumentController],
   providers: [
     CreateArgumentUseCase,
     GetArgumentUseCase,
+    ListArgumentsUseCase,
     PrismaService,
     {
       provide: 'ArgumentRepository',

@@ -18,7 +18,11 @@ import {
   ConflictException,
   InternalServerErrorException,
   NotFoundException,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
+import { ListArgumentsUseCase } from '@/domain/assessment/application/use-cases/list-arguments.use-case';
 
 @Controller('arguments')
 export class ArgumentController {
@@ -27,6 +31,8 @@ export class ArgumentController {
     private readonly createArgumentUseCase: CreateArgumentUseCase,
     @Inject(GetArgumentUseCase)
     private readonly getArgumentUseCase: GetArgumentUseCase,
+    @Inject(ListArgumentsUseCase)
+    private readonly listArgumentsUseCase: ListArgumentsUseCase,
   ) {}
 
   @Post()
@@ -126,6 +132,62 @@ export class ArgumentController {
     return {
       success: true,
       argument,
+    };
+  }
+
+  @Get()
+  async list(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('assessmentId') assessmentId?: string,
+  ) {
+    const request = {
+      page,
+      limit,
+      assessmentId,
+    };
+
+    const result = await this.listArgumentsUseCase.execute(request);
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof AssessmentNotFoundError) {
+        throw new NotFoundException({
+          error: 'ASSESSMENT_NOT_FOUND',
+          message: 'Assessment not found',
+        });
+      }
+
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException({
+          error: 'INTERNAL_ERROR',
+          message: error.message,
+        });
+      }
+
+      // Fallback para erros não mapeados
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: 'Unexpected error occurred',
+      });
+    }
+
+    const { arguments: items, pagination } = result.value;
+
+    // Os items já são DTOs, não entidades, então não precisam de toResponseObject()
+    return {
+      success: true,
+      arguments: items,
+      pagination,
     };
   }
 }
