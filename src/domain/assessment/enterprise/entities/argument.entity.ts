@@ -4,21 +4,22 @@ import { UniqueEntityID } from '@/core/unique-entity-id';
 
 export interface ArgumentProps {
   title: string;
-  assessmentId: string;
+  assessmentId?: UniqueEntityID;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export class Argument extends Entity<ArgumentProps> {
-  private touch(): void {
+  private touch() {
     this.props.updatedAt = new Date();
   }
 
+  // Getters
   public get title(): string {
     return this.props.title;
   }
 
-  public get assessmentId(): string {
+  public get assessmentId(): UniqueEntityID | undefined {
     return this.props.assessmentId;
   }
 
@@ -30,40 +31,32 @@ export class Argument extends Entity<ArgumentProps> {
     return this.props.updatedAt;
   }
 
-  public updateTitle(title: string): void {
-    if (!title.trim()) {
-      throw new Error('Title cannot be empty');
+  // Methods
+  public update(props: Partial<Pick<ArgumentProps, 'title'>>) {
+    if (props.title !== undefined) {
+      this.props.title = props.title;
     }
-    this.props.title = title;
+
     this.touch();
   }
 
-  public toResponseObject(): {
-    id: string;
-    title: string;
-    assessmentId: string;
-    createdAt: Date;
-    updatedAt: Date;
-  } {
+  // Response Mapping
+  public toResponseObject() {
     return {
       id: this.id.toString(),
       title: this.title,
-      assessmentId: this.assessmentId,
+      assessmentId: this.assessmentId?.toString(),
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };
   }
 
+  // Factory Methods
   public static create(
     props: Omit<ArgumentProps, 'createdAt' | 'updatedAt'>,
     id?: UniqueEntityID,
   ): Argument {
     const now = new Date();
-
-    if (!props.title.trim()) {
-      throw new Error('Title cannot be empty');
-    }
-
     return new Argument(
       {
         ...props,

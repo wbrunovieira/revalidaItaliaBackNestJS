@@ -347,8 +347,8 @@ model Argument {
   updatedAt DateTime @updatedAt
 
   // Relações
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-  assessmentId String
+  assessment   Assessment? @relation(fields: [assessmentId], references: [id])
+  assessmentId String?
 
   questions Question[]
 }

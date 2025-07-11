@@ -262,7 +262,7 @@ CREATE TABLE "Argument" (
     "title" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "assessmentId" TEXT NOT NULL,
+    "assessmentId" TEXT,
 
     CONSTRAINT "Argument_pkey" PRIMARY KEY ("id")
 );
@@ -472,7 +472,7 @@ ALTER TABLE "LessonDocumentTranslation" ADD CONSTRAINT "LessonDocumentTranslatio
 ALTER TABLE "Assessment" ADD CONSTRAINT "Assessment_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Argument" ADD CONSTRAINT "Argument_assessmentId_fkey" FOREIGN KEY ("assessmentId") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Argument" ADD CONSTRAINT "Argument_assessmentId_fkey" FOREIGN KEY ("assessmentId") REFERENCES "Assessment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Question" ADD CONSTRAINT "Question_assessmentId_fkey" FOREIGN KEY ("assessmentId") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
