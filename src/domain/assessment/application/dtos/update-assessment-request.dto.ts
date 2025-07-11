@@ -1,13 +1,13 @@
 // src/domain/assessment/application/dtos/update-assessment-request.dto.ts
 export interface UpdateAssessmentRequest {
   id: string;
-  title?: string;
-  description?: string;
-  type?: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA';
-  quizPosition?: 'BEFORE_LESSON' | 'AFTER_LESSON';
-  passingScore?: number;
-  timeLimitInMinutes?: number;
-  randomizeQuestions?: boolean;
-  randomizeOptions?: boolean;
+  title?: string | null;
+  description?: string | null;
+  type?: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA' | null;
+  quizPosition?: 'BEFORE_LESSON' | 'AFTER_LESSON' | null;
+  passingScore?: number | null;
+  timeLimitInMinutes?: number | null;
+  randomizeQuestions?: boolean | null;
+  randomizeOptions?: boolean | null;
   lessonId?: string | null;
 }

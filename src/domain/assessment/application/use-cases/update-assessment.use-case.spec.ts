@@ -327,8 +327,137 @@ describe('UpdateAssessmentUseCase', () => {
     }
   });
 
-  // --- Unsetting Optional Fields ---
-  it('should unset description when description is explicitly undefined', async () => {
+  // --- Unsetting Optional Fields with null ---
+  it('should unset description when description is explicitly null', async () => {
+    const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
+    const assessment = Assessment.create(
+      {
+        title: 'Test Title',
+        slug: 'test-title',
+        description: 'Existing description',
+        type: 'QUIZ',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      new UniqueEntityID(assessmentId),
+    );
+
+    repository.findById.mockResolvedValue(right(assessment));
+    repository.update.mockResolvedValue(right(undefined));
+
+    const result = await useCase.execute({
+      id: assessmentId,
+      description: null, // Changed from undefined to null
+    });
+
+    expect(result.isRight()).toBe(true);
+    if (result.isRight()) {
+      expect(result.value.assessment.description).toBeUndefined();
+      expect(repository.update).toHaveBeenCalledWith(
+        expect.objectContaining({ description: undefined }),
+      );
+    }
+  });
+
+  it('should unset quizPosition when quizPosition is explicitly null', async () => {
+    const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
+    const assessment = Assessment.create(
+      {
+        title: 'Test Title',
+        slug: 'test-title',
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      new UniqueEntityID(assessmentId),
+    );
+
+    repository.findById.mockResolvedValue(right(assessment));
+    repository.update.mockResolvedValue(right(undefined));
+
+    const result = await useCase.execute({
+      id: assessmentId,
+      quizPosition: null, // Changed from undefined to null
+    });
+
+    expect(result.isRight()).toBe(true);
+    if (result.isRight()) {
+      expect(result.value.assessment.quizPosition).toBeUndefined();
+      expect(repository.update).toHaveBeenCalledWith(
+        expect.objectContaining({ quizPosition: undefined }),
+      );
+    }
+  });
+
+  it('should unset timeLimitInMinutes when timeLimitInMinutes is explicitly null', async () => {
+    const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
+    const assessment = Assessment.create(
+      {
+        title: 'Test Title',
+        slug: 'test-title',
+        type: 'SIMULADO',
+        timeLimitInMinutes: 60,
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      new UniqueEntityID(assessmentId),
+    );
+
+    repository.findById.mockResolvedValue(right(assessment));
+    repository.update.mockResolvedValue(right(undefined));
+
+    const result = await useCase.execute({
+      id: assessmentId,
+      timeLimitInMinutes: null, // Changed from undefined to null
+    });
+
+    expect(result.isRight()).toBe(true);
+    if (result.isRight()) {
+      expect(result.value.assessment.timeLimitInMinutes).toBeUndefined();
+      expect(repository.update).toHaveBeenCalledWith(
+        expect.objectContaining({ timeLimitInMinutes: undefined }),
+      );
+    }
+  });
+
+  it('should unset lessonId when lessonId is explicitly null', async () => {
+    const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
+    const assessment = Assessment.create(
+      {
+        title: 'Test Title',
+        slug: 'test-title',
+        type: 'QUIZ',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+        lessonId: new UniqueEntityID('existing-lesson-id'),
+      },
+      new UniqueEntityID(assessmentId),
+    );
+
+    repository.findById.mockResolvedValue(right(assessment));
+    repository.update.mockResolvedValue(right(undefined));
+
+    const result = await useCase.execute({
+      id: assessmentId,
+      lessonId: null, // Changed from undefined to null
+    });
+
+    expect(result.isRight()).toBe(true);
+    if (result.isRight()) {
+      expect(result.value.assessment.lessonId).toBeUndefined();
+      expect(repository.update).toHaveBeenCalledWith(
+        expect.objectContaining({ lessonId: undefined }),
+      );
+    }
+  });
+
+  // --- Test that undefined preserves existing values ---
+  it('should NOT change description when description is undefined', async () => {
     const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
     const assessment = Assessment.create(
       {
@@ -353,14 +482,43 @@ describe('UpdateAssessmentUseCase', () => {
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.assessment.description).toBeUndefined();
-      expect(repository.update).toHaveBeenCalledWith(
-        expect.objectContaining({ description: undefined }),
-      );
+      expect(result.value.assessment.description).toBe('Existing description'); // Should remain unchanged
     }
   });
 
-  it('should unset quizPosition when quizPosition is explicitly undefined', async () => {
+  it('should NOT change lessonId when lessonId is undefined', async () => {
+    const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
+    const existingLessonId = 'existing-lesson-id';
+    const assessment = Assessment.create(
+      {
+        title: 'Test Title',
+        slug: 'test-title',
+        type: 'QUIZ',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+        lessonId: new UniqueEntityID(existingLessonId),
+      },
+      new UniqueEntityID(assessmentId),
+    );
+
+    repository.findById.mockResolvedValue(right(assessment));
+    repository.update.mockResolvedValue(right(undefined));
+
+    const result = await useCase.execute({
+      id: assessmentId,
+      lessonId: undefined, // undefined should not change the existing value
+    });
+
+    expect(result.isRight()).toBe(true);
+    if (result.isRight()) {
+      expect(result.value.assessment.lessonId?.toString()).toBe(
+        existingLessonId,
+      ); // Should remain unchanged
+    }
+  });
+
+  it('should NOT change quizPosition when quizPosition is undefined', async () => {
     const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
     const assessment = Assessment.create(
       {
@@ -380,19 +538,16 @@ describe('UpdateAssessmentUseCase', () => {
 
     const result = await useCase.execute({
       id: assessmentId,
-      quizPosition: undefined,
+      quizPosition: undefined, // undefined should not change the existing value
     });
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.assessment.quizPosition).toBeUndefined();
-      expect(repository.update).toHaveBeenCalledWith(
-        expect.objectContaining({ quizPosition: undefined }),
-      );
+      expect(result.value.assessment.quizPosition).toBe('AFTER_LESSON'); // Should remain unchanged
     }
   });
 
-  it('should unset timeLimitInMinutes when timeLimitInMinutes is explicitly undefined', async () => {
+  it('should NOT change timeLimitInMinutes when timeLimitInMinutes is undefined', async () => {
     const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
     const assessment = Assessment.create(
       {
@@ -412,47 +567,12 @@ describe('UpdateAssessmentUseCase', () => {
 
     const result = await useCase.execute({
       id: assessmentId,
-      timeLimitInMinutes: undefined,
+      timeLimitInMinutes: undefined, // undefined should not change the existing value
     });
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.assessment.timeLimitInMinutes).toBeUndefined();
-      expect(repository.update).toHaveBeenCalledWith(
-        expect.objectContaining({ timeLimitInMinutes: undefined }),
-      );
-    }
-  });
-
-  it('should unset lessonId when lessonId is explicitly undefined', async () => {
-    const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
-    const assessment = Assessment.create(
-      {
-        title: 'Test Title',
-        slug: 'test-title',
-        type: 'QUIZ',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-        lessonId: new UniqueEntityID('existing-lesson-id'),
-      },
-      new UniqueEntityID(assessmentId),
-    );
-
-    repository.findById.mockResolvedValue(right(assessment));
-    repository.update.mockResolvedValue(right(undefined));
-
-    const result = await useCase.execute({
-      id: assessmentId,
-      lessonId: undefined,
-    });
-
-    expect(result.isRight()).toBe(true);
-    if (result.isRight()) {
-      expect(result.value.assessment.lessonId).toBeUndefined();
-      expect(repository.update).toHaveBeenCalledWith(
-        expect.objectContaining({ lessonId: undefined }),
-      );
+      expect(result.value.assessment.timeLimitInMinutes).toBe(60); // Should remain unchanged
     }
   });
 
@@ -790,7 +910,7 @@ describe('UpdateAssessmentUseCase', () => {
       id: assessmentId,
       type: 'SIMULADO',
       timeLimitInMinutes: 90,
-      quizPosition: undefined, // Explicitly unset quizPosition
+      quizPosition: null, // Explicitly null to remove quizPosition
     });
 
     expect(result.isRight()).toBe(true);
@@ -831,7 +951,7 @@ describe('UpdateAssessmentUseCase', () => {
       id: assessmentId,
       type: 'QUIZ',
       quizPosition: 'BEFORE_LESSON',
-      timeLimitInMinutes: undefined, // Explicitly unset timeLimitInMinutes
+      timeLimitInMinutes: null, // Explicitly null to remove timeLimitInMinutes
     });
 
     expect(result.isRight()).toBe(true);
@@ -871,7 +991,7 @@ describe('UpdateAssessmentUseCase', () => {
     const result = await useCase.execute({
       id: assessmentId,
       type: 'PROVA_ABERTA',
-      quizPosition: undefined, // Explicitly unset quizPosition
+      quizPosition: null, // Explicitly null to remove quizPosition
     });
 
     expect(result.isRight()).toBe(true);
@@ -909,7 +1029,7 @@ describe('UpdateAssessmentUseCase', () => {
     const result = await useCase.execute({
       id: assessmentId,
       type: 'PROVA_ABERTA',
-      timeLimitInMinutes: undefined, // Explicitly unset timeLimitInMinutes
+      timeLimitInMinutes: null, // Explicitly null to remove timeLimitInMinutes
     });
 
     expect(result.isRight()).toBe(true);
@@ -1026,7 +1146,7 @@ describe('UpdateAssessmentUseCase', () => {
     }
   });
 
-  // Edge Case: lessonId with null value (if schema allows null to unset)
+  // Test that explicitly passing null removes the field
   it('should unset lessonId when lessonId is explicitly null', async () => {
     const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
     const assessment = Assessment.create(
@@ -1052,9 +1172,9 @@ describe('UpdateAssessmentUseCase', () => {
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.assessment.lessonId).toBeNull();
+      expect(result.value.assessment.lessonId).toBeUndefined();
       expect(repository.update).toHaveBeenCalledWith(
-        expect.objectContaining({ lessonId: null }),
+        expect.objectContaining({ lessonId: undefined }),
       );
     }
   });

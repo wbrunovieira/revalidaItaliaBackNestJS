@@ -51,30 +51,31 @@ export class UpdateAssessmentUseCase {
 
       const assessment = existingAssessmentResult.value;
 
-      // Validate type-specific fields
-      const targetType = data.type !== undefined ? data.type : assessment.type;
-
-      if (data.quizPosition !== undefined && targetType !== 'QUIZ') {
-        return left(
-          new InvalidInputError('Validation failed', [
-            'quizPosition: Quiz position can only be set for QUIZ type assessments',
-          ]),
-        );
-      }
-
-      if (data.timeLimitInMinutes !== undefined && targetType !== 'SIMULADO') {
-        return left(
-          new InvalidInputError('Validation failed', [
-            'timeLimitInMinutes: Time limit can only be set for SIMULADO type assessments',
-          ]),
-        );
-      }
-
       const updateProps: Partial<AssessmentProps> = {};
 
-      if (data.title) {
+      // Title - sempre atualiza se fornecido
+      if (data.title !== undefined) {
         const newTitle = data.title.trim();
+
+        // Validar se o título não fica vazio após trim
+        if (newTitle.length === 0) {
+          return left(
+            new InvalidInputError('Validation failed', [
+              'title: Title cannot be empty',
+            ]),
+          );
+        }
+
         const newSlug = textToSlug(newTitle);
+
+        // Validar se o slug resultante é válido (mínimo 3 caracteres)
+        if (!newSlug || newSlug.length < 3) {
+          return left(
+            new InvalidInputError('Validation failed', [
+              'title: String must contain at least 3 character(s)',
+            ]),
+          );
+        }
 
         const existingBySlug =
           await this.assessmentRepository.findByTitleExcludingId(newTitle, id);
@@ -83,44 +84,102 @@ export class UpdateAssessmentUseCase {
           return left(new DuplicateAssessmentError());
         }
 
-        updateProps.slug = newSlug;
         updateProps.title = newTitle;
+        updateProps.slug = newSlug;
       }
 
+      // Description - trata null como remoção
       if (data.description !== undefined) {
-        updateProps.description = data.description;
+        if (data.description === null) {
+          updateProps.description = undefined;
+        } else {
+          updateProps.description = data.description;
+        }
       }
 
+      // Type - sempre atualiza se fornecido
       if (data.type !== undefined) {
         updateProps.type = data.type;
       }
 
+      // QuizPosition - trata null como remoção
       if (data.quizPosition !== undefined) {
-        updateProps.quizPosition = data.quizPosition;
+        if (data.quizPosition === null) {
+          updateProps.quizPosition = undefined;
+        } else {
+          updateProps.quizPosition = data.quizPosition;
+        }
       }
 
+      // PassingScore - sempre atualiza se fornecido
       if (data.passingScore !== undefined) {
         updateProps.passingScore = data.passingScore;
       }
 
+      // TimeLimitInMinutes - trata null como remoção
       if (data.timeLimitInMinutes !== undefined) {
-        updateProps.timeLimitInMinutes = data.timeLimitInMinutes;
+        if (data.timeLimitInMinutes === null) {
+          updateProps.timeLimitInMinutes = undefined;
+        } else {
+          updateProps.timeLimitInMinutes = data.timeLimitInMinutes;
+        }
       }
 
+      // RandomizeQuestions - sempre atualiza se fornecido
       if (data.randomizeQuestions !== undefined) {
         updateProps.randomizeQuestions = data.randomizeQuestions;
       }
 
+      // RandomizeOptions - sempre atualiza se fornecido
       if (data.randomizeOptions !== undefined) {
         updateProps.randomizeOptions = data.randomizeOptions;
       }
 
+      // LessonId - trata null como remoção
       if (data.lessonId !== undefined) {
         if (data.lessonId === null) {
-          updateProps.lessonId = null as any; // Preserve null as null
+          updateProps.lessonId = undefined;
         } else {
           updateProps.lessonId = new UniqueEntityID(data.lessonId);
         }
+      }
+
+      // Lógica adicional: Se mudou o tipo, remover campos incompatíveis
+      if (data.type !== undefined && data.type !== assessment.type) {
+        // Se mudou para não-QUIZ, remover quizPosition
+        if (data.type !== 'QUIZ') {
+          updateProps.quizPosition = undefined;
+        }
+
+        // Se mudou para não-SIMULADO, remover timeLimitInMinutes
+        if (data.type !== 'SIMULADO') {
+          updateProps.timeLimitInMinutes = undefined;
+        }
+      }
+
+      // Validar campos após processar todas as mudanças
+      const finalType =
+        updateProps.type !== undefined ? updateProps.type : assessment.type;
+
+      // Validar quizPosition apenas se está sendo definido (não null/undefined)
+      if (updateProps.quizPosition !== undefined && finalType !== 'QUIZ') {
+        return left(
+          new InvalidInputError('Validation failed', [
+            'quizPosition: Quiz position can only be set for QUIZ type assessments',
+          ]),
+        );
+      }
+
+      // Validar timeLimitInMinutes apenas se está sendo definido (não null/undefined)
+      if (
+        updateProps.timeLimitInMinutes !== undefined &&
+        finalType !== 'SIMULADO'
+      ) {
+        return left(
+          new InvalidInputError('Validation failed', [
+            'timeLimitInMinutes: Time limit can only be set for SIMULADO type assessments',
+          ]),
+        );
       }
 
       assessment.update(updateProps);
@@ -129,6 +188,9 @@ export class UpdateAssessmentUseCase {
 
       return right({ assessment });
     } catch (err: any) {
+      // Log do erro para debug (remover em produção)
+      console.error('UpdateAssessmentUseCase error:', err);
+
       // Check if it's a validation error from our code
       if (err instanceof InvalidInputError) {
         return left(err);

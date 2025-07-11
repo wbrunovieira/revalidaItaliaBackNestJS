@@ -400,39 +400,301 @@ GET {{BASE_URL}}/assessments?page=abc&limit=xyz
 ### 45. Buscar assessment por ID
 GET {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
 
+### ==================== ROTAS DE ATUALIZAÇÃO ====================
+
+### 46. Atualizar todos os campos de um QUIZ
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "title": "Quiz de Anatomia Atualizad22",
+  "description": "Descrição atualizada do quiz",
+  "type": "QUIZ",
+  "quizPosition": "BEFORE_LESSON",
+  "passingScore": 80,
+  "randomizeQuestions": false,
+  "randomizeOptions": true,
+  "lessonId": "0ef04e01-8faa-45f3-813d-6f6d0b2d959f"
+}
+
+### 47. Atualizar apenas o título
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "title": "Novo Título do Assessment"
+}
+
+### 48. Atualizar apenas a descrição
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "description": "Nova descrição detalhada do assessment"
+}
+
+### 49. Remover descrição (setar como undefined)
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "description": null
+}
+
+### 50. Atualizar tipo de QUIZ para SIMULADO
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "type": "SIMULADO",
+  "timeLimitInMinutes": 120,
+  "quizPosition": null
+}
+
+### 51. Atualizar tipo de SIMULADO para QUIZ
+PUT {{BASE_URL}}/assessments/36286128-86d6-47c3-b0a3-202cafb746b8
+Content-Type: {{contentType}}
+
+{
+  "type": "QUIZ",
+  "quizPosition": "AFTER_LESSON",
+  "timeLimitInMinutes": null,
+  "lessonId": "0ef04e01-8faa-45f3-813d-6f6d0b2d959f"
+}
+
+### 52. Atualizar tipo de QUIZ para PROVA_ABERTA
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "type": "PROVA_ABERTA",
+  "quizPosition": null,
+  "lessonId": null
+}
+
+### 53. Atualizar apenas passingScore
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "passingScore": 90
+}
+
+### 54. Atualizar randomizeQuestions e randomizeOptions
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "randomizeQuestions": true,
+  "randomizeOptions": true
+}
+
+### 55. Atualizar lessonId
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "lessonId": "456e7890-e89b-12d3-a456-426614174111"
+}
+
+### 56. Remover lessonId (desvincular de lesson)
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "lessonId": null
+}
+
+### 57. Atualizar timeLimitInMinutes de SIMULADO
+PUT {{BASE_URL}}/assessments/36286128-86d6-47c3-b0a3-202cafb746b8
+Content-Type: {{contentType}}
+
+{
+  "timeLimitInMinutes": 90
+}
+
+### 58. Atualizar quizPosition de QUIZ
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "quizPosition": "BEFORE_LESSON"
+}
+
+### 59. Atualizar múltiplos campos parcialmente
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "title": "Título Parcialmente Atualizado",
+  "passingScore": 75,
+  "randomizeQuestions": false
+}
+
+### 60. Atualizar com título contendo espaços extras
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "title": "   Título com Espaços   "
+}
+
+### ==================== CENÁRIOS DE ERRO NA ATUALIZAÇÃO ====================
+
+### 61. ERRO - ID inválido (não é UUID)
+PUT {{BASE_URL}}/assessments/invalid-uuid
+Content-Type: {{contentType}}
+
+{
+  "title": "Novo Título"
+}
+
+### 62. ERRO - Assessment não encontrado
+PUT {{BASE_URL}}/assessments/00000000-0000-0000-0000-000000000000
+Content-Type: {{contentType}}
+
+{
+  "title": "Título para Assessment Inexistente"
+}
+
+### 63. ERRO - Título muito curto
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "title": "AB"
+}
+
+### 64. ERRO - Título com apenas caracteres especiais
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "title": "!@#$"
+}
+
+### 65. ERRO - Tipo inválido
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "type": "TIPO_INVALIDO"
+}
+
+### 66. ERRO - passingScore negativo
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "passingScore": -10
+}
+
+### 67. ERRO - passingScore acima de 100
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "passingScore": 150
+}
+
+### 68. ERRO - timeLimitInMinutes zero
+PUT {{BASE_URL}}/assessments/36286128-86d6-47c3-b0a3-202cafb746b8
+Content-Type: {{contentType}}
+
+{
+  "timeLimitInMinutes": 0
+}
+
+### 69. ERRO - quizPosition em tipo não-QUIZ (SIMULADO)
+PUT {{BASE_URL}}/assessments/36286128-86d6-47c3-b0a3-202cafb746b8
+Content-Type: {{contentType}}
+
+{
+  "quizPosition": "AFTER_LESSON"
+}
+
+### 70. ERRO - timeLimitInMinutes em tipo não-SIMULADO (QUIZ)
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "timeLimitInMinutes": 60
+}
+
+### 71. ERRO - Título duplicado (use um título de outro assessment existente)
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "title": "Simulado REVALIDA 2025-2"
+}
+
+### 72. ERRO - LessonId inválido (não é string)
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "lessonId": 123456
+}
+
+### 73. ERRO - Múltiplos erros de validação
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "title": "AB",
+  "passingScore": -5,
+  "type": "INVALID"
+}
+
+### 74. ERRO - Tipo de dado incorreto para boolean
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{
+  "randomizeQuestions": "sim",
+  "randomizeOptions": 123
+}
+
+### 75. ERRO - Corpo vazio
+PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+{}
+
 ### ==================== ROTAS DE REMOÇÃO ====================
 
-### 46. Deletar assessment por ID - Sucesso
+### 76. Deletar assessment por ID - Sucesso
 DELETE {{BASE_URL}}/assessments/36286128-86d6-47c3-b0a3-202cafb746b8
 
-### 47. Deletar assessment específico - QUIZ
+### 77. Deletar assessment específico - QUIZ
 DELETE {{BASE_URL}}/assessments/0ef04e01-8faa-45f3-813d-6f6d0b2d959f
 
-### 48. Deletar assessment específico - SIMULADO
+### 78. Deletar assessment específico - SIMULADO
 DELETE {{BASE_URL}}/assessments/456e7890-e89b-12d3-a456-426614174111
 
-### 49. Deletar assessment específico - PROVA_ABERTA
+### 79. Deletar assessment específico - PROVA_ABERTA
 DELETE {{BASE_URL}}/assessments/789e0123-e89b-12d3-a456-426614174222
 
 ### ==================== CENÁRIOS DE ERRO NA REMOÇÃO ====================
 
-### 50. ERRO - Deletar assessment com ID inválido (não é UUID)
+### 80. ERRO - Deletar assessment com ID inválido (não é UUID)
 DELETE {{BASE_URL}}/assessments/invalid-uuid-format
 
-### 51. ERRO - Deletar assessment que não existe
+### 81. ERRO - Deletar assessment que não existe
 DELETE {{BASE_URL}}/assessments/00000000-0000-0000-0000-000000000000
 
-### 52. ERRO - Deletar assessment já removido (executar 46 duas vezes)
+### 82. ERRO - Deletar assessment já removido (executar 76 duas vezes)
 DELETE {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
 
-### 53. ERRO - ID vazio
+### 83. ERRO - ID vazio
 DELETE {{BASE_URL}}/assessments/
 
-### 54. ERRO - UUID com formato incorreto
+### 84. ERRO - UUID com formato incorreto
 DELETE {{BASE_URL}}/assessments/123-456-789
 
-### 55. ERRO - UUID com caracteres especiais
+### 85. ERRO - UUID com caracteres especiais
 DELETE {{BASE_URL}}/assessments/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa!
 
-### 56. Verificar se assessment foi realmente deletado (deve retornar 404)
+### 86. Verificar se assessment foi realmente deletado (deve retornar 404)
 GET {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9

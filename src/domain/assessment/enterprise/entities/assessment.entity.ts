@@ -75,34 +75,71 @@ export class Assessment extends Entity<AssessmentProps> {
   public update(props: Partial<AssessmentProps>) {
     if (props.title !== undefined) this.props.title = props.title;
     if (props.slug !== undefined) this.props.slug = props.slug;
-    this.props.description = props.description; // Allow explicit undefined/null to unset
+
+    // Handle explicit null/undefined for optional fields
+    if (props.hasOwnProperty('description')) {
+      this.props.description = props.description;
+    }
+
     if (props.type !== undefined) this.props.type = props.type;
-    this.props.quizPosition = props.quizPosition; // Allow explicit undefined/null to unset
-    if (props.passingScore !== undefined) this.props.passingScore = props.passingScore;
-    this.props.timeLimitInMinutes = props.timeLimitInMinutes; // Allow explicit undefined/null to unset
-    if (props.randomizeQuestions !== undefined) this.props.randomizeQuestions = props.randomizeQuestions;
-    if (props.randomizeOptions !== undefined) this.props.randomizeOptions = props.randomizeOptions;
-    this.props.lessonId = props.lessonId; // Allow explicit undefined/null to unset
+
+    if (props.hasOwnProperty('quizPosition')) {
+      this.props.quizPosition = props.quizPosition;
+    }
+
+    if (props.passingScore !== undefined)
+      this.props.passingScore = props.passingScore;
+
+    if (props.hasOwnProperty('timeLimitInMinutes')) {
+      this.props.timeLimitInMinutes = props.timeLimitInMinutes;
+    }
+
+    if (props.randomizeQuestions !== undefined)
+      this.props.randomizeQuestions = props.randomizeQuestions;
+    if (props.randomizeOptions !== undefined)
+      this.props.randomizeOptions = props.randomizeOptions;
+
+    if (props.hasOwnProperty('lessonId')) {
+      this.props.lessonId = props.lessonId;
+    }
+
     this.touch();
   }
 
-  // Response Mapping
+  // Response Mapping - Omit undefined fields
   public toResponseObject() {
-    return {
+    const response: any = {
       id: this.id.toString(),
       slug: this.slug,
       title: this.title,
-      description: this.description,
       type: this.type,
-      quizPosition: this.quizPosition,
       passingScore: this.passingScore,
-      timeLimitInMinutes: this.timeLimitInMinutes,
       randomizeQuestions: this.randomizeQuestions,
       randomizeOptions: this.randomizeOptions,
-      lessonId: this.lessonId?.toString(),
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
     };
+
+    // Only include optional fields if they are defined
+    if (this.description !== undefined) {
+      response.description = this.description;
+    }
+
+    if (this.quizPosition !== undefined) {
+      response.quizPosition = this.quizPosition;
+    }
+
+    if (this.timeLimitInMinutes !== undefined) {
+      response.timeLimitInMinutes = this.timeLimitInMinutes;
+    }
+
+    if (this.lessonId !== undefined) {
+      response.lessonId = this.lessonId.toString();
+    }
+
+    // Include timestamps for sorting/filtering purposes
+    response.createdAt = this.createdAt;
+    response.updatedAt = this.updatedAt;
+
+    return response;
   }
 
   // Factory Methods

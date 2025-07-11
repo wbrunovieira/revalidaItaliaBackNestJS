@@ -1,3 +1,4 @@
+// src/infra/controllers/assessment.controller.spec.ts
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   BadRequestException,
@@ -8,7 +9,9 @@ import {
 import { left, right } from '@/core/either';
 import { AssessmentController } from './assessment.controller';
 import { CreateAssessmentDto } from '@/domain/assessment/application/dtos/create-assessment.dto';
+import { UpdateAssessmentDto } from '@/domain/assessment/application/dtos/update-assessment.dto';
 import { CreateAssessmentUseCase } from '@/domain/assessment/application/use-cases/create-assessment.use-case';
+import { UpdateAssessmentUseCase } from '@/domain/assessment/application/use-cases/update-assessment.use-case';
 import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
 import { GetAssessmentUseCase } from '@/domain/assessment/application/use-cases/get-assessment.use-case';
 import { DeleteAssessmentUseCase } from '@/domain/assessment/application/use-cases/delete-assessment.use-case';
@@ -18,7 +21,19 @@ import { RepositoryError } from '@/domain/assessment/application/use-cases/error
 import { LessonNotFoundError } from '@/domain/assessment/application/use-cases/errors/lesson-not-found-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
 
+// Helper function to create mock assessments with toResponseObject method
+function createMockAssessment(data: any) {
+  return {
+    ...data,
+    toResponseObject: () => data,
+  };
+}
+
 class MockCreateAssessmentUseCase {
+  execute = vi.fn();
+}
+
+class MockUpdateAssessmentUseCase {
   execute = vi.fn();
 }
 
@@ -37,6 +52,7 @@ class MockDeleteAssessmentUseCase {
 describe('AssessmentController', () => {
   let controller: AssessmentController;
   let createUseCase: MockCreateAssessmentUseCase;
+  let updateUseCase: MockUpdateAssessmentUseCase;
   let listUseCase: MockListAssessmentsUseCase;
   let getUseCase: MockGetAssessmentUseCase;
   let deleteUseCase: MockDeleteAssessmentUseCase;
@@ -45,11 +61,13 @@ describe('AssessmentController', () => {
     vi.clearAllMocks();
 
     createUseCase = new MockCreateAssessmentUseCase();
+    updateUseCase = new MockUpdateAssessmentUseCase();
     listUseCase = new MockListAssessmentsUseCase();
     getUseCase = new MockGetAssessmentUseCase();
     deleteUseCase = new MockDeleteAssessmentUseCase();
     controller = new AssessmentController(
       createUseCase as any,
+      updateUseCase as any,
       listUseCase as any,
       getUseCase as any,
       deleteUseCase as any,
@@ -753,6 +771,714 @@ describe('AssessmentController', () => {
       const response = await controller.create(minTimeDto);
 
       expect(response.assessment.timeLimitInMinutes).toBe(1);
+    });
+  });
+
+  describe('update()', () => {
+    const assessmentId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const validUpdateDto: UpdateAssessmentDto = {
+      title: 'Updated JavaScript Quiz',
+      description: 'Updated description',
+      type: 'QUIZ',
+      quizPosition: 'BEFORE_LESSON',
+      passingScore: 85,
+      randomizeQuestions: true,
+      randomizeOptions: true,
+      lessonId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+    };
+
+    describe('✅ Success Cases', () => {
+      it('returns updated assessment on success with all fields', async () => {
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'updated-javascript-quiz',
+          title: 'Updated JavaScript Quiz',
+          description: 'Updated description',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 85,
+          randomizeQuestions: true,
+          randomizeOptions: true,
+          lessonId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-02'),
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        const response = await controller.update(assessmentId, validUpdateDto);
+
+        expect(response).toEqual({
+          success: true,
+          assessment: updatedAssessment,
+        });
+        expect(updateUseCase.execute).toHaveBeenCalledWith({
+          id: assessmentId,
+          title: validUpdateDto.title,
+          description: validUpdateDto.description,
+          type: validUpdateDto.type,
+          quizPosition: validUpdateDto.quizPosition,
+          passingScore: validUpdateDto.passingScore,
+          timeLimitInMinutes: validUpdateDto.timeLimitInMinutes,
+          randomizeQuestions: validUpdateDto.randomizeQuestions,
+          randomizeOptions: validUpdateDto.randomizeOptions,
+          lessonId: validUpdateDto.lessonId,
+        });
+      });
+
+      it('returns updated assessment with only title update', async () => {
+        const partialDto: UpdateAssessmentDto = { title: 'New Title Only' };
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'new-title-only',
+          title: 'New Title Only',
+          type: 'QUIZ',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        const response = await controller.update(assessmentId, partialDto);
+
+        expect(response.assessment.title).toBe('New Title Only');
+        expect(updateUseCase.execute).toHaveBeenCalledWith({
+          id: assessmentId,
+          title: partialDto.title,
+          description: undefined,
+          type: undefined,
+          quizPosition: undefined,
+          passingScore: undefined,
+          timeLimitInMinutes: undefined,
+          randomizeQuestions: undefined,
+          randomizeOptions: undefined,
+          lessonId: undefined,
+        });
+      });
+
+      it('handles updating type from QUIZ to SIMULADO', async () => {
+        const typeChangeDto: UpdateAssessmentDto = {
+          type: 'SIMULADO',
+          timeLimitInMinutes: 120,
+          quizPosition: null,
+        };
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'SIMULADO',
+          timeLimitInMinutes: 120,
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        const response = await controller.update(assessmentId, typeChangeDto);
+
+        expect(response.assessment.type).toBe('SIMULADO');
+        expect(response.assessment.timeLimitInMinutes).toBe(120);
+        expect(updateUseCase.execute).toHaveBeenCalledWith({
+          id: assessmentId,
+          title: undefined,
+          description: undefined,
+          type: 'SIMULADO',
+          quizPosition: null, // null is preserved
+          passingScore: undefined,
+          timeLimitInMinutes: 120,
+          randomizeQuestions: undefined,
+          randomizeOptions: undefined,
+          lessonId: undefined,
+        });
+      });
+
+      it('handles updating type from SIMULADO to QUIZ', async () => {
+        const typeChangeDto: UpdateAssessmentDto = {
+          type: 'QUIZ',
+          quizPosition: 'AFTER_LESSON',
+          timeLimitInMinutes: null,
+          lessonId: 'lesson-id',
+        };
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'QUIZ',
+          quizPosition: 'AFTER_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+          lessonId: 'lesson-id',
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        const response = await controller.update(assessmentId, typeChangeDto);
+
+        expect(response.assessment.type).toBe('QUIZ');
+        expect(response.assessment.quizPosition).toBe('AFTER_LESSON');
+        expect(response.assessment.timeLimitInMinutes).toBeUndefined();
+        expect(updateUseCase.execute).toHaveBeenCalledWith({
+          id: assessmentId,
+          title: undefined,
+          description: undefined,
+          type: 'QUIZ',
+          quizPosition: 'AFTER_LESSON',
+          passingScore: undefined,
+          timeLimitInMinutes: null, // null is preserved
+          randomizeQuestions: undefined,
+          randomizeOptions: undefined,
+          lessonId: 'lesson-id',
+        });
+      });
+
+      it('handles removing optional fields with null', async () => {
+        const removeFieldsDto: UpdateAssessmentDto = {
+          description: null,
+          lessonId: null,
+        };
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'PROVA_ABERTA',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        const response = await controller.update(assessmentId, removeFieldsDto);
+
+        expect(response.assessment.description).toBeUndefined();
+        expect(response.assessment.lessonId).toBeUndefined();
+        expect(updateUseCase.execute).toHaveBeenCalledWith({
+          id: assessmentId,
+          title: undefined,
+          description: null, // null is preserved
+          type: undefined,
+          quizPosition: undefined,
+          passingScore: undefined,
+          timeLimitInMinutes: undefined,
+          randomizeQuestions: undefined,
+          randomizeOptions: undefined,
+          lessonId: null, // null is preserved
+        });
+      });
+
+      it('updates boolean fields correctly', async () => {
+        const booleanUpdateDto: UpdateAssessmentDto = {
+          randomizeQuestions: true,
+          randomizeOptions: false,
+        };
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'QUIZ',
+          passingScore: 70,
+          randomizeQuestions: true,
+          randomizeOptions: false,
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        const response = await controller.update(
+          assessmentId,
+          booleanUpdateDto,
+        );
+
+        expect(response.assessment.randomizeQuestions).toBe(true);
+        expect(response.assessment.randomizeOptions).toBe(false);
+      });
+
+      it('updates passing score to boundary values', async () => {
+        const minScoreDto: UpdateAssessmentDto = { passingScore: 0 };
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'QUIZ',
+          passingScore: 0,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        const response = await controller.update(assessmentId, minScoreDto);
+
+        expect(response.assessment.passingScore).toBe(0);
+      });
+
+      it('calls updateAssessmentUseCase.execute exactly once', async () => {
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'QUIZ',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        await controller.update(assessmentId, { title: 'New Title' });
+
+        expect(updateUseCase.execute).toHaveBeenCalledTimes(1);
+      });
+
+      it('handles empty update body', async () => {
+        const emptyDto: UpdateAssessmentDto = {};
+        const unchangedAssessment = {
+          id: assessmentId,
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'QUIZ',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+          updatedAt: new Date(), // Only updatedAt should change
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(unchangedAssessment) }),
+        );
+
+        const response = await controller.update(assessmentId, emptyDto);
+
+        expect(response.success).toBe(true);
+        expect(response.assessment).toEqual(unchangedAssessment);
+      });
+    });
+
+    describe('⚠️ Validation Errors (400)', () => {
+      it('throws BadRequestException on invalid UUID', async () => {
+        const details = ['id: ID must be a valid UUID'];
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', details)),
+        );
+
+        try {
+          await controller.update('invalid-uuid', validUpdateDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details,
+          });
+        }
+      });
+
+      it('throws BadRequestException on invalid title', async () => {
+        const details = ['title: String must contain at least 3 character(s)'];
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', details)),
+        );
+
+        const invalidDto: UpdateAssessmentDto = { title: 'AB' };
+
+        try {
+          await controller.update(assessmentId, invalidDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details,
+          });
+        }
+      });
+
+      it('throws BadRequestException on invalid type', async () => {
+        const details = ['type: Type must be QUIZ, SIMULADO or PROVA_ABERTA'];
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', details)),
+        );
+
+        const invalidDto = { type: 'INVALID_TYPE' } as any;
+
+        try {
+          await controller.update(assessmentId, invalidDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details,
+          });
+        }
+      });
+
+      it('throws BadRequestException on invalid passingScore', async () => {
+        const details = [
+          'passingScore: Number must be less than or equal to 100',
+        ];
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', details)),
+        );
+
+        const invalidDto: UpdateAssessmentDto = { passingScore: 150 };
+
+        try {
+          await controller.update(assessmentId, invalidDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details,
+          });
+        }
+      });
+
+      it('throws BadRequestException when setting quizPosition on non-QUIZ type', async () => {
+        const details = [
+          'quizPosition: Quiz position can only be set for QUIZ type assessments',
+        ];
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', details)),
+        );
+
+        const invalidDto: UpdateAssessmentDto = {
+          quizPosition: 'AFTER_LESSON',
+        };
+
+        try {
+          await controller.update(assessmentId, invalidDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details,
+          });
+        }
+      });
+
+      it('throws BadRequestException when setting timeLimitInMinutes on non-SIMULADO type', async () => {
+        const details = [
+          'timeLimitInMinutes: Time limit can only be set for SIMULADO type assessments',
+        ];
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', details)),
+        );
+
+        const invalidDto: UpdateAssessmentDto = { timeLimitInMinutes: 60 };
+
+        try {
+          await controller.update(assessmentId, invalidDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details,
+          });
+        }
+      });
+
+      it('throws BadRequestException with multiple validation errors', async () => {
+        const details = [
+          'title: String must contain at least 3 character(s)',
+          'passingScore: Number must be greater than or equal to 0',
+          'timeLimitInMinutes: Number must be greater than or equal to 1',
+        ];
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', details)),
+        );
+
+        const invalidDto = {
+          title: 'AB',
+          passingScore: -5,
+          timeLimitInMinutes: 0,
+        } as UpdateAssessmentDto;
+
+        try {
+          await controller.update(assessmentId, invalidDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details,
+          });
+        }
+      });
+    });
+
+    describe('🔍 Business Logic Errors', () => {
+      it('throws NotFoundException when assessment is not found', async () => {
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new AssessmentNotFoundError()),
+        );
+
+        try {
+          await controller.update(assessmentId, validUpdateDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(NotFoundException);
+          expect(error.getResponse()).toEqual({
+            error: 'ASSESSMENT_NOT_FOUND',
+            message: 'Assessment not found',
+          });
+        }
+      });
+
+      it('throws ConflictException on duplicate title', async () => {
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new DuplicateAssessmentError()),
+        );
+
+        const duplicateDto: UpdateAssessmentDto = {
+          title: 'Existing Assessment Title',
+        };
+
+        try {
+          await controller.update(assessmentId, duplicateDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(ConflictException);
+          expect(error.getResponse()).toEqual({
+            error: 'DUPLICATE_ASSESSMENT',
+            message: 'Assessment with this title already exists',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on RepositoryError', async () => {
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new RepositoryError('Database connection failed')),
+        );
+
+        try {
+          await controller.update(assessmentId, validUpdateDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Database connection failed',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on unexpected error', async () => {
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new Error('Unexpected error occurred')),
+        );
+
+        try {
+          await controller.update(assessmentId, validUpdateDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Unexpected error occurred',
+          });
+        }
+      });
+    });
+
+    describe('🔍 Edge Cases', () => {
+      it('handles title with extra whitespace', async () => {
+        const whitespaceDto: UpdateAssessmentDto = {
+          title: '   Trimmed Title   ',
+        };
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'trimmed-title',
+          title: 'Trimmed Title',
+          type: 'QUIZ',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        const response = await controller.update(assessmentId, whitespaceDto);
+
+        expect(response.assessment.title).toBe('Trimmed Title');
+        expect(response.assessment.slug).toBe('trimmed-title');
+      });
+
+      it('handles special characters in title', async () => {
+        const specialCharsDto: UpdateAssessmentDto = {
+          title: 'Assessment: Module 1 - Introduction & Overview',
+        };
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'assessment-module-1-introduction-overview',
+          title: 'Assessment: Module 1 - Introduction & Overview',
+          type: 'QUIZ',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        const response = await controller.update(assessmentId, specialCharsDto);
+
+        expect(response.assessment.title).toBe(
+          'Assessment: Module 1 - Introduction & Overview',
+        );
+      });
+
+      it('handles updating to the same title (no change)', async () => {
+        const sameDto: UpdateAssessmentDto = { title: 'Current Title' };
+        const unchangedAssessment = {
+          id: assessmentId,
+          slug: 'current-title',
+          title: 'Current Title',
+          type: 'QUIZ',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(unchangedAssessment) }),
+        );
+
+        const response = await controller.update(assessmentId, sameDto);
+
+        expect(response.success).toBe(true);
+      });
+
+      it('handles lessonId update with non-UUID string', async () => {
+        const nonUuidDto: UpdateAssessmentDto = { lessonId: 'some-lesson-id' };
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'QUIZ',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+          lessonId: 'some-lesson-id',
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        const response = await controller.update(assessmentId, nonUuidDto);
+
+        expect(response.assessment.lessonId).toBe('some-lesson-id');
+      });
+
+      it('preserves all assessment properties in response', async () => {
+        const completeUpdateDto: UpdateAssessmentDto = {
+          title: 'Complete Update',
+          description: 'All fields updated',
+          type: 'SIMULADO',
+          passingScore: 90,
+          timeLimitInMinutes: 180,
+          randomizeQuestions: true,
+          randomizeOptions: true,
+        };
+        const updatedAssessment = {
+          id: assessmentId,
+          slug: 'complete-update',
+          title: 'Complete Update',
+          description: 'All fields updated',
+          type: 'SIMULADO',
+          passingScore: 90,
+          timeLimitInMinutes: 180,
+          randomizeQuestions: true,
+          randomizeOptions: true,
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date(),
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment(updatedAssessment) }),
+        );
+
+        const response = await controller.update(
+          assessmentId,
+          completeUpdateDto,
+        );
+
+        expect(response.assessment).toMatchObject(updatedAssessment);
+      });
+    });
+
+    describe('🔄 Behavior Testing', () => {
+      it('passes correct request object to use case', async () => {
+        const updateDto: UpdateAssessmentDto = {
+          title: 'Test Update',
+          passingScore: 80,
+        };
+
+        updateUseCase.execute.mockResolvedValueOnce(
+          right({ assessment: createMockAssessment({}) }),
+        );
+
+        await controller.update(assessmentId, updateDto);
+
+        expect(updateUseCase.execute).toHaveBeenCalledWith({
+          id: assessmentId,
+          title: 'Test Update',
+          description: undefined,
+          type: undefined,
+          quizPosition: undefined,
+          passingScore: 80,
+          timeLimitInMinutes: undefined,
+          randomizeQuestions: undefined,
+          randomizeOptions: undefined,
+          lessonId: undefined,
+        });
+      });
+
+      it('handles concurrent update requests', async () => {
+        const id1 = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+        const id2 = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+
+        updateUseCase.execute.mockImplementation(({ id }) => {
+          if (id === id1)
+            return Promise.resolve(
+              right({ assessment: createMockAssessment({ id: id1 }) }),
+            );
+          if (id === id2)
+            return Promise.resolve(left(new AssessmentNotFoundError()));
+        });
+
+        const [result1, result2] = await Promise.allSettled([
+          controller.update(id1, { title: 'Update 1' }),
+          controller.update(id2, { title: 'Update 2' }).catch((err) => err),
+        ]);
+
+        expect(result1.status).toBe('fulfilled');
+        expect((result1 as any).value.success).toBe(true);
+
+        expect(result2.status).toBe('fulfilled');
+        expect((result2 as any).value).toBeInstanceOf(NotFoundException);
+      });
     });
   });
 
@@ -1498,7 +2224,9 @@ describe('AssessmentController', () => {
     });
 
     it('should throw NotFoundException when assessment is not found', async () => {
-      deleteUseCase.execute.mockResolvedValue(left(new AssessmentNotFoundError()));
+      deleteUseCase.execute.mockResolvedValue(
+        left(new AssessmentNotFoundError()),
+      );
 
       await expect(controller.delete(assessmentId)).rejects.toThrow(
         NotFoundException,
@@ -1579,9 +2307,7 @@ describe('AssessmentController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(controller.delete('')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(controller.delete('')).rejects.toThrow(BadRequestException);
 
       expect(deleteUseCase.execute).toHaveBeenCalledWith({ id: '' });
     });
@@ -1626,23 +2352,23 @@ describe('AssessmentController', () => {
     it('should handle concurrent delete requests', async () => {
       const id1 = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
       const id2 = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
-      
+
       deleteUseCase.execute.mockImplementation(({ id }) => {
         if (id === id1) return Promise.resolve(right({}));
-        if (id === id2) return Promise.resolve(left(new AssessmentNotFoundError()));
+        if (id === id2)
+          return Promise.resolve(left(new AssessmentNotFoundError()));
       });
 
       const [result1, result2] = await Promise.allSettled([
         controller.delete(id1),
-        controller.delete(id2).catch(err => err),
+        controller.delete(id2).catch((err) => err),
       ]);
 
       expect(result1.status).toBe('fulfilled');
       expect((result1 as any).value).toEqual({ success: true });
-      
+
       expect(result2.status).toBe('fulfilled');
       expect((result2 as any).value).toBeInstanceOf(NotFoundException);
     });
   });
 });
-('');

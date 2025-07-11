@@ -10,6 +10,7 @@ import { AssessmentController } from './controllers/assessment.controller';
 import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
 import { GetAssessmentUseCase } from '@/domain/assessment/application/use-cases/get-assessment.use-case';
 import { DeleteAssessmentUseCase } from '@/domain/assessment/application/use-cases/delete-assessment.use-case';
+import { UpdateAssessmentUseCase } from '@/domain/assessment/application/use-cases/update-assessment.use-case';
 
 @Module({
   imports: [DatabaseModule],
@@ -19,6 +20,7 @@ import { DeleteAssessmentUseCase } from '@/domain/assessment/application/use-cas
     ListAssessmentsUseCase,
     GetAssessmentUseCase,
     DeleteAssessmentUseCase,
+    UpdateAssessmentUseCase,
 
     {
       provide: 'AssessmentRepository',
