@@ -10,23 +10,31 @@ import { left, right } from '@/core/either';
 import { ArgumentController } from './argument.controller';
 import { CreateArgumentDto } from '@/domain/assessment/application/dtos/create-argument.dto';
 import { CreateArgumentUseCase } from '@/domain/assessment/application/use-cases/create-argument.use-case';
+import { GetArgumentUseCase } from '@/domain/assessment/application/use-cases/get-argument.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { DuplicateArgumentError } from '@/domain/assessment/application/use-cases/errors/duplicate-argument-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
+import { ArgumentNotFoundError } from '@/domain/assessment/application/use-cases/errors/argument-not-found-error';
 
 class MockCreateArgumentUseCase {
+  execute = vi.fn();
+}
+
+class MockGetArgumentUseCase {
   execute = vi.fn();
 }
 
 describe('ArgumentController', () => {
   let controller: ArgumentController;
   let createUseCase: MockCreateArgumentUseCase;
+  let getUseCase: MockGetArgumentUseCase;
 
   beforeEach(() => {
     vi.clearAllMocks();
     createUseCase = new MockCreateArgumentUseCase();
-    controller = new ArgumentController(createUseCase as any);
+    getUseCase = new MockGetArgumentUseCase();
+    controller = new ArgumentController(createUseCase as any, getUseCase as any);
   });
 
   describe('create()', () => {
@@ -899,6 +907,734 @@ describe('ArgumentController', () => {
           title: 'Long UUID Test',
           assessmentId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
         });
+      });
+    });
+  });
+
+  describe('findById()', () => {
+    const validArgumentId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+
+    describe('✅ Success Cases', () => {
+      it('returns argument when found with complete data', async () => {
+        const foundArgument = {
+          id: validArgumentId,
+          title: 'Complete JavaScript Argument',
+          assessmentId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-01'),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        const response = await controller.findById(validArgumentId);
+
+        expect(response).toEqual({
+          success: true,
+          argument: foundArgument,
+        });
+        expect(getUseCase.execute).toHaveBeenCalledWith({
+          id: validArgumentId,
+        });
+      });
+
+      it('returns argument when found without assessment association', async () => {
+        const foundArgument = {
+          id: validArgumentId,
+          title: 'Standalone Argument',
+          assessmentId: undefined,
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-01'),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        const response = await controller.findById(validArgumentId);
+
+        expect(response).toEqual({
+          success: true,
+          argument: foundArgument,
+        });
+        expect(response.argument.assessmentId).toBeUndefined();
+      });
+
+      it('returns argument with special characters in title', async () => {
+        const foundArgument = {
+          id: validArgumentId,
+          title: 'Argumento de Programação & Lógica!',
+          assessmentId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-01'),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        const response = await controller.findById(validArgumentId);
+
+        expect(response.argument.title).toBe('Argumento de Programação & Lógica!');
+      });
+
+      it('returns argument with unicode characters in title', async () => {
+        const foundArgument = {
+          id: validArgumentId,
+          title: 'Argumento 中文 العربية русский 🎯',
+          assessmentId: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-01'),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        const response = await controller.findById(validArgumentId);
+
+        expect(response.argument.title).toBe('Argumento 中文 العربية русский 🎯');
+      });
+
+      it('returns argument with very long title', async () => {
+        const longTitle = 'A'.repeat(1000);
+        const foundArgument = {
+          id: validArgumentId,
+          title: longTitle,
+          assessmentId: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-01'),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        const response = await controller.findById(validArgumentId);
+
+        expect(response.argument.title).toBe(longTitle);
+        expect(response.argument.title.length).toBe(1000);
+      });
+
+      it('returns argument with precise timestamps', async () => {
+        const preciseCreatedAt = new Date('2024-01-01T10:00:00.123Z');
+        const preciseUpdatedAt = new Date('2024-01-02T15:30:45.678Z');
+        const foundArgument = {
+          id: validArgumentId,
+          title: 'Precision Test Argument',
+          assessmentId: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+          createdAt: preciseCreatedAt,
+          updatedAt: preciseUpdatedAt,
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        const response = await controller.findById(validArgumentId);
+
+        expect(response.argument.createdAt).toEqual(preciseCreatedAt);
+        expect(response.argument.updatedAt).toEqual(preciseUpdatedAt);
+      });
+
+      it('calls getArgumentUseCase.execute exactly once', async () => {
+        const foundArgument = {
+          id: validArgumentId,
+          title: 'Test Argument',
+          assessmentId: 'test-assessment-id',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        await controller.findById(validArgumentId);
+
+        expect(getUseCase.execute).toHaveBeenCalledTimes(1);
+      });
+
+      it('preserves all argument properties in success response', async () => {
+        const foundArgument = {
+          id: validArgumentId,
+          title: 'Complete Property Test',
+          assessmentId: 'complete-assessment-id',
+          createdAt: new Date('2023-06-15'),
+          updatedAt: new Date('2023-06-16'),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        const response = await controller.findById(validArgumentId);
+
+        expect(response.argument).toMatchObject({
+          id: foundArgument.id,
+          title: foundArgument.title,
+          assessmentId: foundArgument.assessmentId,
+          createdAt: foundArgument.createdAt,
+          updatedAt: foundArgument.updatedAt,
+        });
+      });
+    });
+
+    describe('⚠️ Validation Errors (400)', () => {
+      it('throws BadRequestException on InvalidInputError with invalid UUID format', async () => {
+        const validationDetails = [
+          'id: ID must be a valid UUID',
+        ];
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        const invalidId = 'invalid-uuid-format';
+
+        try {
+          await controller.findById(invalidId);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with empty ID', async () => {
+        const validationDetails = [
+          'id: ID cannot be empty',
+        ];
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        const emptyId = '';
+
+        try {
+          await controller.findById(emptyId);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with UUID too long', async () => {
+        const validationDetails = [
+          'id: ID must be exactly 36 characters long',
+        ];
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        const longId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-extra-chars';
+
+        try {
+          await controller.findById(longId);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with UUID containing special characters', async () => {
+        const validationDetails = [
+          'id: ID must be a valid UUID',
+        ];
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        const specialCharId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa@';
+
+        try {
+          await controller.findById(specialCharId);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with UUID with wrong hyphen placement', async () => {
+        const validationDetails = [
+          'id: ID must have proper UUID structure',
+        ];
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        const wrongHyphenId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa-a';
+
+        try {
+          await controller.findById(wrongHyphenId);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with UUID missing hyphens', async () => {
+        const validationDetails = [
+          'id: ID must be a valid UUID',
+        ];
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        const noHyphenId = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+
+        try {
+          await controller.findById(noHyphenId);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with UUID containing unicode characters', async () => {
+        const validationDetails = [
+          'id: ID must be a valid UUID',
+        ];
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        const unicodeId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaαβγ';
+
+        try {
+          await controller.findById(unicodeId);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('throws BadRequestException on InvalidInputError with UUID containing emojis', async () => {
+        const validationDetails = [
+          'id: ID must be a valid UUID',
+        ];
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        const emojiId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa🎯';
+
+        try {
+          await controller.findById(emojiId);
+          expect.fail('Should have thrown BadRequestException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+    });
+
+    describe('🔍 Business Logic Errors (404)', () => {
+      it('throws NotFoundException on ArgumentNotFoundError', async () => {
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new ArgumentNotFoundError()),
+        );
+
+        const nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+        try {
+          await controller.findById(nonExistentId);
+          expect.fail('Should have thrown NotFoundException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(NotFoundException);
+          expect(error.getResponse()).toEqual({
+            error: 'ARGUMENT_NOT_FOUND',
+            message: 'Argument not found',
+          });
+        }
+      });
+
+      it('throws NotFoundException when argument is soft deleted', async () => {
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new ArgumentNotFoundError()),
+        );
+
+        const deletedArgumentId = '11111111-1111-1111-1111-111111111111';
+
+        try {
+          await controller.findById(deletedArgumentId);
+          expect.fail('Should have thrown NotFoundException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(NotFoundException);
+          expect(error.getResponse()).toEqual({
+            error: 'ARGUMENT_NOT_FOUND',
+            message: 'Argument not found',
+          });
+        }
+      });
+
+      it('throws NotFoundException with different case UUID (case sensitive)', async () => {
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new ArgumentNotFoundError()),
+        );
+
+        const upperCaseId = 'AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA';
+
+        try {
+          await controller.findById(upperCaseId);
+          expect.fail('Should have thrown NotFoundException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(NotFoundException);
+          expect(error.getResponse()).toEqual({
+            error: 'ARGUMENT_NOT_FOUND',
+            message: 'Argument not found',
+          });
+        }
+      });
+    });
+
+    describe('🔥 Repository Errors (500)', () => {
+      it('throws InternalServerErrorException on RepositoryError', async () => {
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new RepositoryError('Database connection failed')),
+        );
+
+        try {
+          await controller.findById(validArgumentId);
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Database connection failed',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on RepositoryError with timeout', async () => {
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new RepositoryError('Database operation timed out')),
+        );
+
+        try {
+          await controller.findById(validArgumentId);
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Database operation timed out',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on RepositoryError with connection error', async () => {
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new RepositoryError('Unable to connect to database')),
+        );
+
+        try {
+          await controller.findById(validArgumentId);
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Unable to connect to database',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on RepositoryError with host not found', async () => {
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new RepositoryError('Database host not found')),
+        );
+
+        try {
+          await controller.findById(validArgumentId);
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Database host not found',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on RepositoryError with corrupted data', async () => {
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new RepositoryError('Invalid argument data retrieved from repository')),
+        );
+
+        try {
+          await controller.findById(validArgumentId);
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Invalid argument data retrieved from repository',
+          });
+        }
+      });
+
+      it('throws InternalServerErrorException on generic Error', async () => {
+        getUseCase.execute.mockResolvedValueOnce(
+          left(new Error('Unexpected error occurred')),
+        );
+
+        try {
+          await controller.findById(validArgumentId);
+          expect.fail('Should have thrown InternalServerErrorException');
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'Unexpected error occurred',
+          });
+        }
+      });
+    });
+
+    describe('🔧 Edge Cases', () => {
+      it('handles UUID with whitespace trimming', async () => {
+        const foundArgument = {
+          id: validArgumentId,
+          title: 'Whitespace Test Argument',
+          assessmentId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        const whitespaceId = `  ${validArgumentId}  `;
+        const response = await controller.findById(whitespaceId);
+
+        expect(response.success).toBe(true);
+        expect(response.argument.id).toBe(validArgumentId);
+        expect(getUseCase.execute).toHaveBeenCalledWith({
+          id: whitespaceId,
+        });
+      });
+
+      it('handles concurrent findById requests', async () => {
+        const foundArgument1 = {
+          id: validArgumentId,
+          title: 'Concurrent Test 1',
+          assessmentId: 'concurrent-1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const foundArgument2 = {
+          id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+          title: 'Concurrent Test 2',
+          assessmentId: 'concurrent-2',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        getUseCase.execute.mockImplementation(({ id }) => {
+          if (id === validArgumentId) {
+            return Promise.resolve(right({ argument: foundArgument1 }));
+          }
+          if (id === 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb') {
+            return Promise.resolve(right({ argument: foundArgument2 }));
+          }
+          return Promise.resolve(left(new ArgumentNotFoundError()));
+        });
+
+        const [result1, result2] = await Promise.all([
+          controller.findById(validArgumentId),
+          controller.findById('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+        ]);
+
+        expect(result1.success).toBe(true);
+        expect(result1.argument.title).toBe('Concurrent Test 1');
+        expect(result2.success).toBe(true);
+        expect(result2.argument.title).toBe('Concurrent Test 2');
+      });
+
+      it('handles argument with extreme dates', async () => {
+        const futureDate = new Date('2099-12-31T23:59:59Z');
+        const pastDate = new Date('1900-01-01T00:00:00Z');
+        const foundArgument = {
+          id: validArgumentId,
+          title: 'Extreme Dates Test',
+          assessmentId: 'extreme-dates',
+          createdAt: pastDate,
+          updatedAt: futureDate,
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        const response = await controller.findById(validArgumentId);
+
+        expect(response.argument.createdAt).toEqual(pastDate);
+        expect(response.argument.updatedAt).toEqual(futureDate);
+      });
+
+      it('handles argument with title containing control characters', async () => {
+        const controlCharTitle = 'Title with \n\r\t control chars';
+        const foundArgument = {
+          id: validArgumentId,
+          title: controlCharTitle,
+          assessmentId: 'control-chars',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        const response = await controller.findById(validArgumentId);
+
+        expect(response.argument.title).toBe(controlCharTitle);
+      });
+
+      it('handles argument with zero-width characters in title', async () => {
+        const zeroWidthTitle = 'Title\u200B\u200C\u200D\uFEFFwith zero-width chars';
+        const foundArgument = {
+          id: validArgumentId,
+          title: zeroWidthTitle,
+          assessmentId: 'zero-width',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        const response = await controller.findById(validArgumentId);
+
+        expect(response.argument.title).toBe(zeroWidthTitle);
+      });
+    });
+
+    describe('🔄 Behavior Testing', () => {
+      it('passes correct request object to use case', async () => {
+        const testId = 'test-id-12345678-1234-1234-1234-123456789012';
+        const foundArgument = {
+          id: testId,
+          title: 'Behavior Test',
+          assessmentId: 'behavior-test',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: foundArgument }),
+        );
+
+        await controller.findById(testId);
+
+        expect(getUseCase.execute).toHaveBeenCalledWith({
+          id: testId,
+        });
+      });
+
+      it('returns the exact response structure', async () => {
+        const exactArgument = {
+          id: validArgumentId,
+          title: 'Exact Structure Test',
+          assessmentId: 'exact-structure',
+          createdAt: new Date('2023-12-01'),
+          updatedAt: new Date('2023-12-01'),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: exactArgument }),
+        );
+
+        const result = await controller.findById(validArgumentId);
+
+        expect(result).toEqual({
+          success: true,
+          argument: exactArgument,
+        });
+      });
+
+      it('handles argument with all optional fields undefined', async () => {
+        const minimalArgument = {
+          id: validArgumentId,
+          title: 'Minimal Argument',
+          assessmentId: undefined,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: minimalArgument }),
+        );
+
+        const result = await controller.findById(validArgumentId);
+
+        expect(result.argument.assessmentId).toBeUndefined();
+        expect(result.argument.title).toBe('Minimal Argument');
+      });
+
+      it('preserves exact argument data without modification', async () => {
+        const originalArgument = {
+          id: validArgumentId,
+          title: 'Original Data Test',
+          assessmentId: 'original-data',
+          createdAt: new Date('2023-01-01T10:00:00.000Z'),
+          updatedAt: new Date('2023-01-02T15:30:00.000Z'),
+        };
+
+        getUseCase.execute.mockResolvedValueOnce(
+          right({ argument: originalArgument }),
+        );
+
+        const result = await controller.findById(validArgumentId);
+
+        expect(result.argument).toEqual(originalArgument);
+        expect(result.argument.id).toBe(originalArgument.id);
+        expect(result.argument.title).toBe(originalArgument.title);
+        expect(result.argument.assessmentId).toBe(originalArgument.assessmentId);
+        expect(result.argument.createdAt).toBe(originalArgument.createdAt);
+        expect(result.argument.updatedAt).toBe(originalArgument.updatedAt);
       });
     });
   });

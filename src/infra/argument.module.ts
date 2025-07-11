@@ -7,12 +7,14 @@ import { PrismaArgumentRepository } from '@/infra/database/prisma/repositories/p
 import { PrismaAssessmentRepository } from '@/infra/database/prisma/repositories/prisma-assessment-repository';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { ArgumentController } from './controllers/argument.controller';
+import { GetArgumentUseCase } from '@/domain/assessment/application/use-cases/get-argument.use-case';
 
 @Module({
   imports: [DatabaseModule],
   controllers: [ArgumentController],
   providers: [
     CreateArgumentUseCase,
+    GetArgumentUseCase,
 
     {
       provide: 'ArgumentRepository',
@@ -23,9 +25,6 @@ import { ArgumentController } from './controllers/argument.controller';
       useClass: PrismaAssessmentRepository,
     } as const,
   ],
-  exports: [
-    'ArgumentRepository',
-    CreateArgumentUseCase,
-  ],
+  exports: ['ArgumentRepository', CreateArgumentUseCase],
 })
 export class ArgumentModule {}

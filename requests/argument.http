@@ -20,7 +20,7 @@ POST {{BASE_URL}}/arguments
 Content-Type: {{contentType}}
 
 {
-  "title": "Farmacologia"
+  "title": "Farmacologia 2"
 }
 
 ### 3. Criar Argument com título longo - Sucesso
@@ -227,3 +227,109 @@ Content-Type: {{contentType}}
   "title": "Título\nCom\nQuebras\nDe\nLinha",
   "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
 }
+
+### ==================== GET ARGUMENT REQUESTS ====================
+
+### 26. GET - Buscar Argument por ID válido - Sucesso
+GET {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+### 27. GET - Buscar Argument por ID com UUID válido - Sucesso
+GET {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+Content-Type: {{contentType}}
+
+### 28. GET - Buscar Argument com UUID em maiúsculas - Sucesso
+GET {{BASE_URL}}/arguments/A78D5558-6962-41DE-911B-D8C12821B9B9
+Content-Type: {{contentType}}
+
+### 29. GET - Buscar Argument com UUID em minúsculas - Sucesso
+GET {{BASE_URL}}/arguments/a78d5558-6962-41de-911b-d8c12821b9b9
+Content-Type: {{contentType}}
+
+### 30. GET - Buscar Argument com whitespace no UUID (trimmed) - Sucesso
+GET {{BASE_URL}}/arguments/  a78d5558-6962-41de-911b-d8c12821b9b9  
+Content-Type: {{contentType}}
+
+### ==================== GET ARGUMENT ERRORS ====================
+
+### 31. ERRO - GET com UUID inválido
+GET {{BASE_URL}}/arguments/invalid-uuid-format
+Content-Type: {{contentType}}
+
+### 32. ERRO - GET com UUID vazio
+GET {{BASE_URL}}/arguments/
+Content-Type: {{contentType}}
+
+### 33. ERRO - GET com UUID muito curto
+GET {{BASE_URL}}/arguments/123
+Content-Type: {{contentType}}
+
+### 34. ERRO - GET com UUID muito longo
+GET {{BASE_URL}}/arguments/a78d5558-6962-41de-911b-d8c12821b9b9-extra-chars
+Content-Type: {{contentType}}
+
+### 35. ERRO - GET com UUID com caracteres especiais
+GET {{BASE_URL}}/arguments/a78d5558-6962-41de-911b-d8c12821b9b@
+Content-Type: {{contentType}}
+
+### 36. ERRO - GET com UUID com hífens incorretos
+GET {{BASE_URL}}/arguments/a78d5558-6962-41de-911b-d8c12821b9b99
+Content-Type: {{contentType}}
+
+### 37. ERRO - GET com UUID sem hífens
+GET {{BASE_URL}}/arguments/a78d55586962411de911bd8c12821b9b9
+Content-Type: {{contentType}}
+
+### 38. ERRO - GET com UUID com muitos hífens
+GET {{BASE_URL}}/arguments/a78d5558-6962-41de-911b-d8c1-2821b9b9
+Content-Type: {{contentType}}
+
+### 39. ERRO - GET com Argument não encontrado
+GET {{BASE_URL}}/arguments/00000000-0000-0000-0000-000000000000
+Content-Type: {{contentType}}
+
+### 40. ERRO - GET com UUID com caracteres Unicode
+GET {{BASE_URL}}/arguments/a78d5558-6962-41de-911b-d8c12821b9αβ
+Content-Type: {{contentType}}
+
+### 41. ERRO - GET com UUID com emojis
+GET {{BASE_URL}}/arguments/a78d5558-6962-41de-911b-d8c12821b9🎯
+Content-Type: {{contentType}}
+
+### 42. ERRO - GET com UUID com espaços no meio
+GET {{BASE_URL}}/arguments/a78d5558 6962 41de 911b d8c12821b9b9
+Content-Type: {{contentType}}
+
+### 43. ERRO - GET com UUID com caracteres de controle
+GET {{BASE_URL}}/arguments/a78d5558-6962-41de-911b-d8c12821b9\x00
+Content-Type: {{contentType}}
+
+### 44. ERRO - GET com UUID com quebras de linha
+GET {{BASE_URL}}/arguments/a78d5558-6962-41de-911b-d8c12821b9b9\n
+Content-Type: {{contentType}}
+
+### 45. ERRO - GET com parâmetro que não é string
+GET {{BASE_URL}}/arguments/123456789
+Content-Type: {{contentType}}
+
+### ==================== EDGE CASES ====================
+
+### 46. GET - Teste de case sensitivity (deve falhar)
+GET {{BASE_URL}}/arguments/A78D5558-6962-41DE-911B-D8C12821B9B9
+Content-Type: {{contentType}}
+
+### 47. GET - UUID com zeros (válido)
+GET {{BASE_URL}}/arguments/00000000-0000-0000-0000-000000000001
+Content-Type: {{contentType}}
+
+### 48. GET - UUID com caracteres hexadecimais máximos
+GET {{BASE_URL}}/arguments/ffffffff-ffff-ffff-ffff-ffffffffffff
+Content-Type: {{contentType}}
+
+### 49. GET - UUID v4 típico
+GET {{BASE_URL}}/arguments/550e8400-e29b-41d4-a716-446655440000
+Content-Type: {{contentType}}
+
+### 50. GET - UUID boundary test
+GET {{BASE_URL}}/arguments/12345678-1234-1234-1234-123456789012
+Content-Type: {{contentType}}
