@@ -13,6 +13,7 @@ import { VideoModule } from './video.module';
 import { VideoController } from './controllers/video.controller';
 import { AssessmentModule } from './assessment.module';
 import { AssessmentController } from './controllers/assessment.controller';
+import { ArgumentModule } from './argument.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AssessmentController } from './controllers/assessment.controller';
     ModuleModule,
     VideoModule,
     AssessmentModule,
+    ArgumentModule,
   ],
   controllers: [
     StudentsController,

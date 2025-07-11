@@ -1,0 +1,229 @@
+# requests/argument.http
+@BASE_URL = http://localhost:3333
+
+
+#@BASE_URL = http://18.216.107.74:3333
+
+@contentType = application/json
+
+### 1. Criar Argument com assessmentId - Sucesso
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Anatomia Cardiovascular",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 2. Criar Argument sem assessmentId - Sucesso
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Farmacologia"
+}
+
+### 3. Criar Argument com título longo - Sucesso
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Argumento detalhado sobre as implicações clínicas das alterações hemodinâmicas em pacientes com insuficiência cardíaca congestiva e suas correlações com os achados ecocardiográficos",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 4. Criar Argument com caracteres especiais - Sucesso
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Argumento sobre Neurologia - Módulo III: Sistema Nervoso Central & Periférico",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 5. Criar Argument com emojis - Sucesso
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Argumento sobre Cardiologia 🫀 - Análise Crítica",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 6. Criar Argument com apenas números - Sucesso
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "123456789",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 7. Criar Argument com exatamente 3 caracteres (mínimo) - Sucesso
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Min",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 8. Criar Argument com exatamente 255 caracteres (máximo) - Sucesso
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 9. Criar Argument com caracteres Unicode - Sucesso
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Argumento sobre Medicina 中文 العربية",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 10. Criar Argument com espaços mistos - Sucesso
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "  Argumento  com  espaços  extras  ",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### ==================== CENÁRIOS DE ERRO ====================
+
+### 11. ERRO - Título muito curto (menos de 3 caracteres)
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Ab",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 12. ERRO - Título muito longo (mais de 255 caracteres)
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 13. ERRO - Título vazio
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 14. ERRO - Título apenas com espaços
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "   ",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 15. ERRO - assessmentId inválido (não é UUID)
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Argumento com UUID Inválido",
+  "assessmentId": "invalid-uuid-format"
+}
+
+### 16. ERRO - assessmentId vazio
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Argumento com Assessment ID Vazio",
+  "assessmentId": ""
+}
+
+### 17. ERRO - Título duplicado (executar duas vezes)
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Argumento Único para Teste de Duplicação",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 18. ERRO - Assessment não encontrado
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Argumento para Assessment Inexistente",
+  "assessmentId": "00000000-0000-0000-0000-000000000000"
+}
+
+### 19. ERRO - Campos obrigatórios ausentes (sem title)
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 20. ERRO - Múltiplos erros de validação
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "AB",
+  "assessmentId": "invalid-format"
+}
+
+### 21. ERRO - Tipo de dado incorreto para title
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": 123,
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 22. ERRO - Tipo de dado incorreto para assessmentId
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Argumento com Assessment ID Numérico",
+  "assessmentId": 123456
+}
+
+### 23. ERRO - Corpo vazio
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{}
+
+### 24. ERRO - Título com caracteres de controle
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Título\x00\x01\x02",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
+
+### 25. ERRO - Título com quebras de linha
+POST {{BASE_URL}}/arguments
+Content-Type: {{contentType}}
+
+{
+  "title": "Título\nCom\nQuebras\nDe\nLinha",
+  "assessmentId": "a78d5558-6962-41de-911b-d8c12821b9b9"
+}
