@@ -10,14 +10,14 @@ POST {{BASE_URL}}/assessments
 Content-Type: {{contentType}}
 
 {
-  "title": "Quiz de Anatomia Humana",
+  "title": "Quiz de Anatomia Humana ",
   "description": "Quiz sobre os sistemas do corpo humano",
   "type": "QUIZ",
   "quizPosition": "AFTER_LESSON",
   "passingScore": 70,
   "randomizeQuestions": true,
   "randomizeOptions": false,
-  "lessonId": "0ef04e01-8faa-45f3-813d-6f6d0b2d959f"
+  "lessonId": "8a839e1b-4850-476d-bda9-b2d3d4b24d4e"
 }
 
 ### 2. Criar Assessment tipo SIMULADO - Sucesso

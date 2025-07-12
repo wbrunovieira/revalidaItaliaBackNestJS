@@ -3,7 +3,7 @@
 #@BASE_URL = http://18.216.107.74:3333
 
 ### Create Lesson
-POST {{BASE_URL}}/courses/8adec2b1-7297-4345-9c02-807e1e7d4277/modules/de61abd2-6120-492b-8333-156eaaf4d1f5/lessons
+POST {{BASE_URL}}/courses/8adec2b1-7297-4345-9c02-807e1e7d4277/modules/1d3f50dc-ee26-4651-afa9-a14c0dbd20ff/lessons
 Content-Type: application/json
 
 {
@@ -19,7 +19,7 @@ Content-Type: application/json
 }
 
 ### Create Lesson (with video)
-POST {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons
+POST {{BASE_URL}}/courses/0989caf1-e194-4aab-ab2b-9ca6e67f913d/modules/dbe40109-2277-4586-a2d5-dfbe26d45c5c/lessons
 Content-Type: application/json
 
 {
@@ -32,7 +32,7 @@ Content-Type: application/json
 }
 
 ### List Lessons
-GET {{BASE_URL}}/courses/8adec2b1-7297-4345-9c02-807e1e7d4277/modules/64436979-2173-4518-be2f-6415961d9cef/lessons
+GET {{BASE_URL}}/courses/0989caf1-e194-4aab-ab2b-9ca6e67f913d/modules/1d3f50dc-ee26-4651-afa9-a14c0dbd20ff/lessons
 
 ### List Lessons (with pagination)
 GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef/lessons?page=1&limit=5&includeVideo=true

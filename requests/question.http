@@ -1,0 +1,86 @@
+# requests/question.http
+
+@BASE_URL = http://localhost:3333
+#@BASE_URL = http://18.216.107.74:3333
+@contentType = application/json
+
+### 1. Criar Question MULTIPLE_CHOICE para QUIZ - Sucesso
+POST {{BASE_URL}}/questions
+Content-Type: {{contentType}}
+
+{
+  "text": "Qual é a capital do Brasil?",
+  "type": "MULTIPLE_CHOICE",
+  "assessmentId": "ddbb780a-6d25-4664-8b4f-166f168163d7"
+}
+
+### 2. Criar Question MULTIPLE_CHOICE para SIMULADO - Sucesso
+POST {{BASE_URL}}/questions
+Content-Type: {{contentType}}
+
+{
+  "text": "Qual é o mecanismo de ação dos inibidores da ECA?",
+  "type": "MULTIPLE_CHOICE",
+  "assessmentId": "simulado-assessment-uuid-here"
+}
+
+### 3. Criar Question OPEN para PROVA_ABERTA - Sucesso
+POST {{BASE_URL}}/questions
+Content-Type: {{contentType}}
+
+{
+  "text": "Explique a fisiopatologia da hipertensão arterial e discuta as diretrizes atuais de tratamento.",
+  "type": "OPEN",
+  "assessmentId": "prova-aberta-assessment-uuid-here"
+}
+
+### 4. Criar Question com Argument - Sucesso
+POST {{BASE_URL}}/questions
+Content-Type: {{contentType}}
+
+{
+  "text": "Qual exame laboratorial é mais específico para infarto do miocárdio?",
+  "type": "MULTIPLE_CHOICE",
+  "assessmentId": "simulado-assessment-uuid-here",
+  "argumentId": "argument-uuid-here"
+}
+
+### 5. Erro - Texto muito curto
+POST {{BASE_URL}}/questions
+Content-Type: {{contentType}}
+
+{
+  "text": "Curto",
+  "type": "MULTIPLE_CHOICE",
+  "assessmentId": "quiz-assessment-uuid-here"
+}
+
+### 6. Erro - Tipo incompatível (OPEN em QUIZ)
+POST {{BASE_URL}}/questions
+Content-Type: {{contentType}}
+
+{
+  "text": "Esta questão deveria ser múltipla escolha para QUIZ",
+  "type": "OPEN",
+  "assessmentId": "quiz-assessment-uuid-here"
+}
+
+### 7. Erro - Assessment não encontrado
+POST {{BASE_URL}}/questions
+Content-Type: {{contentType}}
+
+{
+  "text": "Questão com assessment inexistente",
+  "type": "MULTIPLE_CHOICE",
+  "assessmentId": "00000000-0000-0000-0000-000000000000"
+}
+
+### 8. Erro - Questão duplicada
+POST {{BASE_URL}}/questions
+Content-Type: {{contentType}}
+
+{
+  "text": "Qual é a capital do Brasil?",
+  "type": "MULTIPLE_CHOICE",
+  "assessmentId": "quiz-assessment-uuid-here"
+}

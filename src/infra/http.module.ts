@@ -14,6 +14,7 @@ import { VideoController } from './controllers/video.controller';
 import { AssessmentModule } from './assessment.module';
 import { AssessmentController } from './controllers/assessment.controller';
 import { ArgumentModule } from './argument.module';
+import { QuestionModule } from './question.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ArgumentModule } from './argument.module';
     VideoModule,
     AssessmentModule,
     ArgumentModule,
+    QuestionModule,
   ],
   controllers: [
     StudentsController,

@@ -1,0 +1,329 @@
+// src/infra/controllers/tests/question/shared/question-controller-test-helpers.ts
+import { left, right } from '@/core/either';
+import { QuestionControllerTestSetup } from './question-controller-test-setup';
+import { CreateQuestionDto } from '@/domain/assessment/application/dtos/create-question.dto';
+import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
+import { DuplicateQuestionError } from '@/domain/assessment/application/use-cases/errors/duplicate-question-error';
+import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
+import { ArgumentNotFoundError } from '@/domain/assessment/application/use-cases/errors/argument-not-found-error';
+import { QuestionTypeMismatchError } from '@/domain/assessment/application/use-cases/errors/question-type-mismatch-error';
+import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
+import {
+  BadRequestException,
+  ConflictException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+
+export class QuestionControllerTestHelpers {
+  constructor(private readonly testSetup: QuestionControllerTestSetup) {}
+
+  /**
+   * Mock successful question creation
+   */
+  mockCreateSuccess(questionData: any) {
+    const result = {
+      question: {
+        id: this.generateUniqueId(),
+        text: questionData.text,
+        type: questionData.type,
+        assessmentId: questionData.assessmentId,
+        argumentId: questionData.argumentId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    };
+
+    this.testSetup.createUseCase.execute.mockResolvedValueOnce(right(result));
+    return result;
+  }
+
+  /**
+   * Mock validation error
+   */
+  mockValidationError(details: string[] = ['Validation failed']) {
+    const error = new InvalidInputError('Invalid input data', details);
+    this.testSetup.createUseCase.execute.mockResolvedValueOnce(left(error));
+    return error;
+  }
+
+  /**
+   * Mock duplicate question error
+   */
+  mockDuplicateError() {
+    const error = new DuplicateQuestionError();
+    this.testSetup.createUseCase.execute.mockResolvedValueOnce(left(error));
+    return error;
+  }
+
+  /**
+   * Mock assessment not found error
+   */
+  mockAssessmentNotFoundError() {
+    const error = new AssessmentNotFoundError();
+    this.testSetup.createUseCase.execute.mockResolvedValueOnce(left(error));
+    return error;
+  }
+
+  /**
+   * Mock argument not found error
+   */
+  mockArgumentNotFoundError() {
+    const error = new ArgumentNotFoundError();
+    this.testSetup.createUseCase.execute.mockResolvedValueOnce(left(error));
+    return error;
+  }
+
+  /**
+   * Mock question type mismatch error
+   */
+  mockTypeMismatchError(assessmentType: string, recommendedType: string) {
+    const error = new QuestionTypeMismatchError(assessmentType, recommendedType);
+    this.testSetup.createUseCase.execute.mockResolvedValueOnce(left(error));
+    return error;
+  }
+
+  /**
+   * Mock repository error
+   */
+  mockRepositoryError(message = 'Database error') {
+    const error = new RepositoryError(message);
+    this.testSetup.createUseCase.execute.mockResolvedValueOnce(left(error));
+    return error;
+  }
+
+  /**
+   * Mock unknown error
+   */
+  mockUnknownError(message = 'Unknown error') {
+    const error = new Error(message);
+    this.testSetup.createUseCase.execute.mockResolvedValueOnce(left(error));
+    return error;
+  }
+
+  /**
+   * Execute controller create and expect success
+   */
+  async executeCreateExpectSuccess(dto: CreateQuestionDto) {
+    const mockResult = this.mockCreateSuccess(dto);
+    const result = await this.testSetup.controller.create(dto);
+
+    // Verify use case was called correctly
+    expect(this.testSetup.createUseCase.execute).toHaveBeenCalledWith({
+      text: dto.text,
+      type: dto.type,
+      assessmentId: dto.assessmentId,
+      argumentId: dto.argumentId,
+    });
+
+    // Verify response format
+    expect(result).toEqual({
+      success: true,
+      question: mockResult.question,
+    });
+
+    return result;
+  }
+
+  /**
+   * Execute controller create and expect error
+   */
+  async executeCreateExpectError(
+    dto: CreateQuestionDto,
+    errorType: any,
+    expectedExceptionType: any,
+  ) {
+    await expect(this.testSetup.controller.create(dto)).rejects.toThrow(
+      expectedExceptionType,
+    );
+
+    // Verify use case was called
+    expect(this.testSetup.createUseCase.execute).toHaveBeenCalledWith({
+      text: dto.text,
+      type: dto.type,
+      assessmentId: dto.assessmentId,
+      argumentId: dto.argumentId,
+    });
+  }
+
+  /**
+   * Execute controller create and expect BadRequestException
+   */
+  async executeCreateExpectBadRequest(dto: CreateQuestionDto, mockError?: () => any) {
+    if (mockError) {
+      mockError();
+    } else {
+      this.mockValidationError();
+    }
+
+    await this.executeCreateExpectError(dto, InvalidInputError, BadRequestException);
+  }
+
+  /**
+   * Execute controller create and expect ConflictException
+   */
+  async executeCreateExpectConflict(dto: CreateQuestionDto) {
+    this.mockDuplicateError();
+    await this.executeCreateExpectError(dto, DuplicateQuestionError, ConflictException);
+  }
+
+  /**
+   * Execute controller create and expect NotFoundException
+   */
+  async executeCreateExpectNotFound(dto: CreateQuestionDto, errorType: 'assessment' | 'argument' = 'assessment') {
+    if (errorType === 'assessment') {
+      this.mockAssessmentNotFoundError();
+      await this.executeCreateExpectError(dto, AssessmentNotFoundError, NotFoundException);
+    } else {
+      this.mockArgumentNotFoundError();
+      await this.executeCreateExpectError(dto, ArgumentNotFoundError, NotFoundException);
+    }
+  }
+
+  /**
+   * Execute controller create and expect InternalServerErrorException
+   */
+  async executeCreateExpectInternalError(dto: CreateQuestionDto, errorType: 'repository' | 'unknown' = 'repository') {
+    if (errorType === 'repository') {
+      this.mockRepositoryError();
+    } else {
+      this.mockUnknownError();
+    }
+
+    await this.executeCreateExpectError(dto, RepositoryError, InternalServerErrorException);
+  }
+
+  /**
+   * Verify response structure
+   */
+  verifySuccessResponseStructure(response: any, expectedDto: CreateQuestionDto) {
+    expect(response).toHaveProperty('success', true);
+    expect(response).toHaveProperty('question');
+    
+    const question = response.question;
+    expect(question).toHaveProperty('id');
+    expect(question).toHaveProperty('text', expectedDto.text);
+    expect(question).toHaveProperty('type', expectedDto.type);
+    expect(question).toHaveProperty('assessmentId', expectedDto.assessmentId);
+    expect(question).toHaveProperty('createdAt');
+    expect(question).toHaveProperty('updatedAt');
+
+    if (expectedDto.argumentId) {
+      expect(question).toHaveProperty('argumentId', expectedDto.argumentId);
+    }
+
+    // Verify ID is UUID format
+    expect(question.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    
+    // Verify dates are Date objects
+    expect(question.createdAt).toBeInstanceOf(Date);
+    expect(question.updatedAt).toBeInstanceOf(Date);
+  }
+
+  /**
+   * Verify exception structure
+   */
+  verifyExceptionStructure(
+    exception: any,
+    expectedStatusCode: number,
+    expectedError?: string,
+    expectedMessage?: string,
+  ) {
+    expect(exception.response).toHaveProperty('statusCode', expectedStatusCode);
+    
+    if (expectedError) {
+      expect(exception.response).toHaveProperty('error', expectedError);
+    }
+    
+    if (expectedMessage) {
+      expect(exception.response).toHaveProperty('message', expectedMessage);
+    }
+  }
+
+  /**
+   * Test all error scenarios for a given DTO
+   */
+  async testAllErrorScenarios(baseDto: CreateQuestionDto) {
+    // Test validation error
+    await this.executeCreateExpectBadRequest(baseDto);
+    this.testSetup.resetMocks();
+
+    // Test duplicate error
+    await this.executeCreateExpectConflict(baseDto);
+    this.testSetup.resetMocks();
+
+    // Test assessment not found
+    await this.executeCreateExpectNotFound(baseDto, 'assessment');
+    this.testSetup.resetMocks();
+
+    // Test argument not found (if argumentId is provided)
+    if (baseDto.argumentId) {
+      await this.executeCreateExpectNotFound(baseDto, 'argument');
+      this.testSetup.resetMocks();
+    }
+
+    // Test type mismatch
+    this.mockTypeMismatchError('QUIZ', 'MULTIPLE_CHOICE');
+    await this.executeCreateExpectError(baseDto, QuestionTypeMismatchError, BadRequestException);
+    this.testSetup.resetMocks();
+
+    // Test repository error
+    await this.executeCreateExpectInternalError(baseDto, 'repository');
+    this.testSetup.resetMocks();
+
+    // Test unknown error
+    await this.executeCreateExpectInternalError(baseDto, 'unknown');
+    this.testSetup.resetMocks();
+  }
+
+  /**
+   * Generate unique question text
+   */
+  generateUniqueText(prefix = 'Test question'): string {
+    return `${prefix} ${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Generate unique UUID for testing
+   */
+  generateUniqueId(): string {
+    // Generate a random UUID-like string for testing
+    const chars = '0123456789abcdef';
+    const sections = [8, 4, 4, 4, 12];
+    
+    return sections.map(length => {
+      return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    }).join('-');
+  }
+
+  /**
+   * Measure execution time
+   */
+  async measureExecutionTime<T>(fn: () => Promise<T>): Promise<{
+    result: T;
+    executionTime: number;
+  }> {
+    const startTime = Date.now();
+    const result = await fn();
+    const endTime = Date.now();
+
+    return {
+      result,
+      executionTime: endTime - startTime,
+    };
+  }
+
+  /**
+   * Verify execution time is within limits
+   */
+  verifyExecutionTime(executionTime: number, maxTime: number) {
+    expect(executionTime).toBeLessThan(maxTime);
+  }
+
+  /**
+   * Reset all mocks and state
+   */
+  reset() {
+    this.testSetup.resetMocks();
+  }
+}

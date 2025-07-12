@@ -3,7 +3,7 @@
 
 ###
 # @name create-module
-POST {{BASE_URL}}/courses/8adec2b1-7297-4345-9c02-807e1e7d4277/modules
+POST {{BASE_URL}}/courses/0989caf1-e194-4aab-ab2b-9ca6e67f913d/modules
 Content-Type: application/json
 
 {
