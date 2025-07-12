@@ -25,25 +25,37 @@ describe('GetAssessmentUseCase', () => {
       {
         title,
         slug: textToSlug(title),
-        description: overrides.hasOwnProperty('description') ? overrides.description : 'Test your knowledge of JavaScript basics',
+        description: overrides.hasOwnProperty('description')
+          ? overrides.description
+          : 'Test your knowledge of JavaScript basics',
         type: overrides.type || 'QUIZ',
-        quizPosition: overrides.quizPosition !== undefined ? overrides.quizPosition : (overrides.type === 'QUIZ' ? 'AFTER_LESSON' : undefined),
-        passingScore: overrides.passingScore !== undefined ? overrides.passingScore : 70,
+        quizPosition:
+          overrides.quizPosition !== undefined
+            ? overrides.quizPosition
+            : overrides.type === 'QUIZ'
+              ? 'AFTER_LESSON'
+              : undefined,
+        passingScore:
+          overrides.passingScore !== undefined ? overrides.passingScore : 70,
         timeLimitInMinutes: overrides.timeLimitInMinutes,
         randomizeQuestions: overrides.randomizeQuestions ?? false,
         randomizeOptions: overrides.randomizeOptions ?? false,
-        lessonId: overrides.lessonId ? new UniqueEntityID(overrides.lessonId) : undefined,
+        lessonId: overrides.lessonId
+          ? new UniqueEntityID(overrides.lessonId)
+          : undefined,
       },
       overrides.id ? new UniqueEntityID(overrides.id) : undefined,
     );
-    
+
     // If specific dates are provided, we need to update them manually after creation
     if (overrides.createdAt || overrides.updatedAt) {
       // Access private props to override dates for testing
-      (assessment as any).props.createdAt = overrides.createdAt || assessment.createdAt;
-      (assessment as any).props.updatedAt = overrides.updatedAt || assessment.updatedAt;
+      (assessment as any).props.createdAt =
+        overrides.createdAt || assessment.createdAt;
+      (assessment as any).props.updatedAt =
+        overrides.updatedAt || assessment.updatedAt;
     }
-    
+
     return assessment;
   };
 
@@ -51,7 +63,7 @@ describe('GetAssessmentUseCase', () => {
     it('should return assessment when found with complete data', async () => {
       const assessmentId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
       const lessonId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Complete JavaScript Quiz',
@@ -91,7 +103,7 @@ describe('GetAssessmentUseCase', () => {
 
     it('should return SIMULADO assessment with time limit', async () => {
       const assessmentId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Programming Simulation',
@@ -131,7 +143,7 @@ describe('GetAssessmentUseCase', () => {
 
     it('should return PROVA_ABERTA assessment without optional fields', async () => {
       const assessmentId = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Advanced Programming Essay',
@@ -169,7 +181,7 @@ describe('GetAssessmentUseCase', () => {
 
     it('should return assessment without description', async () => {
       const assessmentId = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Minimal Quiz',
@@ -196,7 +208,7 @@ describe('GetAssessmentUseCase', () => {
 
     it('should return assessment with minimum passing score', async () => {
       const assessmentId = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Diagnostic Assessment',
@@ -218,7 +230,7 @@ describe('GetAssessmentUseCase', () => {
 
     it('should return assessment with maximum passing score', async () => {
       const assessmentId = '11111111-1111-1111-1111-111111111111';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Perfect Score Assessment',
@@ -239,7 +251,7 @@ describe('GetAssessmentUseCase', () => {
 
     it('should return assessment with special characters in title', async () => {
       const assessmentId = '22222222-2222-2222-2222-222222222222';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Avaliação de Programação & Lógica!',
@@ -255,14 +267,18 @@ describe('GetAssessmentUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.assessment.title).toBe('Avaliação de Programação & Lógica!');
-        expect(result.value.assessment.slug).toBe('avaliacao-de-programacao-logica');
+        expect(result.value.assessment.title).toBe(
+          'Avaliação de Programação & Lógica!',
+        );
+        expect(result.value.assessment.slug).toBe(
+          'avaliacao-de-programacao-logica',
+        );
       }
     });
 
     it('should return SIMULADO with minimum time limit', async () => {
       const assessmentId = '33333333-3333-3333-3333-333333333333';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Quick Simulation',
@@ -293,7 +309,9 @@ describe('GetAssessmentUseCase', () => {
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
         expect(result.value.message).toBe('Validation failed');
-        expect((result.value as InvalidInputError).details).toEqual(['id: ID must be a valid UUID']);
+        expect((result.value as InvalidInputError).details).toEqual([
+          'id: ID must be a valid UUID',
+        ]);
       }
     });
 
@@ -304,7 +322,9 @@ describe('GetAssessmentUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect((result.value as InvalidInputError).details[0]).toContain('ID must be a valid UUID');
+        expect((result.value as InvalidInputError).details[0]).toContain(
+          'ID must be a valid UUID',
+        );
       }
     });
 
@@ -339,9 +359,9 @@ describe('GetAssessmentUseCase', () => {
     });
 
     it('should return InvalidInputError for extra fields', async () => {
-      const request = { 
+      const request = {
         id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-        extraField: 'not allowed'
+        extraField: 'not allowed',
       } as any;
       const result = await useCase.execute(request);
 
@@ -377,7 +397,7 @@ describe('GetAssessmentUseCase', () => {
 
     it('should return AssessmentNotFoundError for deleted assessment', async () => {
       const assessmentId = '11111111-1111-1111-1111-111111111111';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Assessment to be deleted',
@@ -402,7 +422,9 @@ describe('GetAssessmentUseCase', () => {
         return { isLeft: () => true, isRight: () => false } as any;
       };
 
-      const request: GetAssessmentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetAssessmentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -422,7 +444,9 @@ describe('GetAssessmentUseCase', () => {
         throw new Error('Database connection failed');
       };
 
-      const request: GetAssessmentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetAssessmentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -438,7 +462,9 @@ describe('GetAssessmentUseCase', () => {
         throw new Error();
       };
 
-      const request: GetAssessmentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetAssessmentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -453,7 +479,9 @@ describe('GetAssessmentUseCase', () => {
         throw 'String error';
       };
 
-      const request: GetAssessmentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetAssessmentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -466,7 +494,7 @@ describe('GetAssessmentUseCase', () => {
   describe('🔧 Edge Cases', () => {
     it('should handle UUID with different casing', async () => {
       const assessmentId = 'AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId.toLowerCase(),
         title: 'Case Test Assessment',
@@ -486,7 +514,7 @@ describe('GetAssessmentUseCase', () => {
     it('should handle very long assessment title', async () => {
       const assessmentId = '11111111-1111-1111-1111-111111111111';
       const longTitle = 'A'.repeat(255);
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: longTitle,
@@ -509,7 +537,7 @@ describe('GetAssessmentUseCase', () => {
     it('should handle assessment with very long description', async () => {
       const assessmentId = '22222222-2222-2222-2222-222222222222';
       const longDescription = 'B'.repeat(1000);
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Assessment with Long Description',
@@ -532,7 +560,7 @@ describe('GetAssessmentUseCase', () => {
     it('should handle assessment with unicode characters', async () => {
       const assessmentId = '33333333-3333-3333-3333-333333333333';
       const unicodeTitle = 'Avaliação 中文 العربية русский 🎯';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: unicodeTitle,
@@ -553,7 +581,7 @@ describe('GetAssessmentUseCase', () => {
 
     it('should handle assessment with maximum time limit', async () => {
       const assessmentId = '44444444-4444-4444-4444-444444444444';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Very Long Exam',
@@ -580,7 +608,7 @@ describe('GetAssessmentUseCase', () => {
       const lessonId = '66666666-6666-6666-6666-666666666666';
       const createdAt = new Date('2024-01-01T10:00:00Z');
       const updatedAt = new Date('2024-01-02T15:30:00Z');
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Data Integrity Test',
@@ -605,7 +633,9 @@ describe('GetAssessmentUseCase', () => {
         const returnedAssessment = result.value.assessment;
         expect(returnedAssessment.id).toBe(assessmentId);
         expect(returnedAssessment.title).toBe('Data Integrity Test');
-        expect(returnedAssessment.description).toBe('Testing data preservation');
+        expect(returnedAssessment.description).toBe(
+          'Testing data preservation',
+        );
         expect(returnedAssessment.type).toBe('SIMULADO');
         expect(returnedAssessment.quizPosition).toBeUndefined();
         expect(returnedAssessment.passingScore).toBe(85);
@@ -629,13 +659,17 @@ describe('GetAssessmentUseCase', () => {
       for (let i = 0; i < testCases.length; i++) {
         const testCase = testCases[i];
         const assessmentId = `77777777-7777-7777-777${i}-777777777777`;
-        
+
         const assessment = createTestAssessment({
           id: assessmentId,
           title: `${testCase.type} Assessment`,
           type: testCase.type,
-          quizPosition: 'quizPosition' in testCase ? testCase.quizPosition : undefined,
-          timeLimitInMinutes: 'timeLimitInMinutes' in testCase ? testCase.timeLimitInMinutes : undefined,
+          quizPosition:
+            'quizPosition' in testCase ? testCase.quizPosition : undefined,
+          timeLimitInMinutes:
+            'timeLimitInMinutes' in testCase
+              ? testCase.timeLimitInMinutes
+              : undefined,
         });
 
         await assessmentRepository.create(assessment);
@@ -647,10 +681,14 @@ describe('GetAssessmentUseCase', () => {
         if (result.isRight()) {
           expect(result.value.assessment.type).toBe(testCase.type);
           if ('quizPosition' in testCase) {
-            expect(result.value.assessment.quizPosition).toBe(testCase.quizPosition);
+            expect(result.value.assessment.quizPosition).toBe(
+              testCase.quizPosition,
+            );
           }
           if ('timeLimitInMinutes' in testCase) {
-            expect(result.value.assessment.timeLimitInMinutes).toBe(testCase.timeLimitInMinutes);
+            expect(result.value.assessment.timeLimitInMinutes).toBe(
+              testCase.timeLimitInMinutes,
+            );
           }
         }
       }
@@ -658,7 +696,7 @@ describe('GetAssessmentUseCase', () => {
 
     it('should maintain consistency across multiple retrievals', async () => {
       const assessmentId = '88888888-8888-8888-8888-888888888888';
-      
+
       const assessment = createTestAssessment({
         id: assessmentId,
         title: 'Consistency Test Assessment',
@@ -669,7 +707,7 @@ describe('GetAssessmentUseCase', () => {
       await assessmentRepository.create(assessment);
 
       const request: GetAssessmentRequest = { id: assessmentId };
-      
+
       // Call multiple times
       const results = await Promise.all([
         useCase.execute(request),
@@ -681,15 +719,19 @@ describe('GetAssessmentUseCase', () => {
         expect(result.isRight()).toBe(true);
         if (result.isRight()) {
           expect(result.value.assessment.id).toBe(assessmentId);
-          expect(result.value.assessment.title).toBe('Consistency Test Assessment');
+          expect(result.value.assessment.title).toBe(
+            'Consistency Test Assessment',
+          );
           expect(result.value.assessment.passingScore).toBe(77);
           expect(result.value.assessment.randomizeQuestions).toBe(true);
         }
       });
 
       // Ensure all results are identical
-      if (results.every(r => r.isRight())) {
-        const [first, second, third] = results.map(r => (r as any).value.assessment);
+      if (results.every((r) => r.isRight())) {
+        const [first, second, third] = results.map(
+          (r) => (r as any).value.assessment,
+        );
         expect(first).toEqual(second);
         expect(second).toEqual(third);
       }

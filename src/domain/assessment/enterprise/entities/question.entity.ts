@@ -6,8 +6,8 @@ import { QuestionTypeVO } from '../value-objects/question-type.vo';
 export interface QuestionProps {
   text: string;
   type: QuestionTypeVO;
-  assessmentId: string;
-  argumentId?: string;
+  assessmentId: UniqueEntityID;
+  argumentId?: UniqueEntityID;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,11 +25,11 @@ export class Question extends Entity<QuestionProps> {
     return this.props.type;
   }
 
-  public get assessmentId(): string {
+  public get assessmentId(): UniqueEntityID {
     return this.props.assessmentId;
   }
 
-  public get argumentId(): string | undefined {
+  public get argumentId(): UniqueEntityID | undefined {
     return this.props.argumentId;
   }
 
@@ -49,7 +49,7 @@ export class Question extends Entity<QuestionProps> {
     this.touch();
   }
 
-  public assignToArgument(argumentId: string): void {
+  public assignToArgument(argumentId: UniqueEntityID): void {
     this.props.argumentId = argumentId;
     this.touch();
   }
@@ -71,6 +71,12 @@ export class Question extends Entity<QuestionProps> {
     return this.props.argumentId !== undefined;
   }
 
+  public update(props: Partial<Pick<QuestionProps, 'text'>>) {
+    if (props.text !== undefined) {
+      this.updateText(props.text);
+    }
+  }
+
   public toResponseObject(): {
     id: string;
     text: string;
@@ -84,8 +90,8 @@ export class Question extends Entity<QuestionProps> {
       id: this.id.toString(),
       text: this.text,
       type: this.type.getValue(),
-      assessmentId: this.assessmentId,
-      argumentId: this.argumentId,
+      assessmentId: this.assessmentId.toString(),
+      argumentId: this.argumentId?.toString(),
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

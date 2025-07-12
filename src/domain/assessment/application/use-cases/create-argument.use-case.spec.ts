@@ -483,7 +483,9 @@ describe('CreateArgumentUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         const { argument } = result.value;
-        expect(argument.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+        expect(argument.id).toMatch(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+        );
       }
     });
 
@@ -503,8 +505,12 @@ describe('CreateArgumentUseCase', () => {
         const { argument } = result.value;
         expect(argument.createdAt).toBeInstanceOf(Date);
         expect(argument.updatedAt).toBeInstanceOf(Date);
-        expect(argument.createdAt.getTime()).toBeGreaterThanOrEqual(beforeTest.getTime());
-        expect(argument.updatedAt.getTime()).toBeGreaterThanOrEqual(beforeTest.getTime());
+        expect(argument.createdAt.getTime()).toBeGreaterThanOrEqual(
+          beforeTest.getTime(),
+        );
+        expect(argument.updatedAt.getTime()).toBeGreaterThanOrEqual(
+          beforeTest.getTime(),
+        );
       }
     });
 
@@ -536,7 +542,9 @@ describe('CreateArgumentUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.argument.title).toBe('Title\twith\ttabs\nand\nnewlines');
+        expect(result.value.argument.title).toBe(
+          'Title\twith\ttabs\nand\nnewlines',
+        );
       }
     });
   });

@@ -67,7 +67,7 @@ export class ListArgumentsUseCase {
         );
       }
 
-      let filteredArguments = assessmentArgumentsResult.value;
+      const filteredArguments = assessmentArgumentsResult.value;
 
       // Sort by creation date descending
       filteredArguments.sort(

@@ -57,7 +57,11 @@ function createValidVideo(id: string) {
       translations: [
         new VideoTranslationVO('pt', 'Título do Vídeo', 'Descrição do vídeo'),
         new VideoTranslationVO('it', 'Titolo Video', 'Descrizione video'),
-        new VideoTranslationVO('es', 'Título del Video', 'Descripción del video'),
+        new VideoTranslationVO(
+          'es',
+          'Título del Video',
+          'Descripción del video',
+        ),
       ],
       createdAt: now,
       updatedAt: now,

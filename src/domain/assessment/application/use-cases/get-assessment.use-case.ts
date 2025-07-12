@@ -21,7 +21,9 @@ export class GetAssessmentUseCase {
     private readonly assessmentRepository: IAssessmentRepository,
   ) {}
 
-  async execute(request: GetAssessmentRequest): Promise<GetAssessmentUseCaseResponse> {
+  async execute(
+    request: GetAssessmentRequest,
+  ): Promise<GetAssessmentUseCaseResponse> {
     const parseResult = getAssessmentSchema.safeParse(request);
     if (!parseResult.success) {
       const errorMessages = parseResult.error.issues.map((issue) => {
@@ -34,7 +36,7 @@ export class GetAssessmentUseCase {
 
     try {
       const result = await this.assessmentRepository.findById(id);
-      
+
       if (result.isLeft()) {
         return left(new AssessmentNotFoundError());
       }

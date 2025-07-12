@@ -57,7 +57,9 @@ export class ArgumentTestHelpers {
   /**
    * Create an argument and expect validation error
    */
-  async createArgumentExpectValidationError(payload: CreateArgumentPayload | any): Promise<Response> {
+  async createArgumentExpectValidationError(
+    payload: CreateArgumentPayload | any,
+  ): Promise<Response> {
     const res = await this.createArgument(payload);
 
     expect(res.status).toBe(400);
@@ -141,7 +143,9 @@ export class ArgumentTestHelpers {
   /**
    * Create multiple arguments concurrently
    */
-  async createArgumentsConcurrently(payloads: CreateArgumentPayload[]): Promise<Response[]> {
+  async createArgumentsConcurrently(
+    payloads: CreateArgumentPayload[],
+  ): Promise<Response[]> {
     const requests = payloads.map((payload) => this.createArgument(payload));
     return await Promise.all(requests);
   }
@@ -149,7 +153,9 @@ export class ArgumentTestHelpers {
   /**
    * Create multiple arguments sequentially
    */
-  async createArgumentsSequentially(payloads: CreateArgumentPayload[]): Promise<Response[]> {
+  async createArgumentsSequentially(
+    payloads: CreateArgumentPayload[],
+  ): Promise<Response[]> {
     const results: Response[] = [];
     for (const payload of payloads) {
       const result = await this.createArgument(payload);

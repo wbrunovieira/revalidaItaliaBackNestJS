@@ -4,9 +4,9 @@ import { UniqueEntityID } from '@/core/unique-entity-id';
 import { AnswerTranslationVO } from '../value-objects/answer-translation.vo';
 
 export interface AnswerProps {
-  correctOptionId?: string;
+  correctOptionId?: UniqueEntityID;
   explanation: string;
-  questionId: string;
+  questionId: UniqueEntityID;
   translations: AnswerTranslationVO[];
   createdAt: Date;
   updatedAt: Date;
@@ -17,7 +17,7 @@ export class Answer extends Entity<AnswerProps> {
     this.props.updatedAt = new Date();
   }
 
-  public get correctOptionId(): string | undefined {
+  public get correctOptionId(): UniqueEntityID | undefined {
     return this.props.correctOptionId;
   }
 
@@ -25,7 +25,7 @@ export class Answer extends Entity<AnswerProps> {
     return this.props.explanation;
   }
 
-  public get questionId(): string {
+  public get questionId(): UniqueEntityID {
     return this.props.questionId;
   }
 
@@ -41,7 +41,7 @@ export class Answer extends Entity<AnswerProps> {
     return this.props.updatedAt;
   }
 
-  public updateCorrectOption(optionId: string): void {
+  public updateCorrectOption(optionId: UniqueEntityID): void {
     this.props.correctOptionId = optionId;
     this.touch();
   }
@@ -85,6 +85,19 @@ export class Answer extends Entity<AnswerProps> {
     return this.props.translations.find((t) => t.locale === locale);
   }
 
+  public update(props: Partial<Pick<AnswerProps, 'explanation' | 'correctOptionId'>>) {
+    if (props.explanation !== undefined) {
+      this.updateExplanation(props.explanation);
+    }
+    if (props.hasOwnProperty('correctOptionId')) {
+      if (props.correctOptionId) {
+        this.updateCorrectOption(props.correctOptionId);
+      } else {
+        this.clearCorrectOption();
+      }
+    }
+  }
+
   public hasCorrectOption(): boolean {
     return this.props.correctOptionId !== undefined;
   }
@@ -103,9 +116,9 @@ export class Answer extends Entity<AnswerProps> {
   } {
     return {
       id: this.id.toString(),
-      correctOptionId: this.correctOptionId,
+      correctOptionId: this.correctOptionId?.toString(),
       explanation: this.explanation,
-      questionId: this.questionId,
+      questionId: this.questionId.toString(),
       translations: this.translations.map((t) => ({
         locale: t.locale,
         explanation: t.explanation,

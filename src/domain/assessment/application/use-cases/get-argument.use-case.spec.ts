@@ -23,18 +23,22 @@ describe('GetArgumentUseCase', () => {
     const argument = Argument.create(
       {
         title,
-        assessmentId: overrides.assessmentId ? new UniqueEntityID(overrides.assessmentId) : undefined,
+        assessmentId: overrides.assessmentId
+          ? new UniqueEntityID(overrides.assessmentId)
+          : undefined,
       },
       overrides.id ? new UniqueEntityID(overrides.id) : undefined,
     );
-    
+
     // If specific dates are provided, we need to update them manually after creation
     if (overrides.createdAt || overrides.updatedAt) {
       // Access private props to override dates for testing
-      (argument as any).props.createdAt = overrides.createdAt || argument.createdAt;
-      (argument as any).props.updatedAt = overrides.updatedAt || argument.updatedAt;
+      (argument as any).props.createdAt =
+        overrides.createdAt || argument.createdAt;
+      (argument as any).props.updatedAt =
+        overrides.updatedAt || argument.updatedAt;
     }
-    
+
     return argument;
   };
 
@@ -42,7 +46,7 @@ describe('GetArgumentUseCase', () => {
     it('should return argument when found with complete data', async () => {
       const argumentId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
       const assessmentId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Complete JavaScript Argument',
@@ -68,7 +72,7 @@ describe('GetArgumentUseCase', () => {
 
     it('should return argument without assessment association', async () => {
       const argumentId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Standalone Argument',
@@ -94,7 +98,7 @@ describe('GetArgumentUseCase', () => {
 
     it('should return argument with special characters in title', async () => {
       const argumentId = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Argumento de Programação & Lógica!',
@@ -107,13 +111,15 @@ describe('GetArgumentUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.argument.title).toBe('Argumento de Programação & Lógica!');
+        expect(result.value.argument.title).toBe(
+          'Argumento de Programação & Lógica!',
+        );
       }
     });
 
     it('should return argument with minimum title length', async () => {
       const argumentId = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'A',
@@ -133,7 +139,7 @@ describe('GetArgumentUseCase', () => {
     it('should return argument with maximum title length', async () => {
       const argumentId = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
       const longTitle = 'A'.repeat(255);
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: longTitle,
@@ -154,7 +160,7 @@ describe('GetArgumentUseCase', () => {
     it('should return argument with unicode characters', async () => {
       const argumentId = '11111111-1111-1111-1111-111111111111';
       const unicodeTitle = 'Argumento 中文 العربية русский 🎯';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: unicodeTitle,
@@ -181,7 +187,9 @@ describe('GetArgumentUseCase', () => {
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
         expect(result.value.message).toBe('Validation failed');
-        expect((result.value as InvalidInputError).details[0]).toContain('ID must be a valid UUID');
+        expect((result.value as InvalidInputError).details[0]).toContain(
+          'ID must be a valid UUID',
+        );
       }
     });
 
@@ -192,7 +200,9 @@ describe('GetArgumentUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect((result.value as InvalidInputError).details[0]).toContain('ID cannot be empty');
+        expect((result.value as InvalidInputError).details[0]).toContain(
+          'ID cannot be empty',
+        );
       }
     });
 
@@ -227,9 +237,9 @@ describe('GetArgumentUseCase', () => {
     });
 
     it('should return InvalidInputError for extra fields', async () => {
-      const request = { 
+      const request = {
         id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-        extraField: 'not allowed'
+        extraField: 'not allowed',
       } as any;
       const result = await useCase.execute(request);
 
@@ -257,7 +267,9 @@ describe('GetArgumentUseCase', () => {
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
         expect(result.value.message).toBe('Invalid request format');
-        expect((result.value as InvalidInputError).details).toEqual(['Request must be a valid object']);
+        expect((result.value as InvalidInputError).details).toEqual([
+          'Request must be a valid object',
+        ]);
       }
     });
 
@@ -282,7 +294,9 @@ describe('GetArgumentUseCase', () => {
     });
 
     it('should return InvalidInputError for array request', async () => {
-      const result = await useCase.execute(['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'] as any);
+      const result = await useCase.execute([
+        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      ] as any);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
@@ -296,7 +310,9 @@ describe('GetArgumentUseCase', () => {
       const argument = createTestArgument({ id: argumentId });
       await argumentRepository.create(argument);
 
-      const request: GetArgumentRequest = { id: '  aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa  ' };
+      const request: GetArgumentRequest = {
+        id: '  aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa  ',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isRight()).toBe(true);
@@ -306,7 +322,9 @@ describe('GetArgumentUseCase', () => {
     });
 
     it('should return InvalidInputError for UUID with tabs and newlines', async () => {
-      const request: GetArgumentRequest = { id: '\t\n aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa \t\n' };
+      const request: GetArgumentRequest = {
+        id: '\t\n aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa \t\n',
+      };
       const argumentId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
       const argument = createTestArgument({ id: argumentId });
       await argumentRepository.create(argument);
@@ -320,7 +338,9 @@ describe('GetArgumentUseCase', () => {
     });
 
     it('should return InvalidInputError for UUID with extra characters', async () => {
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-extra' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-extra',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -328,12 +348,16 @@ describe('GetArgumentUseCase', () => {
         expect(result.value).toBeInstanceOf(InvalidInputError);
         // The validation can return either message depending on which validation fails first
         const details = (result.value as InvalidInputError).details[0];
-        expect(details).toMatch(/ID must be exactly 36 characters long|ID must be a valid UUID/);
+        expect(details).toMatch(
+          /ID must be exactly 36 characters long|ID must be a valid UUID/,
+        );
       }
     });
 
     it('should return InvalidInputError for UUID with special characters', async () => {
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa@' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa@',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -343,7 +367,9 @@ describe('GetArgumentUseCase', () => {
     });
 
     it('should return InvalidInputError for UUID that is too long', async () => {
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-extra-chars' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-extra-chars',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -353,7 +379,9 @@ describe('GetArgumentUseCase', () => {
     });
 
     it('should return InvalidInputError for nested object as ID', async () => {
-      const request = { id: { nested: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' } } as any;
+      const request = {
+        id: { nested: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' },
+      } as any;
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -393,7 +421,9 @@ describe('GetArgumentUseCase', () => {
     });
 
     it('should return InvalidInputError for UUID with wrong hyphen placement', async () => {
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa-a' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa-a',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -403,7 +433,9 @@ describe('GetArgumentUseCase', () => {
     });
 
     it('should return InvalidInputError for UUID with missing hyphens', async () => {
-      const request: GetArgumentRequest = { id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -413,7 +445,9 @@ describe('GetArgumentUseCase', () => {
     });
 
     it('should return InvalidInputError for UUID with too many hyphens', async () => {
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaa-aaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaa-aaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -423,7 +457,9 @@ describe('GetArgumentUseCase', () => {
     });
 
     it('should return InvalidInputError for UUID with unicode characters', async () => {
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaαβγ' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaαβγ',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -433,7 +469,9 @@ describe('GetArgumentUseCase', () => {
     });
 
     it('should return InvalidInputError for UUID with emojis', async () => {
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa🎯' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa🎯',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -458,7 +496,7 @@ describe('GetArgumentUseCase', () => {
 
     it('should return ArgumentNotFoundError for deleted argument', async () => {
       const argumentId = '11111111-1111-1111-1111-111111111111';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Argument to be deleted',
@@ -483,7 +521,9 @@ describe('GetArgumentUseCase', () => {
         return { isLeft: () => true, isRight: () => false } as any;
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -503,7 +543,9 @@ describe('GetArgumentUseCase', () => {
         throw new Error('Database connection failed');
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -519,7 +561,9 @@ describe('GetArgumentUseCase', () => {
         throw new Error();
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -534,7 +578,9 @@ describe('GetArgumentUseCase', () => {
         throw 'String error';
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -551,7 +597,9 @@ describe('GetArgumentUseCase', () => {
         throw error;
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -568,7 +616,9 @@ describe('GetArgumentUseCase', () => {
         throw error;
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -585,7 +635,9 @@ describe('GetArgumentUseCase', () => {
         throw error;
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -602,7 +654,9 @@ describe('GetArgumentUseCase', () => {
         throw error;
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -617,7 +671,9 @@ describe('GetArgumentUseCase', () => {
         throw undefined;
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -632,7 +688,9 @@ describe('GetArgumentUseCase', () => {
         throw null;
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -648,11 +706,13 @@ describe('GetArgumentUseCase', () => {
           name: 'CustomError',
           message: 'Custom database error',
           code: 'CUSTOM_ERROR',
-          details: 'Additional error details'
+          details: 'Additional error details',
         };
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
@@ -668,17 +728,21 @@ describe('GetArgumentUseCase', () => {
         return {
           isLeft: () => false,
           isRight: () => true,
-          value: null // Corrupted data
+          value: null, // Corrupted data
         } as any;
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(RepositoryError);
-        expect(result.value.message).toBe('Invalid argument data retrieved from repository');
+        expect(result.value.message).toBe(
+          'Invalid argument data retrieved from repository',
+        );
       }
 
       argumentRepository.findById = originalFindById;
@@ -695,18 +759,22 @@ describe('GetArgumentUseCase', () => {
             // Missing id field
             assessmentId: undefined,
             createdAt: new Date(),
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         } as any;
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(RepositoryError);
-        expect(result.value.message).toBe('Invalid argument data retrieved from repository');
+        expect(result.value.message).toBe(
+          'Invalid argument data retrieved from repository',
+        );
       }
 
       argumentRepository.findById = originalFindById;
@@ -723,18 +791,22 @@ describe('GetArgumentUseCase', () => {
             // Missing title field
             assessmentId: undefined,
             createdAt: new Date(),
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         } as any;
       };
 
-      const request: GetArgumentRequest = { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' };
+      const request: GetArgumentRequest = {
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      };
       const result = await useCase.execute(request);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(RepositoryError);
-        expect(result.value.message).toBe('Invalid argument data retrieved from repository');
+        expect(result.value.message).toBe(
+          'Invalid argument data retrieved from repository',
+        );
       }
 
       argumentRepository.findById = originalFindById;
@@ -744,7 +816,7 @@ describe('GetArgumentUseCase', () => {
   describe('🔧 Edge Cases', () => {
     it('should handle UUID with different casing', async () => {
       const argumentId = 'AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA';
-      
+
       const argument = createTestArgument({
         id: argumentId.toLowerCase(),
         title: 'Case Test Argument',
@@ -764,7 +836,7 @@ describe('GetArgumentUseCase', () => {
     it('should handle very long argument title', async () => {
       const argumentId = '22222222-2222-2222-2222-222222222222';
       const longTitle = 'A'.repeat(1000);
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: longTitle,
@@ -786,7 +858,7 @@ describe('GetArgumentUseCase', () => {
     it('should handle argument with title containing only whitespace', async () => {
       const argumentId = '33333333-3333-3333-3333-333333333333';
       const whitespaceTitle = '   \t\n   ';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: whitespaceTitle,
@@ -806,7 +878,7 @@ describe('GetArgumentUseCase', () => {
     it('should handle argument with title containing control characters', async () => {
       const argumentId = '44444444-4444-4444-4444-444444444444';
       const controlCharTitle = 'Title with \n\r\t control chars';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: controlCharTitle,
@@ -826,7 +898,7 @@ describe('GetArgumentUseCase', () => {
     it('should handle argument with title containing complex emoji sequences', async () => {
       const argumentId = '55555555-5555-5555-5555-555555555555';
       const emojiTitle = 'Argument with 👨‍💻👩‍🎓🏳️‍🌈 complex emojis';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: emojiTitle,
@@ -846,7 +918,7 @@ describe('GetArgumentUseCase', () => {
     it('should handle argument with title containing RTL characters', async () => {
       const argumentId = '66666666-6666-6666-6666-666666666666';
       const rtlTitle = 'العربية עברית mixed text';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: rtlTitle,
@@ -866,7 +938,7 @@ describe('GetArgumentUseCase', () => {
     it('should handle argument with extreme future date', async () => {
       const argumentId = '77777777-7777-7777-7777-777777777777';
       const futureDate = new Date('2099-12-31T23:59:59Z');
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Future Argument',
@@ -889,7 +961,7 @@ describe('GetArgumentUseCase', () => {
     it('should handle argument with extreme past date', async () => {
       const argumentId = '88888888-8888-8888-8888-888888888888';
       const pastDate = new Date('1900-01-01T00:00:00Z');
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Past Argument',
@@ -911,8 +983,9 @@ describe('GetArgumentUseCase', () => {
 
     it('should handle argument with zero-width characters in title', async () => {
       const argumentId = '99999999-9999-9999-9999-999999999999';
-      const zeroWidthTitle = 'Title\u200B\u200C\u200D\uFEFFwith zero-width chars';
-      
+      const zeroWidthTitle =
+        'Title\u200B\u200C\u200D\uFEFFwith zero-width chars';
+
       const argument = createTestArgument({
         id: argumentId,
         title: zeroWidthTitle,
@@ -932,7 +1005,7 @@ describe('GetArgumentUseCase', () => {
     it('should handle argument with maximum possible title length', async () => {
       const argumentId = 'aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
       const maxLengthTitle = 'A'.repeat(10000); // Very long title
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: maxLengthTitle,
@@ -960,13 +1033,15 @@ describe('GetArgumentUseCase', () => {
       await argumentRepository.create(argument);
 
       const request: GetArgumentRequest = { id: argumentId };
-      
+
       // Simulate concurrent access
-      const promises = Array(10).fill(0).map(() => useCase.execute(request));
+      const promises = Array(10)
+        .fill(0)
+        .map(() => useCase.execute(request));
       const results = await Promise.all(promises);
 
       // All should succeed
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.isRight()).toBe(true);
         if (result.isRight()) {
           expect(result.value.argument.id).toBe(argumentId);
@@ -1017,7 +1092,7 @@ describe('GetArgumentUseCase', () => {
       const assessmentId = '44444444-4444-4444-4444-444444444444';
       const createdAt = new Date('2024-01-01T10:00:00Z');
       const updatedAt = new Date('2024-01-02T15:30:00Z');
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Data Integrity Test',
@@ -1044,7 +1119,7 @@ describe('GetArgumentUseCase', () => {
 
     it('should maintain consistency across multiple retrievals', async () => {
       const argumentId = '55555555-5555-5555-5555-555555555555';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Consistency Test Argument',
@@ -1053,7 +1128,7 @@ describe('GetArgumentUseCase', () => {
       await argumentRepository.create(argument);
 
       const request: GetArgumentRequest = { id: argumentId };
-      
+
       // Call multiple times
       const results = await Promise.all([
         useCase.execute(request),
@@ -1070,8 +1145,10 @@ describe('GetArgumentUseCase', () => {
       });
 
       // Ensure all results are identical
-      if (results.every(r => r.isRight())) {
-        const [first, second, third] = results.map(r => (r as any).value.argument);
+      if (results.every((r) => r.isRight())) {
+        const [first, second, third] = results.map(
+          (r) => (r as any).value.argument,
+        );
         expect(first).toEqual(second);
         expect(second).toEqual(third);
       }
@@ -1094,10 +1171,10 @@ describe('GetArgumentUseCase', () => {
       if (result.isRight()) {
         const response = result.value;
         const originalTitle = response.argument.title;
-        
+
         // Try to modify the response
         (response.argument as any).title = 'Modified Title';
-        
+
         // Execute again and verify original data is unchanged
         const secondResult = await useCase.execute(request);
         expect(secondResult.isRight()).toBe(true);
@@ -1110,7 +1187,7 @@ describe('GetArgumentUseCase', () => {
     it('should handle date objects correctly and create new instances', async () => {
       const argumentId = '77777777-7777-7777-7777-777777777777';
       const originalDate = new Date('2024-01-01T10:00:00Z');
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Date Test Argument',
@@ -1126,15 +1203,15 @@ describe('GetArgumentUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         const response = result.value;
-        
+
         // Verify dates are correct
         expect(response.argument.createdAt).toEqual(originalDate);
         expect(response.argument.updatedAt).toEqual(originalDate);
-        
+
         // Verify they are new Date instances (not references)
         expect(response.argument.createdAt).not.toBe(originalDate);
         expect(response.argument.updatedAt).not.toBe(originalDate);
-        
+
         // Verify they are actual Date objects
         expect(response.argument.createdAt).toBeInstanceOf(Date);
         expect(response.argument.updatedAt).toBeInstanceOf(Date);
@@ -1165,7 +1242,7 @@ describe('GetArgumentUseCase', () => {
       const assessmentId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
       const createdAt = new Date('2024-01-01T10:00:00Z');
       const updatedAt = new Date('2024-01-02T15:30:00Z');
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Type Test Argument',
@@ -1182,7 +1259,7 @@ describe('GetArgumentUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         const response = result.value.argument;
-        
+
         // Verify field types
         expect(typeof response.id).toBe('string');
         expect(typeof response.title).toBe('string');
@@ -1196,7 +1273,7 @@ describe('GetArgumentUseCase', () => {
       const argumentId = 'aaaaaaa2-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
       const createdAt = new Date('2024-01-01T10:00:00.123Z'); // With milliseconds
       const updatedAt = new Date('2024-01-02T15:30:45.678Z'); // With milliseconds
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Precision Test Argument',
@@ -1212,7 +1289,7 @@ describe('GetArgumentUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         const response = result.value.argument;
-        
+
         // Verify precise timestamps are preserved
         expect(response.createdAt.getTime()).toBe(createdAt.getTime());
         expect(response.updatedAt.getTime()).toBe(updatedAt.getTime());
@@ -1234,20 +1311,24 @@ describe('GetArgumentUseCase', () => {
 
       expect(result1.isRight()).toBe(true);
       expect(result2.isRight()).toBe(true);
-      
+
       if (result1.isRight() && result2.isRight()) {
         // Results should be equal but not the same object reference
         expect(result1.value.argument).toEqual(result2.value.argument);
         expect(result1.value.argument).not.toBe(result2.value.argument);
-        expect(result1.value.argument.createdAt).not.toBe(result2.value.argument.createdAt);
-        expect(result1.value.argument.updatedAt).not.toBe(result2.value.argument.updatedAt);
+        expect(result1.value.argument.createdAt).not.toBe(
+          result2.value.argument.createdAt,
+        );
+        expect(result1.value.argument.updatedAt).not.toBe(
+          result2.value.argument.updatedAt,
+        );
       }
     });
 
     it('should handle argument titles with special encoding', async () => {
       const argumentId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
       const specialTitle = 'Title with © ™ ® symbols and 数字 Chinese';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: specialTitle,
@@ -1268,7 +1349,7 @@ describe('GetArgumentUseCase', () => {
     it('should preserve argument field order consistency', async () => {
       const argumentId = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
       const assessmentId = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
-      
+
       const argument = createTestArgument({
         id: argumentId,
         title: 'Order Test Argument',
@@ -1284,36 +1365,52 @@ describe('GetArgumentUseCase', () => {
       if (result.isRight()) {
         const response = result.value.argument;
         const keys = Object.keys(response);
-        
+
         // Verify expected field order
-        expect(keys).toEqual(['id', 'title', 'assessmentId', 'createdAt', 'updatedAt']);
+        expect(keys).toEqual([
+          'id',
+          'title',
+          'assessmentId',
+          'createdAt',
+          'updatedAt',
+        ]);
       }
     });
 
     it('should handle extremely large argument datasets', async () => {
       // Create multiple arguments to test memory handling
-      const argumentIds = Array.from({ length: 50 }, (_, i) => 
-        `${i.toString().padStart(8, '0')}-0000-0000-0000-000000000000`
+      const argumentIds = Array.from(
+        { length: 50 },
+        (_, i) =>
+          `${i.toString().padStart(8, '0')}-0000-0000-0000-000000000000`,
       );
 
-      const argumentEntities = argumentIds.map(id => createTestArgument({
-        id,
-        title: `Large Dataset Argument ${id}`,
-      }));
+      const argumentEntities = argumentIds.map((id) =>
+        createTestArgument({
+          id,
+          title: `Large Dataset Argument ${id}`,
+        }),
+      );
 
       // Create all arguments
-      await Promise.all(argumentEntities.map(arg => argumentRepository.create(arg)));
+      await Promise.all(
+        argumentEntities.map((arg) => argumentRepository.create(arg)),
+      );
 
       // Retrieve all arguments
-      const requests = argumentIds.map(id => ({ id }));
-      const results = await Promise.all(requests.map(req => useCase.execute(req)));
+      const requests = argumentIds.map((id) => ({ id }));
+      const results = await Promise.all(
+        requests.map((req) => useCase.execute(req)),
+      );
 
       // Verify all results are successful
       results.forEach((result, index) => {
         expect(result.isRight()).toBe(true);
         if (result.isRight()) {
           expect(result.value.argument.id).toBe(argumentIds[index]);
-          expect(result.value.argument.title).toBe(`Large Dataset Argument ${argumentIds[index]}`);
+          expect(result.value.argument.title).toBe(
+            `Large Dataset Argument ${argumentIds[index]}`,
+          );
         }
       });
     });
@@ -1328,9 +1425,11 @@ describe('GetArgumentUseCase', () => {
       await argumentRepository.create(argument);
 
       const request: GetArgumentRequest = { id: argumentId };
-      
+
       // Create many concurrent requests
-      const promises = Array.from({ length: 100 }, () => useCase.execute(request));
+      const promises = Array.from({ length: 100 }, () =>
+        useCase.execute(request),
+      );
       const results = await Promise.all(promises);
 
       // Verify all results are identical and correct
@@ -1343,9 +1442,9 @@ describe('GetArgumentUseCase', () => {
       });
 
       // Verify all results are identical
-      if (results.every(r => r.isRight())) {
+      if (results.every((r) => r.isRight())) {
         const firstResult = (results[0] as any).value.argument;
-        results.slice(1).forEach(result => {
+        results.slice(1).forEach((result) => {
           expect((result as any).value.argument).toEqual(firstResult);
         });
       }

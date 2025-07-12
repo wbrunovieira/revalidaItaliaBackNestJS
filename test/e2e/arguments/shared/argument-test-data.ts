@@ -66,7 +66,8 @@ export class ArgumentTestData {
     }),
 
     longTitle: (): CreateArgumentPayload => ({
-      title: 'Performance Test Argument with Very Long Title ' + 'A'.repeat(200),
+      title:
+        'Performance Test Argument with Very Long Title ' + 'A'.repeat(200),
     }),
   };
 
@@ -209,7 +210,10 @@ export class ArgumentTestData {
       }));
     },
 
-    loadTest: (count: number, assessmentId?: string): CreateArgumentPayload[] => {
+    loadTest: (
+      count: number,
+      assessmentId?: string,
+    ): CreateArgumentPayload[] => {
       return Array.from({ length: count }, (_, i) => ({
         title: `Load Test Argument ${i + 1}`,
         ...(i % 2 === 0 && assessmentId ? { assessmentId } : {}),

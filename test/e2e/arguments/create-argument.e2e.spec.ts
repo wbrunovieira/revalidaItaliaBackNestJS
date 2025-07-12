@@ -167,7 +167,10 @@ describe('Arguments - CREATE (E2E)', () => {
           '   Argument with spaces   ',
         );
 
-        testHelpers.verifySuccessResponseFormat(res.body, '   Argument with spaces   ');
+        testHelpers.verifySuccessResponseFormat(
+          res.body,
+          '   Argument with spaces   ',
+        );
       });
 
       it('should handle title with multiple spaces between words', async () => {
@@ -178,7 +181,10 @@ describe('Arguments - CREATE (E2E)', () => {
           'Argument    with    multiple    spaces',
         );
 
-        testHelpers.verifySuccessResponseFormat(res.body, 'Argument    with    multiple    spaces');
+        testHelpers.verifySuccessResponseFormat(
+          res.body,
+          'Argument    with    multiple    spaces',
+        );
       });
 
       it('should create argument with only whitespace (system allows it)', async () => {
@@ -492,15 +498,15 @@ describe('Arguments - CREATE (E2E)', () => {
         savedArguments.forEach((argument) => {
           const titleMatch = argument.title.match(/Load Test Argument (\d+)/);
           expect(titleMatch).toBeTruthy();
-          
+
           const argumentNumber = parseInt(titleMatch![1]);
-          
+
           // Check if argument has assessmentId based on its number
           // Note: In concurrent creation, the assessmentId assignment may vary
           // We verify the argument exists with correct title format
           expect(argumentNumber).toBeGreaterThan(0);
           expect(argumentNumber).toBeLessThanOrEqual(argumentCount);
-          
+
           // If it has assessmentId, verify it's the correct one
           if (argument.assessmentId) {
             expect(argument.assessmentId).toBe(testSetup.assessmentId);

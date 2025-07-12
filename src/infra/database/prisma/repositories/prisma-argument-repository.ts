@@ -186,7 +186,9 @@ export class PrismaArgumentRepository implements IArgumentRepository {
   private mapToEntity(data: PrismaArgument): Argument {
     const props = {
       title: data.title,
-      assessmentId: data.assessmentId ? new UniqueEntityID(data.assessmentId) : undefined,
+      assessmentId: data.assessmentId
+        ? new UniqueEntityID(data.assessmentId)
+        : undefined,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     };

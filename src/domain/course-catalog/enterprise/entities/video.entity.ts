@@ -47,7 +47,9 @@ export class Video extends Entity<VideoProps> {
 
   public get title(): string {
     // Retorna o título em português por padrão
-    const ptTranslation = this.props.translations.find(t => t.locale === 'pt');
+    const ptTranslation = this.props.translations.find(
+      (t) => t.locale === 'pt',
+    );
     return ptTranslation?.title || '';
   }
 

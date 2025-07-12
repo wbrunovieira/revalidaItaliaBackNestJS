@@ -50,7 +50,10 @@ describe('UpdateArgumentUseCase', () => {
   describe('✅ Success Cases', () => {
     it('should update argument title successfully', async () => {
       const argumentId = '11111111-1111-1111-1111-111111111111';
-      const argument = createTestArgument({ title: 'Old Title', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Old Title',
+        id: argumentId,
+      });
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
@@ -70,7 +73,10 @@ describe('UpdateArgumentUseCase', () => {
 
     it('should handle update with only id (no title change)', async () => {
       const argumentId = '11111111-1111-1111-1111-111111111111';
-      const argument = createTestArgument({ title: 'Original Title', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Original Title',
+        id: argumentId,
+      });
 
       repository.findById.mockResolvedValue(right(argument));
       repository.update.mockResolvedValue(right(undefined));
@@ -85,7 +91,10 @@ describe('UpdateArgumentUseCase', () => {
 
     it('should trim title before updating', async () => {
       const argumentId = '11111111-1111-1111-1111-111111111111';
-      const argument = createTestArgument({ title: 'Old Title', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Old Title',
+        id: argumentId,
+      });
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
@@ -104,7 +113,10 @@ describe('UpdateArgumentUseCase', () => {
 
     it('should handle title with special characters', async () => {
       const argumentId = '11111111-1111-1111-1111-111111111111';
-      const argument = createTestArgument({ title: 'Old Title', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Old Title',
+        id: argumentId,
+      });
       const specialTitle = 'Title with émojis 🎯 and speciál chars!';
 
       repository.findById.mockResolvedValue(right(argument));
@@ -124,7 +136,10 @@ describe('UpdateArgumentUseCase', () => {
 
     it('should handle maximum length title', async () => {
       const argumentId = '11111111-1111-1111-1111-111111111111';
-      const argument = createTestArgument({ title: 'Old Title', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Old Title',
+        id: argumentId,
+      });
       const maxTitle = 'A'.repeat(255);
 
       repository.findById.mockResolvedValue(right(argument));
@@ -144,7 +159,10 @@ describe('UpdateArgumentUseCase', () => {
 
     it('should handle minimum length title', async () => {
       const argumentId = '11111111-1111-1111-1111-111111111111';
-      const argument = createTestArgument({ title: 'Old Title', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Old Title',
+        id: argumentId,
+      });
       const minTitle = 'ABC';
 
       repository.findById.mockResolvedValue(right(argument));
@@ -202,37 +220,49 @@ describe('UpdateArgumentUseCase', () => {
       });
 
       it('should return InvalidInputError for UUID with special characters', async () => {
-        const result = await useCase.execute({ id: '11111111-1111-1111-1111-11111111111@' });
+        const result = await useCase.execute({
+          id: '11111111-1111-1111-1111-11111111111@',
+        });
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(InvalidInputError);
       });
 
       it('should return InvalidInputError for UUID without hyphens', async () => {
-        const result = await useCase.execute({ id: '111111111111111111111111111111111111' });
+        const result = await useCase.execute({
+          id: '111111111111111111111111111111111111',
+        });
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(InvalidInputError);
       });
 
       it('should return InvalidInputError for UUID with wrong hyphen positions', async () => {
-        const result = await useCase.execute({ id: '1111111-11111-111-11111-111111111111' });
+        const result = await useCase.execute({
+          id: '1111111-11111-111-11111-111111111111',
+        });
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(InvalidInputError);
       });
 
       it('should return InvalidInputError for UUID too short', async () => {
-        const result = await useCase.execute({ id: '11111111-1111-1111-1111-11111111111' });
+        const result = await useCase.execute({
+          id: '11111111-1111-1111-1111-11111111111',
+        });
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(InvalidInputError);
       });
 
       it('should return InvalidInputError for UUID too long', async () => {
-        const result = await useCase.execute({ id: '11111111-1111-1111-1111-111111111111-extra' });
+        const result = await useCase.execute({
+          id: '11111111-1111-1111-1111-111111111111-extra',
+        });
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(InvalidInputError);
       });
 
       it('should return InvalidInputError for UUID with Unicode characters', async () => {
-        const result = await useCase.execute({ id: '11111111-1111-1111-1111-11111111111α' });
+        const result = await useCase.execute({
+          id: '11111111-1111-1111-1111-11111111111α',
+        });
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(InvalidInputError);
       });
@@ -260,7 +290,10 @@ describe('UpdateArgumentUseCase', () => {
       });
 
       it('should return InvalidInputError for title too long', async () => {
-        const result = await useCase.execute({ id: validId, title: 'A'.repeat(256) });
+        const result = await useCase.execute({
+          id: validId,
+          title: 'A'.repeat(256),
+        });
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(InvalidInputError);
       });
@@ -284,7 +317,10 @@ describe('UpdateArgumentUseCase', () => {
       });
 
       it('should return InvalidInputError for title that becomes empty after trimming (business logic)', async () => {
-        const argument = createTestArgument({ title: 'Old Title', id: validId });
+        const argument = createTestArgument({
+          title: 'Old Title',
+          id: validId,
+        });
         repository.findById.mockResolvedValue(right(argument));
 
         // Title passes schema validation (5 chars meets min 3) but becomes empty after trim
@@ -293,12 +329,17 @@ describe('UpdateArgumentUseCase', () => {
         expect(result.value).toBeInstanceOf(InvalidInputError);
         if (result.isLeft() && result.value instanceof InvalidInputError) {
           expect(result.value.message).toBe('Validation failed');
-          expect(result.value.details).toContain('title: Title cannot be empty');
+          expect(result.value.details).toContain(
+            'title: Title cannot be empty',
+          );
         }
       });
 
       it('should return InvalidInputError for non-string title (number)', async () => {
-        const result = await useCase.execute({ id: validId, title: 123 as any });
+        const result = await useCase.execute({
+          id: validId,
+          title: 123 as any,
+        });
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(InvalidInputError);
       });
@@ -316,7 +357,10 @@ describe('UpdateArgumentUseCase', () => {
       });
 
       it('should return InvalidInputError for null title', async () => {
-        const result = await useCase.execute({ id: validId, title: null as any });
+        const result = await useCase.execute({
+          id: validId,
+          title: null as any,
+        });
         expect(result.isLeft()).toBe(true);
         expect(result.value).toBeInstanceOf(InvalidInputError);
       });
@@ -354,7 +398,9 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should return ArgumentNotFoundError when findById returns repository error', async () => {
-      repository.findById.mockResolvedValue(left(createMockRepositoryError('Database connection failed')));
+      repository.findById.mockResolvedValue(
+        left(createMockRepositoryError('Database connection failed')),
+      );
       const result = await useCase.execute({
         id: validId,
         title: 'Any Title',
@@ -364,7 +410,9 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should return ArgumentNotFoundError for non-existent UUID', async () => {
-      repository.findById.mockResolvedValue(left(new Error('Record not found')));
+      repository.findById.mockResolvedValue(
+        left(new Error('Record not found')),
+      );
       const result = await useCase.execute({
         id: '00000000-0000-0000-0000-000000000000',
         title: 'Test Title',
@@ -394,7 +442,10 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should allow updating to same title (same argument)', async () => {
-      const existing = createTestArgument({ title: 'Same Title', id: argumentId });
+      const existing = createTestArgument({
+        title: 'Same Title',
+        id: argumentId,
+      });
 
       repository.findById.mockResolvedValue(right(existing));
       repository.findByTitle.mockResolvedValue(right(existing));
@@ -409,7 +460,10 @@ describe('UpdateArgumentUseCase', () => {
 
     it('should return DuplicateArgumentError for trimmed title that matches existing', async () => {
       const existing = createTestArgument({ title: 'Old', id: argumentId });
-      const other = createTestArgument({ title: 'Duplicate Title', id: otherId });
+      const other = createTestArgument({
+        title: 'Duplicate Title',
+        id: otherId,
+      });
 
       repository.findById.mockResolvedValue(right(existing));
       repository.findByTitle.mockResolvedValue(right(other));
@@ -424,7 +478,10 @@ describe('UpdateArgumentUseCase', () => {
 
     it('should handle case sensitivity in duplicate detection', async () => {
       const existing = createTestArgument({ title: 'Old', id: argumentId });
-      const other = createTestArgument({ title: 'Case Sensitive', id: otherId });
+      const other = createTestArgument({
+        title: 'Case Sensitive',
+        id: otherId,
+      });
 
       repository.findById.mockResolvedValue(right(existing));
       repository.findByTitle.mockResolvedValue(right(other));
@@ -448,7 +505,10 @@ describe('UpdateArgumentUseCase', () => {
       repository.findByTitle.mockResolvedValue(left(new Error()));
       repository.update.mockResolvedValue(left(new Error('Update failed')));
 
-      const result = await useCase.execute({ id: argumentId, title: 'New Title' });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: 'New Title',
+      });
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(RepositoryError);
       if (result.isLeft()) {
@@ -461,9 +521,14 @@ describe('UpdateArgumentUseCase', () => {
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
-      repository.update.mockResolvedValue(left(createMockRepositoryError('Connection timeout')));
+      repository.update.mockResolvedValue(
+        left(createMockRepositoryError('Connection timeout')),
+      );
 
-      const result = await useCase.execute({ id: argumentId, title: 'New Title' });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: 'New Title',
+      });
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(RepositoryError);
       if (result.isLeft()) {
@@ -476,9 +541,14 @@ describe('UpdateArgumentUseCase', () => {
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
-      repository.update.mockResolvedValue(left(createMockRepositoryError('Constraint violation')));
+      repository.update.mockResolvedValue(
+        left(createMockRepositoryError('Constraint violation')),
+      );
 
-      const result = await useCase.execute({ id: argumentId, title: 'New Title' });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: 'New Title',
+      });
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(RepositoryError);
       if (result.isLeft()) {
@@ -490,9 +560,14 @@ describe('UpdateArgumentUseCase', () => {
       const argument = createTestArgument({ title: 'Title', id: argumentId });
 
       repository.findById.mockResolvedValue(right(argument));
-      repository.findByTitle.mockRejectedValue(createMockRepositoryError('Database error'));
+      repository.findByTitle.mockRejectedValue(
+        createMockRepositoryError('Database error'),
+      );
 
-      const result = await useCase.execute({ id: argumentId, title: 'New Title' });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: 'New Title',
+      });
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(RepositoryError);
     });
@@ -501,9 +576,14 @@ describe('UpdateArgumentUseCase', () => {
       const argument = createTestArgument({ title: 'Title', id: argumentId });
 
       repository.findById.mockResolvedValue(right(argument));
-      repository.findByTitle.mockRejectedValue(new TypeError('Unexpected error'));
+      repository.findByTitle.mockRejectedValue(
+        new TypeError('Unexpected error'),
+      );
 
-      const result = await useCase.execute({ id: argumentId, title: 'New Title' });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: 'New Title',
+      });
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(RepositoryError);
     });
@@ -514,7 +594,10 @@ describe('UpdateArgumentUseCase', () => {
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockRejectedValue('String error');
 
-      const result = await useCase.execute({ id: argumentId, title: 'New Title' });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: 'New Title',
+      });
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(RepositoryError);
       if (result.isLeft()) {
@@ -523,9 +606,14 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should handle promise rejection in findById', async () => {
-      repository.findById.mockRejectedValue(createMockRepositoryError('Database connection lost'));
+      repository.findById.mockRejectedValue(
+        createMockRepositoryError('Database connection lost'),
+      );
 
-      const result = await useCase.execute({ id: argumentId, title: 'New Title' });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: 'New Title',
+      });
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(RepositoryError);
     });
@@ -535,9 +623,14 @@ describe('UpdateArgumentUseCase', () => {
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
-      repository.update.mockResolvedValue(left(createMockRepositoryError('Transaction rolled back')));
+      repository.update.mockResolvedValue(
+        left(createMockRepositoryError('Transaction rolled back')),
+      );
 
-      const result = await useCase.execute({ id: argumentId, title: 'New Title' });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: 'New Title',
+      });
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(RepositoryError);
       if (result.isLeft()) {
@@ -550,7 +643,10 @@ describe('UpdateArgumentUseCase', () => {
     const argumentId = '11111111-1111-1111-1111-111111111111';
 
     it('should handle concurrent update attempts', async () => {
-      const argument = createTestArgument({ title: 'Original', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Original',
+        id: argumentId,
+      });
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
@@ -562,20 +658,27 @@ describe('UpdateArgumentUseCase', () => {
       ];
 
       const results = await Promise.all(promises);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.isRight()).toBe(true);
       });
     });
 
     it('should handle update with unicode characters in title', async () => {
-      const argument = createTestArgument({ title: 'Original', id: argumentId });
-      const unicodeTitle = 'Título com acentos é çàràctërs ünïcödë 中文 العربية';
+      const argument = createTestArgument({
+        title: 'Original',
+        id: argumentId,
+      });
+      const unicodeTitle =
+        'Título com acentos é çàràctërs ünïcödë 中文 العربية';
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
       repository.update.mockResolvedValue(right(undefined));
 
-      const result = await useCase.execute({ id: argumentId, title: unicodeTitle });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: unicodeTitle,
+      });
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.argument.title).toBe(unicodeTitle);
@@ -583,14 +686,20 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should handle title with only emoji characters', async () => {
-      const argument = createTestArgument({ title: 'Original', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Original',
+        id: argumentId,
+      });
       const emojiTitle = '🎯🚀💯';
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
       repository.update.mockResolvedValue(right(undefined));
 
-      const result = await useCase.execute({ id: argumentId, title: emojiTitle });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: emojiTitle,
+      });
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.argument.title).toBe(emojiTitle);
@@ -598,7 +707,10 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should handle title with mixed whitespace characters', async () => {
-      const argument = createTestArgument({ title: 'Original', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Original',
+        id: argumentId,
+      });
       const mixedSpaceTitle = '\t\n  Title with mixed spaces  \r\n';
       const expectedTitle = 'Title with mixed spaces';
 
@@ -606,7 +718,10 @@ describe('UpdateArgumentUseCase', () => {
       repository.findByTitle.mockResolvedValue(left(new Error()));
       repository.update.mockResolvedValue(right(undefined));
 
-      const result = await useCase.execute({ id: argumentId, title: mixedSpaceTitle });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: mixedSpaceTitle,
+      });
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.argument.title).toBe(expectedTitle);
@@ -614,7 +729,10 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should handle rapid consecutive updates', async () => {
-      const argument = createTestArgument({ title: 'Original', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Original',
+        id: argumentId,
+      });
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
@@ -622,16 +740,21 @@ describe('UpdateArgumentUseCase', () => {
 
       const results: Array<Awaited<ReturnType<typeof useCase.execute>>> = [];
       for (let i = 0; i < 5; i++) {
-        results.push(await useCase.execute({ id: argumentId, title: `Title ${i}` }));
+        results.push(
+          await useCase.execute({ id: argumentId, title: `Title ${i}` }),
+        );
       }
 
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.isRight()).toBe(true);
       });
     });
 
     it('should handle update with null-like title string', async () => {
-      const argument = createTestArgument({ title: 'Original', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Original',
+        id: argumentId,
+      });
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
@@ -645,14 +768,20 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should handle update with numeric-like title string', async () => {
-      const argument = createTestArgument({ title: 'Original', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Original',
+        id: argumentId,
+      });
       const numericTitle = '123456789';
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
       repository.update.mockResolvedValue(right(undefined));
 
-      const result = await useCase.execute({ id: argumentId, title: numericTitle });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: numericTitle,
+      });
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.argument.title).toBe(numericTitle);
@@ -660,14 +789,20 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should preserve argument entity state during updates', async () => {
-      const argument = createTestArgument({ title: 'Original', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Original',
+        id: argumentId,
+      });
       const originalCreatedAt = argument.createdAt;
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
       repository.update.mockResolvedValue(right(undefined));
 
-      const result = await useCase.execute({ id: argumentId, title: 'Updated Title' });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: 'Updated Title',
+      });
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.argument.createdAt).toEqual(originalCreatedAt);
@@ -677,14 +812,20 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should handle data immutability correctly', async () => {
-      const argument = createTestArgument({ title: 'Original', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Original',
+        id: argumentId,
+      });
       const originalArgument = { ...argument };
 
       repository.findById.mockResolvedValue(right(argument));
       repository.findByTitle.mockResolvedValue(left(new Error()));
       repository.update.mockResolvedValue(right(undefined));
 
-      const result = await useCase.execute({ id: argumentId, title: 'Updated Title' });
+      const result = await useCase.execute({
+        id: argumentId,
+        title: 'Updated Title',
+      });
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.argument).not.toBe(originalArgument);
@@ -703,10 +844,15 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should handle validation error with repository setup', async () => {
-      repository.findById.mockResolvedValue(right(createTestArgument({ title: 'Any' })));
+      repository.findById.mockResolvedValue(
+        right(createTestArgument({ title: 'Any' })),
+      );
       repository.findByTitle.mockResolvedValue(left(new Error()));
 
-      const result = await useCase.execute({ id: 'invalid', title: 'Valid Title' });
+      const result = await useCase.execute({
+        id: 'invalid',
+        title: 'Valid Title',
+      });
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(InvalidInputError);
       // Repository methods should not be called for validation errors
@@ -716,7 +862,9 @@ describe('UpdateArgumentUseCase', () => {
     it('should handle error precedence correctly', async () => {
       // Validation error should take precedence over any repository setup
       repository.findById.mockRejectedValue(new Error('Should not reach here'));
-      repository.findByTitle.mockRejectedValue(new Error('Should not reach here'));
+      repository.findByTitle.mockRejectedValue(
+        new Error('Should not reach here'),
+      );
       repository.update.mockRejectedValue(new Error('Should not reach here'));
 
       const result = await useCase.execute({ id: '', title: '' });
@@ -725,7 +873,10 @@ describe('UpdateArgumentUseCase', () => {
     });
 
     it('should handle multiple error types in sequence', async () => {
-      const argument = createTestArgument({ title: 'Original', id: argumentId });
+      const argument = createTestArgument({
+        title: 'Original',
+        id: argumentId,
+      });
 
       // First call: success
       repository.findById.mockResolvedValueOnce(right(argument));
@@ -736,7 +887,10 @@ describe('UpdateArgumentUseCase', () => {
       repository.findById.mockResolvedValueOnce(left(new Error('Not found')));
 
       // Third call: duplicate error
-      const otherArgument = createTestArgument({ title: 'Other', id: '22222222-2222-2222-2222-222222222222' });
+      const otherArgument = createTestArgument({
+        title: 'Other',
+        id: '22222222-2222-2222-2222-222222222222',
+      });
       repository.findById.mockResolvedValueOnce(right(argument));
       repository.findByTitle.mockResolvedValueOnce(right(otherArgument));
 
@@ -747,8 +901,12 @@ describe('UpdateArgumentUseCase', () => {
       ];
 
       expect(results[0].isRight()).toBe(true);
-      expect(results[1].isLeft() && results[1].value).toBeInstanceOf(ArgumentNotFoundError);
-      expect(results[2].isLeft() && results[2].value).toBeInstanceOf(DuplicateArgumentError);
+      expect(results[1].isLeft() && results[1].value).toBeInstanceOf(
+        ArgumentNotFoundError,
+      );
+      expect(results[2].isLeft() && results[2].value).toBeInstanceOf(
+        DuplicateArgumentError,
+      );
     });
   });
 });

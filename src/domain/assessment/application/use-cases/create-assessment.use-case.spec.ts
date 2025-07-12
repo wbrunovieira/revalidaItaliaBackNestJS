@@ -19,6 +19,7 @@ class MockAssessmentRepository implements IAssessmentRepository {
   findByLessonId = vi.fn();
   create = vi.fn();
   findAll = vi.fn();
+  findAllPaginated = vi.fn();
   update = vi.fn();
   delete = vi.fn();
   findByTitleExcludingId = vi.fn();
@@ -475,7 +476,9 @@ describe('CreateAssessmentUseCase', () => {
       });
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.assessment.slug).toBe('titulo-com-acentos-simbolos');
+        expect(result.value.assessment.slug).toBe(
+          'titulo-com-acentos-simbolos',
+        );
       }
     });
 

@@ -30,9 +30,21 @@ describe('DeleteVideoUseCase', () => {
       {
         slug: 'video-teste',
         translations: [
-          new VideoTranslationVO('pt', 'Vídeo de Teste', 'Descrição do vídeo de teste'),
-          new VideoTranslationVO('it', 'Video di Prova', 'Descrizione del video di prova'),
-          new VideoTranslationVO('es', 'Vídeo de Prueba', 'Descripción del vídeo de prueba'),
+          new VideoTranslationVO(
+            'pt',
+            'Vídeo de Teste',
+            'Descrição do vídeo de teste',
+          ),
+          new VideoTranslationVO(
+            'it',
+            'Video di Prova',
+            'Descrizione del video di prova',
+          ),
+          new VideoTranslationVO(
+            'es',
+            'Vídeo de Prueba',
+            'Descripción del vídeo de prueba',
+          ),
         ],
         providerVideoId: 'yt_abc123',
         durationInSeconds: 300,

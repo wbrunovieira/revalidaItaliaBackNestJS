@@ -4,7 +4,7 @@ import { UniqueEntityID } from '@/core/unique-entity-id';
 
 export interface QuestionOptionProps {
   text: string;
-  questionId: string;
+  questionId: UniqueEntityID;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,7 +18,7 @@ export class QuestionOption extends Entity<QuestionOptionProps> {
     return this.props.text;
   }
 
-  public get questionId(): string {
+  public get questionId(): UniqueEntityID {
     return this.props.questionId;
   }
 
@@ -38,6 +38,12 @@ export class QuestionOption extends Entity<QuestionOptionProps> {
     this.touch();
   }
 
+  public update(props: Partial<Pick<QuestionOptionProps, 'text'>>) {
+    if (props.text !== undefined) {
+      this.updateText(props.text);
+    }
+  }
+
   public toResponseObject(): {
     id: string;
     text: string;
@@ -48,7 +54,7 @@ export class QuestionOption extends Entity<QuestionOptionProps> {
     return {
       id: this.id.toString(),
       text: this.text,
-      questionId: this.questionId,
+      questionId: this.questionId.toString(),
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

@@ -50,7 +50,11 @@ describe('LessonController', () => {
 
   describe('Create Lesson (POST)', () => {
     it('creates lesson without video successfully', async () => {
-      const dto = { slug: 'lesson-slug', order: 1, translations: validTranslations };
+      const dto = {
+        slug: 'lesson-slug',
+        order: 1,
+        translations: validTranslations,
+      };
       const expected = {
         lesson: { id: 'lesson-1', moduleId, translations: validTranslations },
       };
@@ -72,7 +76,12 @@ describe('LessonController', () => {
     });
 
     it('creates lesson with video successfully', async () => {
-      const dto = { slug: 'lesson-with-video', order: 2, translations: validTranslations, videoId };
+      const dto = {
+        slug: 'lesson-with-video',
+        order: 2,
+        translations: validTranslations,
+        videoId,
+      };
       const expected = {
         lesson: {
           id: 'lesson-2',
@@ -114,7 +123,11 @@ describe('LessonController', () => {
     });
 
     it('throws 404 when module not found', async () => {
-      const dto = { slug: 'lesson-slug', order: 1, translations: validTranslations };
+      const dto = {
+        slug: 'lesson-slug',
+        order: 1,
+        translations: validTranslations,
+      };
       createLesson.execute.mockResolvedValueOnce(
         left(new ModuleNotFoundError('Module not found')),
       );
@@ -126,7 +139,12 @@ describe('LessonController', () => {
     });
 
     it('throws 400 when video not found', async () => {
-      const dto = { slug: 'lesson-with-video', order: 1, translations: validTranslations, videoId };
+      const dto = {
+        slug: 'lesson-with-video',
+        order: 1,
+        translations: validTranslations,
+        videoId,
+      };
       createLesson.execute.mockResolvedValueOnce(
         left(new VideoNotFoundError()),
       );
@@ -138,7 +156,11 @@ describe('LessonController', () => {
     });
 
     it('throws 500 on repository error', async () => {
-      const dto = { slug: 'lesson-slug', order: 1, translations: validTranslations };
+      const dto = {
+        slug: 'lesson-slug',
+        order: 1,
+        translations: validTranslations,
+      };
       createLesson.execute.mockResolvedValueOnce(
         left(new RepositoryError('DB failed')),
       );
@@ -250,16 +272,18 @@ describe('LessonController', () => {
       },
       imageUrl: '/images/lesson.jpg',
       flashcardIds: ['flash-1'],
-      assessments: [{
-        id: 'quiz-1',
-        title: 'Quiz 1',
-        type: 'quiz',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }],
+      assessments: [
+        {
+          id: 'quiz-1',
+          title: 'Quiz 1',
+          type: 'quiz',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
       commentIds: ['comment-1'],
       translations: validTranslations,
       createdAt: new Date(),
@@ -370,16 +394,18 @@ describe('LessonController', () => {
         updatedAt: new Date(),
       },
       flashcardIds: ['flash-1', 'flash-2'],
-      assessments: [{
-        id: 'quiz-1',
-        title: 'Quiz 1',
-        type: 'quiz',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }],
+      assessments: [
+        {
+          id: 'quiz-1',
+          title: 'Quiz 1',
+          type: 'quiz',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
       commentIds: [],
       translations: validTranslations,
       createdAt: new Date(),
@@ -402,16 +428,18 @@ describe('LessonController', () => {
           updatedAt: new Date(),
         },
         flashcardIds: ['flash-1', 'flash-2'],
-        assessments: [{
-          id: 'quiz-1',
-          title: 'Quiz 1',
-          type: 'quiz',
-          passingScore: 70,
-          randomizeQuestions: false,
-          randomizeOptions: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        assessments: [
+          {
+            id: 'quiz-1',
+            title: 'Quiz 1',
+            type: 'quiz',
+            passingScore: 70,
+            randomizeQuestions: false,
+            randomizeOptions: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
         commentIds: [],
         translations: validTranslations,
         createdAt: new Date(),

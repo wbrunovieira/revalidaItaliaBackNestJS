@@ -2,11 +2,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Either, left, right } from '@/core/either';
-import { IAssessmentRepository, PaginatedAssessmentsResult } from '@/domain/assessment/application/repositories/i-assessment-repository';
+import {
+  IAssessmentRepository,
+  PaginatedAssessmentsResult,
+} from '@/domain/assessment/application/repositories/i-assessment-repository';
 import { Assessment } from '@/domain/assessment/enterprise/entities/assessment.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { PaginationParams } from '@/core/repositories/pagination-params';
-import { Assessment as PrismaAssessment, AssessmentType, QuizPosition } from '@prisma/client';
+import {
+  Assessment as PrismaAssessment,
+  AssessmentType,
+  QuizPosition,
+} from '@prisma/client';
 
 @Injectable()
 export class PrismaAssessmentRepository implements IAssessmentRepository {
@@ -134,11 +141,19 @@ export class PrismaAssessmentRepository implements IAssessmentRepository {
   async delete(id: string): Promise<Either<Error, void>> {
     try {
       await this.prisma.$transaction(async (tx) => {
-        await tx.attemptAnswer.deleteMany({ where: { attempt: { assessmentId: id } } });
+        await tx.attemptAnswer.deleteMany({
+          where: { attempt: { assessmentId: id } },
+        });
         await tx.attempt.deleteMany({ where: { assessmentId: id } });
-        await tx.answerTranslation.deleteMany({ where: { answer: { question: { assessmentId: id } } } });
-        await tx.answer.deleteMany({ where: { question: { assessmentId: id } } });
-        await tx.questionOption.deleteMany({ where: { question: { assessmentId: id } } });
+        await tx.answerTranslation.deleteMany({
+          where: { answer: { question: { assessmentId: id } } },
+        });
+        await tx.answer.deleteMany({
+          where: { question: { assessmentId: id } },
+        });
+        await tx.questionOption.deleteMany({
+          where: { question: { assessmentId: id } },
+        });
         await tx.question.deleteMany({ where: { assessmentId: id } });
         await tx.argument.deleteMany({ where: { assessmentId: id } });
         await tx.assessment.delete({ where: { id } });
@@ -189,7 +204,9 @@ export class PrismaAssessmentRepository implements IAssessmentRepository {
         this.prisma.assessment.count(),
       ]);
 
-      const mappedAssessments = assessments.map((item) => this.mapToEntity(item));
+      const mappedAssessments = assessments.map((item) =>
+        this.mapToEntity(item),
+      );
       return right({ assessments: mappedAssessments, total });
     } catch (err: any) {
       return left(new Error('Database error'));
@@ -202,7 +219,10 @@ export class PrismaAssessmentRepository implements IAssessmentRepository {
       title: data.title,
       description: data.description ?? undefined,
       type: data.type as 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
-      quizPosition: data.quizPosition as 'BEFORE_LESSON' | 'AFTER_LESSON' | undefined,
+      quizPosition: data.quizPosition as
+        | 'BEFORE_LESSON'
+        | 'AFTER_LESSON'
+        | undefined,
       passingScore: data.passingScore,
       timeLimitInMinutes: data.timeLimitInMinutes ?? undefined,
       randomizeQuestions: data.randomizeQuestions,

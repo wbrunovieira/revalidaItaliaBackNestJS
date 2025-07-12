@@ -1,7 +1,10 @@
 // src/test/repositories/in-memory-assessment-repository.ts
 import { Either, left, right } from '@/core/either';
 import { Assessment } from '@/domain/assessment/enterprise/entities/assessment.entity';
-import { IAssessmentRepository, PaginatedAssessmentsResult } from '@/domain/assessment/application/repositories/i-assessment-repository';
+import {
+  IAssessmentRepository,
+  PaginatedAssessmentsResult,
+} from '@/domain/assessment/application/repositories/i-assessment-repository';
 import { PaginationParams } from '@/core/repositories/pagination-params';
 
 export class InMemoryAssessmentRepository implements IAssessmentRepository {

@@ -69,7 +69,9 @@ export class CreateArgumentUseCase {
     // Verificar se o assessmentId informado existe (se fornecido)
     if (data.assessmentId) {
       try {
-        const assessment = await this.assessmentRepository.findById(data.assessmentId);
+        const assessment = await this.assessmentRepository.findById(
+          data.assessmentId,
+        );
         if (assessment.isLeft()) {
           return left(new AssessmentNotFoundError());
         }
@@ -81,7 +83,9 @@ export class CreateArgumentUseCase {
     // Criar o argumento com ou sem assessmentId
     const argument = Argument.create({
       title: data.title,
-      assessmentId: data.assessmentId ? new UniqueEntityID(data.assessmentId) : undefined,
+      assessmentId: data.assessmentId
+        ? new UniqueEntityID(data.assessmentId)
+        : undefined,
     });
 
     try {

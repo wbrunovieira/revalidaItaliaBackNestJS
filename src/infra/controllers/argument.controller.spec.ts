@@ -1705,7 +1705,10 @@ describe('ArgumentController', () => {
           right({ argument: updatedArgument }),
         );
 
-        const response = await controller.update(validArgumentId, validUpdateDto);
+        const response = await controller.update(
+          validArgumentId,
+          validUpdateDto,
+        );
 
         expect(response).toEqual({
           success: true,
@@ -1736,7 +1739,9 @@ describe('ArgumentController', () => {
 
         const response = await controller.update(validArgumentId, specialDto);
 
-        expect(response.argument.title).toBe('Título com acentos é çàracters únicos 🫀');
+        expect(response.argument.title).toBe(
+          'Título com acentos é çàracters únicos 🫀',
+        );
       });
 
       it('returns updated argument with minimum length title', async () => {
@@ -1836,7 +1841,9 @@ describe('ArgumentController', () => {
 
     describe('⚠️ Validation Errors (400)', () => {
       it('throws BadRequestException on InvalidInputError with validation details', async () => {
-        const validationDetails = ['title: Title must be at least 3 characters'];
+        const validationDetails = [
+          'title: Title must be at least 3 characters',
+        ];
         updateUseCase.execute.mockResolvedValueOnce(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -1890,7 +1897,10 @@ describe('ArgumentController', () => {
         );
 
         await expect(
-          controller.update('00000000-0000-0000-0000-000000000000', validUpdateDto),
+          controller.update(
+            '00000000-0000-0000-0000-000000000000',
+            validUpdateDto,
+          ),
         ).rejects.toThrow(NotFoundException);
       });
 
@@ -1906,7 +1916,9 @@ describe('ArgumentController', () => {
 
     describe('🔥 Repository Errors (500)', () => {
       it('throws InternalServerErrorException on RepositoryError', async () => {
-        const repositoryError = new RepositoryError('Database connection failed');
+        const repositoryError = new RepositoryError(
+          'Database connection failed',
+        );
         updateUseCase.execute.mockResolvedValueOnce(left(repositoryError));
 
         await expect(
@@ -1915,7 +1927,9 @@ describe('ArgumentController', () => {
       });
 
       it('throws InternalServerErrorException on unexpected error', async () => {
-        updateUseCase.execute.mockResolvedValueOnce(left(new Error('Unexpected error')));
+        updateUseCase.execute.mockResolvedValueOnce(
+          left(new Error('Unexpected error')),
+        );
 
         await expect(
           controller.update(validArgumentId, validUpdateDto),
@@ -1945,7 +1959,7 @@ describe('ArgumentController', () => {
 
         const results = await Promise.all(promises);
 
-        results.forEach(result => {
+        results.forEach((result) => {
           expect(result.success).toBe(true);
           expect(result.argument.title).toBe('Concurrent Update');
         });

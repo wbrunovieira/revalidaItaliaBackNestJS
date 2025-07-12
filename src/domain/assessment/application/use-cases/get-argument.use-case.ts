@@ -21,10 +21,16 @@ export class GetArgumentUseCase {
     private readonly argumentRepository: IArgumentRepository,
   ) {}
 
-  async execute(request: GetArgumentRequest): Promise<GetArgumentUseCaseResponse> {
+  async execute(
+    request: GetArgumentRequest,
+  ): Promise<GetArgumentUseCaseResponse> {
     // Validate request structure first
     if (!request || typeof request !== 'object' || Array.isArray(request)) {
-      return left(new InvalidInputError('Invalid request format', ['Request must be a valid object']));
+      return left(
+        new InvalidInputError('Invalid request format', [
+          'Request must be a valid object',
+        ]),
+      );
     }
 
     const parseResult = getArgumentSchema.safeParse(request);
@@ -39,7 +45,7 @@ export class GetArgumentUseCase {
 
     try {
       const result = await this.argumentRepository.findById(id);
-      
+
       if (result.isLeft()) {
         return left(new ArgumentNotFoundError());
       }
@@ -48,7 +54,11 @@ export class GetArgumentUseCase {
 
       // Validate argument data integrity
       if (!argument || !argument.id || !argument.title) {
-        return left(new RepositoryError('Invalid argument data retrieved from repository'));
+        return left(
+          new RepositoryError(
+            'Invalid argument data retrieved from repository',
+          ),
+        );
       }
 
       // Create immutable response object
@@ -68,15 +78,15 @@ export class GetArgumentUseCase {
       if (err && err.name === 'TimeoutError') {
         return left(new RepositoryError('Database operation timed out'));
       }
-      
+
       if (err && err.name === 'ConnectionError') {
         return left(new RepositoryError('Database connection failed'));
       }
-      
+
       if (err && err.code === 'ECONNREFUSED') {
         return left(new RepositoryError('Unable to connect to database'));
       }
-      
+
       if (err && err.code === 'ENOTFOUND') {
         return left(new RepositoryError('Database host not found'));
       }
