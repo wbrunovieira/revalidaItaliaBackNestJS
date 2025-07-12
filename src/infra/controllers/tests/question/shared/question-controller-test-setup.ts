@@ -6,14 +6,22 @@ import { QuestionController } from '../../../question.controller';
 export class MockCreateQuestionUseCase {
   execute = vi.fn();
 }
+export class MockGetQuestionUseCase {
+  execute = vi.fn();
+}
 
 export class QuestionControllerTestSetup {
   public createUseCase: MockCreateQuestionUseCase;
+  public getUseCase: MockGetQuestionUseCase;
   public controller: QuestionController;
 
   constructor() {
     this.createUseCase = new MockCreateQuestionUseCase();
-    this.controller = new QuestionController(this.createUseCase as any);
+    this.getUseCase = new MockGetQuestionUseCase();
+    this.controller = new QuestionController(
+      this.createUseCase as any,
+      this.getUseCase as any,
+    );
   }
 
   /**

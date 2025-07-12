@@ -8,12 +8,14 @@ import { PrismaAssessmentRepository } from '@/infra/database/prisma/repositories
 import { PrismaArgumentRepository } from '@/infra/database/prisma/repositories/prisma-argument-repository';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { QuestionController } from './controllers/question.controller';
+import { GetQuestionUseCase } from '@/domain/assessment/application/use-cases/get-question.use-case';
 
 @Module({
   imports: [DatabaseModule],
   controllers: [QuestionController],
   providers: [
     CreateQuestionUseCase,
+    GetQuestionUseCase,
 
     {
       provide: 'QuestionRepository',

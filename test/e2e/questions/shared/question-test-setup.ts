@@ -4,6 +4,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Module } from '@nestjs/common';
 import { PrismaService } from '../../../../src/prisma/prisma.service';
 import { CreateQuestionUseCase } from '../../../../src/domain/assessment/application/use-cases/create-question.use-case';
+import { GetQuestionUseCase } from '../../../../src/domain/assessment/application/use-cases/get-question.use-case';
 import { QuestionController } from '../../../../src/infra/controllers/question.controller';
 import { PrismaQuestionRepository } from '../../../../src/infra/database/prisma/repositories/prisma-question-repository';
 import { PrismaAssessmentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-assessment-repository';
@@ -13,6 +14,7 @@ import { PrismaArgumentRepository } from '../../../../src/infra/database/prisma/
   controllers: [QuestionController],
   providers: [
     CreateQuestionUseCase,
+    GetQuestionUseCase,
     PrismaService,
     {
       provide: 'QuestionRepository',

@@ -7,6 +7,10 @@ export interface CreateQuestionPayload {
   argumentId?: string;
 }
 
+export interface GetQuestionRequest {
+  id: string;
+}
+
 export interface ExpectedError {
   statusCode: number;
   error?: string;
@@ -520,5 +524,323 @@ export class QuestionTestData {
     QUIZ: 'MULTIPLE_CHOICE' as const,
     SIMULADO: 'MULTIPLE_CHOICE' as const,
     PROVA_ABERTA: 'OPEN' as const,
+  };
+
+  /**
+   * GetQuestion test data
+   */
+  static readonly getQuestion = {
+    /**
+     * Valid IDs for GetQuestion requests
+     */
+    validIds: {
+      standard: (): GetQuestionRequest => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      }),
+
+      multipleChoice: (): GetQuestionRequest => ({
+        id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+      }),
+
+      openQuestion: (): GetQuestionRequest => ({
+        id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+      }),
+
+      withArgument: (): GetQuestionRequest => ({
+        id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+      }),
+
+      withoutArgument: (): GetQuestionRequest => ({
+        id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+      }),
+
+      edgeCase: (): GetQuestionRequest => ({
+        id: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+      }),
+
+      mixedCase: (): GetQuestionRequest => ({
+        id: 'AaAaAaAa-BbBb-CcCc-DdDd-EeEeEeEeEeEe',
+      }),
+    },
+
+    /**
+     * Invalid IDs for GetQuestion requests
+     */
+    invalidIds: {
+      invalidFormat: (): any => ({
+        id: 'invalid-uuid-format',
+      }),
+
+      notUuid: (): any => ({
+        id: 'not-a-uuid-at-all',
+      }),
+
+      tooShort: (): any => ({
+        id: 'short',
+      }),
+
+      tooLong: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-extra-characters',
+      }),
+
+      wrongHyphens: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaa-aaaaaaaa',
+      }),
+
+      missingHyphens: (): any => ({
+        id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      }),
+
+      specialChars: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa@',
+      }),
+
+      invalidChars: (): any => ({
+        id: 'gggggggg-gggg-gggg-gggg-gggggggggggg', // 'g' is not valid hex
+      }),
+
+      emptyString: (): any => ({
+        id: '',
+      }),
+
+      nullValue: (): any => ({
+        id: null,
+      }),
+
+      undefinedValue: (): any => ({
+        id: undefined,
+      }),
+
+      numberValue: (): any => ({
+        id: 123456,
+      }),
+
+      booleanValue: (): any => ({
+        id: true,
+      }),
+
+      objectValue: (): any => ({
+        id: { nested: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' },
+      }),
+
+      arrayValue: (): any => ({
+        id: ['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'],
+      }),
+
+      withWhitespace: (): any => ({
+        id: '  aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa  ',
+      }),
+
+      withTabs: (): any => ({
+        id: '\taaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\t',
+      }),
+
+      withNewlines: (): any => ({
+        id: '\naaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\n',
+      }),
+
+      unicodeChars: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaαβγ',
+      }),
+
+      emojis: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa🎯',
+      }),
+
+      sqlInjection: (): any => ({
+        id: "'; DROP TABLE questions; --",
+      }),
+
+      xssAttempt: (): any => ({
+        id: '<script>alert("xss")</script>',
+      }),
+
+      longString: (): any => ({
+        id: 'a'.repeat(1000),
+      }),
+    },
+
+    /**
+     * Special request scenarios
+     */
+    invalidRequests: {
+      nullRequest: (): any => null,
+      undefinedRequest: (): any => undefined,
+      stringRequest: (): any => 'invalid-request',
+      numberRequest: (): any => 123,
+      arrayRequest: (): any => ['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'],
+      emptyObject: (): any => ({}),
+      missingId: (): any => ({ notId: 'value' }),
+      extraFields: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        extraField: 'not allowed',
+        anotherField: 123,
+      }),
+    },
+
+    /**
+     * Non-existent question IDs
+     */
+    nonExistentIds: {
+      zeros: (): GetQuestionRequest => ({
+        id: '00000000-0000-0000-0000-000000000000',
+      }),
+
+      notFound: (): GetQuestionRequest => ({
+        id: 'aaaabbbb-cccc-dddd-eeee-fffffaaaaabb',
+      }),
+
+      deleted: (): GetQuestionRequest => ({
+        id: 'ddddeeee-ffff-aaaa-bbbb-ccccddddeeee',
+      }),
+    },
+  };
+
+  /**
+   * Expected GetQuestion responses
+   */
+  static readonly getQuestionResponses = {
+    multipleChoice: (id: string, assessmentId: string, argumentId?: string) => ({
+      success: true,
+      question: {
+        id,
+        text: expect.any(String),
+        type: 'MULTIPLE_CHOICE',
+        assessmentId,
+        argumentId,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      },
+    }),
+
+    openQuestion: (id: string, assessmentId: string, argumentId?: string) => ({
+      success: true,
+      question: {
+        id,
+        text: expect.any(String),
+        type: 'OPEN',
+        assessmentId,
+        argumentId,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      },
+    }),
+
+    withSpecificData: (questionData: {
+      id: string;
+      text: string;
+      type: 'MULTIPLE_CHOICE' | 'OPEN';
+      assessmentId: string;
+      argumentId?: string;
+      createdAt: string;
+      updatedAt: string;
+    }) => ({
+      success: true,
+      question: questionData,
+    }),
+  };
+
+  /**
+   * GetQuestion error responses
+   */
+  static readonly getQuestionErrors = {
+    invalidInput: (): ExpectedError => ({
+      statusCode: 400,
+      error: 'INVALID_INPUT',
+      message: 'Invalid input data',
+    }),
+
+    questionNotFound: (): ExpectedError => ({
+      statusCode: 404,
+      error: 'QUESTION_NOT_FOUND',
+      message: 'Question not found',
+    }),
+
+    repositoryError: (): ExpectedError => ({
+      statusCode: 500,
+      error: 'INTERNAL_ERROR',
+    }),
+
+    unknownError: (): ExpectedError => ({
+      statusCode: 500,
+      error: 'INTERNAL_ERROR',
+      message: 'Unexpected error occurred',
+    }),
+  };
+
+  /**
+   * Performance test data for GetQuestion
+   */
+  static readonly getQuestionPerformance = {
+    concurrent: (count: number): GetQuestionRequest[] => {
+      return Array.from({ length: count }, (_, i) => ({
+        id: `${i.toString(16).padStart(8, '0')}-aaaa-bbbb-cccc-dddddddddddd`,
+      }));
+    },
+
+    sequential: (count: number): GetQuestionRequest[] => {
+      return Array.from({ length: count }, (_, i) => ({
+        id: `${i.toString(16).padStart(8, '0')}-dddd-eeee-ffff-aaaaaaaaaaaa`,
+      }));
+    },
+
+    loadTest: (count: number): GetQuestionRequest[] => {
+      return Array.from({ length: count }, (_, i) => ({
+        id: `${i.toString(16).padStart(8, '0')}-1111-2222-3333-444444444444`,
+      }));
+    },
+  };
+
+  /**
+   * Question sample data for e2e tests
+   */
+  static readonly sampleQuestions = {
+    multipleChoice: {
+      text: 'What is the capital of Brazil?',
+      type: 'MULTIPLE_CHOICE' as const,
+      expectedLength: 30,
+    },
+
+    openQuestion: {
+      text: 'Explain the pathophysiology of hypertension and discuss current treatment guidelines.',
+      type: 'OPEN' as const,
+      expectedLength: 88,
+    },
+
+    withArgument: {
+      text: 'Which organ performs gas exchange in the respiratory system?',
+      type: 'MULTIPLE_CHOICE' as const,
+      expectedLength: 59,
+    },
+
+    minLength: {
+      text: '1234567890', // exactly 10 characters
+      type: 'MULTIPLE_CHOICE' as const,
+      expectedLength: 10,
+    },
+
+    maxLength: {
+      text: 'A'.repeat(1000), // exactly 1000 characters
+      type: 'OPEN' as const,
+      expectedLength: 1000,
+    },
+
+    specialChars: {
+      text: 'Question with special chars: @#$%^&*()! and symbols: ±≤≥≠≈',
+      type: 'MULTIPLE_CHOICE' as const,
+      expectedLength: 57,
+    },
+
+    unicode: {
+      text: 'Questão em português 中文 العربية русский with emojis 🎯🚀',
+      type: 'OPEN' as const,
+      expectedLength: 56,
+    },
+
+    medical: {
+      text: 'A 65-year-old patient presents with dyspnea, orthopnea, and bilateral lower extremity edema. What is your differential diagnosis?',
+      type: 'OPEN' as const,
+      expectedLength: 128,
+    },
   };
 }

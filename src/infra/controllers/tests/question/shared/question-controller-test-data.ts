@@ -1,5 +1,6 @@
 // src/infra/controllers/tests/question/shared/question-controller-test-data.ts
 import { CreateQuestionDto } from '@/domain/assessment/application/dtos/create-question.dto';
+import { GetQuestionRequest } from '@/domain/assessment/application/dtos/get-question-request.dto';
 
 export interface QuestionControllerResponse {
   success: boolean;
@@ -334,6 +335,236 @@ export class QuestionControllerTestData {
   static readonly UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   /**
+   * Get Question test data
+   */
+  static readonly getQuestion = {
+    /**
+     * Valid IDs for GetQuestion requests
+     */
+    validIds: {
+      standard: (): GetQuestionRequest => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      }),
+
+      multipleChoice: (): GetQuestionRequest => ({
+        id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+      }),
+
+      openQuestion: (): GetQuestionRequest => ({
+        id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+      }),
+
+      withArgument: (): GetQuestionRequest => ({
+        id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+      }),
+
+      withoutArgument: (): GetQuestionRequest => ({
+        id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+      }),
+
+      edgeCase: (): GetQuestionRequest => ({
+        id: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+      }),
+    },
+
+    /**
+     * Invalid IDs for GetQuestion requests
+     */
+    invalidIds: {
+      invalidFormat: (): any => ({
+        id: 'invalid-uuid-format',
+      }),
+
+      notUuid: (): any => ({
+        id: 'not-a-uuid-at-all',
+      }),
+
+      tooShort: (): any => ({
+        id: 'short',
+      }),
+
+      tooLong: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-extra-characters',
+      }),
+
+      wrongHyphens: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaa-aaaaaaaa',
+      }),
+
+      missingHyphens: (): any => ({
+        id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      }),
+
+      specialChars: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa@',
+      }),
+
+      invalidChars: (): any => ({
+        id: 'gggggggg-gggg-gggg-gggg-gggggggggggg', // 'g' is not valid hex
+      }),
+
+      emptyString: (): any => ({
+        id: '',
+      }),
+
+      nullValue: (): any => ({
+        id: null,
+      }),
+
+      undefinedValue: (): any => ({
+        id: undefined,
+      }),
+
+      numberValue: (): any => ({
+        id: 123456,
+      }),
+
+      booleanValue: (): any => ({
+        id: true,
+      }),
+
+      objectValue: (): any => ({
+        id: { nested: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' },
+      }),
+
+      arrayValue: (): any => ({
+        id: ['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'],
+      }),
+
+      withWhitespace: (): any => ({
+        id: '  aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa  ',
+      }),
+
+      withTabs: (): any => ({
+        id: '\taaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\t',
+      }),
+
+      withNewlines: (): any => ({
+        id: '\naaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\n',
+      }),
+
+      mixedCase: (): any => ({
+        id: 'AAAAAAAA-aaaa-AAAA-aaaa-AAAAAAAAAAAA',
+      }),
+
+      unicodeChars: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaαβγ',
+      }),
+
+      emojis: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa🎯',
+      }),
+    },
+
+    /**
+     * Special request scenarios
+     */
+    invalidRequests: {
+      nullRequest: (): any => null,
+      undefinedRequest: (): any => undefined,
+      stringRequest: (): any => 'invalid-request',
+      numberRequest: (): any => 123,
+      arrayRequest: (): any => ['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'],
+      emptyObject: (): any => ({}),
+      missingId: (): any => ({ notId: 'value' }),
+      extraFields: (): any => ({
+        id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        extraField: 'not allowed',
+        anotherField: 123,
+      }),
+    },
+
+    /**
+     * Non-existent question IDs
+     */
+    nonExistentIds: {
+      zeros: (): GetQuestionRequest => ({
+        id: '00000000-0000-0000-0000-000000000000',
+      }),
+
+      notFound: (): GetQuestionRequest => ({
+        id: 'aaaabbbb-cccc-dddd-eeee-ffffaaaabbbb',
+      }),
+
+      deleted: (): GetQuestionRequest => ({
+        id: 'ddddeee-ffff-aaaa-bbbb-ccccddddeeee',
+      }),
+    },
+  };
+
+  /**
+   * Expected GetQuestion responses
+   */
+  static readonly getQuestionResponses = {
+    multipleChoice: (id: string, assessmentId: string, argumentId?: string): QuestionControllerResponse => ({
+      success: true,
+      question: {
+        id,
+        text: expect.any(String),
+        type: 'MULTIPLE_CHOICE',
+        assessmentId,
+        argumentId,
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+      },
+    }),
+
+    openQuestion: (id: string, assessmentId: string, argumentId?: string): QuestionControllerResponse => ({
+      success: true,
+      question: {
+        id,
+        text: expect.any(String),
+        type: 'OPEN',
+        assessmentId,
+        argumentId,
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+      },
+    }),
+
+    withSpecificData: (questionData: {
+      id: string;
+      text: string;
+      type: 'MULTIPLE_CHOICE' | 'OPEN';
+      assessmentId: string;
+      argumentId?: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }): QuestionControllerResponse => ({
+      success: true,
+      question: questionData,
+    }),
+  };
+
+  /**
+   * GetQuestion error responses
+   */
+  static readonly getQuestionErrors = {
+    invalidInput: (): ExpectedError => ({
+      statusCode: 400,
+      error: 'INVALID_INPUT',
+      message: 'Invalid input data',
+    }),
+
+    questionNotFound: (): ExpectedError => ({
+      statusCode: 404,
+      error: 'QUESTION_NOT_FOUND',
+      message: 'Question not found',
+    }),
+
+    repositoryError: (): ExpectedError => ({
+      statusCode: 500,
+      error: 'INTERNAL_ERROR',
+    }),
+
+    unknownError: (): ExpectedError => ({
+      statusCode: 500,
+      error: 'INTERNAL_ERROR',
+      message: 'Unexpected error occurred',
+    }),
+  };
+
+  /**
    * Performance test data
    */
   static readonly performance = {
@@ -350,6 +581,12 @@ export class QuestionControllerTestData {
         text: `Sequential test question ${i + 1}`,
         type: 'MULTIPLE_CHOICE',
         assessmentId: '22222222-2222-2222-2222-222222222222',
+      }));
+    },
+
+    getQuestionConcurrent: (count: number): GetQuestionRequest[] => {
+      return Array.from({ length: count }, (_, i) => ({
+        id: `${i.toString(16).padStart(8, '0')}-aaaa-bbbb-cccc-dddddddddddd`,
       }));
     },
   };
