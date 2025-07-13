@@ -41,7 +41,9 @@ export class SubmitAttemptUseCase {
     private answerRepository: IAnswerRepository,
   ) {}
 
-  async execute(request: SubmitAttemptRequest): Promise<SubmitAttemptUseCaseResponse> {
+  async execute(
+    request: SubmitAttemptRequest,
+  ): Promise<SubmitAttemptUseCaseResponse> {
     // Validate input
     const validation = submitAttemptSchema.safeParse(request);
     if (!validation.success) {
@@ -70,7 +72,9 @@ export class SubmitAttemptUseCase {
       }
 
       // Get assessment to determine type
-      const assessmentResult = await this.assessmentRepository.findById(attempt.assessmentId);
+      const assessmentResult = await this.assessmentRepository.findById(
+        attempt.assessmentId,
+      );
       if (assessmentResult.isLeft()) {
         return left(new AssessmentNotFoundError());
       }
@@ -78,7 +82,8 @@ export class SubmitAttemptUseCase {
       const assessment = assessmentResult.value;
 
       // Get all answers for this attempt
-      const answersResult = await this.attemptAnswerRepository.findByAttemptId(attemptId);
+      const answersResult =
+        await this.attemptAnswerRepository.findByAttemptId(attemptId);
       if (answersResult.isLeft()) {
         return left(new RepositoryError('Failed to fetch attempt answers'));
       }
@@ -91,9 +96,13 @@ export class SubmitAttemptUseCase {
       }
 
       // Get total questions for this assessment
-      const questionsResult = await this.questionRepository.findByAssessmentId(attempt.assessmentId);
+      const questionsResult = await this.questionRepository.findByAssessmentId(
+        attempt.assessmentId,
+      );
       if (questionsResult.isLeft()) {
-        return left(new RepositoryError('Failed to fetch assessment questions'));
+        return left(
+          new RepositoryError('Failed to fetch assessment questions'),
+        );
       }
 
       const questions = questionsResult.value;
@@ -105,32 +114,40 @@ export class SubmitAttemptUseCase {
       let hasOpenQuestions = false;
 
       // Get all question IDs from answers for batch lookup
-      const questionIds = answers.map(answer => answer.questionId);
-      
+      const questionIds = answers.map((answer) => answer.questionId);
+
       // Get correct answers for all questions at once
-      const correctAnswersResult = await this.answerRepository.findManyByQuestionIds(questionIds);
+      const correctAnswersResult =
+        await this.answerRepository.findManyByQuestionIds(questionIds);
       const correctAnswersMap = new Map<string, string | undefined>();
-      
+
       if (correctAnswersResult.isRight()) {
-        correctAnswersResult.value.forEach(correctAnswer => {
+        correctAnswersResult.value.forEach((correctAnswer) => {
           correctAnswersMap.set(
-            correctAnswer.questionId.toString(), 
-            correctAnswer.correctOptionId?.toString()
+            correctAnswer.questionId.toString(),
+            correctAnswer.correctOptionId?.toString(),
           );
         });
       }
 
       for (const attemptAnswer of answers) {
         // Get question to check its type
-        const questionResult = await this.questionRepository.findById(attemptAnswer.questionId);
+        const questionResult = await this.questionRepository.findById(
+          attemptAnswer.questionId,
+        );
         if (questionResult.isRight()) {
           const question = questionResult.value;
-          
+
           if (question.type.isMultipleChoice()) {
             // For multiple choice, check if answer is correct
             if (attemptAnswer.selectedOptionId) {
-              const correctOptionId = correctAnswersMap.get(attemptAnswer.questionId);
-              if (correctOptionId && attemptAnswer.selectedOptionId === correctOptionId) {
+              const correctOptionId = correctAnswersMap.get(
+                attemptAnswer.questionId,
+              );
+              if (
+                correctOptionId &&
+                attemptAnswer.selectedOptionId === correctOptionId
+              ) {
                 correctAnswers++;
               }
             }
@@ -147,9 +164,10 @@ export class SubmitAttemptUseCase {
         attempt.submit();
       } else {
         // For pure multiple choice, calculate and set score immediately
-        const scoreValue = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+        const scoreValue =
+          totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
         const score = new ScoreVO(scoreValue);
-        
+
         attempt.submit();
         attempt.grade(score);
       }
@@ -162,7 +180,7 @@ export class SubmitAttemptUseCase {
 
       // Prepare response
       const scorePercentage = attempt.score?.getValue();
-      
+
       return right({
         attempt: {
           id: attempt.id.toString(),
