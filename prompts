@@ -1,0 +1,84 @@
+# Prompts Específicos para Desenvolvimento
+
+Este documento define prompts específicos e padronizados para interações com a IA em cada etapa do desenvolvimento, garantindo consistência e eficiência.
+
+---
+
+## 1. Criar Entidade
+
+### Prompt:
+
+"Crie uma nova entidade DDD seguindo os padrões do projeto. Utilize os exemplos fornecidos como referência, seguindo estrutura, métodos e validações. Pergunte caso haja dúvidas sobre as regras de negócio."
+
+### Arquivos de Referência:
+
+- `src/domain/<domínio>/enterprise/entities/*.entity.ts`
+- `prisma/schema.prisma`
+
+---
+
+## 2. Criar Interface e Repositórios (Prisma e In-Memory)
+
+### Prompt:
+
+"Crie a interface do repositório, a implementação Prisma e a implementação In-Memory, seguindo o padrão existente no projeto. Confirme antes se há métodos específicos que precisam ser incluídos ou excluídos."
+
+### Arquivos de Referência:
+
+- `src/domain/<domínio>/application/repositories/i-*.repository.ts`
+- `src/infra/database/prisma/repositories/prisma-*.repository.ts`
+- `src/test/repositories/in-memory-*.repository.ts`
+
+---
+
+## 3. Criar Use-Case (DTOs, Schema e Teste Unitário)
+
+### Prompt:
+
+"Crie um novo Use-Case, incluindo DTOs necessários, schema de validação Zod, e testes unitários abrangendo casos de erro, edge cases e inputs inválidos. Antes de iniciar, valide se todos os métodos necessários existem nos repositórios, e caso necessário, sugira métodos adicionais."
+
+### Arquivos de Referência:
+
+- `src/domain/<domínio>/application/use-cases/*.use-case.ts`
+- `src/domain/<domínio>/application/dtos/*.dto.ts`
+- `src/domain/<domínio>/application/use-cases/validations/*.schema.ts`
+- `src/domain/<domínio>/application/use-cases/*.use-case.spec.ts`
+- `src/domain/<domínio>/application/repositories/i-*.repository.ts`
+- `src/infra/database/prisma/repositories/prisma-*.repository.ts`
+- `src/test/repositories/in-memory-*.repository.ts`
+
+---
+
+## 4. Criar Controller e Teste Unitário da Rota
+
+### Prompt:
+
+"Crie ou atualize o Controller e a rota associada ao Use-Case especificado. Inclua as validações usando class-validator e crie os testes unitários para a rota. Confirme se há guards ou roles específicos necessários antes de prosseguir."
+
+### Arquivos de Referência:
+
+- `src/infra/controllers/*.controller.ts`
+- `src/infra/controllers/*.controller.spec.ts`
+
+---
+
+## 5. Criar Teste E2E
+
+### Prompt:
+
+"Crie um teste E2E completo usando Vitest e Supertest para a nova rota criada. Garanta que cubra o fluxo feliz, cenários de erro e validações detalhadas. Antes de iniciar, confirme os cenários obrigatórios a serem testados."
+
+### Arquivos de Referência:
+
+- `test/e2e/*.e2e.spec.ts`
+- `test/e2e/shared/*.ts`
+
+---
+
+## Checklist para todos os Prompts:
+
+Antes de começar, sempre confirme:
+
+- Exemplos e contexto já fornecidos.
+- Dúvidas sobre regras específicas de negócio.
+- Escopo detalhado e métodos necessários.
