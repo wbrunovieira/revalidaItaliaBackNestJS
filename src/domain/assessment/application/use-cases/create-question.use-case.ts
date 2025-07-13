@@ -104,9 +104,8 @@ export class CreateQuestionUseCase {
 
     // Verificar se já existe uma questão similar no assessment
     try {
-      const existingQuestions = await this.questionRepository.findByAssessmentId(
-        data.assessmentId,
-      );
+      const existingQuestions =
+        await this.questionRepository.findByAssessmentId(data.assessmentId);
       if (existingQuestions.isRight()) {
         const hasSimilarText = existingQuestions.value.some(
           (q) => q.text.toLowerCase().trim() === data.text.toLowerCase().trim(),
@@ -131,7 +130,9 @@ export class CreateQuestionUseCase {
           : undefined,
       });
     } catch (err: any) {
-      return left(new InvalidInputError('Question creation failed', [err.message]));
+      return left(
+        new InvalidInputError('Question creation failed', [err.message]),
+      );
     }
 
     try {

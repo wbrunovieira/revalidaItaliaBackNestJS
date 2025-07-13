@@ -80,7 +80,10 @@ export class QuestionControllerTestHelpers {
    * Mock question type mismatch error
    */
   mockTypeMismatchError(assessmentType: string, recommendedType: string) {
-    const error = new QuestionTypeMismatchError(assessmentType, recommendedType);
+    const error = new QuestionTypeMismatchError(
+      assessmentType,
+      recommendedType,
+    );
     this.testSetup.createUseCase.execute.mockResolvedValueOnce(left(error));
     return error;
   }
@@ -151,14 +154,21 @@ export class QuestionControllerTestHelpers {
   /**
    * Execute controller create and expect BadRequestException
    */
-  async executeCreateExpectBadRequest(dto: CreateQuestionDto, mockError?: () => any) {
+  async executeCreateExpectBadRequest(
+    dto: CreateQuestionDto,
+    mockError?: () => any,
+  ) {
     if (mockError) {
       mockError();
     } else {
       this.mockValidationError();
     }
 
-    await this.executeCreateExpectError(dto, InvalidInputError, BadRequestException);
+    await this.executeCreateExpectError(
+      dto,
+      InvalidInputError,
+      BadRequestException,
+    );
   }
 
   /**
@@ -166,42 +176,67 @@ export class QuestionControllerTestHelpers {
    */
   async executeCreateExpectConflict(dto: CreateQuestionDto) {
     this.mockDuplicateError();
-    await this.executeCreateExpectError(dto, DuplicateQuestionError, ConflictException);
+    await this.executeCreateExpectError(
+      dto,
+      DuplicateQuestionError,
+      ConflictException,
+    );
   }
 
   /**
    * Execute controller create and expect NotFoundException
    */
-  async executeCreateExpectNotFound(dto: CreateQuestionDto, errorType: 'assessment' | 'argument' = 'assessment') {
+  async executeCreateExpectNotFound(
+    dto: CreateQuestionDto,
+    errorType: 'assessment' | 'argument' = 'assessment',
+  ) {
     if (errorType === 'assessment') {
       this.mockAssessmentNotFoundError();
-      await this.executeCreateExpectError(dto, AssessmentNotFoundError, NotFoundException);
+      await this.executeCreateExpectError(
+        dto,
+        AssessmentNotFoundError,
+        NotFoundException,
+      );
     } else {
       this.mockArgumentNotFoundError();
-      await this.executeCreateExpectError(dto, ArgumentNotFoundError, NotFoundException);
+      await this.executeCreateExpectError(
+        dto,
+        ArgumentNotFoundError,
+        NotFoundException,
+      );
     }
   }
 
   /**
    * Execute controller create and expect InternalServerErrorException
    */
-  async executeCreateExpectInternalError(dto: CreateQuestionDto, errorType: 'repository' | 'unknown' = 'repository') {
+  async executeCreateExpectInternalError(
+    dto: CreateQuestionDto,
+    errorType: 'repository' | 'unknown' = 'repository',
+  ) {
     if (errorType === 'repository') {
       this.mockRepositoryError();
     } else {
       this.mockUnknownError();
     }
 
-    await this.executeCreateExpectError(dto, RepositoryError, InternalServerErrorException);
+    await this.executeCreateExpectError(
+      dto,
+      RepositoryError,
+      InternalServerErrorException,
+    );
   }
 
   /**
    * Verify response structure
    */
-  verifySuccessResponseStructure(response: any, expectedDto: CreateQuestionDto) {
+  verifySuccessResponseStructure(
+    response: any,
+    expectedDto: CreateQuestionDto,
+  ) {
     expect(response).toHaveProperty('success', true);
     expect(response).toHaveProperty('question');
-    
+
     const question = response.question;
     expect(question).toHaveProperty('id');
     expect(question).toHaveProperty('text', expectedDto.text);
@@ -215,8 +250,10 @@ export class QuestionControllerTestHelpers {
     }
 
     // Verify ID is UUID format
-    expect(question.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
-    
+    expect(question.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
+
     // Verify dates are Date objects
     expect(question.createdAt).toBeInstanceOf(Date);
     expect(question.updatedAt).toBeInstanceOf(Date);
@@ -232,11 +269,11 @@ export class QuestionControllerTestHelpers {
     expectedMessage?: string,
   ) {
     expect(exception.response).toHaveProperty('statusCode', expectedStatusCode);
-    
+
     if (expectedError) {
       expect(exception.response).toHaveProperty('error', expectedError);
     }
-    
+
     if (expectedMessage) {
       expect(exception.response).toHaveProperty('message', expectedMessage);
     }
@@ -266,7 +303,11 @@ export class QuestionControllerTestHelpers {
 
     // Test type mismatch
     this.mockTypeMismatchError('QUIZ', 'MULTIPLE_CHOICE');
-    await this.executeCreateExpectError(baseDto, QuestionTypeMismatchError, BadRequestException);
+    await this.executeCreateExpectError(
+      baseDto,
+      QuestionTypeMismatchError,
+      BadRequestException,
+    );
     this.testSetup.resetMocks();
 
     // Test repository error
@@ -292,10 +333,15 @@ export class QuestionControllerTestHelpers {
     // Generate a random UUID-like string for testing
     const chars = '0123456789abcdef';
     const sections = [8, 4, 4, 4, 12];
-    
-    return sections.map(length => {
-      return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    }).join('-');
+
+    return sections
+      .map((length) => {
+        return Array.from(
+          { length },
+          () => chars[Math.floor(Math.random() * chars.length)],
+        ).join('');
+      })
+      .join('-');
   }
 
   /**
@@ -349,7 +395,9 @@ export class QuestionControllerTestHelpers {
   /**
    * Mock GetQuestion validation error
    */
-  mockGetQuestionValidationError(details: string[] = ['ID must be a valid UUID']) {
+  mockGetQuestionValidationError(
+    details: string[] = ['ID must be a valid UUID'],
+  ) {
     const error = new InvalidInputError('Validation failed', details);
     this.testSetup.getUseCase.execute.mockResolvedValueOnce(left(error));
     return error;
@@ -386,7 +434,9 @@ export class QuestionControllerTestHelpers {
    * Execute controller getById and expect success
    */
   async executeGetByIdExpectSuccess(id: string, expectedQuestionData?: any) {
-    const mockResult = this.mockGetQuestionSuccess(expectedQuestionData || { id });
+    const mockResult = this.mockGetQuestionSuccess(
+      expectedQuestionData || { id },
+    );
     const result = await this.testSetup.controller.getById(id);
 
     // Verify use case was called correctly
@@ -427,7 +477,11 @@ export class QuestionControllerTestHelpers {
       this.mockGetQuestionValidationError();
     }
 
-    await this.executeGetByIdExpectError(id, InvalidInputError, BadRequestException);
+    await this.executeGetByIdExpectError(
+      id,
+      InvalidInputError,
+      BadRequestException,
+    );
   }
 
   /**
@@ -435,29 +489,44 @@ export class QuestionControllerTestHelpers {
    */
   async executeGetByIdExpectNotFound(id: string) {
     this.mockQuestionNotFoundError();
-    await this.executeGetByIdExpectError(id, QuestionNotFoundError, NotFoundException);
+    await this.executeGetByIdExpectError(
+      id,
+      QuestionNotFoundError,
+      NotFoundException,
+    );
   }
 
   /**
    * Execute controller getById and expect InternalServerErrorException
    */
-  async executeGetByIdExpectInternalError(id: string, errorType: 'repository' | 'unknown' = 'repository') {
+  async executeGetByIdExpectInternalError(
+    id: string,
+    errorType: 'repository' | 'unknown' = 'repository',
+  ) {
     if (errorType === 'repository') {
       this.mockGetQuestionRepositoryError();
     } else {
       this.mockGetQuestionUnknownError();
     }
 
-    await this.executeGetByIdExpectError(id, RepositoryError, InternalServerErrorException);
+    await this.executeGetByIdExpectError(
+      id,
+      RepositoryError,
+      InternalServerErrorException,
+    );
   }
 
   /**
    * Verify GetQuestion response structure
    */
-  verifyGetQuestionResponseStructure(response: any, expectedId: string, expectedData?: any) {
+  verifyGetQuestionResponseStructure(
+    response: any,
+    expectedId: string,
+    expectedData?: any,
+  ) {
     expect(response).toHaveProperty('success', true);
     expect(response).toHaveProperty('question');
-    
+
     const question = response.question;
     expect(question).toHaveProperty('id', expectedId);
     expect(question).toHaveProperty('text');
@@ -470,16 +539,22 @@ export class QuestionControllerTestHelpers {
     expect(['MULTIPLE_CHOICE', 'OPEN']).toContain(question.type);
 
     // Verify ID is UUID format
-    expect(question.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
-    
+    expect(question.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
+
     // Verify assessmentId is UUID format
-    expect(question.assessmentId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    expect(question.assessmentId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
 
     // Verify argumentId if present
     if (question.argumentId) {
-      expect(question.argumentId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+      expect(question.argumentId).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      );
     }
-    
+
     // Verify dates are Date objects
     expect(question.createdAt).toBeInstanceOf(Date);
     expect(question.updatedAt).toBeInstanceOf(Date);
@@ -493,8 +568,10 @@ export class QuestionControllerTestHelpers {
     if (expectedData) {
       if (expectedData.text) expect(question.text).toBe(expectedData.text);
       if (expectedData.type) expect(question.type).toBe(expectedData.type);
-      if (expectedData.assessmentId) expect(question.assessmentId).toBe(expectedData.assessmentId);
-      if (expectedData.argumentId) expect(question.argumentId).toBe(expectedData.argumentId);
+      if (expectedData.assessmentId)
+        expect(question.assessmentId).toBe(expectedData.assessmentId);
+      if (expectedData.argumentId)
+        expect(question.argumentId).toBe(expectedData.argumentId);
     }
   }
 
@@ -545,9 +622,11 @@ export class QuestionControllerTestHelpers {
    * Test GetQuestion performance
    */
   async testGetQuestionPerformance(id: string, maxExecutionTime = 100) {
-    const { result, executionTime } = await this.measureExecutionTime(async () => {
-      return await this.executeGetByIdExpectSuccess(id);
-    });
+    const { result, executionTime } = await this.measureExecutionTime(
+      async () => {
+        return await this.executeGetByIdExpectSuccess(id);
+      },
+    );
 
     this.verifyExecutionTime(executionTime, maxExecutionTime);
     return { result, executionTime };
@@ -556,7 +635,10 @@ export class QuestionControllerTestHelpers {
   /**
    * Test concurrent GetQuestion requests
    */
-  async testConcurrentGetQuestionRequests(ids: string[], maxExecutionTime = 500) {
+  async testConcurrentGetQuestionRequests(
+    ids: string[],
+    maxExecutionTime = 500,
+  ) {
     // Mock responses for all IDs
     ids.forEach((id, index) => {
       this.mockGetQuestionSuccess({
@@ -566,10 +648,12 @@ export class QuestionControllerTestHelpers {
       });
     });
 
-    const { result, executionTime } = await this.measureExecutionTime(async () => {
-      const promises = ids.map(id => this.testSetup.controller.getById(id));
-      return await Promise.all(promises);
-    });
+    const { result, executionTime } = await this.measureExecutionTime(
+      async () => {
+        const promises = ids.map((id) => this.testSetup.controller.getById(id));
+        return await Promise.all(promises);
+      },
+    );
 
     this.verifyExecutionTime(executionTime, maxExecutionTime);
 

@@ -67,20 +67,28 @@ describe('CreateQuestionUseCase', () => {
     questionRepo = new MockQuestionRepository();
     assessmentRepo = new MockAssessmentRepository();
     argumentRepo = new MockArgumentRepository();
-    useCase = new CreateQuestionUseCase(questionRepo, assessmentRepo, argumentRepo);
+    useCase = new CreateQuestionUseCase(
+      questionRepo,
+      assessmentRepo,
+      argumentRepo,
+    );
   });
 
   describe('Success Cases by Assessment Type', () => {
-    const createAssessment = (type: string) => Assessment.create({
-      slug: 'test-assessment',
-      title: 'Test Assessment',
-      type: type as any,
-      passingScore: 70,
-      randomizeQuestions: false,
-      randomizeOptions: false,
-    });
+    const createAssessment = (type: string) =>
+      Assessment.create({
+        slug: 'test-assessment',
+        title: 'Test Assessment',
+        type: type as any,
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      });
 
-    const createSuccessScenario = async (request: CreateQuestionRequest, assessmentType: string) => {
+    const createSuccessScenario = async (
+      request: CreateQuestionRequest,
+      assessmentType: string,
+    ) => {
       const assessment = createAssessment(assessmentType);
       assessmentRepo.findById.mockResolvedValueOnce(right(assessment));
       if (request.argumentId) {
@@ -99,7 +107,7 @@ describe('CreateQuestionUseCase', () => {
           type: 'MULTIPLE_CHOICE' as const,
           assessmentId: '11111111-1111-1111-1111-111111111111',
         },
-        'QUIZ'
+        'QUIZ',
       ],
       [
         'creates MULTIPLE_CHOICE for SIMULADO assessment',
@@ -108,7 +116,7 @@ describe('CreateQuestionUseCase', () => {
           type: 'MULTIPLE_CHOICE' as const,
           assessmentId: '22222222-2222-2222-2222-222222222222',
         },
-        'SIMULADO'
+        'SIMULADO',
       ],
       [
         'creates OPEN for PROVA_ABERTA assessment',
@@ -117,8 +125,8 @@ describe('CreateQuestionUseCase', () => {
           type: 'OPEN' as const,
           assessmentId: '33333333-3333-3333-3333-333333333333',
         },
-        'PROVA_ABERTA'
-      ]
+        'PROVA_ABERTA',
+      ],
     ])('%s', async (_name, req, assessmentType) => {
       const result = await createSuccessScenario(req, assessmentType);
       expect(result.isRight()).toBe(true);
@@ -176,11 +184,13 @@ describe('CreateQuestionUseCase', () => {
       if (result.isRight()) {
         const { question } = result.value;
         expect(question.id).toMatch(
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
         );
         expect(question.createdAt).toBeInstanceOf(Date);
         expect(question.updatedAt).toBeInstanceOf(Date);
-        expect(question.createdAt.getTime()).toBeGreaterThanOrEqual(beforeTest.getTime());
+        expect(question.createdAt.getTime()).toBeGreaterThanOrEqual(
+          beforeTest.getTime(),
+        );
       }
     });
   });
@@ -263,7 +273,7 @@ describe('CreateQuestionUseCase', () => {
           type: 'MULTIPLE_CHOICE',
           assessmentId: '11111111-1111-1111-1111-111111111111',
         },
-        ['text: Question text must be at least 10 characters long']
+        ['text: Question text must be at least 10 characters long'],
       ],
       [
         'text too long',
@@ -272,7 +282,7 @@ describe('CreateQuestionUseCase', () => {
           type: 'MULTIPLE_CHOICE',
           assessmentId: '11111111-1111-1111-1111-111111111111',
         },
-        ['text: Question text must be at most 1000 characters long']
+        ['text: Question text must be at most 1000 characters long'],
       ],
       [
         'invalid question type',
@@ -281,7 +291,7 @@ describe('CreateQuestionUseCase', () => {
           type: 'INVALID_TYPE',
           assessmentId: '11111111-1111-1111-1111-111111111111',
         },
-        ['type: Type must be MULTIPLE_CHOICE or OPEN']
+        ['type: Type must be MULTIPLE_CHOICE or OPEN'],
       ],
       [
         'invalid assessmentId UUID',
@@ -290,7 +300,7 @@ describe('CreateQuestionUseCase', () => {
           type: 'MULTIPLE_CHOICE',
           assessmentId: 'invalid-uuid',
         },
-        ['assessmentId: Assessment ID must be a valid UUID']
+        ['assessmentId: Assessment ID must be a valid UUID'],
       ],
       [
         'invalid argumentId UUID',
@@ -300,7 +310,7 @@ describe('CreateQuestionUseCase', () => {
           assessmentId: '11111111-1111-1111-1111-111111111111',
           argumentId: 'invalid-uuid',
         },
-        ['argumentId: Argument ID must be a valid UUID']
+        ['argumentId: Argument ID must be a valid UUID'],
       ],
       [
         'empty text',
@@ -309,7 +319,7 @@ describe('CreateQuestionUseCase', () => {
           type: 'MULTIPLE_CHOICE',
           assessmentId: '11111111-1111-1111-1111-111111111111',
         },
-        ['text: Question text must be at least 10 characters long']
+        ['text: Question text must be at least 10 characters long'],
       ],
       [
         'whitespace only text',
@@ -318,7 +328,7 @@ describe('CreateQuestionUseCase', () => {
           type: 'MULTIPLE_CHOICE',
           assessmentId: '11111111-1111-1111-1111-111111111111',
         },
-        ['text: Question text must be at least 10 characters long']
+        ['text: Question text must be at least 10 characters long'],
       ],
       [
         'missing type',
@@ -326,7 +336,7 @@ describe('CreateQuestionUseCase', () => {
           text: 'What is the correct answer?',
           assessmentId: '11111111-1111-1111-1111-111111111111',
         },
-        ['type: Type must be MULTIPLE_CHOICE or OPEN']
+        ['type: Type must be MULTIPLE_CHOICE or OPEN'],
       ],
       [
         'missing assessmentId',
@@ -334,8 +344,8 @@ describe('CreateQuestionUseCase', () => {
           text: 'What is the correct answer?',
           type: 'MULTIPLE_CHOICE',
         },
-        ['assessmentId: Required']
-      ]
+        ['assessmentId: Required'],
+      ],
     ];
 
     it.each(cases)('%s', async (_name, req, expected) => {
@@ -352,7 +362,7 @@ describe('CreateQuestionUseCase', () => {
     it('duplicate question text in same assessment', async () => {
       const assessmentId = '11111111-1111-1111-1111-111111111111';
       const duplicateText = 'What is the capital of Brazil?';
-      
+
       const assessment = Assessment.create({
         slug: 'test',
         title: 'Test',
@@ -369,7 +379,9 @@ describe('CreateQuestionUseCase', () => {
       });
 
       assessmentRepo.findById.mockResolvedValueOnce(right(assessment));
-      questionRepo.findByAssessmentId.mockResolvedValueOnce(right([existingQuestion]));
+      questionRepo.findByAssessmentId.mockResolvedValueOnce(
+        right([existingQuestion]),
+      );
 
       const result = await useCase.execute({
         text: duplicateText,
@@ -383,7 +395,7 @@ describe('CreateQuestionUseCase', () => {
 
     it('case insensitive duplicate detection', async () => {
       const assessmentId = '22222222-2222-2222-2222-222222222222';
-      
+
       const assessment = Assessment.create({
         slug: 'test',
         title: 'Test',
@@ -400,7 +412,9 @@ describe('CreateQuestionUseCase', () => {
       });
 
       assessmentRepo.findById.mockResolvedValueOnce(right(assessment));
-      questionRepo.findByAssessmentId.mockResolvedValueOnce(right([existingQuestion]));
+      questionRepo.findByAssessmentId.mockResolvedValueOnce(
+        right([existingQuestion]),
+      );
 
       const result = await useCase.execute({
         text: 'what is the capital of brazil?',
@@ -413,7 +427,9 @@ describe('CreateQuestionUseCase', () => {
     });
 
     it('assessment not found', async () => {
-      assessmentRepo.findById.mockResolvedValueOnce(left(new Error('not found')));
+      assessmentRepo.findById.mockResolvedValueOnce(
+        left(new Error('not found')),
+      );
 
       const result = await useCase.execute({
         text: 'What is the correct answer?',
@@ -475,7 +491,9 @@ describe('CreateQuestionUseCase', () => {
       });
 
       assessmentRepo.findById.mockResolvedValueOnce(right(assessment));
-      argumentRepo.findById.mockRejectedValueOnce(new Error('Argument DB error'));
+      argumentRepo.findById.mockRejectedValueOnce(
+        new Error('Argument DB error'),
+      );
 
       const result = await useCase.execute({
         text: 'What is the correct answer?',
@@ -499,7 +517,9 @@ describe('CreateQuestionUseCase', () => {
       });
 
       assessmentRepo.findById.mockResolvedValueOnce(right(assessment));
-      questionRepo.findByAssessmentId.mockRejectedValueOnce(new Error('Question DB error'));
+      questionRepo.findByAssessmentId.mockRejectedValueOnce(
+        new Error('Question DB error'),
+      );
 
       const result = await useCase.execute({
         text: 'What is the correct answer?',
@@ -523,7 +543,9 @@ describe('CreateQuestionUseCase', () => {
 
       assessmentRepo.findById.mockResolvedValueOnce(right(assessment));
       questionRepo.findByAssessmentId.mockResolvedValueOnce(right([]));
-      questionRepo.create.mockResolvedValueOnce(left(new Error('constraint failed')));
+      questionRepo.create.mockResolvedValueOnce(
+        left(new Error('constraint failed')),
+      );
 
       const result = await useCase.execute({
         text: 'What is the correct answer?',
@@ -652,7 +674,8 @@ describe('CreateQuestionUseCase', () => {
         randomizeOptions: false,
       });
 
-      const textWithFormatting = 'Question with\n\tnewlines and\ttabs\nfor formatting';
+      const textWithFormatting =
+        'Question with\n\tnewlines and\ttabs\nfor formatting';
       assessmentRepo.findById.mockResolvedValueOnce(right(assessment));
       questionRepo.findByAssessmentId.mockResolvedValueOnce(right([]));
       questionRepo.create.mockResolvedValueOnce(right(undefined));
@@ -683,7 +706,9 @@ describe('CreateQuestionUseCase', () => {
       const existingQuestionInDifferentAssessment = Question.create({
         text: duplicateText,
         type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-        assessmentId: new UniqueEntityID('22222222-2222-2222-2222-222222222222'),
+        assessmentId: new UniqueEntityID(
+          '22222222-2222-2222-2222-222222222222',
+        ),
       });
 
       assessmentRepo.findById.mockResolvedValueOnce(right(assessment1));
@@ -719,7 +744,7 @@ describe('CreateQuestionUseCase', () => {
       questionRepo.findByAssessmentId.mockResolvedValueOnce(right([]));
       // Assessment gets deleted/disabled between validation and creation
       questionRepo.create.mockResolvedValueOnce(
-        left(new Error('Foreign key constraint failed'))
+        left(new Error('Foreign key constraint failed')),
       );
 
       const result = await useCase.execute({
@@ -761,11 +786,15 @@ describe('CreateQuestionUseCase', () => {
       const existingQuestion = Question.create({
         text: questionText,
         type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-        assessmentId: new UniqueEntityID('11111111-1111-1111-1111-111111111111'),
+        assessmentId: new UniqueEntityID(
+          '11111111-1111-1111-1111-111111111111',
+        ),
       });
 
       assessmentRepo.findById.mockResolvedValueOnce(right(assessment));
-      questionRepo.findByAssessmentId.mockResolvedValueOnce(right([existingQuestion]));
+      questionRepo.findByAssessmentId.mockResolvedValueOnce(
+        right([existingQuestion]),
+      );
 
       const result2 = await useCase.execute({
         text: questionText,
@@ -912,16 +941,20 @@ describe('CreateQuestionUseCase', () => {
       });
 
       // Create 100 existing questions
-      const existingQuestions = Array.from({ length: 100 }, (_, i) => 
+      const existingQuestions = Array.from({ length: 100 }, (_, i) =>
         Question.create({
           text: `Existing question ${i + 1}`,
           type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-          assessmentId: new UniqueEntityID('11111111-1111-1111-1111-111111111111'),
-        })
+          assessmentId: new UniqueEntityID(
+            '11111111-1111-1111-1111-111111111111',
+          ),
+        }),
       );
 
       assessmentRepo.findById.mockResolvedValueOnce(right(assessment));
-      questionRepo.findByAssessmentId.mockResolvedValueOnce(right(existingQuestions));
+      questionRepo.findByAssessmentId.mockResolvedValueOnce(
+        right(existingQuestions),
+      );
       questionRepo.create.mockResolvedValueOnce(right(undefined));
 
       const result = await useCase.execute({
@@ -945,7 +978,8 @@ describe('CreateQuestionUseCase', () => {
         randomizeOptions: false,
       });
 
-      const clinicalCase = 'Patient presents with chest pain, dyspnea, and diaphoresis. ECG shows ST elevation in leads II, III, and aVF. Troponin levels are elevated. Describe your diagnostic approach and immediate management plan.';
+      const clinicalCase =
+        'Patient presents with chest pain, dyspnea, and diaphoresis. ECG shows ST elevation in leads II, III, and aVF. Troponin levels are elevated. Describe your diagnostic approach and immediate management plan.';
 
       assessmentRepo.findById.mockResolvedValueOnce(right(assessment));
       argumentRepo.findById.mockResolvedValueOnce(right({} as Argument));

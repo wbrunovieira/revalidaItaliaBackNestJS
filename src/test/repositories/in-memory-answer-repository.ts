@@ -31,14 +31,16 @@ export class InMemoryAnswerRepository implements IAnswerRepository {
     return right(answer);
   }
 
-  async findManyByQuestionIds(questionIds: string[]): Promise<Either<Error, Answer[]>> {
+  async findManyByQuestionIds(
+    questionIds: string[],
+  ): Promise<Either<Error, Answer[]>> {
     const answers = this.items.filter((item) =>
       questionIds.includes(item.questionId.toString()),
     );
-    
+
     // Sort by createdAt ascending to match Prisma repository behavior
     answers.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-    
+
     return right(answers);
   }
 
@@ -56,9 +58,7 @@ export class InMemoryAnswerRepository implements IAnswerRepository {
   }
 
   async delete(id: string): Promise<Either<Error, void>> {
-    const itemIndex = this.items.findIndex(
-      (item) => item.id.toString() === id,
-    );
+    const itemIndex = this.items.findIndex((item) => item.id.toString() === id);
 
     if (itemIndex === -1) {
       return left(new Error('Answer not found'));
@@ -73,7 +73,9 @@ export class InMemoryAnswerRepository implements IAnswerRepository {
     return right(exists);
   }
 
-  async existsByQuestionId(questionId: string): Promise<Either<Error, boolean>> {
+  async existsByQuestionId(
+    questionId: string,
+  ): Promise<Either<Error, boolean>> {
     const exists = this.items.some(
       (item) => item.questionId.toString() === questionId,
     );

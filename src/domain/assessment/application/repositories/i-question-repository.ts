@@ -39,7 +39,11 @@ export abstract class IQuestionRepository {
 
   abstract delete(id: string): Promise<Either<Error, void>>;
 
-  abstract countByAssessmentId(assessmentId: string): Promise<Either<Error, number>>;
+  abstract countByAssessmentId(
+    assessmentId: string,
+  ): Promise<Either<Error, number>>;
 
-  abstract countByArgumentId(argumentId: string): Promise<Either<Error, number>>;
+  abstract countByArgumentId(
+    argumentId: string,
+  ): Promise<Either<Error, number>>;
 }

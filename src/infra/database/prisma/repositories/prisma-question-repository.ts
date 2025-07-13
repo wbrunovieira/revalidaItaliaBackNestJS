@@ -10,10 +10,7 @@ import { Question } from '@/domain/assessment/enterprise/entities/question.entit
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { PaginationParams } from '@/core/repositories/pagination-params';
 import { QuestionTypeVO } from '@/domain/assessment/enterprise/value-objects/question-type.vo';
-import {
-  Question as PrismaQuestion,
-  QuestionType,
-} from '@prisma/client';
+import { Question as PrismaQuestion, QuestionType } from '@prisma/client';
 
 @Injectable()
 export class PrismaQuestionRepository implements IQuestionRepository {
@@ -51,7 +48,9 @@ export class PrismaQuestionRepository implements IQuestionRepository {
     }
   }
 
-  async findByArgumentId(argumentId: string): Promise<Either<Error, Question[]>> {
+  async findByArgumentId(
+    argumentId: string,
+  ): Promise<Either<Error, Question[]>> {
     try {
       const data = await this.prisma.question.findMany({
         where: { argumentId },
@@ -180,7 +179,9 @@ export class PrismaQuestionRepository implements IQuestionRepository {
     }
   }
 
-  async countByAssessmentId(assessmentId: string): Promise<Either<Error, number>> {
+  async countByAssessmentId(
+    assessmentId: string,
+  ): Promise<Either<Error, number>> {
     try {
       const count = await this.prisma.question.count({
         where: { assessmentId },
@@ -209,7 +210,9 @@ export class PrismaQuestionRepository implements IQuestionRepository {
       text: data.text,
       type: new QuestionTypeVO(data.type as 'MULTIPLE_CHOICE' | 'OPEN'),
       assessmentId: new UniqueEntityID(data.assessmentId),
-      argumentId: data.argumentId ? new UniqueEntityID(data.argumentId) : undefined,
+      argumentId: data.argumentId
+        ? new UniqueEntityID(data.argumentId)
+        : undefined,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     };

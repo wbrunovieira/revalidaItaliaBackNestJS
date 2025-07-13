@@ -1,0 +1,134 @@
+// src/domain/assessment/application/use-cases/start-attempt.use-case.ts
+
+import { Either, left, right } from '@/core/either';
+import { Injectable, Inject } from '@nestjs/common';
+import { UniqueEntityID } from '@/core/unique-entity-id';
+import { Attempt } from '@/domain/assessment/enterprise/entities/attempt.entity';
+import { AttemptStatusVO } from '@/domain/assessment/enterprise/value-objects/attempt-status.vo';
+import { IAttemptRepository } from '../repositories/i-attempt.repository';
+import { IAssessmentRepository } from '../repositories/i-assessment-repository';
+import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { StartAttemptRequest } from '../dtos/start-attempt-request.dto';
+import { StartAttemptResponse } from '../dtos/start-attempt-response.dto';
+import { InvalidInputError } from './errors/invalid-input-error';
+import { RepositoryError } from './errors/repository-error';
+import { UserNotFoundError } from './errors/user-not-found-error';
+import { AssessmentNotFoundError } from './errors/assessment-not-found-error';
+import { AttemptAlreadyActiveError } from './errors/attempt-already-active-error';
+import {
+  StartAttemptSchema,
+  startAttemptSchema,
+} from './validations/start-attempt.schema';
+
+type StartAttemptUseCaseResponse = Either<
+  | InvalidInputError
+  | UserNotFoundError
+  | AssessmentNotFoundError
+  | AttemptAlreadyActiveError
+  | RepositoryError
+  | Error,
+  StartAttemptResponse
+>;
+
+@Injectable()
+export class StartAttemptUseCase {
+  constructor(
+    @Inject('AttemptRepository')
+    private readonly attemptRepository: IAttemptRepository,
+    @Inject('AssessmentRepository')
+    private readonly assessmentRepository: IAssessmentRepository,
+    @Inject('AccountRepository')
+    private readonly accountRepository: IAccountRepository,
+  ) {}
+
+  async execute(
+    request: StartAttemptRequest,
+  ): Promise<StartAttemptUseCaseResponse> {
+    // 1. Validate input data
+    const validationResult = startAttemptSchema.safeParse(request);
+    if (!validationResult.success) {
+      return left(new InvalidInputError(validationResult.error.message));
+    }
+
+    const validatedData: StartAttemptSchema = validationResult.data;
+
+    // 2. Check if user exists
+    const userResult = await this.accountRepository.findById(
+      validatedData.userId,
+    );
+    if (userResult.isLeft()) {
+      const error = userResult.value;
+      if (error.message === 'User not found') {
+        return left(new UserNotFoundError());
+      }
+      return left(new RepositoryError('Failed to fetch user'));
+    }
+
+    // 3. Check if assessment exists
+    const assessmentResult = await this.assessmentRepository.findById(
+      validatedData.assessmentId,
+    );
+    if (assessmentResult.isLeft()) {
+      const error = assessmentResult.value;
+      if (error.message === 'Assessment not found') {
+        return left(new AssessmentNotFoundError());
+      }
+      return left(new RepositoryError('Failed to fetch assessment'));
+    }
+
+    const assessment = assessmentResult.value;
+
+    // 4. Check if user already has an active attempt for this assessment
+    const activeAttemptResult =
+      await this.attemptRepository.findActiveByUserAndAssessment(
+        validatedData.userId,
+        validatedData.assessmentId,
+      );
+
+    if (activeAttemptResult.isRight()) {
+      // User already has an active attempt
+      return left(new AttemptAlreadyActiveError());
+    }
+
+    // 5. Create new attempt
+    const now = new Date();
+    const attemptStatus = new AttemptStatusVO('IN_PROGRESS');
+
+    let timeLimitExpiresAt: Date | undefined = undefined;
+    if (assessment.type === 'SIMULADO' && assessment.timeLimitInMinutes) {
+      timeLimitExpiresAt = new Date(
+        now.getTime() + assessment.timeLimitInMinutes * 60 * 1000,
+      );
+    }
+
+    const attempt = Attempt.create({
+      status: attemptStatus,
+      startedAt: now,
+      userId: validatedData.userId,
+      assessmentId: validatedData.assessmentId,
+      timeLimitExpiresAt,
+    });
+
+    // 6. Save attempt to repository
+    const createResult = await this.attemptRepository.create(attempt);
+    if (createResult.isLeft()) {
+      return left(new RepositoryError('Failed to create attempt'));
+    }
+
+    // 7. Return response
+    const response: StartAttemptResponse = {
+      attempt: {
+        id: attempt.id.toString(),
+        status: attempt.status.getValue(),
+        startedAt: attempt.startedAt,
+        timeLimitExpiresAt: attempt.timeLimitExpiresAt,
+        userId: attempt.userId,
+        assessmentId: attempt.assessmentId,
+        createdAt: attempt.createdAt,
+        updatedAt: attempt.updatedAt,
+      },
+    };
+
+    return right(response);
+  }
+}

@@ -1,7 +1,10 @@
 // test/e2e/questions/shared/question-test-helpers.ts
 import request, { Response } from 'supertest';
 import { QuestionTestSetup } from './question-test-setup';
-import { CreateQuestionPayload, GetQuestionRequest } from './question-test-data';
+import {
+  CreateQuestionPayload,
+  GetQuestionRequest,
+} from './question-test-data';
 
 export class QuestionTestHelpers {
   constructor(private readonly testSetup: QuestionTestSetup) {}
@@ -562,8 +565,7 @@ export class QuestionTestHelpers {
    * Make a GET request to retrieve a question by ID
    */
   async getQuestionById(id: string): Promise<Response> {
-    return request(this.testSetup.getHttpServer())
-      .get(`/questions/${id}`);
+    return request(this.testSetup.getHttpServer()).get(`/questions/${id}`);
   }
 
   /**
@@ -614,7 +616,7 @@ export class QuestionTestHelpers {
     // NestJS may return 404 for some invalid paths instead of 400
     // Accept both 400 and 404 for validation errors
     expect([400, 404]).toContain(res.status);
-    
+
     if (res.status === 400) {
       expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
     }
@@ -703,9 +705,7 @@ export class QuestionTestHelpers {
   /**
    * Create a question and then retrieve it by ID
    */
-  async createAndRetrieveQuestion(
-    payload: CreateQuestionPayload,
-  ): Promise<{
+  async createAndRetrieveQuestion(payload: CreateQuestionPayload): Promise<{
     createRes: Response;
     getRes: Response;
   }> {
@@ -853,8 +853,10 @@ export class QuestionTestHelpers {
     expect(apiResponse.body.question.id).toBe(dbQuestion!.id);
     expect(apiResponse.body.question.text).toBe(dbQuestion!.text);
     expect(apiResponse.body.question.type).toBe(dbQuestion!.type);
-    expect(apiResponse.body.question.assessmentId).toBe(dbQuestion!.assessmentId);
-    
+    expect(apiResponse.body.question.assessmentId).toBe(
+      dbQuestion!.assessmentId,
+    );
+
     // Handle argumentId - both undefined and null should be equivalent
     if (dbQuestion!.argumentId === null) {
       expect(apiResponse.body.question.argumentId).toBeUndefined();
@@ -863,8 +865,12 @@ export class QuestionTestHelpers {
     }
 
     // Verify timestamps (API returns ISO strings, DB returns Date objects)
-    expect(new Date(apiResponse.body.question.createdAt)).toEqual(dbQuestion!.createdAt);
-    expect(new Date(apiResponse.body.question.updatedAt)).toEqual(dbQuestion!.updatedAt);
+    expect(new Date(apiResponse.body.question.createdAt)).toEqual(
+      dbQuestion!.createdAt,
+    );
+    expect(new Date(apiResponse.body.question.updatedAt)).toEqual(
+      dbQuestion!.updatedAt,
+    );
   }
 
   /**
@@ -933,7 +939,9 @@ export class QuestionTestHelpers {
     };
 
     const specialRes = await this.createQuestionExpectSuccess(specialPayload);
-    const getSpecialRes = await this.getQuestionExpectSuccess(specialRes.body.question.id);
+    const getSpecialRes = await this.getQuestionExpectSuccess(
+      specialRes.body.question.id,
+    );
     expect(getSpecialRes.body.question.text).toBe(specialPayload.text);
 
     // Test with unicode characters
@@ -944,7 +952,9 @@ export class QuestionTestHelpers {
     };
 
     const unicodeRes = await this.createQuestionExpectSuccess(unicodePayload);
-    const getUnicodeRes = await this.getQuestionExpectSuccess(unicodeRes.body.question.id);
+    const getUnicodeRes = await this.getQuestionExpectSuccess(
+      unicodeRes.body.question.id,
+    );
     expect(getUnicodeRes.body.question.text).toBe(unicodePayload.text);
   }
 
@@ -966,12 +976,15 @@ export class QuestionTestHelpers {
     }
 
     // Calculate average and variance
-    const average = executionTimes.reduce((sum, time) => sum + time, 0) / iterations;
+    const average =
+      executionTimes.reduce((sum, time) => sum + time, 0) / iterations;
     const maxTime = Math.max(...executionTimes);
     const minTime = Math.min(...executionTimes);
     const variance = maxTime - minTime;
 
-    console.log(`GetQuestion response times: avg=${average.toFixed(2)}ms, min=${minTime}ms, max=${maxTime}ms, variance=${variance}ms`);
+    console.log(
+      `GetQuestion response times: avg=${average.toFixed(2)}ms, min=${minTime}ms, max=${maxTime}ms, variance=${variance}ms`,
+    );
 
     // Verify variance is within acceptable limits
     expect(variance).toBeLessThan(maxVariance);

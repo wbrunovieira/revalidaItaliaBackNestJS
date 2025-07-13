@@ -30,7 +30,9 @@ export class InMemoryQuestionRepository implements IQuestionRepository {
     return right(items);
   }
 
-  async findByArgumentId(argumentId: string): Promise<Either<Error, Question[]>> {
+  async findByArgumentId(
+    argumentId: string,
+  ): Promise<Either<Error, Question[]>> {
     const items = this.items.filter(
       (item) => item.argumentId?.toString() === argumentId,
     );
@@ -76,7 +78,7 @@ export class InMemoryQuestionRepository implements IQuestionRepository {
     limit: number,
     offset: number,
   ): Promise<Either<Error, PaginatedQuestionsResult>> {
-    let result = [...this.items];
+    const result = [...this.items];
 
     // Sort by createdAt descending to match Prisma repository behavior
     result.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -101,9 +103,7 @@ export class InMemoryQuestionRepository implements IQuestionRepository {
   }
 
   async delete(id: string): Promise<Either<Error, void>> {
-    const itemIndex = this.items.findIndex(
-      (item) => item.id.toString() === id,
-    );
+    const itemIndex = this.items.findIndex((item) => item.id.toString() === id);
 
     if (itemIndex === -1) {
       return left(new Error('Question not found'));
@@ -113,7 +113,9 @@ export class InMemoryQuestionRepository implements IQuestionRepository {
     return right(undefined);
   }
 
-  async countByAssessmentId(assessmentId: string): Promise<Either<Error, number>> {
+  async countByAssessmentId(
+    assessmentId: string,
+  ): Promise<Either<Error, number>> {
     const count = this.items.filter(
       (item) => item.assessmentId.toString() === assessmentId,
     ).length;

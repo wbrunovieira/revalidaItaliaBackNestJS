@@ -82,7 +82,9 @@ export class PrismaAnswerRepository implements IAnswerRepository {
     }
   }
 
-  async findManyByQuestionIds(questionIds: string[]): Promise<Either<Error, Answer[]>> {
+  async findManyByQuestionIds(
+    questionIds: string[],
+  ): Promise<Either<Error, Answer[]>> {
     try {
       const data = await this.prisma.answer.findMany({
         where: {
@@ -169,7 +171,9 @@ export class PrismaAnswerRepository implements IAnswerRepository {
     }
   }
 
-  async existsByQuestionId(questionId: string): Promise<Either<Error, boolean>> {
+  async existsByQuestionId(
+    questionId: string,
+  ): Promise<Either<Error, boolean>> {
     try {
       const count = await this.prisma.answer.count({
         where: { questionId },
@@ -191,7 +195,9 @@ export class PrismaAnswerRepository implements IAnswerRepository {
     );
 
     const props = {
-      correctOptionId: data.correctOptionId ? new UniqueEntityID(data.correctOptionId) : undefined,
+      correctOptionId: data.correctOptionId
+        ? new UniqueEntityID(data.correctOptionId)
+        : undefined,
       explanation: data.explanation,
       questionId: new UniqueEntityID(data.questionId),
       translations,

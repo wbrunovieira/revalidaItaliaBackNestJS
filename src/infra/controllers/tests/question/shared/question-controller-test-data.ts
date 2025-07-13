@@ -171,7 +171,10 @@ export class QuestionControllerTestData {
    * Expected success responses
    */
   static readonly expectedResponses = {
-    multipleChoice: (assessmentId: string, argumentId?: string): QuestionControllerResponse => ({
+    multipleChoice: (
+      assessmentId: string,
+      argumentId?: string,
+    ): QuestionControllerResponse => ({
       success: true,
       question: {
         id: expect.any(String),
@@ -184,7 +187,10 @@ export class QuestionControllerTestData {
       },
     }),
 
-    openQuestion: (assessmentId: string, argumentId?: string): QuestionControllerResponse => ({
+    openQuestion: (
+      assessmentId: string,
+      argumentId?: string,
+    ): QuestionControllerResponse => ({
       success: true,
       question: {
         id: expect.any(String),
@@ -304,9 +310,11 @@ export class QuestionControllerTestData {
   /**
    * Generate type mismatch scenario
    */
-  static getTypeMismatchScenario(assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA'): CreateQuestionDto {
+  static getTypeMismatchScenario(
+    assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
+  ): CreateQuestionDto {
     const scenarios = this.assessmentScenarios;
-    
+
     switch (assessmentType) {
       case 'QUIZ':
         return {
@@ -332,7 +340,8 @@ export class QuestionControllerTestData {
   /**
    * UUID regex pattern for validation
    */
-  static readonly UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  static readonly UUID_REGEX =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   /**
    * Get Question test data
@@ -496,7 +505,11 @@ export class QuestionControllerTestData {
    * Expected GetQuestion responses
    */
   static readonly getQuestionResponses = {
-    multipleChoice: (id: string, assessmentId: string, argumentId?: string): QuestionControllerResponse => ({
+    multipleChoice: (
+      id: string,
+      assessmentId: string,
+      argumentId?: string,
+    ): QuestionControllerResponse => ({
       success: true,
       question: {
         id,
@@ -509,7 +522,11 @@ export class QuestionControllerTestData {
       },
     }),
 
-    openQuestion: (id: string, assessmentId: string, argumentId?: string): QuestionControllerResponse => ({
+    openQuestion: (
+      id: string,
+      assessmentId: string,
+      argumentId?: string,
+    ): QuestionControllerResponse => ({
       success: true,
       question: {
         id,

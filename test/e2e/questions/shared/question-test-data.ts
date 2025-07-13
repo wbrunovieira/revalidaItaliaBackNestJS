@@ -700,7 +700,11 @@ export class QuestionTestData {
    * Expected GetQuestion responses
    */
   static readonly getQuestionResponses = {
-    multipleChoice: (id: string, assessmentId: string, argumentId?: string) => ({
+    multipleChoice: (
+      id: string,
+      assessmentId: string,
+      argumentId?: string,
+    ) => ({
       success: true,
       question: {
         id,

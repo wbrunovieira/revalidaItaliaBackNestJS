@@ -293,7 +293,7 @@ export class QuestionTestSetup {
    */
   async findQuestionsByText(text: string, assessmentId: string) {
     return await this.prisma.question.findMany({
-      where: { 
+      where: {
         text,
         assessmentId,
       },
@@ -367,14 +367,18 @@ export class QuestionTestSetup {
   /**
    * Get recommended question type for assessment type
    */
-  getRecommendedQuestionType(assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA'): 'MULTIPLE_CHOICE' | 'OPEN' {
+  getRecommendedQuestionType(
+    assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
+  ): 'MULTIPLE_CHOICE' | 'OPEN' {
     return assessmentType === 'PROVA_ABERTA' ? 'OPEN' : 'MULTIPLE_CHOICE';
   }
 
   /**
    * Get invalid question type for assessment type (for testing mismatches)
    */
-  getInvalidQuestionType(assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA'): 'MULTIPLE_CHOICE' | 'OPEN' {
+  getInvalidQuestionType(
+    assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
+  ): 'MULTIPLE_CHOICE' | 'OPEN' {
     return assessmentType === 'PROVA_ABERTA' ? 'MULTIPLE_CHOICE' : 'OPEN';
   }
 }

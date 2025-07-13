@@ -85,7 +85,9 @@ export class Answer extends Entity<AnswerProps> {
     return this.props.translations.find((t) => t.locale === locale);
   }
 
-  public update(props: Partial<Pick<AnswerProps, 'explanation' | 'correctOptionId'>>) {
+  public update(
+    props: Partial<Pick<AnswerProps, 'explanation' | 'correctOptionId'>>,
+  ) {
     if (props.explanation !== undefined) {
       this.updateExplanation(props.explanation);
     }
