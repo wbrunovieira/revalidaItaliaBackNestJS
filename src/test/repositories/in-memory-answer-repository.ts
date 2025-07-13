@@ -1,7 +1,7 @@
 // src/test/repositories/in-memory-answer-repository.ts
 import { Either, left, right } from '@/core/either';
 import { Answer } from '@/domain/assessment/enterprise/entities/answer.entity';
-import { IAnswerRepository } from '@/domain/assessment/application/repositories/i-answer.repository';
+import { IAnswerRepository, PaginatedAnswersResult } from '@/domain/assessment/application/repositories/i-answer.repository';
 
 export class InMemoryAnswerRepository implements IAnswerRepository {
   public items: Answer[] = [];
@@ -42,6 +42,33 @@ export class InMemoryAnswerRepository implements IAnswerRepository {
     answers.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     return right(answers);
+  }
+
+  async findAllPaginated(
+    limit: number,
+    offset: number,
+    questionId?: string,
+  ): Promise<Either<Error, PaginatedAnswersResult>> {
+    let filteredItems = [...this.items];
+
+    // Filter by questionId if provided
+    if (questionId) {
+      filteredItems = filteredItems.filter(
+        (item) => item.questionId.toString() === questionId,
+      );
+    }
+
+    // Sort by createdAt descending (most recent first)
+    filteredItems.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    // Apply pagination
+    const total = filteredItems.length;
+    const paginatedItems = filteredItems.slice(offset, offset + limit);
+
+    return right({
+      answers: paginatedItems,
+      total,
+    });
   }
 
   async update(answer: Answer): Promise<Either<Error, void>> {
