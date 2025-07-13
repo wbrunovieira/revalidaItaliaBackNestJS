@@ -8,7 +8,7 @@ Este documento define prompts específicos e padronizados para interações com 
 
 ### Prompt:
 
-"Crie uma nova entidade DDD seguindo os padrões do projeto. Utilize os exemplos fornecidos como referência, seguindo estrutura, métodos e validações. Pergunte caso haja dúvidas sobre as regras de negócio."
+"Leia o arquivo `project-reference-guide.md` e crie uma nova entidade DDD seguindo os padrões do projeto. Utilize os exemplos fornecidos como referência, seguindo estrutura, métodos e validações. Pergunte caso haja dúvidas sobre as regras de negócio. Importante: sempre refatore completamente o arquivo ao atualizá-lo."
 
 ### Arquivos de Referência:
 
@@ -21,7 +21,7 @@ Este documento define prompts específicos e padronizados para interações com 
 
 ### Prompt:
 
-"Crie a interface do repositório, a implementação Prisma e a implementação In-Memory, seguindo o padrão existente no projeto. Confirme antes se há métodos específicos que precisam ser incluídos ou excluídos."
+"Leia o arquivo `project-reference-guide.md` e crie a interface do repositório, a implementação Prisma e a implementação In-Memory, seguindo o padrão existente no projeto. Confirme antes se há métodos específicos que precisam ser incluídos ou excluídos. Importante: sempre refatore completamente os arquivos ao atualizá-los."
 
 ### Arquivos de Referência:
 
@@ -35,7 +35,7 @@ Este documento define prompts específicos e padronizados para interações com 
 
 ### Prompt:
 
-"Crie um novo Use-Case, incluindo DTOs necessários, schema de validação Zod, e testes unitários abrangendo casos de erro, edge cases e inputs inválidos. Antes de iniciar, valide se todos os métodos necessários existem nos repositórios, e caso necessário, sugira métodos adicionais."
+"Leia o arquivo `project-reference-guide.md` e crie um novo Use-Case, incluindo DTOs necessários, schema de validação Zod, e testes unitários abrangendo casos de erro, edge cases e inputs inválidos. Antes de iniciar, valide se todos os métodos necessários existem nos repositórios, e caso necessário, sugira métodos adicionais. Importante: sempre refatore completamente os arquivos ao atualizá-los."
 
 ### Arquivos de Referência:
 
@@ -53,7 +53,7 @@ Este documento define prompts específicos e padronizados para interações com 
 
 ### Prompt:
 
-"Crie ou atualize o Controller e a rota associada ao Use-Case especificado. Inclua as validações usando class-validator e crie os testes unitários para a rota. Confirme se há guards ou roles específicos necessários antes de prosseguir."
+"Leia o arquivo `project-reference-guide.md` e crie ou atualize o Controller e a rota associada ao Use-Case especificado. Inclua as validações usando class-validator e crie os testes unitários para a rota. Confirme se há guards ou roles específicos necessários antes de prosseguir. Importante: sempre refatore completamente os arquivos ao atualizá-los."
 
 ### Arquivos de Referência:
 
@@ -66,7 +66,7 @@ Este documento define prompts específicos e padronizados para interações com 
 
 ### Prompt:
 
-"Crie um teste E2E completo usando Vitest e Supertest para a nova rota criada. Garanta que cubra o fluxo feliz, cenários de erro e validações detalhadas. Antes de iniciar, confirme os cenários obrigatórios a serem testados."
+"Leia o arquivo `project-reference-guide.md` e crie um teste E2E completo usando Vitest e Supertest para a nova rota criada. Garanta que cubra o fluxo feliz, cenários de erro e validações detalhadas. Antes de iniciar, confirme os cenários obrigatórios a serem testados. Importante: sempre refatore completamente o arquivo ao atualizá-lo."
 
 ### Arquivos de Referência:
 
