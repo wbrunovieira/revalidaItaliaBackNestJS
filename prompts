@@ -38,6 +38,7 @@ Este documento define prompts específicos e padronizados para interações com 
 "Leia o arquivo `project-reference-guide.md` e crie um novo Use-Case, incluindo DTOs necessários, schema de validação Zod, e testes unitários abrangendo casos de erro, edge cases e inputs inválidos. Antes de iniciar, valide se todos os métodos necessários existem nos repositórios, e caso necessário, sugira métodos adicionais.
 
 **Após a criação:**
+
 1. **Registrar no Module:** Adicione o Use-Case no module correspondente seguindo o padrão do projeto
 2. **Executar teste:** Execute o teste com o comando `docker exec -it ead-backend-dev sh -c "pnpm test src/path/to/use-case.spec.ts"`
 
@@ -63,6 +64,7 @@ Importante: sempre refatore completamente os arquivos ao atualizá-los."
 
 **Verificações obrigatórias:**
 a) **Module:** Verifique se existe o module do controller. Se não existir, crie seguindo o padrão:
+
 ```typescript
 @Module({
   controllers: [ControllerName],
@@ -84,6 +86,7 @@ c) **Request file:** Verifique se existe arquivo em `requests/controller-name.ht
 d) **Dev setup:** Adicione a rota em `requests/dev-setup/` se necessário, refatorando o script para incluir a nova funcionalidade. Se modificar o dev-setup, execute o seed: `docker exec ead-backend-dev pnpm seed:dev`
 
 e) **Testar sistema:** Após todas as alterações, reinicie o sistema Docker para verificar se tudo está funcionando:
+
 ```bash
 docker compose -f compose.dev.yaml down && docker compose -f compose.dev.yaml build --no-cache && docker compose -f compose.dev.yaml up -d && docker compose -f compose.dev.yaml logs -f
 ```
