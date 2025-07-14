@@ -7,4 +7,22 @@ Content-Type: application/json
   "assessmentId": "550e8400-e29b-41d4-a716-446655440002"
 }
 
+### Submit Answer (Multiple Choice)
+POST http://localhost:3000/attempts/550e8400-e29b-41d4-a716-446655440010/answers
+Content-Type: application/json
+
+{
+  "questionId": "550e8400-e29b-41d4-a716-446655440020",
+  "selectedOptionId": "550e8400-e29b-41d4-a716-446655440021"
+}
+
+### Submit Answer (Open Question)
+POST http://localhost:3000/attempts/550e8400-e29b-41d4-a716-446655440010/answers
+Content-Type: application/json
+
+{
+  "questionId": "550e8400-e29b-41d4-a716-446655440022",
+  "textAnswer": "This is my answer to the open question."
+}
+
 ###

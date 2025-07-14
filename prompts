@@ -60,49 +60,6 @@ Importante: sempre refatore completamente os arquivos ao atualizá-los."
 
 ### Prompt:
 
-"Leia o arquivo `project-reference-guide.md` e crie ou atualize o Controller e a rota associada ao Use-Case especificado. Inclua as validações usando class-validator e crie os testes unitários para a rota.
-
-**Verificações obrigatórias:**
-a) **Module:** Verifique se existe o module do controller. Se não existir, crie seguindo o padrão:
-
-```typescript
-@Module({
-  controllers: [ControllerName],
-  providers: [
-    UseCaseName,
-    {
-      provide: 'RepositoryInterface',
-      useClass: PrismaRepositoryImplementation,
-    },
-  ],
-})
-export class ModuleName {}
-```
-
-b) **Executar teste:** Após criação, execute `docker exec -it ead-backend-dev sh -c "pnpm test src/infra/controllers/tests/controller-name/verb-controller.spec.ts"`
-
-c) **Request file:** Verifique se existe arquivo em `requests/controller-name.http` e adicione a rota de forma simples, seguindo o padrão existente
-
-d) **Dev setup:** Adicione a rota em `requests/dev-setup/` se necessário, refatorando o script para incluir a nova funcionalidade. Se modificar o dev-setup, execute o seed: `docker exec ead-backend-dev pnpm seed:dev`
-
-e) **Testar sistema:** Após todas as alterações, reinicie o sistema Docker para verificar se tudo está funcionando:
-
-**Estrutura de testes:** Se ainda não existir, crie o diretório `shared/` dentro de `src/infra/controllers/tests/<controller-name>/` contendo:
-
-- `*-controller-test-setup.ts` (configuração de mocks e instâncias)
-- `*-controller-test-helpers.ts` (métodos auxiliares para testes)
-- `*-controller-test-data.ts` (dados de teste organizados)
-
-Crie um arquivo específico para cada verbo HTTP (ex: `get-*.controller.spec.ts`, `post-*.controller.spec.ts`, `put-*.controller.spec.ts`, `delete-*.controller.spec.ts`) seguindo o padrão estabelecido no projeto.
-
-Importante: sempre refatore completamente os arquivos ao atualizá-los."
-
-### Arquivos de Referência:
-
-- `src/infra/controllers/*.controller.ts`
-- `src/infra/controllers/tests/<controller-name>/shared/*.ts`
-- `src/infra/controllers/tests/<controller-name>/<verb>-*.controller.spec.ts`
-
 ---
 
 ## 5. Criar Teste E2E

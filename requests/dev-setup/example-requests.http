@@ -410,38 +410,31 @@ Content-Type: application/json
   "assessmentId": "{{assessmentId3}}"
 }
 
-### Test Error - Invalid User ID - IMPLEMENTED ✅
-POST {{baseUrl}}/attempts/start
+### Submit Answer (Multiple Choice) - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/{{attemptId}}/answers
 Content-Type: application/json
 
 {
-  "userId": "invalid-uuid",
-  "assessmentId": "{{assessmentId}}"
+  "questionId": "{{questionId}}",
+  "selectedOptionId": "{{questionId1Option1}}"
 }
 
-### Test Error - Invalid Assessment ID - IMPLEMENTED ✅
-POST {{baseUrl}}/attempts/start
+### Submit Answer (Open Question) - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/{{attemptId}}/answers
 Content-Type: application/json
 
 {
-  "userId": "{{userId}}",
-  "assessmentId": "invalid-uuid"
+  "questionId": "{{questionId3}}",
+  "textAnswer": "Esta é minha resposta detalhada para a questão aberta sobre hipertensão arterial. A hipertensão é uma condição caracterizada por pressão arterial elevada e requer acompanhamento médico adequado."
 }
 
-### Test Error - User Not Found - IMPLEMENTED ✅
-POST {{baseUrl}}/attempts/start
+### Submit Answer - Update Existing Answer - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/{{attemptId}}/answers
 Content-Type: application/json
 
 {
-  "userId": "00000000-0000-0000-0000-000000000000",
-  "assessmentId": "{{assessmentId}}"
+  "questionId": "{{questionId}}",
+  "selectedOptionId": "{{questionId1Option2}}"
 }
 
-### Test Error - Assessment Not Found - IMPLEMENTED ✅
-POST {{baseUrl}}/attempts/start
-Content-Type: application/json
 
-{
-  "userId": "{{userId}}",
-  "assessmentId": "00000000-0000-0000-0000-000000000000"
-}

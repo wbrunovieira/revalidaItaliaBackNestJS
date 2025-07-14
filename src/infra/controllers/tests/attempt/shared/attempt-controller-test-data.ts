@@ -1,6 +1,8 @@
 // src/infra/controllers/tests/attempt/shared/attempt-controller-test-data.ts
 import { StartAttemptDto } from '@/domain/assessment/application/dtos/start-attempt.dto';
+import { SubmitAnswerDto } from '@/domain/assessment/application/dtos/submit-answer.dto';
 import { StartAttemptResponse } from '@/domain/assessment/application/dtos/start-attempt-response.dto';
+import { SubmitAnswerResponse } from '@/domain/assessment/application/dtos/submit-answer-response.dto';
 
 export class AttemptControllerTestData {
   static readonly validStartAttemptDto = (): StartAttemptDto => ({
@@ -124,6 +126,88 @@ export class AttemptControllerTestData {
     repositoryError: {
       error: 'INTERNAL_ERROR',
       message: 'Database connection failed',
+    },
+  };
+
+  // SubmitAnswer test data
+  static readonly validSubmitAnswerDto = {
+    multipleChoice: (): SubmitAnswerDto => ({
+      questionId: '550e8400-e29b-41d4-a716-446655440020',
+      selectedOptionId: '550e8400-e29b-41d4-a716-446655440021',
+    }),
+
+    openQuestion: (): SubmitAnswerDto => ({
+      questionId: '550e8400-e29b-41d4-a716-446655440022',
+      textAnswer: 'This is my answer to the open question.',
+    }),
+  };
+
+  static readonly invalidSubmitAnswerDto = {
+    invalidQuestionId: (): any => ({
+      questionId: 'invalid-uuid',
+      selectedOptionId: '550e8400-e29b-41d4-a716-446655440021',
+    }),
+
+    missingQuestionId: (): any => ({
+      selectedOptionId: '550e8400-e29b-41d4-a716-446655440021',
+    }),
+
+    neitherAnswerType: (): any => ({
+      questionId: '550e8400-e29b-41d4-a716-446655440020',
+    }),
+  };
+
+  static readonly mockSubmitAnswerResponse = {
+    multipleChoice: (): SubmitAnswerResponse => ({
+      attemptAnswer: {
+        id: '550e8400-e29b-41d4-a716-446655440030',
+        selectedOptionId: '550e8400-e29b-41d4-a716-446655440021',
+        status: 'IN_PROGRESS',
+        isCorrect: true,
+        attemptId: '550e8400-e29b-41d4-a716-446655440010',
+        questionId: '550e8400-e29b-41d4-a716-446655440020',
+        createdAt: new Date('2023-01-01T10:05:00Z'),
+        updatedAt: new Date('2023-01-01T10:05:00Z'),
+      },
+    }),
+
+    openQuestion: (): SubmitAnswerResponse => ({
+      attemptAnswer: {
+        id: '550e8400-e29b-41d4-a716-446655440031',
+        textAnswer: 'This is my answer to the open question.',
+        status: 'IN_PROGRESS',
+        attemptId: '550e8400-e29b-41d4-a716-446655440010',
+        questionId: '550e8400-e29b-41d4-a716-446655440022',
+        createdAt: new Date('2023-01-01T10:06:00Z'),
+        updatedAt: new Date('2023-01-01T10:06:00Z'),
+      },
+    }),
+  };
+
+  static readonly submitAnswerErrorResponses = {
+    invalidInput: {
+      error: 'INVALID_INPUT',
+      message: 'Invalid input data',
+    },
+
+    attemptNotFound: {
+      error: 'ATTEMPT_NOT_FOUND',
+      message: 'Attempt not found',
+    },
+
+    attemptNotActive: {
+      error: 'ATTEMPT_NOT_ACTIVE',
+      message: 'Attempt is not active',
+    },
+
+    questionNotFound: {
+      error: 'QUESTION_NOT_FOUND',
+      message: 'Question not found',
+    },
+
+    invalidAnswerType: {
+      error: 'INVALID_ANSWER_TYPE',
+      message: 'Multiple choice questions require selectedOptionId',
     },
   };
 }
