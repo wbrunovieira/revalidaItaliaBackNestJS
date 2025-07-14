@@ -53,12 +53,22 @@ Este documento define prompts específicos e padronizados para interações com 
 
 ### Prompt:
 
-"Leia o arquivo `project-reference-guide.md` e crie ou atualize o Controller e a rota associada ao Use-Case especificado. Inclua as validações usando class-validator e crie os testes unitários para a rota. Confirme se há guards ou roles específicos necessários antes de prosseguir. Importante: sempre refatore completamente os arquivos ao atualizá-los."
+"Leia o arquivo `project-reference-guide.md` e crie ou atualize o Controller e a rota associada ao Use-Case especificado. Inclua as validações usando class-validator e crie os testes unitários para a rota. 
+
+**Estrutura de testes:** Se ainda não existir, crie o diretório `shared/` dentro de `src/infra/controllers/tests/<controller-name>/` contendo:
+- `*-controller-test-setup.ts` (configuração de mocks e instâncias)
+- `*-controller-test-helpers.ts` (métodos auxiliares para testes)
+- `*-controller-test-data.ts` (dados de teste organizados)
+
+Crie um arquivo específico para cada verbo HTTP (ex: `get-*.controller.spec.ts`, `post-*.controller.spec.ts`, `put-*.controller.spec.ts`, `delete-*.controller.spec.ts`) seguindo o padrão estabelecido no projeto.
+
+Importante: sempre refatore completamente os arquivos ao atualizá-los."
 
 ### Arquivos de Referência:
 
 - `src/infra/controllers/*.controller.ts`
-- `src/infra/controllers/*.controller.spec.ts`
+- `src/infra/controllers/tests/<controller-name>/shared/*.ts`
+- `src/infra/controllers/tests/<controller-name>/<verb>-*.controller.spec.ts`
 
 ---
 
@@ -66,12 +76,19 @@ Este documento define prompts específicos e padronizados para interações com 
 
 ### Prompt:
 
-"Leia o arquivo `project-reference-guide.md` e crie um teste E2E completo usando Vitest e Supertest para a nova rota criada. Garanta que cubra o fluxo feliz, cenários de erro e validações detalhadas. Antes de iniciar, confirme os cenários obrigatórios a serem testados. Importante: sempre refatore completamente o arquivo ao atualizá-lo."
+"Leia o arquivo `project-reference-guide.md` e crie um teste E2E completo usando Vitest e Supertest para a nova rota criada. Garanta que cubra o fluxo feliz, cenários de erro e validações detalhadas. 
+
+**Estrutura de testes E2E:** Se ainda não existir, crie o diretório `<controller-name>/` dentro de `test/e2e/` contendo:
+- `shared/` com arquivos auxiliares para setup, helpers e dados de teste
+- Um arquivo específico para cada verbo HTTP (ex: `get-*.e2e.spec.ts`, `post-*.e2e.spec.ts`, `put-*.e2e.spec.ts`, `delete-*.e2e.spec.ts`)
+
+Antes de iniciar, confirme os cenários obrigatórios a serem testados. Importante: sempre refatore completamente o arquivo ao atualizá-lo."
 
 ### Arquivos de Referência:
 
-- `test/e2e/*.e2e.spec.ts`
-- `test/e2e/shared/*.ts`
+- `test/e2e/<controller-name>/<verb>-*.e2e.spec.ts`
+- `test/e2e/<controller-name>/shared/*.ts`
+- `test/e2e/shared/*.ts` (utilitários globais)
 
 ---
 
