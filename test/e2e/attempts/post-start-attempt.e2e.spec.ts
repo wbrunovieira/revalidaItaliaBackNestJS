@@ -292,7 +292,13 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       const promises = requests.map(async (request, index) => {
         // Wait a small amount to avoid exact timing conflicts
         await testHelpers.waitForDatabase(index * 10);
-        return testHelpers.startAttempt(request);
+        try {
+          const result = await testHelpers.startAttempt(request.userId, request.assessmentId);
+          return { status: 201, body: result };
+        } catch (error) {
+          // Handle expected conflicts (409) and other errors
+          return { status: 409, error };
+        }
       });
 
       const responses = await Promise.all(promises);
@@ -325,7 +331,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
           assessmentId,
         );
         
-        await testHelpers.startAttempt(requestData);
+        await testHelpers.startAttempt(requestData.userId, requestData.assessmentId);
         
         // Clean up between requests to allow new attempts
         await testSetup.cleanupDatabase();

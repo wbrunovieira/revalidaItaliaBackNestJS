@@ -456,14 +456,30 @@ describe('SubmitAttemptUseCase', () => {
     it('should return AttemptExpiredError when time limit has expired', async () => {
       // Arrange
       const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
+      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
       const pastTime = new Date(Date.now() - 60000); // 1 minute ago
+
+      // Create a SIMULADO assessment (allows time limit checking)
+      const assessment = Assessment.create({
+        slug: 'test-simulado',
+        title: 'Test Simulado',
+        description: 'Test simulado assessment',
+        type: 'SIMULADO',
+        passingScore: 70,
+        timeLimitInMinutes: 60,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+        lessonId: '550e8400-e29b-41d4-a716-446655440002',
+      }, assessmentId);
+
+      await assessmentRepository.create(assessment);
 
       const attempt = Attempt.create({
         status: new AttemptStatusVO('IN_PROGRESS'),
         startedAt: new Date(),
         timeLimitExpiresAt: pastTime,
         userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440001',
+        assessmentId: assessmentId.toString(),
       }, attemptId);
 
       await attemptRepository.create(attempt);

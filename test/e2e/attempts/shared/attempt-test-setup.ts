@@ -5,15 +5,22 @@ import { Module } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../../src/prisma/prisma.service';
 import { StartAttemptUseCase } from '../../../../src/domain/assessment/application/use-cases/start-attempt.use-case';
+import { SubmitAnswerUseCase } from '../../../../src/domain/assessment/application/use-cases/submit-answer.use-case';
+import { SubmitAttemptUseCase } from '../../../../src/domain/assessment/application/use-cases/submit-attempt.use-case';
 import { AttemptController } from '../../../../src/infra/controllers/attempt.controller';
 import { PrismaAttemptRepository } from '../../../../src/infra/database/prisma/repositories/prisma-attempt-repository';
 import { PrismaAssessmentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-assessment-repository';
 import { PrismaAccountRepository } from '../../../../src/infra/database/prisma/repositories/prisma-account-repositories';
+import { PrismaQuestionRepository } from '../../../../src/infra/database/prisma/repositories/prisma-question-repository';
+import { PrismaAttemptAnswerRepository } from '../../../../src/infra/database/prisma/repositories/prisma-attempt-answer-repository';
+import { PrismaAnswerRepository } from '../../../../src/infra/database/prisma/repositories/prisma-answer-repository';
 
 @Module({
   controllers: [AttemptController],
   providers: [
     StartAttemptUseCase,
+    SubmitAnswerUseCase,
+    SubmitAttemptUseCase,
     PrismaService,
     {
       provide: 'AttemptRepository',
@@ -27,6 +34,18 @@ import { PrismaAccountRepository } from '../../../../src/infra/database/prisma/r
       provide: 'AccountRepository',
       useClass: PrismaAccountRepository,
     },
+    {
+      provide: 'QuestionRepository',
+      useClass: PrismaQuestionRepository,
+    },
+    {
+      provide: 'AttemptAnswerRepository',
+      useClass: PrismaAttemptAnswerRepository,
+    },
+    {
+      provide: 'AnswerRepository',
+      useClass: PrismaAnswerRepository,
+    },
   ],
 })
 export class TestAttemptModule {}
@@ -34,25 +53,25 @@ export class TestAttemptModule {}
 export class AttemptTestSetup {
   public app: INestApplication;
   public prisma: PrismaService;
-  
+
   // Base structure IDs
   public courseId: string;
   public moduleId: string;
   public lessonId: string;
-  
+
   // Assessment IDs
   public quizAssessmentId: string;
   public simuladoAssessmentId: string;
   public provaAbertaAssessmentId: string;
-  
+
   // User IDs
   public studentUserId: string;
   public tutorUserId: string;
-  
+
   // Question IDs (for creating assessments)
   public multipleChoiceQuestionId: string;
   public openQuestionId: string;
-  
+
   // Attempt IDs (created during tests)
   public attemptId: string;
 
@@ -81,7 +100,7 @@ export class AttemptTestSetup {
 
     // Create base structure: Course > Module > Lesson > Assessments
     await this.createBaseCourseStructure();
-    
+
     // Create assessments
     await this.createTestAssessments();
   }
@@ -157,7 +176,11 @@ export class AttemptTestSetup {
           create: [
             { locale: 'pt', title: 'Aula de Teste', description: 'Desc PT' },
             { locale: 'it', title: 'Lezione di Test', description: 'Desc IT' },
-            { locale: 'es', title: 'Lección de Prueba', description: 'Desc ES' },
+            {
+              locale: 'es',
+              title: 'Lección de Prueba',
+              description: 'Desc ES',
+            },
           ],
         },
       },
@@ -244,12 +267,15 @@ export class AttemptTestSetup {
 
     try {
       // Clean up in correct order to respect foreign keys
+      await this.prisma.attemptAnswer.deleteMany({});
       await this.prisma.attempt.deleteMany({});
       await this.prisma.answerTranslation.deleteMany({});
       await this.prisma.answer.deleteMany({});
       await this.prisma.questionOption.deleteMany({});
       await this.prisma.question.deleteMany({});
       await this.prisma.assessment.deleteMany({});
+      // Delete lesson documents before lessons
+      await this.prisma.lessonDocument.deleteMany({});
       await this.prisma.lessonTranslation.deleteMany({});
       await this.prisma.lesson.deleteMany({});
       await this.prisma.moduleTranslation.deleteMany({});
@@ -307,7 +333,10 @@ export class AttemptTestSetup {
   /**
    * Create an active attempt for testing conflicts
    */
-  async createActiveAttempt(userId: string, assessmentId: string): Promise<string> {
+  async createActiveAttempt(
+    userId: string,
+    assessmentId: string,
+  ): Promise<string> {
     const attempt = await this.prisma.attempt.create({
       data: {
         status: 'IN_PROGRESS',
@@ -345,5 +374,193 @@ export class AttemptTestSetup {
    */
   async wait(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Create user with specific role
+   */
+  async createUser(role: 'student' | 'tutor' | 'admin'): Promise<any> {
+    return await this.prisma.user.create({
+      data: {
+        id: randomUUID(),
+        name: `Test ${role}`,
+        email: `${role}_${randomUUID()}@test.com`,
+        password: 'hashed_password',
+        cpf: `${Math.random().toString().slice(2, 13)}`,
+        role,
+      },
+    });
+  }
+
+  /**
+   * Create assessment with questions
+   */
+  async createAssessmentWithQuestions(
+    type: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
+    options: {
+      numberOfQuestions: number;
+      allMultipleChoice?: boolean;
+      allOpenQuestions?: boolean;
+      mixedQuestionTypes?: boolean;
+      timeLimitInMinutes?: number;
+    },
+  ): Promise<any> {
+    // Ensure base structure exists
+    if (!this.lessonId) {
+      await this.createBaseCourseStructure();
+    }
+    
+
+    const assessment = await this.prisma.assessment.create({
+      data: {
+        slug: `test-${type.toLowerCase()}-${randomUUID()}`,
+        title: `Test ${type} Assessment`,
+        description: `${type} for testing`,
+        type,
+        passingScore: 70,
+        ...(options.timeLimitInMinutes && { timeLimitInMinutes: options.timeLimitInMinutes }),
+        randomizeQuestions: type === 'SIMULADO',
+        randomizeOptions: type === 'SIMULADO',
+        lessonId: this.lessonId,
+      },
+    });
+
+    const questions: any[] = [];
+
+    for (let i = 0; i < options.numberOfQuestions; i++) {
+      let questionType: 'MULTIPLE_CHOICE' | 'OPEN' = 'MULTIPLE_CHOICE';
+
+      if (options.allOpenQuestions) {
+        questionType = 'OPEN';
+      } else if (options.mixedQuestionTypes) {
+        questionType = i % 2 === 0 ? 'MULTIPLE_CHOICE' : 'OPEN';
+      }
+
+      const question = await this.prisma.question.create({
+        data: {
+          text: `Question ${i + 1} for ${assessment.id}`,
+          type: questionType,
+          assessmentId: assessment.id,
+        },
+      });
+
+      if (questionType === 'MULTIPLE_CHOICE') {
+        const questionOptions: any[] = [];
+        const correctOptionIndex = Math.floor(Math.random() * 4);
+
+        for (let j = 0; j < 4; j++) {
+          const option = await this.prisma.questionOption.create({
+            data: {
+              text: `Option ${j + 1}`,
+              questionId: question.id,
+            },
+          });
+          questionOptions.push(option);
+        }
+
+        // Create answer with correct option
+        await this.prisma.answer.create({
+          data: {
+            questionId: question.id,
+            correctOptionId: questionOptions[correctOptionIndex].id,
+            explanation: `Explanation for question ${i + 1}`,
+          },
+        });
+
+        // Add options and correctOptionId as additional properties
+        (question as any).options = questionOptions;
+        (question as any).correctOptionId = questionOptions[correctOptionIndex].id;
+      } else {
+        // For open questions, create answer with expected content
+        await this.prisma.answer.create({
+          data: {
+            questionId: question.id,
+            explanation: `Expected answer criteria for open question ${i + 1}`,
+          },
+        });
+      }
+
+      questions.push(question);
+    }
+
+    // Add questions as additional property
+    (assessment as any).questions = questions;
+    return assessment;
+  }
+
+  /**
+   * Delete assessment
+   */
+  async deleteAssessment(assessmentId: string): Promise<void> {
+    // Delete dependent records first to respect foreign key constraints
+    await this.prisma.attemptAnswer.deleteMany({
+      where: {
+        attempt: {
+          assessmentId: assessmentId,
+        },
+      },
+    });
+    await this.prisma.attempt.deleteMany({
+      where: { assessmentId: assessmentId },
+    });
+    await this.prisma.answer.deleteMany({
+      where: {
+        question: {
+          assessmentId: assessmentId,
+        },
+      },
+    });
+    await this.prisma.questionOption.deleteMany({
+      where: {
+        question: {
+          assessmentId: assessmentId,
+        },
+      },
+    });
+    await this.prisma.question.deleteMany({
+      where: { assessmentId: assessmentId },
+    });
+    await this.prisma.assessment.delete({
+      where: { id: assessmentId },
+    });
+  }
+
+  /**
+   * Create a graded attempt
+   */
+  async createGradedAttempt(
+    userId: string,
+    assessmentId: string,
+  ): Promise<any> {
+    return await this.prisma.attempt.create({
+      data: {
+        status: 'GRADED',
+        startedAt: new Date(Date.now() - 3600000), // 1 hour ago
+        submittedAt: new Date(Date.now() - 1800000), // 30 minutes ago
+        gradedAt: new Date(Date.now() - 900000), // 15 minutes ago
+        userId,
+        assessmentId,
+      },
+    });
+  }
+
+  /**
+   * Expire an attempt (simulate time limit expiration)
+   */
+  async expireAttempt(attemptId: string): Promise<void> {
+    const pastDate = new Date(Date.now() - 7200000); // 2 hours ago
+    await this.prisma.attempt.update({
+      where: { id: attemptId },
+      data: {
+        timeLimitExpiresAt: pastDate,
+      },
+    });
+  }
+
+  /**
+   * Initialize the test setup
+   */
+  async init(): Promise<void> {
+    await this.initialize();
   }
 }

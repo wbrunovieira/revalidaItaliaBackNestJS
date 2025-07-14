@@ -71,12 +71,7 @@ export class SubmitAttemptUseCase {
         return left(new AttemptNotActiveError());
       }
 
-      // Check if attempt has expired (for time-limited assessments)
-      if (attempt.hasTimeLimit() && attempt.isExpired()) {
-        return left(new AttemptExpiredError());
-      }
-
-      // Get assessment to determine type
+      // Get assessment to determine type first
       const assessmentResult = await this.assessmentRepository.findById(
         attempt.assessmentId,
       );
@@ -85,6 +80,11 @@ export class SubmitAttemptUseCase {
       }
 
       const assessment = assessmentResult.value;
+
+      // Check if attempt has expired (only for time-limited assessments like SIMULADO)
+      if (assessment.type === 'SIMULADO' && attempt.hasTimeLimit() && attempt.isExpired()) {
+        return left(new AttemptExpiredError());
+      }
 
       // Get all answers for this attempt
       const answersResult =
