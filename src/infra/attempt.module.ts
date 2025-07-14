@@ -3,11 +3,13 @@ import { Module } from '@nestjs/common';
 
 import { StartAttemptUseCase } from '@/domain/assessment/application/use-cases/start-attempt.use-case';
 import { SubmitAnswerUseCase } from '@/domain/assessment/application/use-cases/submit-answer.use-case';
+import { SubmitAttemptUseCase } from '@/domain/assessment/application/use-cases/submit-attempt.use-case';
 import { PrismaAttemptRepository } from '@/infra/database/prisma/repositories/prisma-attempt-repository';
 import { PrismaAssessmentRepository } from '@/infra/database/prisma/repositories/prisma-assessment-repository';
 import { PrismaAccountRepository } from '@/infra/database/prisma/repositories/prisma-account-repositories';
 import { PrismaQuestionRepository } from '@/infra/database/prisma/repositories/prisma-question-repository';
 import { PrismaAttemptAnswerRepository } from '@/infra/database/prisma/repositories/prisma-attempt-answer-repository';
+import { PrismaAnswerRepository } from '@/infra/database/prisma/repositories/prisma-answer-repository';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { AttemptController } from './controllers/attempt.controller';
 
@@ -17,6 +19,7 @@ import { AttemptController } from './controllers/attempt.controller';
   providers: [
     StartAttemptUseCase,
     SubmitAnswerUseCase,
+    SubmitAttemptUseCase,
     {
       provide: 'AttemptRepository',
       useClass: PrismaAttemptRepository,
@@ -37,6 +40,10 @@ import { AttemptController } from './controllers/attempt.controller';
       provide: 'AttemptAnswerRepository',
       useClass: PrismaAttemptAnswerRepository,
     },
+    {
+      provide: 'AnswerRepository',
+      useClass: PrismaAnswerRepository,
+    },
   ],
   exports: [
     'AttemptRepository',
@@ -44,6 +51,7 @@ import { AttemptController } from './controllers/attempt.controller';
     'AttemptAnswerRepository',
     StartAttemptUseCase,
     SubmitAnswerUseCase,
+    SubmitAttemptUseCase,
   ],
 })
 export class AttemptModule {}

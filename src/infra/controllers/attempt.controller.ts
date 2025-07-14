@@ -2,8 +2,10 @@
 
 import { StartAttemptDto } from '@/domain/assessment/application/dtos/start-attempt.dto';
 import { SubmitAnswerDto } from '@/domain/assessment/application/dtos/submit-answer.dto';
+import { SubmitAttemptParamDto } from '@/domain/assessment/application/dtos/submit-attempt-param.dto';
 import { StartAttemptUseCase } from '@/domain/assessment/application/use-cases/start-attempt.use-case';
 import { SubmitAnswerUseCase } from '@/domain/assessment/application/use-cases/submit-answer.use-case';
+import { SubmitAttemptUseCase } from '@/domain/assessment/application/use-cases/submit-attempt.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { UserNotFoundError } from '@/domain/assessment/application/use-cases/errors/user-not-found-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
@@ -12,6 +14,8 @@ import { AttemptNotFoundError } from '@/domain/assessment/application/use-cases/
 import { AttemptNotActiveError } from '@/domain/assessment/application/use-cases/errors/attempt-not-active-error';
 import { QuestionNotFoundError } from '@/domain/assessment/application/use-cases/errors/question-not-found-error';
 import { InvalidAnswerTypeError } from '@/domain/assessment/application/use-cases/errors/invalid-answer-type-error';
+import { NoAnswersFoundError } from '@/domain/assessment/application/use-cases/errors/no-answers-found-error';
+import { AttemptExpiredError } from '@/domain/assessment/application/use-cases/errors/attempt-expired-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
 import {
   Controller,
@@ -32,6 +36,8 @@ export class AttemptController {
     private readonly startAttemptUseCase: StartAttemptUseCase,
     @Inject(SubmitAnswerUseCase)
     private readonly submitAnswerUseCase: SubmitAnswerUseCase,
+    @Inject(SubmitAttemptUseCase)
+    private readonly submitAttemptUseCase: SubmitAttemptUseCase,
   ) {}
 
   @Post('start')
@@ -139,6 +145,77 @@ export class AttemptController {
         throw new BadRequestException({
           error: 'INVALID_ANSWER_TYPE',
           message: error.message,
+        });
+      }
+
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException({
+          error: 'INTERNAL_ERROR',
+          message: error.message,
+        });
+      }
+
+      // Fallback para erros não mapeados
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: 'Unexpected error occurred',
+      });
+    }
+
+    return result.value;
+  }
+
+  @Post(':id/submit')
+  async submitAttempt(@Param() params: SubmitAttemptParamDto) {
+    const request = {
+      attemptId: params.id,
+    };
+
+    const result = await this.submitAttemptUseCase.execute(request);
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof AttemptNotFoundError) {
+        throw new NotFoundException({
+          error: 'ATTEMPT_NOT_FOUND',
+          message: 'Attempt not found',
+        });
+      }
+
+      if (error instanceof AttemptNotActiveError) {
+        throw new BadRequestException({
+          error: 'ATTEMPT_NOT_ACTIVE',
+          message: 'Attempt is not active',
+        });
+      }
+
+      if (error instanceof AssessmentNotFoundError) {
+        throw new NotFoundException({
+          error: 'ASSESSMENT_NOT_FOUND',
+          message: 'Assessment not found',
+        });
+      }
+
+      if (error instanceof NoAnswersFoundError) {
+        throw new BadRequestException({
+          error: 'NO_ANSWERS_FOUND',
+          message: 'No answers found for this attempt',
+        });
+      }
+
+      if (error instanceof AttemptExpiredError) {
+        throw new BadRequestException({
+          error: 'ATTEMPT_EXPIRED',
+          message: 'Attempt has expired',
         });
       }
 

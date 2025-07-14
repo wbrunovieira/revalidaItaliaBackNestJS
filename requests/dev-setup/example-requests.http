@@ -437,4 +437,6 @@ Content-Type: application/json
   "selectedOptionId": "{{questionId1Option2}}"
 }
 
+### Submit Attempt - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/{{attemptId}}/submit
 

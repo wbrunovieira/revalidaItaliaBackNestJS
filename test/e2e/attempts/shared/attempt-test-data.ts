@@ -6,6 +6,10 @@ export interface StartAttemptRequestData {
   assessmentId: string;
 }
 
+export interface SubmitAttemptRequestData {
+  id: string; // attemptId as path parameter
+}
+
 export class AttemptTestData {
   /**
    * Valid start attempt requests
@@ -252,6 +256,110 @@ export class AttemptTestData {
   };
 
   /**
+   * Valid submit attempt requests
+   */
+  static readonly validSubmitRequests = {
+    withActiveAttempt: (attemptId: string): SubmitAttemptRequestData => ({
+      id: attemptId,
+    }),
+  };
+
+  /**
+   * Invalid submit attempt path parameters
+   */
+  static readonly invalidSubmitRequests = {
+    invalidAttemptId: (): any => ({
+      id: 'invalid-uuid-format',
+    }),
+
+    emptyAttemptId: (): any => ({
+      id: '',
+    }),
+
+    missingAttemptId: (): any => ({}),
+
+    nullAttemptId: (): any => ({
+      id: null,
+    }),
+
+    undefinedAttemptId: (): any => ({
+      id: undefined,
+    }),
+
+    numberAttemptId: (): any => ({
+      id: 123456,
+    }),
+
+    booleanAttemptId: (): any => ({
+      id: true,
+    }),
+
+    objectAttemptId: (): any => ({
+      id: { id: '550e8400-e29b-41d4-a716-446655440001' },
+    }),
+
+    arrayAttemptId: (): any => ({
+      id: ['550e8400-e29b-41d4-a716-446655440001'],
+    }),
+  };
+
+  /**
+   * Non-existent submit attempt requests
+   */
+  static readonly nonExistentSubmitRequests = {
+    nonExistentAttempt: (): SubmitAttemptRequestData => ({
+      id: '30000000-0000-4000-8000-000000000000',
+    }),
+
+    randomAttempt: (): SubmitAttemptRequestData => ({
+      id: randomUUID(),
+    }),
+  };
+
+  /**
+   * Expected submit attempt success responses
+   */
+  static readonly expectedSubmitSuccessResponse = {
+    attempt: {
+      id: expect.any(String),
+      status: expect.stringMatching(/^(SUBMITTED|GRADED)$/),
+      startedAt: expect.any(String),
+      submittedAt: expect.any(String),
+      userId: expect.any(String),
+      assessmentId: expect.any(String),
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    },
+    summary: {
+      totalQuestions: expect.any(Number),
+      answeredQuestions: expect.any(Number),
+      scorePercentage: expect.any(Number),
+    },
+  };
+
+  /**
+   * Expected submit attempt success response with open questions
+   */
+  static readonly expectedSubmitSuccessResponseOpenQuestions = {
+    attempt: {
+      id: expect.any(String),
+      status: 'SUBMITTED',
+      startedAt: expect.any(String),
+      submittedAt: expect.any(String),
+      userId: expect.any(String),
+      assessmentId: expect.any(String),
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    },
+    summary: {
+      totalQuestions: expect.any(Number),
+      answeredQuestions: expect.any(Number),
+      correctAnswers: undefined,
+      scorePercentage: undefined,
+    },
+  };
+
+  /**
    * Expected error responses
    */
   static readonly expectedErrorResponses = {
@@ -278,6 +386,26 @@ export class AttemptTestData {
     internalError: {
       error: 'INTERNAL_ERROR',
       message: expect.any(String),
+    },
+
+    attemptNotFound: {
+      error: 'ATTEMPT_NOT_FOUND',
+      message: 'Attempt not found',
+    },
+
+    attemptNotActive: {
+      error: 'ATTEMPT_NOT_ACTIVE',
+      message: 'Attempt is not active',
+    },
+
+    noAnswersFound: {
+      error: 'NO_ANSWERS_FOUND',
+      message: 'No answers found for this attempt',
+    },
+
+    attemptExpired: {
+      error: 'ATTEMPT_EXPIRED',
+      message: 'Attempt has expired',
     },
   };
 

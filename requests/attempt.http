@@ -25,4 +25,7 @@ Content-Type: application/json
   "textAnswer": "This is my answer to the open question."
 }
 
+### Submit Attempt
+POST http://localhost:3000/attempts/550e8400-e29b-41d4-a716-446655440010/submit
+
 ###

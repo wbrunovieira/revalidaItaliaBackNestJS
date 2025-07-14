@@ -1,8 +1,10 @@
 // src/infra/controllers/tests/attempt/shared/attempt-controller-test-data.ts
 import { StartAttemptDto } from '@/domain/assessment/application/dtos/start-attempt.dto';
 import { SubmitAnswerDto } from '@/domain/assessment/application/dtos/submit-answer.dto';
+import { SubmitAttemptParamDto } from '@/domain/assessment/application/dtos/submit-attempt-param.dto';
 import { StartAttemptResponse } from '@/domain/assessment/application/dtos/start-attempt-response.dto';
 import { SubmitAnswerResponse } from '@/domain/assessment/application/dtos/submit-answer-response.dto';
+import { SubmitAttemptResponse } from '@/domain/assessment/application/dtos/submit-attempt-response.dto';
 
 export class AttemptControllerTestData {
   static readonly validStartAttemptDto = (): StartAttemptDto => ({
@@ -209,5 +211,75 @@ export class AttemptControllerTestData {
       error: 'INVALID_ANSWER_TYPE',
       message: 'Multiple choice questions require selectedOptionId',
     },
+  };
+
+  // SubmitAttempt test data
+  static readonly validSubmitAttemptParams = {
+    withActiveAttempt: (): SubmitAttemptParamDto => ({
+      id: '550e8400-e29b-41d4-a716-446655440010',
+    }),
+  };
+
+  static readonly mockSubmitAttemptResponse = {
+    autoGraded: (): SubmitAttemptResponse => ({
+      attempt: {
+        id: '550e8400-e29b-41d4-a716-446655440010',
+        status: 'GRADED',
+        score: 85.5,
+        startedAt: new Date('2023-01-01T10:00:00Z'),
+        submittedAt: new Date('2023-01-01T10:15:00Z'),
+        gradedAt: new Date('2023-01-01T10:15:00Z'),
+        userId: '550e8400-e29b-41d4-a716-446655440001',
+        assessmentId: '550e8400-e29b-41d4-a716-446655440002',
+        createdAt: new Date('2023-01-01T10:00:00Z'),
+        updatedAt: new Date('2023-01-01T10:15:00Z'),
+      },
+      summary: {
+        totalQuestions: 10,
+        answeredQuestions: 10,
+        correctAnswers: 8,
+        scorePercentage: 80.0,
+      },
+    }),
+
+    manualGrading: (): SubmitAttemptResponse => ({
+      attempt: {
+        id: '550e8400-e29b-41d4-a716-446655440011',
+        status: 'SUBMITTED',
+        startedAt: new Date('2023-01-01T10:00:00Z'),
+        submittedAt: new Date('2023-01-01T10:20:00Z'),
+        userId: '550e8400-e29b-41d4-a716-446655440003',
+        assessmentId: '550e8400-e29b-41d4-a716-446655440004',
+        createdAt: new Date('2023-01-01T10:00:00Z'),
+        updatedAt: new Date('2023-01-01T10:20:00Z'),
+      },
+      summary: {
+        totalQuestions: 5,
+        answeredQuestions: 5,
+        correctAnswers: undefined,
+        scorePercentage: undefined,
+      },
+    }),
+
+    partialAnswers: (): SubmitAttemptResponse => ({
+      attempt: {
+        id: '550e8400-e29b-41d4-a716-446655440012',
+        status: 'GRADED',
+        score: 50.0,
+        startedAt: new Date('2023-01-01T10:00:00Z'),
+        submittedAt: new Date('2023-01-01T10:10:00Z'),
+        gradedAt: new Date('2023-01-01T10:10:00Z'),
+        userId: '550e8400-e29b-41d4-a716-446655440005',
+        assessmentId: '550e8400-e29b-41d4-a716-446655440006',
+        createdAt: new Date('2023-01-01T10:00:00Z'),
+        updatedAt: new Date('2023-01-01T10:10:00Z'),
+      },
+      summary: {
+        totalQuestions: 8,
+        answeredQuestions: 4,
+        correctAnswers: 2,
+        scorePercentage: 50.0,
+      },
+    }),
   };
 }

@@ -2,6 +2,7 @@
 import { vi } from 'vitest';
 import { StartAttemptUseCase } from '@/domain/assessment/application/use-cases/start-attempt.use-case';
 import { SubmitAnswerUseCase } from '@/domain/assessment/application/use-cases/submit-answer.use-case';
+import { SubmitAttemptUseCase } from '@/domain/assessment/application/use-cases/submit-attempt.use-case';
 import { AttemptController } from '../../../attempt.controller';
 
 export class MockStartAttemptUseCase {
@@ -12,17 +13,24 @@ export class MockSubmitAnswerUseCase {
   execute = vi.fn();
 }
 
+export class MockSubmitAttemptUseCase {
+  execute = vi.fn();
+}
+
 export class AttemptControllerTestSetup {
   public startAttemptUseCase: MockStartAttemptUseCase;
   public submitAnswerUseCase: MockSubmitAnswerUseCase;
+  public submitAttemptUseCase: MockSubmitAttemptUseCase;
   public controller: AttemptController;
 
   constructor() {
     this.startAttemptUseCase = new MockStartAttemptUseCase();
     this.submitAnswerUseCase = new MockSubmitAnswerUseCase();
+    this.submitAttemptUseCase = new MockSubmitAttemptUseCase();
     this.controller = new AttemptController(
       this.startAttemptUseCase as any,
       this.submitAnswerUseCase as any,
+      this.submitAttemptUseCase as any,
     );
   }
 
@@ -41,6 +49,7 @@ export class AttemptControllerTestSetup {
       controller: this.controller,
       startAttemptUseCase: this.startAttemptUseCase,
       submitAnswerUseCase: this.submitAnswerUseCase,
+      submitAttemptUseCase: this.submitAttemptUseCase,
     };
   }
 }
