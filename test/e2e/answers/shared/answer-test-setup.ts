@@ -48,6 +48,8 @@ export class AnswerTestSetup {
   public answerId: string;
   public multipleChoiceAnswerId: string;
   public openAnswerId: string;
+  public firstOptionId: string;
+  public secondOptionId: string;
 
   async initialize(): Promise<void> {
     const moduleRef = await Test.createTestingModule({
@@ -176,6 +178,23 @@ export class AnswerTestSetup {
     this.multipleChoiceQuestionId = multipleChoiceQuestion.id;
     this.questionId = multipleChoiceQuestion.id; // Default question ID
 
+    // Create question options for multiple choice question
+    const firstOption = await this.prisma.questionOption.create({
+      data: {
+        text: 'Brasília',
+        questionId: this.multipleChoiceQuestionId,
+      },
+    });
+    this.firstOptionId = firstOption.id;
+
+    const secondOption = await this.prisma.questionOption.create({
+      data: {
+        text: 'São Paulo',
+        questionId: this.multipleChoiceQuestionId,
+      },
+    });
+    this.secondOptionId = secondOption.id;
+
     const openQuestion = await this.prisma.question.create({
       data: {
         text: 'Explain the pathophysiology of hypertension and discuss current treatment guidelines.',
@@ -185,12 +204,13 @@ export class AnswerTestSetup {
     });
     this.openQuestionId = openQuestion.id;
 
-    // Create test answers
+    // Create test answers - ONLY for GET tests, not for POST tests
+    // These are used by existing GET tests that expect pre-existing answers
     const multipleChoiceAnswer = await this.prisma.answer.create({
       data: {
         explanation: 'Brasília is the capital of Brazil, established in 1960.',
         questionId: this.multipleChoiceQuestionId,
-        correctOptionId: randomUUID(),
+        correctOptionId: this.firstOptionId,
         translations: {
           create: [
             {
@@ -241,6 +261,7 @@ export class AnswerTestSetup {
       // Clean up in correct order to respect foreign keys
       await this.prisma.answerTranslation.deleteMany({});
       await this.prisma.answer.deleteMany({});
+      await this.prisma.questionOption.deleteMany({});
       await this.prisma.question.deleteMany({});
       await this.prisma.assessment.deleteMany({});
       await this.prisma.lessonTranslation.deleteMany({});
@@ -311,6 +332,39 @@ export class AnswerTestSetup {
       },
     });
     return question.id;
+  }
+
+  /**
+   * Create a test question with options for POST answer tests
+   */
+  async createTestQuestionWithOptions(data: {
+    text: string;
+    type: 'MULTIPLE_CHOICE' | 'OPEN';
+    assessmentId: string;
+    options?: string[];
+  }): Promise<{ questionId: string; optionIds: string[] }> {
+    const question = await this.prisma.question.create({
+      data: {
+        text: data.text,
+        type: data.type,
+        assessmentId: data.assessmentId,
+      },
+    });
+
+    const optionIds: string[] = [];
+    if (data.options && data.options.length > 0) {
+      for (const optionText of data.options) {
+        const option = await this.prisma.questionOption.create({
+          data: {
+            text: optionText,
+            questionId: question.id,
+          },
+        });
+        optionIds.push(option.id);
+      }
+    }
+
+    return { questionId: question.id, optionIds };
   }
 
   /**

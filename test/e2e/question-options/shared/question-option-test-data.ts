@@ -140,6 +140,26 @@ export class QuestionOptionTestData {
         questionId,
       }),
     },
+    invalidPayloads: {
+      emptyText: () => ({ text: '' }),
+      nullText: () => ({ text: null }),
+      undefinedText: () => ({ text: undefined }),
+      numberText: () => ({ text: 123 }),
+      booleanText: () => ({ text: true }),
+      objectText: () => ({ text: { invalid: 'object' } }),
+      arrayText: () => ({ text: ['invalid', 'array'] }),
+      tooLongText: () => ({ text: 'A'.repeat(501) }), // Over 500 char limit
+      onlyWhitespace: () => ({ text: '   \t\n   ' }),
+      missingText: () => ({}),
+      extraFields: (questionId: string) => ({
+        text: 'Valid text',
+        extraField: 'should not be allowed',
+        questionId, // This should not be in payload, it comes from URL
+      }),
+      sqlInjection: () => ({ text: "'; DROP TABLE question_options; --" }),
+      xssAttempt: () => ({ text: '<script>alert("xss")</script>' }),
+      specialCharactersLimit: () => ({ text: '@'.repeat(501) }),
+    },
   };
 
   static readonly testScenarios = {

@@ -189,8 +189,25 @@ export class QuestionOptionTestSetup {
       await this.prisma.module.deleteMany({});
       await this.prisma.courseTranslation.deleteMany({});
       await this.prisma.course.deleteMany({});
+      
+      // Wait a bit to ensure all deletions are complete
+      await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
       console.warn('Cleanup warning:', error);
+      // Try more aggressive cleanup if normal cleanup fails
+      try {
+        await this.prisma.$executeRaw`TRUNCATE TABLE "QuestionOption" CASCADE`;
+        await this.prisma.$executeRaw`TRUNCATE TABLE "Question" CASCADE`;
+        await this.prisma.$executeRaw`TRUNCATE TABLE "Assessment" CASCADE`;
+        await this.prisma.$executeRaw`TRUNCATE TABLE "LessonTranslation" CASCADE`;
+        await this.prisma.$executeRaw`TRUNCATE TABLE "Lesson" CASCADE`;
+        await this.prisma.$executeRaw`TRUNCATE TABLE "ModuleTranslation" CASCADE`;
+        await this.prisma.$executeRaw`TRUNCATE TABLE "Module" CASCADE`;
+        await this.prisma.$executeRaw`TRUNCATE TABLE "CourseTranslation" CASCADE`;
+        await this.prisma.$executeRaw`TRUNCATE TABLE "Course" CASCADE`;
+      } catch (truncateError) {
+        console.warn('Truncate warning:', truncateError);
+      }
     }
   }
 

@@ -67,12 +67,155 @@ export class QuestionOptionTestHelpers {
       .expect(201);
 
     expect(response.body).toBeDefined();
-    expect(response.body.option).toBeDefined();
-    expect(response.body.option.id).toBeDefined();
-    expect(response.body.option.text).toBe(optionText);
-    expect(response.body.option.questionId).toBe(questionId);
+    expect(response.body.questionOption).toBeDefined();
+    expect(response.body.questionOption.id).toBeDefined();
+    expect(response.body.questionOption.text).toBe(optionText);
+    expect(response.body.questionOption.questionId).toBe(questionId);
 
     return response;
+  }
+
+  /**
+   * Create question option with custom payload
+   */
+  async createQuestionOptionWithPayload(questionId: string, payload: any): Promise<Response> {
+    return await request(this.testSetup.getHttpServer())
+      .post(`/questions/${questionId}/options`)
+      .send(payload);
+  }
+
+  /**
+   * Create question option and expect validation error
+   */
+  async createQuestionOptionExpectValidationError(questionId: string, payload: any): Promise<Response> {
+    const response = await request(this.testSetup.getHttpServer())
+      .post(`/questions/${questionId}/options`)
+      .send(payload)
+      .expect(400);
+
+    // Accept both formats: INVALID_INPUT or Bad Request
+    expect(['INVALID_INPUT', 'Bad Request']).toContain(response.body.error);
+    expect(response.body.message).toBeDefined();
+
+    return response;
+  }
+
+  /**
+   * Create question option and expect not found error
+   */
+  async createQuestionOptionExpectNotFound(questionId: string, optionText: string): Promise<Response> {
+    const response = await request(this.testSetup.getHttpServer())
+      .post(`/questions/${questionId}/options`)
+      .send({ text: optionText })
+      .expect(404);
+
+    expect(response.body.error).toBe('QUESTION_NOT_FOUND');
+    expect(response.body.message).toBe('Question not found');
+
+    return response;
+  }
+
+  /**
+   * Create question option and expect duplicate error
+   */
+  async createQuestionOptionExpectDuplicateError(questionId: string, optionText: string): Promise<Response> {
+    const response = await request(this.testSetup.getHttpServer())
+      .post(`/questions/${questionId}/options`)
+      .send({ text: optionText });
+
+    expect([409, 400]).toContain(response.status); // May return different status codes
+    expect(response.body.error).toBeDefined();
+    expect(response.body.message).toBeDefined();
+
+    return response;
+  }
+
+  /**
+   * Verify create question option success response format
+   */
+  verifyCreateQuestionOptionSuccessResponseFormat(
+    responseBody: any,
+    expectedText: string,
+    expectedQuestionId: string,
+  ) {
+    expect(responseBody).toBeDefined();
+    expect(responseBody.questionOption).toBeDefined();
+    expect(responseBody.questionOption.id).toBeDefined();
+    expect(typeof responseBody.questionOption.id).toBe('string');
+    expect(responseBody.questionOption.text).toBe(expectedText);
+    expect(responseBody.questionOption.questionId).toBe(expectedQuestionId);
+    expect(responseBody.questionOption.createdAt).toBeDefined();
+    expect(responseBody.questionOption.updatedAt).toBeDefined();
+
+    // Verify date formats
+    expect(new Date(responseBody.questionOption.createdAt)).toBeInstanceOf(Date);
+    expect(new Date(responseBody.questionOption.updatedAt)).toBeInstanceOf(Date);
+  }
+
+  /**
+   * Test create question option performance
+   */
+  async testCreateQuestionOptionPerformance(
+    testName: string,
+    testFunction: () => Promise<any>,
+    maxExecutionTime: number,
+  ) {
+    const startTime = Date.now();
+    const result = await testFunction();
+    const executionTime = Date.now() - startTime;
+
+    expect(executionTime).toBeLessThan(maxExecutionTime);
+    console.log(`${testName}: ${executionTime}ms (max: ${maxExecutionTime}ms)`);
+
+    return result;
+  }
+
+  /**
+   * Create and verify question option
+   */
+  async createAndVerifyQuestionOption(
+    questionId: string,
+    optionText: string,
+  ): Promise<{ createResponse: Response; listResponse: Response }> {
+    const createResponse = await this.createQuestionOptionExpectSuccess(questionId, optionText);
+    const listResponse = await this.listQuestionOptionsExpectSuccess(questionId);
+
+    return { createResponse, listResponse };
+  }
+
+  /**
+   * Test create question option with different content types
+   */
+  async testCreateQuestionOptionWithSpecialContent() {
+    const specialContents = [
+      {
+        name: 'Unicode characters',
+        text: 'Opção em português com 意见 in Chinese',
+      },
+      {
+        name: 'Special characters',
+        text: 'Option with @#$%^&*() and math symbols: ±≤≥≠≈',
+      },
+      {
+        name: 'Long text',
+        text: 'A'.repeat(300),
+      },
+      {
+        name: 'Medical terminology',
+        text: 'Patient presents with acute myocardial infarction with ST-elevation',
+      },
+    ];
+
+    for (const content of specialContents) {
+      const createResponse = await this.createQuestionOptionExpectSuccess(
+        this.testSetup.multipleChoiceQuestionId,
+        content.text,
+      );
+
+      // Verify content is preserved
+      expect(createResponse.body.questionOption.text).toBe(content.text);
+      console.log(`✓ Special content test passed: ${content.name}`);
+    }
   }
 
   /**

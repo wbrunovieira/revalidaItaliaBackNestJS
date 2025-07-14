@@ -92,10 +92,10 @@ export class CreateAnswerUseCase {
       return left(new RepositoryError('Failed to check existing answer'));
     }
 
-    // Skip the duplicate check for now to allow testing
-    // if (existingAnswerResult.value) {
-    //   return left(new AnswerAlreadyExistsError());
-    // }
+    // Check for duplicate answers
+    if (existingAnswerResult.value) {
+      return left(new AnswerAlreadyExistsError());
+    }
 
     // 5. Validate answer type based on assessment and question type
     const validationError = this.validateAnswerType(

@@ -1,6 +1,7 @@
 // test/e2e/answers/shared/answer-test-helpers.ts
 import request, { Response } from 'supertest';
 import { randomUUID } from 'crypto';
+import { expect } from 'vitest';
 import { AnswerTestSetup } from './answer-test-setup';
 import { GetAnswerRequest } from './answer-test-data';
 
@@ -542,5 +543,127 @@ export class AnswerTestHelpers {
    */
   generateUniqueExplanation(prefix = 'Test'): string {
     return `${prefix} Answer explanation ${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Create answer and expect success
+   */
+  async createAnswerExpectSuccess(answerData: any): Promise<Response> {
+    const response = await request(this.testSetup.getHttpServer())
+      .post('/answers')
+      .send(answerData)
+      .expect(201);
+
+    expect(response.body).toBeDefined();
+    expect(response.body.answer).toBeDefined();
+    expect(response.body.answer.id).toBeDefined();
+    expect(response.body.answer.explanation).toBe(answerData.explanation);
+    expect(response.body.answer.questionId).toBe(answerData.questionId);
+
+    return response;
+  }
+
+  /**
+   * Create answer with custom payload
+   */
+  async createAnswerWithPayload(payload: any): Promise<Response> {
+    return await request(this.testSetup.getHttpServer())
+      .post('/answers')
+      .send(payload);
+  }
+
+  /**
+   * Create answer and expect validation error
+   */
+  async createAnswerExpectValidationError(payload: any): Promise<Response> {
+    const response = await request(this.testSetup.getHttpServer())
+      .post('/answers')
+      .send(payload)
+      .expect(400);
+
+    expect(response.body.error).toBe('INVALID_INPUT');
+    expect(response.body.message).toBeDefined();
+
+    return response;
+  }
+
+  /**
+   * Create answer and expect not found error
+   */
+  async createAnswerExpectNotFound(answerData: any): Promise<Response> {
+    const response = await request(this.testSetup.getHttpServer())
+      .post('/answers')
+      .send(answerData)
+      .expect(404);
+
+    expect(response.body.error).toBe('QUESTION_NOT_FOUND');
+    expect(response.body.message).toBe('Question not found');
+
+    return response;
+  }
+
+  /**
+   * Create answer and expect conflict error
+   */
+  async createAnswerExpectConflict(answerData: any): Promise<Response> {
+    const response = await request(this.testSetup.getHttpServer())
+      .post('/answers')
+      .send(answerData)
+      .expect(409);
+
+    expect(response.body.error).toBe('ANSWER_ALREADY_EXISTS');
+    expect(response.body.message).toBe('Answer already exists for this question');
+
+    return response;
+  }
+
+  /**
+   * Verify create answer success response format
+   */
+  verifyCreateAnswerSuccessResponseFormat(
+    responseBody: any,
+    expectedExplanation: string,
+    expectedQuestionId: string,
+    expectedCorrectOptionId?: string,
+  ) {
+    expect(responseBody).toBeDefined();
+    expect(responseBody.answer).toBeDefined();
+    expect(responseBody.answer.id).toBeDefined();
+    expect(typeof responseBody.answer.id).toBe('string');
+    expect(responseBody.answer.explanation).toBe(expectedExplanation);
+    expect(responseBody.answer.questionId).toBe(expectedQuestionId);
+    expect(responseBody.answer.createdAt).toBeDefined();
+    expect(responseBody.answer.updatedAt).toBeDefined();
+
+    if (expectedCorrectOptionId) {
+      expect(responseBody.answer.correctOptionId).toBe(expectedCorrectOptionId);
+    }
+
+    // Verify date formats
+    expect(new Date(responseBody.answer.createdAt)).toBeInstanceOf(Date);
+    expect(new Date(responseBody.answer.updatedAt)).toBeInstanceOf(Date);
+
+    // Verify UUID format
+    expect(responseBody.answer.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
+  }
+
+  /**
+   * Test create answer performance
+   */
+  async testCreateAnswerPerformance(
+    testName: string,
+    testFunction: () => Promise<any>,
+    maxExecutionTime: number,
+  ) {
+    const startTime = Date.now();
+    const result = await testFunction();
+    const executionTime = Date.now() - startTime;
+
+    expect(executionTime).toBeLessThan(maxExecutionTime);
+    console.log(`${testName}: ${executionTime}ms (max: ${maxExecutionTime}ms)`);
+
+    return result;
   }
 }
