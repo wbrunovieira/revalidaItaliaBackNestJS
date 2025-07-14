@@ -12,11 +12,12 @@ import { ModuleModule } from './module.module';
 import { VideoModule } from './video.module';
 import { VideoController } from './controllers/video.controller';
 import { AssessmentModule } from './assessment.module';
-import { AssessmentController } from './controllers/assessment.controller';
+
 import { ArgumentModule } from './argument.module';
 import { QuestionModule } from './question.module';
 import { QuestionOptionModule } from './question-option.module';
 import { AnswerModule } from './answer.module';
+import { AttemptModule } from './attempt.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AnswerModule } from './answer.module';
     QuestionModule,
     QuestionOptionModule,
     AnswerModule,
+    AttemptModule,
   ],
   controllers: [
     StudentsController,

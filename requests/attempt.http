@@ -1,0 +1,10 @@
+### Start Attempt
+POST http://localhost:3000/attempts/start
+Content-Type: application/json
+
+{
+  "userId": "550e8400-e29b-41d4-a716-446655440001",
+  "assessmentId": "550e8400-e29b-41d4-a716-446655440002"
+}
+
+###

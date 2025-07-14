@@ -380,3 +380,68 @@ Content-Type: application/json
     }
   ]
 }
+
+### ==== ATTEMPTS ====
+
+### Start Attempt for Assessment 1 (Quiz) - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/start
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "assessmentId": "{{assessmentId}}"
+}
+
+### Start Attempt for Assessment 2 (Simulado) - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/start
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "assessmentId": "{{assessmentId2}}"
+}
+
+### Start Attempt for Assessment 3 (Prova Aberta) - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/start
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "assessmentId": "{{assessmentId3}}"
+}
+
+### Test Error - Invalid User ID - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/start
+Content-Type: application/json
+
+{
+  "userId": "invalid-uuid",
+  "assessmentId": "{{assessmentId}}"
+}
+
+### Test Error - Invalid Assessment ID - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/start
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "assessmentId": "invalid-uuid"
+}
+
+### Test Error - User Not Found - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/start
+Content-Type: application/json
+
+{
+  "userId": "00000000-0000-0000-0000-000000000000",
+  "assessmentId": "{{assessmentId}}"
+}
+
+### Test Error - Assessment Not Found - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/start
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "assessmentId": "00000000-0000-0000-0000-000000000000"
+}
