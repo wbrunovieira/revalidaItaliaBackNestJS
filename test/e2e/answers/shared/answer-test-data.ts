@@ -5,6 +5,35 @@ export interface GetAnswerRequest {
   id: string;
 }
 
+export interface ListAnswersRequest {
+  page?: number;
+  limit?: number;
+  questionId?: string;
+}
+
+export interface ListAnswersResponse {
+  answers: Array<{
+    id: string;
+    explanation: string;
+    questionId: string;
+    correctOptionId?: string;
+    translations: Array<{
+      locale: string;
+      explanation: string;
+    }>;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+  };
+}
+
 export interface ExpectedError {
   statusCode: number;
   error?: string;

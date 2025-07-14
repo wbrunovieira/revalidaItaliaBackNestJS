@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../../src/prisma/prisma.service';
 import { GetAnswerUseCase } from '../../../../src/domain/assessment/application/use-cases/get-answer.use-case';
 import { CreateAnswerUseCase } from '../../../../src/domain/assessment/application/use-cases/create-answer.use-case';
+import { ListAnswersUseCase } from '../../../../src/domain/assessment/application/use-cases/list-answers.use-case';
 import { AnswerController } from '../../../../src/infra/controllers/answer.controller';
 import { PrismaAnswerRepository } from '../../../../src/infra/database/prisma/repositories/prisma-answer-repository';
 import { PrismaQuestionRepository } from '../../../../src/infra/database/prisma/repositories/prisma-question-repository';
@@ -16,6 +17,7 @@ import { PrismaAssessmentRepository } from '../../../../src/infra/database/prism
   providers: [
     GetAnswerUseCase,
     CreateAnswerUseCase,
+    ListAnswersUseCase,
     PrismaService,
     {
       provide: 'AnswerRepository',
@@ -516,5 +518,43 @@ export class AnswerTestSetup {
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     return uuidRegex.test(str);
+  }
+
+  /**
+   * Create multiple answers for testing pagination
+   */
+  async createMultipleAnswers(count: number): Promise<string[]> {
+    const answerIds: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      // Alternate between different question types for variety
+      const questionId = i % 2 === 0 ? this.multipleChoiceQuestionId : this.openQuestionId;
+      const isMultipleChoice = i % 2 === 0;
+
+      // Create unique question for each answer to avoid conflicts
+      const { questionId: uniqueQuestionId, optionIds } = await this.createTestQuestionWithOptions({
+        text: `Test question ${i + 1} for multiple answers`,
+        type: isMultipleChoice ? 'MULTIPLE_CHOICE' : 'OPEN',
+        assessmentId: isMultipleChoice ? this.quizAssessmentId : this.provaAbertaAssessmentId,
+        options: isMultipleChoice ? [`Option A ${i}`, `Option B ${i}`, `Option C ${i}`] : undefined,
+      });
+
+      const answerData = {
+        explanation: `Test answer ${i + 1} for pagination testing`,
+        questionId: uniqueQuestionId,
+        correctOptionId: isMultipleChoice ? optionIds[0] : undefined,
+        translations: [
+          {
+            locale: 'pt' as const,
+            explanation: `Explicação ${i + 1} em português`,
+          },
+        ],
+      };
+
+      const answerId = await this.createTestAnswer(answerData);
+      answerIds.push(answerId);
+    }
+
+    return answerIds;
   }
 }
