@@ -87,10 +87,6 @@ d) **Dev setup:** Adicione a rota em `requests/dev-setup/` se necessário, refat
 
 e) **Testar sistema:** Após todas as alterações, reinicie o sistema Docker para verificar se tudo está funcionando:
 
-```bash
-docker compose -f compose.dev.yaml down && docker compose -f compose.dev.yaml build --no-cache && docker compose -f compose.dev.yaml up -d && docker compose -f compose.dev.yaml logs -f
-```
-
 **Estrutura de testes:** Se ainda não existir, crie o diretório `shared/` dentro de `src/infra/controllers/tests/<controller-name>/` contendo:
 
 - `*-controller-test-setup.ts` (configuração de mocks e instâncias)

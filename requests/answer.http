@@ -51,7 +51,31 @@ GET {{BASE_URL}}/answers/invalid-uuid
 ### 6. Erro - Answer não encontrado
 GET {{BASE_URL}}/answers/00000000-0000-0000-0000-000000000000
 
-### 7. Erro - Answer já existe
+### 7. Listar Answers - Paginação padrão
+GET {{BASE_URL}}/answers
+
+### 8. Listar Answers - Com paginação customizada
+GET {{BASE_URL}}/answers?page=1&limit=5
+
+### 9. Listar Answers - Filtrar por questionId
+GET {{BASE_URL}}/answers?questionId=550e8400-e29b-41d4-a716-446655440022
+
+### 10. Listar Answers - Filtrar por questionId com paginação
+GET {{BASE_URL}}/answers?page=2&limit=10&questionId=550e8400-e29b-41d4-a716-446655440062
+
+### 11. Listar Answers - Limite máximo
+GET {{BASE_URL}}/answers?limit=100
+
+### 12. Erro - Page inválida
+GET {{BASE_URL}}/answers?page=0&limit=10
+
+### 13. Erro - Limit excedido
+GET {{BASE_URL}}/answers?limit=101
+
+### 14. Erro - Question ID inválido
+GET {{BASE_URL}}/answers?questionId=invalid-uuid
+
+### 15. Erro - Answer já existe
 POST {{BASE_URL}}/answers
 Content-Type: {{contentType}}
 

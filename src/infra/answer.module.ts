@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 
 import { GetAnswerUseCase } from '@/domain/assessment/application/use-cases/get-answer.use-case';
 import { CreateAnswerUseCase } from '@/domain/assessment/application/use-cases/create-answer.use-case';
+import { ListAnswersUseCase } from '@/domain/assessment/application/use-cases/list-answers.use-case';
 
 import { PrismaAnswerRepository } from '@/infra/database/prisma/repositories/prisma-answer-repository';
 import { PrismaQuestionRepository } from '@/infra/database/prisma/repositories/prisma-question-repository';
@@ -16,6 +17,7 @@ import { AnswerController } from './controllers/answer.controller';
   providers: [
     GetAnswerUseCase,
     CreateAnswerUseCase,
+    ListAnswersUseCase,
 
     {
       provide: 'AnswerRepository',
@@ -34,6 +36,7 @@ import { AnswerController } from './controllers/answer.controller';
     'AnswerRepository',
     GetAnswerUseCase,
     CreateAnswerUseCase,
+    ListAnswersUseCase,
   ],
 })
 export class AnswerModule {}

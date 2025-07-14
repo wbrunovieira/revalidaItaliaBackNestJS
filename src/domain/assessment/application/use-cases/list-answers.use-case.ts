@@ -1,7 +1,7 @@
 // src/domain/assessment/application/use-cases/list-answers.use-case.ts
 
 import { Either, left, right } from '@/core/either';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { IAnswerRepository } from '../repositories/i-answer.repository';
 import { IQuestionRepository } from '../repositories/i-question-repository';
 import { ListAnswersRequest } from '../dtos/list-answers-request.dto';
@@ -19,7 +19,9 @@ type ListAnswersUseCaseResponse = Either<
 @Injectable()
 export class ListAnswersUseCase {
   constructor(
+    @Inject('AnswerRepository')
     private answerRepository: IAnswerRepository,
+    @Inject('QuestionRepository')
     private questionRepository: IQuestionRepository,
   ) {}
 

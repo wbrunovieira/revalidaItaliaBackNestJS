@@ -2,6 +2,7 @@
 
 import { GetAnswerUseCase } from '@/domain/assessment/application/use-cases/get-answer.use-case';
 import { CreateAnswerUseCase } from '@/domain/assessment/application/use-cases/create-answer.use-case';
+import { ListAnswersUseCase } from '@/domain/assessment/application/use-cases/list-answers.use-case';
 import { CreateAnswerDto } from '@/domain/assessment/application/dtos/create-answer.dto';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { AnswerNotFoundError } from '@/domain/assessment/application/use-cases/errors/answer-not-found-error';
@@ -16,6 +17,7 @@ import {
   Post,
   Param,
   Body,
+  Query,
   Inject,
   BadRequestException,
   NotFoundException,
@@ -30,7 +32,58 @@ export class AnswerController {
     private readonly getAnswerUseCase: GetAnswerUseCase,
     @Inject(CreateAnswerUseCase)
     private readonly createAnswerUseCase: CreateAnswerUseCase,
+    @Inject(ListAnswersUseCase)
+    private readonly listAnswersUseCase: ListAnswersUseCase,
   ) {}
+
+  @Get()
+  async list(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('questionId') questionId?: string,
+  ) {
+    const request = {
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      questionId,
+    };
+
+    const result = await this.listAnswersUseCase.execute(request);
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof QuestionNotFoundError) {
+        throw new NotFoundException({
+          error: 'QUESTION_NOT_FOUND',
+          message: 'Question not found',
+        });
+      }
+
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException({
+          error: 'INTERNAL_ERROR',
+          message: error.message,
+        });
+      }
+
+      // Fallback para erros não mapeados
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: 'Unexpected error occurred',
+      });
+    }
+
+    return result.value;
+  }
 
   @Get(':id')
   async getById(@Param('id') id: string) {

@@ -74,17 +74,41 @@
 ### Get Answer by ID - IMPLEMENTED ✅
 GET {{baseUrl}}/answers/{{answerId}}
 
-### Get Answer 2 - IMPLEMENTED ✅
+### Get Answer 2 - IMPLEMENTED ✅ , na verdade em 
 GET {{baseUrl}}/answers/{{answerId2}}
 
 ### Get Answer 3 - IMPLEMENTED ✅
 GET {{baseUrl}}/answers/{{answerId3}}
 
-### List Answers (paginated) (NOT IMPLEMENTED YET)
-# GET {{baseUrl}}/answers?page=1&limit=10
+### List Answers - Default pagination - IMPLEMENTED ✅
+GET {{baseUrl}}/answers
 
-### List Answers filtered by Question (NOT IMPLEMENTED YET)
-# GET {{baseUrl}}/answers?page=1&limit=5&questionId={{questionId}}
+### List Answers - Custom pagination - IMPLEMENTED ✅
+GET {{baseUrl}}/answers?page=1&limit=10
+
+### List Answers - Filtered by Question - IMPLEMENTED ✅
+GET {{baseUrl}}/answers?page=1&limit=5&questionId={{questionId}}
+
+### List Answers - Filtered by Question 2 - IMPLEMENTED ✅
+GET {{baseUrl}}/answers?questionId={{questionId2}}
+
+### List Answers - Filtered by Question 3 (Open) - IMPLEMENTED ✅
+GET {{baseUrl}}/answers?questionId={{questionId3}}
+
+### List Answers - Maximum limit - IMPLEMENTED ✅
+GET {{baseUrl}}/answers?limit=100
+
+### List Answers - Minimum values - IMPLEMENTED ✅
+GET {{baseUrl}}/answers?page=1&limit=1
+
+### Test Error - Invalid page - IMPLEMENTED ✅
+GET {{baseUrl}}/answers?page=0&limit=10
+
+### Test Error - Limit exceeded - IMPLEMENTED ✅
+GET {{baseUrl}}/answers?limit=101
+
+### Test Error - Invalid Question ID - IMPLEMENTED ✅
+GET {{baseUrl}}/answers?questionId=invalid-uuid
 
 ### ==== COURSES ====
 

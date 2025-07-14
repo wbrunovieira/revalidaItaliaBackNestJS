@@ -1,5 +1,6 @@
 // src/infra/controllers/tests/answer/shared/answer-controller-test-data.ts
 import { GetAnswerRequest } from '@/domain/assessment/application/dtos/get-answer-request.dto';
+import { ListAnswersRequest } from '@/domain/assessment/application/dtos/list-answers-request.dto';
 
 export interface AnswerControllerResponse {
   answer: {
@@ -444,4 +445,148 @@ export class AnswerControllerTestData {
     const randomKey = keys[Math.floor(Math.random() * keys.length)];
     return (this.sampleAnswers as any)[randomKey];
   }
+
+  /**
+   * List Answers test data
+   */
+  static readonly listAnswersRequests = {
+    defaultPagination: (): ListAnswersRequest => ({}),
+
+    withPage: (): ListAnswersRequest => ({
+      page: 2,
+    }),
+
+    withLimit: (): ListAnswersRequest => ({
+      limit: 5,
+    }),
+
+    withPagination: (): ListAnswersRequest => ({
+      page: 1,
+      limit: 10,
+    }),
+
+    withQuestionId: (): ListAnswersRequest => ({
+      questionId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    }),
+
+    withAllParams: (): ListAnswersRequest => ({
+      page: 2,
+      limit: 5,
+      questionId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+    }),
+
+    maxLimit: (): ListAnswersRequest => ({
+      limit: 100,
+    }),
+
+    minValues: (): ListAnswersRequest => ({
+      page: 1,
+      limit: 1,
+    }),
+  };
+
+  static readonly invalidListRequests = {
+    invalidPage: (): any => ({
+      page: 0,
+    }),
+
+    negativeLimit: (): any => ({
+      limit: -1,
+    }),
+
+    exceededLimit: (): any => ({
+      limit: 101,
+    }),
+
+    invalidQuestionId: (): any => ({
+      questionId: 'invalid-uuid',
+    }),
+
+    stringPage: (): any => ({
+      page: 'not-a-number',
+    }),
+
+    stringLimit: (): any => ({
+      limit: 'not-a-number',
+    }),
+
+    decimalPage: (): any => ({
+      page: 1.5,
+    }),
+
+    decimalLimit: (): any => ({
+      limit: 10.5,
+    }),
+  };
+
+  static readonly listAnswersResponses = {
+    empty: () => ({
+      answers: [],
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrevious: false,
+      },
+    }),
+
+    singlePage: () => ({
+      answers: [this.sampleAnswers.standard, this.sampleAnswers.multipleChoiceQuiz],
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 2,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      },
+    }),
+
+    multiplePages: () => ({
+      answers: Array(10).fill(null).map((_, i) => ({
+        ...this.sampleAnswers.standard,
+        id: `${i.toString().padStart(8, '0')}-aaaa-bbbb-cccc-dddddddddddd`,
+      })),
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 25,
+        totalPages: 3,
+        hasNext: true,
+        hasPrevious: false,
+      },
+    }),
+
+    middlePage: () => ({
+      answers: Array(5).fill(null).map((_, i) => ({
+        ...this.sampleAnswers.standard,
+        id: `${(i + 10).toString().padStart(8, '0')}-aaaa-bbbb-cccc-dddddddddddd`,
+      })),
+      pagination: {
+        page: 2,
+        limit: 5,
+        total: 12,
+        totalPages: 3,
+        hasNext: true,
+        hasPrevious: true,
+      },
+    }),
+
+    lastPage: () => ({
+      answers: Array(2).fill(null).map((_, i) => ({
+        ...this.sampleAnswers.standard,
+        id: `${(i + 20).toString().padStart(8, '0')}-aaaa-bbbb-cccc-dddddddddddd`,
+      })),
+      pagination: {
+        page: 3,
+        limit: 10,
+        total: 22,
+        totalPages: 3,
+        hasNext: false,
+        hasPrevious: true,
+      },
+    }),
+  };
 }
