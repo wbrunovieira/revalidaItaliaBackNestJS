@@ -216,6 +216,21 @@ GET {{baseUrl}}/questions/{{questionId3}}
 
 ### ==== QUESTION OPTIONS ====
 
+### List Options for Question 1 (Multiple Choice) - IMPLEMENTED ✅
+GET {{baseUrl}}/questions/{{questionId}}/options
+
+### List Options for Question 2 (Multiple Choice) - IMPLEMENTED ✅  
+GET {{baseUrl}}/questions/{{questionId2}}/options
+
+### List Options for Question 3 (Open Question) - IMPLEMENTED ✅
+GET {{baseUrl}}/questions/{{questionId3}}/options
+
+### Test Error - Invalid Question ID - IMPLEMENTED ✅
+GET {{baseUrl}}/questions/invalid-uuid/options
+
+### Test Error - Question Not Found - IMPLEMENTED ✅
+GET {{baseUrl}}/questions/00000000-0000-0000-0000-000000000000/options
+
 ### Create Option for Question 1 (Multiple Choice) - Option A - IMPLEMENTED ✅
 POST {{baseUrl}}/questions/{{questionId}}/options
 Content-Type: application/json

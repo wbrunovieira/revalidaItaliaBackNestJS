@@ -4,8 +4,36 @@
 #@BASE_URL = http://18.216.107.74:3333
 @contentType = application/json
 
-### 1. Criar Option para Question 1 (Multiple Choice) - A
-POST {{BASE_URL}}/questions/550e8400-e29b-41d4-a716-446655440022/options
+# Question IDs para teste (usar IDs existentes após seed)
+@questionId1 = 550e8400-e29b-41d4-a716-446655440022  # Question 1 - Multiple Choice
+@questionId2 = 550e8400-e29b-41d4-a716-446655440052  # Question 2 - Multiple Choice  
+@questionId3 = 550e8400-e29b-41d4-a716-446655440062  # Question 3 - Open Question
+
+###############################################
+# GET REQUESTS - List Question Options
+###############################################
+
+### 1. Listar opções da Question 1 (Multiple Choice) - IMPLEMENTED ✅
+GET {{BASE_URL}}/questions/{{questionId1}}/options
+
+### 2. Listar opções da Question 2 (Multiple Choice) - IMPLEMENTED ✅
+GET {{BASE_URL}}/questions/{{questionId2}}/options
+
+### 3. Listar opções da Question 3 (Open Question - pode não ter opções) - IMPLEMENTED ✅
+GET {{BASE_URL}}/questions/{{questionId3}}/options
+
+### 4. Teste de erro - Question ID inválido - IMPLEMENTED ✅
+GET {{BASE_URL}}/questions/invalid-uuid/options
+
+### 5. Teste de erro - Question não encontrada - IMPLEMENTED ✅
+GET {{BASE_URL}}/questions/00000000-0000-0000-0000-000000000000/options
+
+###############################################
+# POST REQUESTS - Create Question Options
+###############################################
+
+### 6. Criar Option para Question 1 (Multiple Choice) - A
+POST {{BASE_URL}}/questions/{{questionId1}}/options
 Content-Type: {{contentType}}
 
 {

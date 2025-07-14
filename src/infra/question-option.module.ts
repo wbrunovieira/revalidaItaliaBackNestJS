@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 
 import { CreateQuestionOptionUseCase } from '@/domain/assessment/application/use-cases/create-question-option.use-case';
+import { ListQuestionOptionsUseCase } from '@/domain/assessment/application/use-cases/list-question-options.use-case';
 
 import { PrismaQuestionOptionRepository } from '@/infra/database/prisma/repositories/prisma-question-option-repository';
 import { PrismaQuestionRepository } from '@/infra/database/prisma/repositories/prisma-question-repository';
@@ -13,6 +14,7 @@ import { QuestionOptionController } from './controllers/question-option.controll
   controllers: [QuestionOptionController],
   providers: [
     CreateQuestionOptionUseCase,
+    ListQuestionOptionsUseCase,
 
     {
       provide: 'QuestionOptionRepository',
@@ -26,6 +28,7 @@ import { QuestionOptionController } from './controllers/question-option.controll
   exports: [
     'QuestionOptionRepository',
     CreateQuestionOptionUseCase,
+    ListQuestionOptionsUseCase,
   ],
 })
 export class QuestionOptionModule {}
