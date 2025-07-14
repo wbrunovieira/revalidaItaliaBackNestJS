@@ -336,7 +336,11 @@ CREATE TABLE "AttemptAnswer" (
     "textAnswer" TEXT,
     "status" "AttemptStatus" NOT NULL DEFAULT 'IN_PROGRESS',
     "isCorrect" BOOLEAN,
+    "version" INTEGER NOT NULL DEFAULT 1,
+    "isLatest" BOOLEAN NOT NULL DEFAULT true,
     "teacherComment" TEXT,
+    "submittedAt" TIMESTAMP(3),
+    "reviewedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "attemptId" TEXT NOT NULL,
@@ -412,7 +416,10 @@ CREATE UNIQUE INDEX "AnswerTranslation_answerId_locale_key" ON "AnswerTranslatio
 CREATE INDEX "Attempt_userId_assessmentId_idx" ON "Attempt"("userId", "assessmentId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AttemptAnswer_attemptId_questionId_key" ON "AttemptAnswer"("attemptId", "questionId");
+CREATE INDEX "AttemptAnswer_attemptId_questionId_isLatest_idx" ON "AttemptAnswer"("attemptId", "questionId", "isLatest");
+
+-- CreateIndex
+CREATE INDEX "AttemptAnswer_attemptId_questionId_version_idx" ON "AttemptAnswer"("attemptId", "questionId", "version");
 
 -- AddForeignKey
 ALTER TABLE "TrackCourse" ADD CONSTRAINT "TrackCourse_trackId_fkey" FOREIGN KEY ("trackId") REFERENCES "Track"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

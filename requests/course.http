@@ -46,21 +46,6 @@ Content-Type: application/json
 DELETE {{BASE_URL}}/courses/aa4fbdc7-a87f-4c18-a39c-fd7066289d8f
 Content-Type: application/json
 
-### 
-# @name delete-course-not-found
-DELETE {{BASE_URL}}/courses/00000000-0000-0000-0000-000000000000
-Content-Type: application/json
-
-### 
-# @name delete-course-invalid-id
-DELETE {{BASE_URL}}/courses/invalid-uuid
-Content-Type: application/json
-
-### 
-# @name delete-course-with-dependencies
-# Este ID deve ser um curso que tem módulos ou está em tracks
-DELETE {{BASE_URL}}/courses/1b183dde-064c-4d48-9bec-dacb8e4217e4
-Content-Type: application/json
 
 
 

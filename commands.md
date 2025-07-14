@@ -55,3 +55,5 @@ export AWS_PROFILE=bruno-admin-revalida-aws
 
 npx prisma migrate dev --name add_url_to_lesson_document_translation
 npx prisma generate
+
+docker exec -it ead-backend-dev pnpm seed:dev

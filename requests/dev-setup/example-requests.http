@@ -1,0 +1,203 @@
+# Exemplo de uso dos IDs fixos de desenvolvimento
+# Use este arquivo como referência ou copie as variáveis para seus arquivos .http
+
+### Variáveis de desenvolvimento
+@baseUrl = http://localhost:3333
+
+# IDs fixos após seed:dev
+@userId = 550e8400-e29b-41d4-a716-446655440001
+@addressId = 550e8400-e29b-41d4-a716-446655440002
+
+# Course 1 - Medicina Legal
+@courseId = 550e8400-e29b-41d4-a716-446655440010
+@trackId = 550e8400-e29b-41d4-a716-446655440011
+@moduleId = 550e8400-e29b-41d4-a716-446655440012
+@lessonId = 550e8400-e29b-41d4-a716-446655440013
+@videoId = 550e8400-e29b-41d4-a716-446655440014
+@documentId = 550e8400-e29b-41d4-a716-446655440015
+
+# Course 2 - Clínica Médica
+@courseId2 = 550e8400-e29b-41d4-a716-446655440030
+@trackId2 = 550e8400-e29b-41d4-a716-446655440031
+@moduleId2 = 550e8400-e29b-41d4-a716-446655440032
+@lessonId2 = 550e8400-e29b-41d4-a716-446655440033
+@videoId2 = 550e8400-e29b-41d4-a716-446655440034
+@documentId2 = 550e8400-e29b-41d4-a716-446655440035
+
+# Course 3 - Cirurgia Geral
+@courseId3 = 550e8400-e29b-41d4-a716-446655440040
+@trackId3 = 550e8400-e29b-41d4-a716-446655440041
+@moduleId3 = 550e8400-e29b-41d4-a716-446655440042
+@lessonId3 = 550e8400-e29b-41d4-a716-446655440043
+@videoId3 = 550e8400-e29b-41d4-a716-446655440044
+@documentId3 = 550e8400-e29b-41d4-a716-446655440045
+
+# Assessments
+@assessmentId = 550e8400-e29b-41d4-a716-446655440020
+@argumentId = 550e8400-e29b-41d4-a716-446655440021
+@questionId = 550e8400-e29b-41d4-a716-446655440022
+@answerId = 550e8400-e29b-41d4-a716-446655440023
+
+@assessmentId2 = 550e8400-e29b-41d4-a716-446655440050
+@argumentId2 = 550e8400-e29b-41d4-a716-446655440051
+@questionId2 = 550e8400-e29b-41d4-a716-446655440052
+@answerId2 = 550e8400-e29b-41d4-a716-446655440053
+
+@assessmentId3 = 550e8400-e29b-41d4-a716-446655440060
+@argumentId3 = 550e8400-e29b-41d4-a716-446655440061
+@questionId3 = 550e8400-e29b-41d4-a716-446655440062
+@answerId3 = 550e8400-e29b-41d4-a716-446655440063
+
+@attemptId = 550e8400-e29b-41d4-a716-446655440024
+@attemptAnswerId = 550e8400-e29b-41d4-a716-446655440025
+
+### Exemplos de uso
+
+### Get Answer by ID (NOT IMPLEMENTED YET)
+# GET {{baseUrl}}/answers/{{answerId}}
+
+### List Answers (paginated) (NOT IMPLEMENTED YET)
+# GET {{baseUrl}}/answers?page=1&limit=10
+
+### List Answers filtered by Question (NOT IMPLEMENTED YET)
+# GET {{baseUrl}}/answers?page=1&limit=5&questionId={{questionId}}
+
+### ==== COURSES ====
+
+### Get Course 1 - Medicina Legal
+GET {{baseUrl}}/courses/{{courseId}}
+
+### Get Course 2 - Clínica Médica
+GET {{baseUrl}}/courses/{{courseId2}}
+
+### Get Course 3 - Cirurgia Geral
+GET {{baseUrl}}/courses/{{courseId3}}
+
+### List All Courses
+GET {{baseUrl}}/courses
+
+### ==== TRACKS ====
+
+### Get Track 1 - Medicina Legal
+GET {{baseUrl}}/tracks/{{trackId}}
+
+### Get Track 2 - Clínica Médica
+GET {{baseUrl}}/tracks/{{trackId2}}
+
+### Get Track 3 - Cirurgia Geral
+GET {{baseUrl}}/tracks/{{trackId3}}
+
+### List All Tracks
+GET {{baseUrl}}/tracks
+
+### ==== MODULES ====
+
+### Get Module 1 (requires courseId)
+GET {{baseUrl}}/courses/{{courseId}}/modules/{{moduleId}}
+
+### Get Module 2 (requires courseId)
+GET {{baseUrl}}/courses/{{courseId2}}/modules/{{moduleId2}}
+
+### Get Module 3 (requires courseId)
+GET {{baseUrl}}/courses/{{courseId3}}/modules/{{moduleId3}}
+
+### List Modules for Course 1
+GET {{baseUrl}}/courses/{{courseId}}/modules
+
+### ==== LESSONS ====
+
+### Get Lesson 1 (requires courseId and moduleId)
+GET {{baseUrl}}/courses/{{courseId}}/modules/{{moduleId}}/lessons/{{lessonId}}
+
+### Get Lesson 2 (requires courseId and moduleId)
+GET {{baseUrl}}/courses/{{courseId2}}/modules/{{moduleId2}}/lessons/{{lessonId2}}
+
+### Get Lesson 3 (requires courseId and moduleId)
+GET {{baseUrl}}/courses/{{courseId3}}/modules/{{moduleId3}}/lessons/{{lessonId3}}
+
+### List Lessons for Module 1
+GET {{baseUrl}}/courses/{{courseId}}/modules/{{moduleId}}/lessons
+
+### ==== VIDEOS ====
+
+### Get Video 1 (requires courseId and lessonId)
+GET {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/videos/{{videoId}}
+
+### Get Video 2 (requires courseId and lessonId)
+GET {{baseUrl}}/courses/{{courseId2}}/lessons/{{lessonId2}}/videos/{{videoId2}}
+
+### Get Video 3 (requires courseId and lessonId)
+GET {{baseUrl}}/courses/{{courseId3}}/lessons/{{lessonId3}}/videos/{{videoId3}}
+
+### List Videos for Lesson 1
+GET {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/videos
+
+### ==== DOCUMENTS ====
+
+### Get Document 1 (requires lessonId)
+GET {{baseUrl}}/lessons/{{lessonId}}/documents/{{documentId}}
+
+### Get Document 2 (requires lessonId)
+GET {{baseUrl}}/lessons/{{lessonId2}}/documents/{{documentId2}}
+
+### Get Document 3 (requires lessonId)
+GET {{baseUrl}}/lessons/{{lessonId3}}/documents/{{documentId3}}
+
+### List Documents for Lesson 1
+GET {{baseUrl}}/lessons/{{lessonId}}/documents
+
+### ==== ASSESSMENTS ====
+
+### Get Assessment 1 (Quiz)
+GET {{baseUrl}}/assessments/{{assessmentId}}
+
+### Get Assessment 2 (Simulado)
+GET {{baseUrl}}/assessments/{{assessmentId2}}
+
+### Get Assessment 3 (Perguntas Abertas)
+GET {{baseUrl}}/assessments/{{assessmentId3}}
+
+### List All Assessments
+GET {{baseUrl}}/assessments
+
+### List Assessments by Type
+GET {{baseUrl}}/assessments?type=QUIZ
+GET {{baseUrl}}/assessments?type=SIMULADO
+GET {{baseUrl}}/assessments?type=PROVA_ABERTA
+
+### ==== ARGUMENTS ====
+
+### Get Argument 1
+GET {{baseUrl}}/arguments/{{argumentId}}
+
+### Get Argument 2
+GET {{baseUrl}}/arguments/{{argumentId2}}
+
+### Get Argument 3
+GET {{baseUrl}}/arguments/{{argumentId3}}
+
+### List All Arguments
+GET {{baseUrl}}/arguments
+
+### ==== QUESTIONS ====
+
+### Get Question 1 (Multiple Choice)
+GET {{baseUrl}}/questions/{{questionId}}
+
+### Get Question 2 (Multiple Choice)
+GET {{baseUrl}}/questions/{{questionId2}}
+
+### Get Question 3 (Open Ended)
+GET {{baseUrl}}/questions/{{questionId3}}
+
+### ==== ANSWERS (NOT IMPLEMENTED YET) ====
+
+### Create Answer (NOT IMPLEMENTED YET)
+# POST {{baseUrl}}/answers
+# Content-Type: application/json
+
+# {
+#   "questionId": "{{questionId}}",
+#   "explanation": "Nova explicação",
+#   "correctOptionId": null
+# }

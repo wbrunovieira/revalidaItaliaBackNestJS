@@ -88,14 +88,3 @@ Content-Type: {{contentType}}
 ### 9. Buscar Question por ID - Sucesso
 GET {{BASE_URL}}/questions/f5b59e4e-738c-400d-8735-c194b5598a86
 
-### 10. Buscar Question - ID inválido
-GET {{BASE_URL}}/questions/invalid-uuid
-
-### 11. Buscar Question - Não encontrada
-GET {{BASE_URL}}/questions/00000000-0000-0000-0000-000000000000
-
-### 12. Buscar Question - UUID formato inválido
-GET {{BASE_URL}}/questions/not-a-uuid-at-all
-
-### 13. Buscar Question específica (substituir por ID real)
-GET {{BASE_URL}}/questions/question-id-goes-here

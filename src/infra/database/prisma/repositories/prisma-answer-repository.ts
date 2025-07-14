@@ -2,7 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Either, left, right } from '@/core/either';
-import { IAnswerRepository } from '@/domain/assessment/application/repositories/i-answer.repository';
+import { IAnswerRepository, PaginatedAnswersResult } from '@/domain/assessment/application/repositories/i-answer.repository';
 import { Answer } from '@/domain/assessment/enterprise/entities/answer.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { AnswerTranslationVO } from '@/domain/assessment/enterprise/value-objects/answer-translation.vo';
@@ -100,6 +100,38 @@ export class PrismaAnswerRepository implements IAnswerRepository {
 
       const answers = data.map((item) => this.mapToEntity(item));
       return right(answers);
+    } catch (err: any) {
+      return left(new Error('Database error'));
+    }
+  }
+
+  async findAllPaginated(
+    limit: number,
+    offset: number,
+    questionId?: string,
+  ): Promise<Either<Error, PaginatedAnswersResult>> {
+    try {
+      const where = questionId ? { questionId } : {};
+
+      const [data, total] = await Promise.all([
+        this.prisma.answer.findMany({
+          where,
+          include: {
+            translations: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          skip: offset,
+          take: limit,
+        }),
+        this.prisma.answer.count({ where }),
+      ]);
+
+      const answers = data.map((item) => this.mapToEntity(item));
+
+      return right({
+        answers,
+        total,
+      });
     } catch (err: any) {
       return left(new Error('Database error'));
     }
