@@ -1,6 +1,5 @@
 // src/infra/controllers/answer.controller.ts
 
-import { GetAnswerParamsDto } from '@/domain/assessment/application/dtos/get-answer-params.dto';
 import { GetAnswerUseCase } from '@/domain/assessment/application/use-cases/get-answer.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { AnswerNotFoundError } from '@/domain/assessment/application/use-cases/errors/answer-not-found-error';
@@ -23,8 +22,8 @@ export class AnswerController {
   ) {}
 
   @Get(':id')
-  async getById(@Param() params: GetAnswerParamsDto) {
-    const request = { id: params.id };
+  async getById(@Param('id') id: string) {
+    const request = { id };
 
     const result = await this.getAnswerUseCase.execute(request);
 

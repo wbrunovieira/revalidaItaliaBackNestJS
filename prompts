@@ -35,7 +35,13 @@ Este documento define prompts específicos e padronizados para interações com 
 
 ### Prompt:
 
-"Leia o arquivo `project-reference-guide.md` e crie um novo Use-Case, incluindo DTOs necessários, schema de validação Zod, e testes unitários abrangendo casos de erro, edge cases e inputs inválidos. Antes de iniciar, valide se todos os métodos necessários existem nos repositórios, e caso necessário, sugira métodos adicionais. Importante: sempre refatore completamente os arquivos ao atualizá-los."
+"Leia o arquivo `project-reference-guide.md` e crie um novo Use-Case, incluindo DTOs necessários, schema de validação Zod, e testes unitários abrangendo casos de erro, edge cases e inputs inválidos. Antes de iniciar, valide se todos os métodos necessários existem nos repositórios, e caso necessário, sugira métodos adicionais.
+
+**Após a criação:**
+1. **Registrar no Module:** Adicione o Use-Case no module correspondente seguindo o padrão do projeto
+2. **Executar teste:** Execute o teste com o comando `docker exec -it ead-backend-dev sh -c "pnpm test src/path/to/use-case.spec.ts"`
+
+Importante: sempre refatore completamente os arquivos ao atualizá-los."
 
 ### Arquivos de Referência:
 
@@ -53,9 +59,37 @@ Este documento define prompts específicos e padronizados para interações com 
 
 ### Prompt:
 
-"Leia o arquivo `project-reference-guide.md` e crie ou atualize o Controller e a rota associada ao Use-Case especificado. Inclua as validações usando class-validator e crie os testes unitários para a rota. 
+"Leia o arquivo `project-reference-guide.md` e crie ou atualize o Controller e a rota associada ao Use-Case especificado. Inclua as validações usando class-validator e crie os testes unitários para a rota.
+
+**Verificações obrigatórias:**
+a) **Module:** Verifique se existe o module do controller. Se não existir, crie seguindo o padrão:
+```typescript
+@Module({
+  controllers: [ControllerName],
+  providers: [
+    UseCaseName,
+    {
+      provide: 'RepositoryInterface',
+      useClass: PrismaRepositoryImplementation,
+    },
+  ],
+})
+export class ModuleName {}
+```
+
+b) **Executar teste:** Após criação, execute `docker exec -it ead-backend-dev sh -c "pnpm test src/infra/controllers/tests/controller-name/verb-controller.spec.ts"`
+
+c) **Request file:** Verifique se existe arquivo em `requests/controller-name.http` e adicione a rota de forma simples, seguindo o padrão existente
+
+d) **Dev setup:** Adicione a rota em `requests/dev-setup/` se necessário, refatorando o script para incluir a nova funcionalidade. Se modificar o dev-setup, execute o seed: `docker exec ead-backend-dev pnpm seed:dev`
+
+e) **Testar sistema:** Após todas as alterações, reinicie o sistema Docker para verificar se tudo está funcionando:
+```bash
+docker compose -f compose.dev.yaml down && docker compose -f compose.dev.yaml build --no-cache && docker compose -f compose.dev.yaml up -d && docker compose -f compose.dev.yaml logs -f
+```
 
 **Estrutura de testes:** Se ainda não existir, crie o diretório `shared/` dentro de `src/infra/controllers/tests/<controller-name>/` contendo:
+
 - `*-controller-test-setup.ts` (configuração de mocks e instâncias)
 - `*-controller-test-helpers.ts` (métodos auxiliares para testes)
 - `*-controller-test-data.ts` (dados de teste organizados)
@@ -76,18 +110,21 @@ Importante: sempre refatore completamente os arquivos ao atualizá-los."
 
 ### Prompt:
 
-"Leia o arquivo `project-reference-guide.md` e crie um teste E2E completo usando Vitest e Supertest para a nova rota criada. Garanta que cubra o fluxo feliz, cenários de erro e validações detalhadas. 
+"Leia o arquivo `project-reference-guide.md` e crie um teste E2E completo usando Vitest e Supertest para a nova rota criada. Garanta que cubra o fluxo feliz, cenários de erro e validações detalhadas.
 
 **Estrutura de testes E2E:** Se ainda não existir, crie o diretório `<controller-name>/` dentro de `test/e2e/` contendo:
+
 - `shared/` com arquivos auxiliares para setup, helpers e dados de teste
 - Um arquivo específico para cada verbo HTTP (ex: `get-*.e2e.spec.ts`, `post-*.e2e.spec.ts`, `put-*.e2e.spec.ts`, `delete-*.e2e.spec.ts`)
+
+**Tarefa final:** Executar o teste com o comando `docker exec -it ead-backend-dev sh -c "pnpm test:e2e test/e2e/controller-name/verb-endpoint.e2e.spec.ts"`
 
 Antes de iniciar, confirme os cenários obrigatórios a serem testados. Importante: sempre refatore completamente o arquivo ao atualizá-lo."
 
 ### Arquivos de Referência:
 
 - `test/e2e/<controller-name>/<verb>-*.e2e.spec.ts`
-- `test/e2e/<controller-name>/shared/*.ts`
+- `test/e2e/<controller-name>/shared/*.ts`promp
 - `test/e2e/shared/*.ts` (utilitários globais)
 
 ---

@@ -82,7 +82,7 @@ export class AnswerControllerTestHelpers {
     const mockResult = this.mockGetAnswerSuccess(
       expectedAnswerData || { id: params.id },
     );
-    const result = await this.testSetup.controller.getById(params);
+    const result = await this.testSetup.controller.getById(params.id);
 
     // Verify use case was called correctly
     expect(this.testSetup.getAnswerUseCase.execute).toHaveBeenCalledWith({ id: params.id });
@@ -101,7 +101,7 @@ export class AnswerControllerTestHelpers {
     errorType: any,
     expectedExceptionType: any,
   ) {
-    await expect(this.testSetup.controller.getById(params)).rejects.toThrow(
+    await expect(this.testSetup.controller.getById(params.id)).rejects.toThrow(
       expectedExceptionType,
     );
 
@@ -368,7 +368,7 @@ export class AnswerControllerTestHelpers {
     const { result, executionTime } = await this.measureExecutionTime(
       async () => {
         const promises = paramsArray.map((params) => 
-          this.testSetup.controller.getById(params)
+          this.testSetup.controller.getById(params.id)
         );
         return await Promise.all(promises);
       },

@@ -1,7 +1,7 @@
 // src/domain/assessment/application/use-cases/get-answer.use-case.ts
 
 import { Either, left, right } from '@/core/either';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { IAnswerRepository } from '../repositories/i-answer.repository';
 import { GetAnswerRequest } from '../dtos/get-answer-request.dto';
 import { GetAnswerResponse } from '../dtos/get-answer-response.dto';
@@ -19,7 +19,10 @@ type GetAnswerUseCaseResponse = Either<
 
 @Injectable()
 export class GetAnswerUseCase {
-  constructor(private answerRepository: IAnswerRepository) {}
+  constructor(
+    @Inject('AnswerRepository')
+    private readonly answerRepository: IAnswerRepository,
+  ) {}
 
   async execute(request: GetAnswerRequest): Promise<GetAnswerUseCaseResponse> {
     // Validate input

@@ -53,8 +53,14 @@
 
 ### Exemplos de uso
 
-### Get Answer by ID (NOT IMPLEMENTED YET)
-# GET {{baseUrl}}/answers/{{answerId}}
+### Get Answer by ID - IMPLEMENTED ✅
+GET {{baseUrl}}/answers/{{answerId}}
+
+### Get Answer 2 - IMPLEMENTED ✅
+GET {{baseUrl}}/answers/{{answerId2}}
+
+### Get Answer 3 - IMPLEMENTED ✅
+GET {{baseUrl}}/answers/{{answerId3}}
 
 ### List Answers (paginated) (NOT IMPLEMENTED YET)
 # GET {{baseUrl}}/answers?page=1&limit=10
@@ -190,7 +196,22 @@ GET {{baseUrl}}/questions/{{questionId2}}
 ### Get Question 3 (Open Ended)
 GET {{baseUrl}}/questions/{{questionId3}}
 
-### ==== ANSWERS (NOT IMPLEMENTED YET) ====
+### ==== ANSWERS ====
+
+### Get Answer 1 - Multiple Choice with Translations
+GET {{baseUrl}}/answers/{{answerId}}
+
+### Get Answer 2 - Multiple Choice for Simulado
+GET {{baseUrl}}/answers/{{answerId2}}
+
+### Get Answer 3 - Open Ended Answer
+GET {{baseUrl}}/answers/{{answerId3}}
+
+### Test Error - Invalid UUID
+GET {{baseUrl}}/answers/invalid-uuid
+
+### Test Error - Answer Not Found
+GET {{baseUrl}}/answers/00000000-0000-0000-0000-000000000000
 
 ### Create Answer (NOT IMPLEMENTED YET)
 # POST {{baseUrl}}/answers
