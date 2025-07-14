@@ -4,17 +4,58 @@
 #@BASE_URL = http://18.216.107.74:3333
 @contentType = application/json
 
-### 1. Buscar Answer por ID - Sucesso
-GET {{BASE_URL}}/answers/f5b59e4e-738c-400d-8735-c194b5598a86
+### 1. Criar Answer - Sucesso (Question OPEN)
+POST {{BASE_URL}}/answers
+Content-Type: {{contentType}}
 
-### 2. Buscar Answer com traduções - Sucesso  
-GET {{BASE_URL}}/answers/e2b59e4e-738c-400d-8735-c194b5598b92
+{
+  "explanation": "A hipertensão arterial é caracterizada por pressão arterial elevada (≥140/90 mmHg).",
+  "questionId": "550e8400-e29b-41d4-a716-446655440062",
+  "translations": [
+    {
+      "locale": "pt",
+      "explanation": "A hipertensão arterial é caracterizada por pressão arterial elevada (≥140/90 mmHg)."
+    }
+  ]
+}
 
-### 3. Erro - ID inválido
+### 2. Criar Answer - Sucesso (Question MULTIPLE_CHOICE)
+POST {{BASE_URL}}/answers
+Content-Type: {{contentType}}
+
+{
+  "explanation": "Esta é a resposta correta para a questão de múltipla escolha.",
+  "questionId": "550e8400-e29b-41d4-a716-446655440022",
+  "correctOptionId": "550e8400-e29b-41d4-a716-446655440022-option-1",
+  "translations": [
+    {
+      "locale": "pt",
+      "explanation": "Esta é a resposta correta para a questão de múltipla escolha."
+    },
+    {
+      "locale": "it",
+      "explanation": "Questa è la risposta corretta per la domanda a scelta multipla."
+    }
+  ]
+}
+
+### 3. Buscar Answer por ID - Sucesso
+GET {{BASE_URL}}/answers/550e8400-e29b-41d4-a716-446655440023
+
+### 4. Buscar Answer com traduções - Sucesso  
+GET {{BASE_URL}}/answers/550e8400-e29b-41d4-a716-446655440053
+
+### 5. Erro - ID inválido
 GET {{BASE_URL}}/answers/invalid-uuid
 
-### 4. Erro - Answer não encontrado
+### 6. Erro - Answer não encontrado
 GET {{BASE_URL}}/answers/00000000-0000-0000-0000-000000000000
 
-### 5. Teste de performance
-GET {{BASE_URL}}/answers/f5b59e4e-738c-400d-8735-c194b5598a86
+### 7. Erro - Answer já existe
+POST {{BASE_URL}}/answers
+Content-Type: {{contentType}}
+
+{
+  "explanation": "Tentativa de criar answer duplicada",
+  "questionId": "550e8400-e29b-41d4-a716-446655440022"
+}

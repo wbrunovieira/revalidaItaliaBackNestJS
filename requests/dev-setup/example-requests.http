@@ -38,10 +38,22 @@
 @questionId = 550e8400-e29b-41d4-a716-446655440022
 @answerId = 550e8400-e29b-41d4-a716-446655440023
 
+# Question 1 Options (Multiple Choice)
+@questionId1Option1 = 550e8400-e29b-41d4-a716-446655440022-option-1
+@questionId1Option2 = 550e8400-e29b-41d4-a716-446655440022-option-2
+@questionId1Option3 = 550e8400-e29b-41d4-a716-446655440022-option-3
+@questionId1Option4 = 550e8400-e29b-41d4-a716-446655440022-option-4
+
 @assessmentId2 = 550e8400-e29b-41d4-a716-446655440050
 @argumentId2 = 550e8400-e29b-41d4-a716-446655440051
 @questionId2 = 550e8400-e29b-41d4-a716-446655440052
 @answerId2 = 550e8400-e29b-41d4-a716-446655440053
+
+# Question 2 Options (Multiple Choice)
+@questionId2Option1 = 550e8400-e29b-41d4-a716-446655440052-option-1
+@questionId2Option2 = 550e8400-e29b-41d4-a716-446655440052-option-2
+@questionId2Option3 = 550e8400-e29b-41d4-a716-446655440052-option-3
+@questionId2Option4 = 550e8400-e29b-41d4-a716-446655440052-option-4
 
 @assessmentId3 = 550e8400-e29b-41d4-a716-446655440060
 @argumentId3 = 550e8400-e29b-41d4-a716-446655440061
@@ -213,12 +225,41 @@ GET {{baseUrl}}/answers/invalid-uuid
 ### Test Error - Answer Not Found
 GET {{baseUrl}}/answers/00000000-0000-0000-0000-000000000000
 
-### Create Answer (NOT IMPLEMENTED YET)
-# POST {{baseUrl}}/answers
-# Content-Type: application/json
+### Create Answer - Success Test (for testing purposes) - IMPLEMENTED ✅
+### First, delete existing answer to test creation
+DELETE {{baseUrl}}/answers/{{answerId}}
 
-# {
-#   "questionId": "{{questionId}}",
-#   "explanation": "Nova explicação",
-#   "correctOptionId": null
-# }
+### Then create new answer for Question 1 (Multiple Choice)
+POST {{baseUrl}}/answers
+Content-Type: application/json
+
+{
+  "questionId": "550e8400-e29b-41d4-a716-446655440022",
+  "explanation": "Esta é a explicação da resposta corssreta2 para questão de múltipla escolha",
+
+  "translations": [
+    {
+      "locale": "pt",
+      "explanation": "Esta é a explicação da resposta correta em português"
+    },
+    {
+      "locale": "it", 
+      "explanation": "Questa è la spiegazione della risposta corretta in italiano"
+    }
+  ]
+}
+
+### Create Answer for Question 3 (Open Ended) - IMPLEMENTED ✅
+POST {{baseUrl}}/answers
+Content-Type: application/json
+
+{
+  "questionId": "{{questionId3}}",
+  "explanation": "Esta é uma explicação detalhada para a questão aberta sobre hipertensão arterial. A hipertensão é caracterizada por pressão arterial elevada e requer tratamento adequado.",
+  "translations": [
+    {
+      "locale": "pt",
+      "explanation": "A hipertensão arterial é uma condição médica séria que requer acompanhamento e tratamento adequado."
+    }
+  ]
+}
