@@ -306,10 +306,8 @@ GET {{baseUrl}}/answers/invalid-uuid
 GET {{baseUrl}}/answers/00000000-0000-0000-0000-000000000000
 
 ### Create Answer - Success Test (for testing purposes) - IMPLEMENTED ✅
-### First, delete existing answer to test creation
-DELETE {{baseUrl}}/answers/{{answerId}}
-
-### Then create new answer for Question 1 (Multiple Choice)
+### Note: Duplicate checking temporarily disabled for testing
+### Create new answer for Question 1 (Multiple Choice)
 POST {{baseUrl}}/answers
 Content-Type: application/json
 

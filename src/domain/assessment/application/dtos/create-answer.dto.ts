@@ -13,7 +13,7 @@ class CreateAnswerTranslationDto {
 
 export class CreateAnswerDto {
   @IsOptional()
-  @IsUUID('4', { message: 'Correct option ID must be a valid UUID' })
+  @IsString({ message: 'Correct option ID must be a string' })
   correctOptionId?: string;
 
   @IsString({ message: 'Explanation must be a string' })

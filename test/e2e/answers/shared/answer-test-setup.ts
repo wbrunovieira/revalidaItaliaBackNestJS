@@ -5,17 +5,29 @@ import { Module } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../../src/prisma/prisma.service';
 import { GetAnswerUseCase } from '../../../../src/domain/assessment/application/use-cases/get-answer.use-case';
+import { CreateAnswerUseCase } from '../../../../src/domain/assessment/application/use-cases/create-answer.use-case';
 import { AnswerController } from '../../../../src/infra/controllers/answer.controller';
 import { PrismaAnswerRepository } from '../../../../src/infra/database/prisma/repositories/prisma-answer-repository';
+import { PrismaQuestionRepository } from '../../../../src/infra/database/prisma/repositories/prisma-question-repository';
+import { PrismaAssessmentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-assessment-repository';
 
 @Module({
   controllers: [AnswerController],
   providers: [
     GetAnswerUseCase,
+    CreateAnswerUseCase,
     PrismaService,
     {
       provide: 'AnswerRepository',
       useClass: PrismaAnswerRepository,
+    },
+    {
+      provide: 'QuestionRepository',
+      useClass: PrismaQuestionRepository,
+    },
+    {
+      provide: 'AssessmentRepository',
+      useClass: PrismaAssessmentRepository,
     },
   ],
 })
