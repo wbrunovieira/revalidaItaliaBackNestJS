@@ -15,6 +15,7 @@ import { AssessmentModule } from './assessment.module';
 import { AssessmentController } from './controllers/assessment.controller';
 import { ArgumentModule } from './argument.module';
 import { QuestionModule } from './question.module';
+import { QuestionOptionModule } from './question-option.module';
 import { AnswerModule } from './answer.module';
 
 @Module({
@@ -27,6 +28,7 @@ import { AnswerModule } from './answer.module';
     AssessmentModule,
     ArgumentModule,
     QuestionModule,
+    QuestionOptionModule,
     AnswerModule,
   ],
   controllers: [

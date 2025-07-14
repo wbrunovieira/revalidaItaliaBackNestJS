@@ -55,6 +55,12 @@
 @questionId2Option3 = 550e8400-e29b-41d4-a716-446655440052-option-3
 @questionId2Option4 = 550e8400-e29b-41d4-a716-446655440052-option-4
 
+# Question Option IDs (created via POST /questions/:id/options)
+@questionOption1 = 550e8400-e29b-41d4-a716-446655440100
+@questionOption2 = 550e8400-e29b-41d4-a716-446655440101
+@questionOption3 = 550e8400-e29b-41d4-a716-446655440102
+@questionOption4 = 550e8400-e29b-41d4-a716-446655440103
+
 @assessmentId3 = 550e8400-e29b-41d4-a716-446655440060
 @argumentId3 = 550e8400-e29b-41d4-a716-446655440061
 @questionId3 = 550e8400-e29b-41d4-a716-446655440062
@@ -207,6 +213,80 @@ GET {{baseUrl}}/questions/{{questionId2}}
 
 ### Get Question 3 (Open Ended)
 GET {{baseUrl}}/questions/{{questionId3}}
+
+### ==== QUESTION OPTIONS ====
+
+### Create Option for Question 1 (Multiple Choice) - Option A - IMPLEMENTED ✅
+POST {{baseUrl}}/questions/{{questionId}}/options
+Content-Type: application/json
+
+{
+  "text": "Aplicar conhecimentos médicos ao direito"
+}
+
+### Create Option for Question 1 (Multiple Choice) - Option B - IMPLEMENTED ✅
+POST {{baseUrl}}/questions/{{questionId}}/options
+Content-Type: application/json
+
+{
+  "text": "Realizar procedimentos cirúrgicos"
+}
+
+### Create Option for Question 1 (Multiple Choice) - Option C - IMPLEMENTED ✅
+POST {{baseUrl}}/questions/{{questionId}}/options
+Content-Type: application/json
+
+{
+  "text": "Diagnosticar doenças"
+}
+
+### Create Option for Question 1 (Multiple Choice) - Option D - IMPLEMENTED ✅
+POST {{baseUrl}}/questions/{{questionId}}/options
+Content-Type: application/json
+
+{
+  "text": "Prescrever medicamentos"
+}
+
+### Create Option for Question 2 (Multiple Choice) - Option A - IMPLEMENTED ✅
+POST {{baseUrl}}/questions/{{questionId2}}/options
+Content-Type: application/json
+
+{
+  "text": "Eletrocardiograma (ECG)"
+}
+
+### Create Option for Question 3 (Open Question) - Evaluation Criteria - IMPLEMENTED ✅
+POST {{baseUrl}}/questions/{{questionId3}}/options
+Content-Type: application/json
+
+{
+  "text": "Resposta deve conter: incisão, exploração sistemática, identificação da patologia e correção"
+}
+
+### Test Error - Invalid Question ID - IMPLEMENTED ✅
+POST {{baseUrl}}/questions/invalid-uuid/options
+Content-Type: application/json
+
+{
+  "text": "Texto de teste para UUID inválido"
+}
+
+### Test Error - Question Not Found - IMPLEMENTED ✅
+POST {{baseUrl}}/questions/550e8400-e29b-41d4-a716-446655440000/options
+Content-Type: application/json
+
+{
+  "text": "Texto de teste para questão inexistente"
+}
+
+### Test Error - Empty Text - IMPLEMENTED ✅
+POST {{baseUrl}}/questions/{{questionId}}/options
+Content-Type: application/json
+
+{
+  "text": ""
+}
 
 ### ==== ANSWERS ====
 
