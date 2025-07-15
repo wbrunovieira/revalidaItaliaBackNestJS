@@ -31,4 +31,14 @@ POST http://localhost:3000/attempts/550e8400-e29b-41d4-a716-446655440010/submit
 ### Get Attempt Results
 GET http://localhost:3000/attempts/550e8400-e29b-41d4-a716-446655440010/results
 
+### Review Open Answer
+POST http://localhost:3000/attempts/answers/550e8400-e29b-41d4-a716-446655440030/review
+Content-Type: application/json
+
+{
+  "reviewerId": "550e8400-e29b-41d4-a716-446655440003",
+  "isCorrect": true,
+  "teacherComment": "Good answer with clear explanation."
+}
+
 ###

@@ -17,6 +17,12 @@ Este documento define prompts específicos e padronizados para interações com 
 
 ---
 
+Antes de começar, sempre confirme:
+
+- Exemplos e contexto já fornecidos.
+- Dúvidas sobre regras específicas de negócio.
+- Escopo detalhado e métodos necessários.
+
 ## 2. Criar Interface e Repositórios (Prisma e In-Memory)
 
 ### Prompt:
@@ -28,6 +34,12 @@ Este documento define prompts específicos e padronizados para interações com 
 - `src/domain/<domínio>/application/repositories/i-*.repository.ts`
 - `src/infra/database/prisma/repositories/prisma-*.repository.ts`
 - `src/test/repositories/in-memory-*.repository.ts`
+
+Antes de começar, sempre confirme:
+
+- Exemplos e contexto já fornecidos.
+- Dúvidas sobre regras específicas de negócio.
+- Escopo detalhado e métodos necessários.
 
 ---
 
@@ -53,6 +65,12 @@ Importante: sempre refatore completamente os arquivos ao atualizá-los."
 - `src/domain/<domínio>/application/repositories/i-*.repository.ts`
 - `src/infra/database/prisma/repositories/prisma-*.repository.ts`
 - `src/test/repositories/in-memory-*.repository.ts`
+
+Antes de começar, sempre confirme:
+
+- Exemplos e contexto já fornecidos.
+- Dúvidas sobre regras específicas de negócio.
+- Escopo detalhado e métodos necessários.
 
 ---
 
@@ -102,6 +120,12 @@ Importante: sempre refatore completamente os arquivos ao atualizá-los."
 - `src/infra/controllers/*.controller.ts`
 - `src/infra/controllers/tests/<controller-name>/shared/*.ts`
 - `src/infra/controllers/tests/<controller-name>/<verb>-*.controller.spec.ts`
+
+Antes de começar, sempre confirme:
+
+- Exemplos e contexto já fornecidos.
+- Dúvidas sobre regras específicas de negócio.
+- Escopo detalhado e métodos necessários.
 
 ---
 

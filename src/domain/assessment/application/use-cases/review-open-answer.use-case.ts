@@ -1,7 +1,7 @@
 // src/domain/assessment/application/use-cases/review-open-answer.use-case.ts
 
 import { Either, left, right } from '@/core/either';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { IAttemptAnswerRepository } from '../repositories/i-attempt-answer-repository';
 import { IAttemptRepository } from '../repositories/i-attempt.repository';
 import { IQuestionRepository } from '../repositories/i-question-repository';
@@ -34,9 +34,13 @@ type ReviewOpenAnswerUseCaseResponse = Either<
 @Injectable()
 export class ReviewOpenAnswerUseCase {
   constructor(
+    @Inject('AttemptAnswerRepository')
     private attemptAnswerRepository: IAttemptAnswerRepository,
+    @Inject('AttemptRepository')
     private attemptRepository: IAttemptRepository,
+    @Inject('QuestionRepository')
     private questionRepository: IQuestionRepository,
+    @Inject('AccountRepository')
     private accountRepository: IAccountRepository,
   ) {}
 

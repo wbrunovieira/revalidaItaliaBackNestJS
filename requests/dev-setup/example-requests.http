@@ -443,3 +443,32 @@ POST {{baseUrl}}/attempts/{{attemptId}}/submit
 ### Get Attempt Results - IMPLEMENTED ✅
 GET {{baseUrl}}/attempts/{{attemptId}}/results
 
+### Review Open Answer - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/answers/{{attemptAnswerId}}/review
+Content-Type: application/json
+
+{
+  "reviewerId": "{{userId}}",
+  "isCorrect": true,
+  "teacherComment": "Excelente resposta! Demonstrou conhecimento completo sobre o tema."
+}
+
+### Review Open Answer - Mark as Incorrect - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/answers/{{attemptAnswerId}}/review
+Content-Type: application/json
+
+{
+  "reviewerId": "{{userId}}",
+  "isCorrect": false,
+  "teacherComment": "Resposta incompleta. Faltou abordar aspectos importantes do tratamento e diagnóstico."
+}
+
+### Review Open Answer - Without Comment - IMPLEMENTED ✅
+POST {{baseUrl}}/attempts/answers/{{attemptAnswerId}}/review
+Content-Type: application/json
+
+{
+  "reviewerId": "{{userId}}",
+  "isCorrect": true
+}
+

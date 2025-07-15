@@ -4,10 +4,13 @@ import { StartAttemptDto } from '@/domain/assessment/application/dtos/start-atte
 import { SubmitAnswerDto } from '@/domain/assessment/application/dtos/submit-answer.dto';
 import { SubmitAttemptParamDto } from '@/domain/assessment/application/dtos/submit-attempt-param.dto';
 import { GetAttemptResultsParamDto } from './dtos/get-attempt-results-param.dto';
+import { ReviewOpenAnswerParamDto } from './dtos/review-open-answer-param.dto';
+import { ReviewOpenAnswerBodyDto } from './dtos/review-open-answer-body.dto';
 import { StartAttemptUseCase } from '@/domain/assessment/application/use-cases/start-attempt.use-case';
 import { SubmitAnswerUseCase } from '@/domain/assessment/application/use-cases/submit-answer.use-case';
 import { SubmitAttemptUseCase } from '@/domain/assessment/application/use-cases/submit-attempt.use-case';
 import { GetAttemptResultsUseCase } from '@/domain/assessment/application/use-cases/get-attempt-results.use-case';
+import { ReviewOpenAnswerUseCase } from '@/domain/assessment/application/use-cases/review-open-answer.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { UserNotFoundError } from '@/domain/assessment/application/use-cases/errors/user-not-found-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
@@ -21,6 +24,8 @@ import { AttemptExpiredError } from '@/domain/assessment/application/use-cases/e
 import { AttemptNotFinalizedError } from '@/domain/assessment/application/use-cases/errors/attempt-not-finalized-error';
 import { InsufficientPermissionsError } from '@/domain/assessment/application/use-cases/errors/insufficient-permissions-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
+import { AttemptAnswerNotFoundError } from '@/domain/assessment/application/use-cases/errors/attempt-answer-not-found-error';
+import { AnswerNotReviewableError } from '@/domain/assessment/application/use-cases/errors/answer-not-reviewable-error';
 import {
   Controller,
   Post,
@@ -46,6 +51,8 @@ export class AttemptController {
     private readonly submitAttemptUseCase: SubmitAttemptUseCase,
     @Inject(GetAttemptResultsUseCase)
     private readonly getAttemptResultsUseCase: GetAttemptResultsUseCase,
+    @Inject(ReviewOpenAnswerUseCase)
+    private readonly reviewOpenAnswerUseCase: ReviewOpenAnswerUseCase,
   ) {}
 
   @Post('start')
@@ -300,6 +307,69 @@ export class AttemptController {
         throw new NotFoundException({
           error: 'ASSESSMENT_NOT_FOUND',
           message: 'Assessment not found',
+        });
+      }
+
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException({
+          error: 'INTERNAL_ERROR',
+          message: error.message,
+        });
+      }
+
+      // Fallback para erros não mapeados
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: 'Unexpected error occurred',
+      });
+    }
+
+    return result.value;
+  }
+
+  @Post('answers/:id/review')
+  async reviewAnswer(
+    @Param() params: ReviewOpenAnswerParamDto,
+    @Body() body: ReviewOpenAnswerBodyDto,
+  ) {
+    const request = {
+      attemptAnswerId: params.id,
+      reviewerId: body.reviewerId,
+      isCorrect: body.isCorrect,
+      teacherComment: body.teacherComment,
+    };
+
+    const result = await this.reviewOpenAnswerUseCase.execute(request);
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof AttemptAnswerNotFoundError) {
+        throw new NotFoundException({
+          error: 'ATTEMPT_ANSWER_NOT_FOUND',
+          message: 'Attempt answer not found',
+        });
+      }
+
+      if (error instanceof UserNotFoundError) {
+        throw new NotFoundException({
+          error: 'USER_NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      if (error instanceof AnswerNotReviewableError) {
+        throw new BadRequestException({
+          error: 'ANSWER_NOT_REVIEWABLE',
+          message: 'Answer is not reviewable',
         });
       }
 

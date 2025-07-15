@@ -6,6 +6,7 @@ import { StartAttemptResponse } from '@/domain/assessment/application/dtos/start
 import { SubmitAnswerResponse } from '@/domain/assessment/application/dtos/submit-answer-response.dto';
 import { SubmitAttemptResponse } from '@/domain/assessment/application/dtos/submit-attempt-response.dto';
 import { GetAttemptResultsResponse, ArgumentResult } from '@/domain/assessment/application/dtos/get-attempt-results-response.dto';
+import { ReviewOpenAnswerResponse } from '@/domain/assessment/application/dtos/review-open-answer-response.dto';
 
 export class AttemptControllerTestData {
   static readonly validStartAttemptDto = (): StartAttemptDto => ({
@@ -442,6 +443,78 @@ export class AttemptControllerTestData {
     assessmentNotFound: {
       error: 'ASSESSMENT_NOT_FOUND',
       message: 'Assessment not found',
+    },
+
+    internalError: {
+      error: 'INTERNAL_ERROR',
+      message: 'Unexpected error occurred',
+    },
+
+    repositoryError: {
+      error: 'INTERNAL_ERROR',
+      message: 'Database connection failed',
+    },
+  };
+
+  // Review Open Answer Test Data
+  readonly validAttemptAnswerId = '550e8400-e29b-41d4-a716-446655440030';
+  readonly validReviewerId = '550e8400-e29b-41d4-a716-446655440003';
+  readonly nonExistentAttemptAnswerId = '550e8400-e29b-41d4-a716-446655440031';
+  readonly nonExistentReviewerId = '550e8400-e29b-41d4-a716-446655440004';
+
+  static readonly validReviewOpenAnswerParams = () => ({
+    id: '550e8400-e29b-41d4-a716-446655440030',
+  });
+
+  static readonly validReviewOpenAnswerBody = () => ({
+    reviewerId: '550e8400-e29b-41d4-a716-446655440003',
+    isCorrect: true,
+    teacherComment: 'Good answer with clear explanation.',
+  });
+
+  static readonly validReviewOpenAnswerBodyWithoutComment = () => ({
+    reviewerId: '550e8400-e29b-41d4-a716-446655440003',
+    isCorrect: false,
+  });
+
+  static readonly mockReviewOpenAnswerResponse = (): ReviewOpenAnswerResponse => ({
+    attemptAnswer: {
+      id: '550e8400-e29b-41d4-a716-446655440030',
+      attemptId: '550e8400-e29b-41d4-a716-446655440010',
+      questionId: '550e8400-e29b-41d4-a716-446655440020',
+      textAnswer: 'This is my answer to the open question.',
+      status: 'GRADED',
+      isCorrect: true,
+      teacherComment: 'Good answer with clear explanation.',
+      createdAt: new Date('2023-01-01T10:00:00Z'),
+      updatedAt: new Date('2023-01-01T12:00:00Z'),
+    },
+    attemptStatus: {
+      id: '550e8400-e29b-41d4-a716-446655440010',
+      status: 'GRADED',
+      allOpenQuestionsReviewed: true,
+    },
+  });
+
+  static readonly reviewOpenAnswerErrorResponses = {
+    invalidInput: {
+      error: 'INVALID_INPUT',
+      message: 'Invalid input data',
+    },
+
+    attemptAnswerNotFound: {
+      error: 'ATTEMPT_ANSWER_NOT_FOUND',
+      message: 'Attempt answer not found',
+    },
+
+    userNotFound: {
+      error: 'USER_NOT_FOUND',
+      message: 'User not found',
+    },
+
+    answerNotReviewable: {
+      error: 'ANSWER_NOT_REVIEWABLE',
+      message: 'Answer is not reviewable',
     },
 
     internalError: {
