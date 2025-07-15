@@ -15,6 +15,7 @@ import { UpdateAssessmentUseCase } from '@/domain/assessment/application/use-cas
 import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
 import { GetAssessmentUseCase } from '@/domain/assessment/application/use-cases/get-assessment.use-case';
 import { DeleteAssessmentUseCase } from '@/domain/assessment/application/use-cases/delete-assessment.use-case';
+import { ListQuestionsByAssessmentUseCase } from '@/domain/assessment/application/use-cases/list-questions-by-assessment.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { DuplicateAssessmentError } from '@/domain/assessment/application/use-cases/errors/duplicate-assessment-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
@@ -49,6 +50,10 @@ class MockDeleteAssessmentUseCase {
   execute = vi.fn();
 }
 
+class MockListQuestionsByAssessmentUseCase {
+  execute = vi.fn();
+}
+
 describe('AssessmentController', () => {
   let controller: AssessmentController;
   let createUseCase: MockCreateAssessmentUseCase;
@@ -56,6 +61,7 @@ describe('AssessmentController', () => {
   let listUseCase: MockListAssessmentsUseCase;
   let getUseCase: MockGetAssessmentUseCase;
   let deleteUseCase: MockDeleteAssessmentUseCase;
+  let listQuestionsUseCase: MockListQuestionsByAssessmentUseCase;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -65,12 +71,14 @@ describe('AssessmentController', () => {
     listUseCase = new MockListAssessmentsUseCase();
     getUseCase = new MockGetAssessmentUseCase();
     deleteUseCase = new MockDeleteAssessmentUseCase();
+    listQuestionsUseCase = new MockListQuestionsByAssessmentUseCase();
     controller = new AssessmentController(
       createUseCase as any,
       updateUseCase as any,
       listUseCase as any,
       getUseCase as any,
       deleteUseCase as any,
+      listQuestionsUseCase as any,
     );
   });
 
@@ -2369,6 +2377,345 @@ describe('AssessmentController', () => {
 
       expect(result2.status).toBe('fulfilled');
       expect((result2 as any).value).toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('getQuestions()', () => {
+    const assessmentId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const mockQuestionsResponse = {
+      questions: [
+        {
+          id: 'question-1',
+          text: 'What is 2 + 2?',
+          type: 'MULTIPLE_CHOICE' as const,
+          options: [
+            { id: 'option-1', text: '3' },
+            { id: 'option-2', text: '4' },
+          ],
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2023-01-01'),
+        },
+        {
+          id: 'question-2',
+          text: 'Explain the concept of photosynthesis',
+          type: 'OPEN' as const,
+          options: [],
+          createdAt: new Date('2023-01-02'),
+          updatedAt: new Date('2023-01-02'),
+        },
+      ],
+    };
+
+    describe('✅ Success Cases', () => {
+      it('should return questions with options for multiple choice questions', async () => {
+        listQuestionsUseCase.execute.mockResolvedValue(right(mockQuestionsResponse));
+
+        const result = await controller.getQuestions(assessmentId);
+
+        expect(listQuestionsUseCase.execute).toHaveBeenCalledWith({
+          assessmentId,
+        });
+        expect(result).toEqual(mockQuestionsResponse);
+      });
+
+      it('should return questions without options for open questions', async () => {
+        const openQuestionsResponse = {
+          questions: [
+            {
+              id: 'open-question-1',
+              text: 'Explain photosynthesis in detail',
+              type: 'OPEN' as const,
+              options: [],
+              createdAt: new Date('2023-01-01'),
+              updatedAt: new Date('2023-01-01'),
+            },
+          ],
+        };
+
+        listQuestionsUseCase.execute.mockResolvedValue(right(openQuestionsResponse));
+
+        const result = await controller.getQuestions(assessmentId);
+
+        expect(result).toEqual(openQuestionsResponse);
+        expect(result.questions[0].options).toHaveLength(0);
+      });
+
+      it('should return empty array when assessment has no questions', async () => {
+        const emptyResponse = { questions: [] };
+        listQuestionsUseCase.execute.mockResolvedValue(right(emptyResponse));
+
+        const result = await controller.getQuestions(assessmentId);
+
+        expect(result).toEqual(emptyResponse);
+      });
+
+      it('should handle mixed question types', async () => {
+        const mixedResponse = {
+          questions: [
+            {
+              id: 'mc-question',
+              text: 'Multiple choice question',
+              type: 'MULTIPLE_CHOICE' as const,
+              options: [{ id: 'option-1', text: 'Option A' }],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            {
+              id: 'open-question',
+              text: 'Open question',
+              type: 'OPEN' as const,
+              options: [],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ],
+        };
+
+        listQuestionsUseCase.execute.mockResolvedValue(right(mixedResponse));
+
+        const result = await controller.getQuestions(assessmentId);
+
+        expect(result.questions).toHaveLength(2);
+        expect(result.questions[0].options).toHaveLength(1);
+        expect(result.questions[1].options).toHaveLength(0);
+      });
+
+      it('should call listQuestionsByAssessmentUseCase.execute exactly once', async () => {
+        listQuestionsUseCase.execute.mockResolvedValue(right(mockQuestionsResponse));
+
+        await controller.getQuestions(assessmentId);
+
+        expect(listQuestionsUseCase.execute).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('⚠️ Validation Errors (400)', () => {
+      it('should throw BadRequestException on InvalidInputError with validation details', async () => {
+        const validationDetails = ['assessmentId: Assessment ID must be a valid UUID'];
+        listQuestionsUseCase.execute.mockResolvedValue(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        try {
+          await controller.getQuestions('invalid-uuid');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+
+      it('should throw BadRequestException on empty assessmentId', async () => {
+        const validationDetails = ['assessmentId: Assessment ID cannot be empty'];
+        listQuestionsUseCase.execute.mockResolvedValue(
+          left(new InvalidInputError('Validation failed', validationDetails)),
+        );
+
+        try {
+          await controller.getQuestions('');
+        } catch (error) {
+          expect(error).toBeInstanceOf(BadRequestException);
+          expect(error.getResponse()).toEqual({
+            error: 'INVALID_INPUT',
+            message: 'Invalid input data',
+            details: validationDetails,
+          });
+        }
+      });
+    });
+
+    describe('🔍 Business Logic Errors', () => {
+      it('should throw NotFoundException when assessment is not found', async () => {
+        listQuestionsUseCase.execute.mockResolvedValue(
+          left(new AssessmentNotFoundError()),
+        );
+
+        try {
+          await controller.getQuestions(assessmentId);
+        } catch (error) {
+          expect(error).toBeInstanceOf(NotFoundException);
+          expect(error.getResponse()).toEqual({
+            error: 'ASSESSMENT_NOT_FOUND',
+            message: 'Assessment not found',
+          });
+        }
+      });
+
+      it('should throw InternalServerErrorException on RepositoryError', async () => {
+        listQuestionsUseCase.execute.mockResolvedValue(
+          left(new RepositoryError('Database connection failed')),
+        );
+
+        try {
+          await controller.getQuestions(assessmentId);
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'REPOSITORY_ERROR',
+            message: 'Database connection failed',
+          });
+        }
+      });
+
+      it('should throw InternalServerErrorException on unexpected error', async () => {
+        listQuestionsUseCase.execute.mockResolvedValue(
+          left(new Error('Unexpected error occurred')),
+        );
+
+        try {
+          await controller.getQuestions(assessmentId);
+        } catch (error) {
+          expect(error).toBeInstanceOf(InternalServerErrorException);
+          expect(error.getResponse()).toEqual({
+            error: 'INTERNAL_ERROR',
+            message: 'An unexpected error occurred',
+          });
+        }
+      });
+    });
+
+    describe('🔍 Edge Cases', () => {
+      it('should handle assessment with many questions and options', async () => {
+        const manyQuestionsResponse = {
+          questions: Array.from({ length: 10 }, (_, i) => ({
+            id: `question-${i + 1}`,
+            text: `Question ${i + 1}`,
+            type: 'MULTIPLE_CHOICE' as const,
+            options: Array.from({ length: 4 }, (_, j) => ({
+              id: `option-${i + 1}-${j + 1}`,
+              text: `Option ${j + 1} for Question ${i + 1}`,
+            })),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })),
+        };
+
+        listQuestionsUseCase.execute.mockResolvedValue(right(manyQuestionsResponse));
+
+        const result = await controller.getQuestions(assessmentId);
+
+        expect(result.questions).toHaveLength(10);
+        result.questions.forEach((question, index) => {
+          expect(question.options).toHaveLength(4);
+          expect(question.text).toBe(`Question ${index + 1}`);
+        });
+      });
+
+      it('should handle questions with no options correctly', async () => {
+        const noOptionsResponse = {
+          questions: [
+            {
+              id: 'mc-no-options',
+              text: 'Multiple choice question without options',
+              type: 'MULTIPLE_CHOICE' as const,
+              options: [],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ],
+        };
+
+        listQuestionsUseCase.execute.mockResolvedValue(right(noOptionsResponse));
+
+        const result = await controller.getQuestions(assessmentId);
+
+        expect(result.questions).toHaveLength(1);
+        expect(result.questions[0].type).toBe('MULTIPLE_CHOICE');
+        expect(result.questions[0].options).toHaveLength(0);
+      });
+
+      it('should preserve question order and data structure', async () => {
+        const orderedResponse = {
+          questions: [
+            {
+              id: 'first-question',
+              text: 'First question',
+              type: 'MULTIPLE_CHOICE' as const,
+              options: [{ id: 'option-a', text: 'Option A' }],
+              createdAt: new Date('2023-01-01'),
+              updatedAt: new Date('2023-01-01'),
+            },
+            {
+              id: 'second-question',
+              text: 'Second question',
+              type: 'OPEN' as const,
+              options: [],
+              createdAt: new Date('2023-01-02'),
+              updatedAt: new Date('2023-01-02'),
+            },
+          ],
+        };
+
+        listQuestionsUseCase.execute.mockResolvedValue(right(orderedResponse));
+
+        const result = await controller.getQuestions(assessmentId);
+
+        expect(result.questions[0].text).toBe('First question');
+        expect(result.questions[1].text).toBe('Second question');
+        expect(result.questions[0].options).toHaveLength(1);
+        expect(result.questions[1].options).toHaveLength(0);
+      });
+    });
+
+    describe('🔄 Behavior Testing', () => {
+      it('should pass correct request object to use case', async () => {
+        listQuestionsUseCase.execute.mockResolvedValue(right(mockQuestionsResponse));
+
+        await controller.getQuestions(assessmentId);
+
+        expect(listQuestionsUseCase.execute).toHaveBeenCalledWith({
+          assessmentId: assessmentId,
+        });
+      });
+
+      it('should return the exact response from use case without modification', async () => {
+        const exactResponse = {
+          questions: [
+            {
+              id: 'exact-question',
+              text: 'Exact test question',
+              type: 'QUIZ' as const,
+              options: [{ id: 'exact-option', text: 'Exact option' }],
+              createdAt: new Date('2023-12-01'),
+              updatedAt: new Date('2023-12-01'),
+            },
+          ],
+        };
+
+        listQuestionsUseCase.execute.mockResolvedValue(right(exactResponse));
+
+        const result = await controller.getQuestions(assessmentId);
+
+        expect(result).toBe(exactResponse); // Should be the exact same object reference
+      });
+
+      it('should handle concurrent requests for different assessments', async () => {
+        const id1 = 'assessment-1';
+        const id2 = 'assessment-2';
+
+        listQuestionsUseCase.execute.mockImplementation(({ assessmentId }) => {
+          if (assessmentId === id1) {
+            return Promise.resolve(right({ questions: [{ id: 'q1', text: 'Question 1', type: 'OPEN', options: [], createdAt: new Date(), updatedAt: new Date() }] }));
+          }
+          if (assessmentId === id2) {
+            return Promise.resolve(left(new AssessmentNotFoundError()));
+          }
+        });
+
+        const [result1, result2] = await Promise.allSettled([
+          controller.getQuestions(id1),
+          controller.getQuestions(id2).catch((err) => err),
+        ]);
+
+        expect(result1.status).toBe('fulfilled');
+        expect((result1 as any).value.questions).toHaveLength(1);
+
+        expect(result2.status).toBe('fulfilled');
+        expect((result2 as any).value).toBeInstanceOf(NotFoundException);
+      });
     });
   });
 });

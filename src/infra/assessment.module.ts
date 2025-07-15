@@ -5,12 +5,15 @@ import { CreateAssessmentUseCase } from '@/domain/assessment/application/use-cas
 
 import { PrismaAssessmentRepository } from '@/infra/database/prisma/repositories/prisma-assessment-repository';
 import { PrismaLessonRepository } from '@/infra/database/prisma/repositories/prisma-lesson-repository';
+import { PrismaQuestionRepository } from '@/infra/database/prisma/repositories/prisma-question-repository';
+import { PrismaQuestionOptionRepository } from '@/infra/database/prisma/repositories/prisma-question-option-repository';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { AssessmentController } from './controllers/assessment.controller';
 import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
 import { GetAssessmentUseCase } from '@/domain/assessment/application/use-cases/get-assessment.use-case';
 import { DeleteAssessmentUseCase } from '@/domain/assessment/application/use-cases/delete-assessment.use-case';
 import { UpdateAssessmentUseCase } from '@/domain/assessment/application/use-cases/update-assessment.use-case';
+import { ListQuestionsByAssessmentUseCase } from '@/domain/assessment/application/use-cases/list-questions-by-assessment.use-case';
 
 @Module({
   imports: [DatabaseModule],
@@ -21,6 +24,7 @@ import { UpdateAssessmentUseCase } from '@/domain/assessment/application/use-cas
     GetAssessmentUseCase,
     DeleteAssessmentUseCase,
     UpdateAssessmentUseCase,
+    ListQuestionsByAssessmentUseCase,
 
     {
       provide: 'AssessmentRepository',
@@ -29,6 +33,14 @@ import { UpdateAssessmentUseCase } from '@/domain/assessment/application/use-cas
     {
       provide: 'LessonRepository',
       useClass: PrismaLessonRepository,
+    } as const,
+    {
+      provide: 'QuestionRepository',
+      useClass: PrismaQuestionRepository,
+    } as const,
+    {
+      provide: 'QuestionOptionRepository',
+      useClass: PrismaQuestionOptionRepository,
     } as const,
   ],
   exports: [
