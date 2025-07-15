@@ -8,7 +8,7 @@ POST {{BASE_URL}}/flashcard-tags
 Content-Type: {{contentType}}
 
 {
-  "name": "Farmacologia"
+  "name": "Farmacologia2"
 }
 
 ### 2. Create FlashcardTag - Success (With custom slug)
@@ -72,7 +72,7 @@ Content-Type: {{contentType}}
 ### === GET FLASHCARD TAG BY ID ===
 
 ### 9. Get FlashcardTag - Success (Valid ID)
-GET {{BASE_URL}}/flashcard-tags/550e8400-e29b-41d4-a716-446655440070
+GET {{BASE_URL}}/flashcard-tags/2d38c57e-765c-4be6-b965-094df7af3f4b
 
 ### 10. Get FlashcardTag - Success (Different valid ID)
 GET {{BASE_URL}}/flashcard-tags/550e8400-e29b-41d4-a716-446655440071

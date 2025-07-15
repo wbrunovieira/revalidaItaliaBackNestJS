@@ -150,6 +150,10 @@ Antes de iniciar, confirme os cenários obrigatórios a serem testados. Importan
 - `test/e2e/<controller-name>/shared/*.ts`promp
 - `test/e2e/shared/*.ts` (utilitários globais)
 
+- Exemplos e contexto já fornecidos.
+- Dúvidas sobre regras específicas de negócio.
+- Escopo detalhado e métodos necessários.
+
 ---
 
 ## Checklist para todos os Prompts:
