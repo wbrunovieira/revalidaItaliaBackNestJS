@@ -161,6 +161,24 @@ Antes de começar, sempre confirme:
 
 **Tarefa final:** Executar o teste com o comando `docker exec -it ead-backend-dev sh -c "pnpm test:e2e test/e2e/controller-name/verb-endpoint.e2e.spec.ts"`
 
+**🚨 PRINCÍPIO CRÍTICO DE TESTES E2E:**
+Quando testes E2E falham, **SEMPRE** corrija o sistema/implementação para fazer os testes passarem, **NUNCA** ajuste os testes para corresponder ao comportamento incorreto. Os testes E2E representam a verdadeira especificação do sistema e devem ser a fonte de verdade.
+
+**Localização das correções conforme responsabilidades DDD:**
+- **Falha na validação de entrada:** Corrigir DTOs (`controllers/dtos/`) e schemas Zod (`use-cases/validations/`)
+- **Falha no processamento de dados:** Corrigir use-cases em `application/use-cases/`
+- **Falha nas regras de negócio:** Corrigir entidades em `enterprise/entities/`
+- **Falha na persistência:** Corrigir repositórios em `infra/database/prisma/repositories/`
+- **Falha na resposta HTTP:** Corrigir controllers em `controllers/` e filtros em `filters/`
+- **Falha na integração entre camadas:** Verificar injeção de dependências em modules
+- **Falha na configuração:** Corrigir setup de testes, configurações de banco, ValidationPipes
+
+**Ordem de investigação DDD:**
+1. **Infrastructure → Application:** Verificar se dados chegam corretamente ao use-case
+2. **Application → Domain:** Verificar se regras de negócio estão sendo aplicadas
+3. **Domain → Infrastructure:** Verificar se dados são persistidos corretamente
+4. **End-to-End:** Verificar se resposta HTTP está no formato esperado
+
 Antes de iniciar, confirme os cenários obrigatórios a serem testados. Importante: sempre refatore completamente o arquivo ao atualizá-lo."
 
 ### Arquivos de Referência:
@@ -172,6 +190,36 @@ Antes de iniciar, confirme os cenários obrigatórios a serem testados. Importan
 - Exemplos e contexto já fornecidos.
 - Dúvidas sobre regras específicas de negócio.
 - Escopo detalhado e métodos necessários.
+
+---
+
+## 🚨 PRINCÍPIO CRÍTICO UNIVERSAL - TESTES COMO ESPECIFICAÇÃO
+
+**REGRA FUNDAMENTAL:** Em TODOS os tipos de testes (unitários, integração, E2E), quando um teste falha, **SEMPRE** corrija o sistema/implementação para fazer o teste passar, **NUNCA** ajuste o teste para corresponder ao comportamento incorreto.
+
+### Hierarquia de Responsabilidades DDD:
+
+**1. Domain Layer (Regras de Negócio):**
+- `enterprise/entities/` - Regras de domínio, validações, transformações
+- `enterprise/value-objects/` - Objetos de valor imutáveis
+
+**2. Application Layer (Casos de Uso):**
+- `application/use-cases/` - Orquestração de regras de negócio
+- `application/use-cases/validations/` - Validação de entrada (Zod)
+- `application/dtos/` - Contratos de entrada/saída
+- `application/repositories/` - Interfaces de persistência
+
+**3. Infrastructure Layer (Detalhes Técnicos):**
+- `controllers/` - Entrada HTTP, mapeamento de dados
+- `controllers/dtos/` - Validação HTTP (class-validator)
+- `filters/` - Tratamento de exceções HTTP
+- `database/prisma/repositories/` - Implementação de persistência
+
+### Fluxo de Correção:
+1. **Identifique a camada responsável** pela funcionalidade que está falhando
+2. **Corrija a implementação** na camada apropriada
+3. **Mantenha a consistência** entre todas as camadas
+4. **Valide** que a correção não quebra outros testes
 
 ---
 
