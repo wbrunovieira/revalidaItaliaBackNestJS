@@ -51,6 +51,13 @@ export const DEV_IDS = {
   // Attempts
   attemptId: '550e8400-e29b-41d4-a716-446655440024',
   attemptAnswerId: '550e8400-e29b-41d4-a716-446655440025',
+
+  // Flashcard Tags
+  flashcardTagId1: '550e8400-e29b-41d4-a716-446655440070',
+  flashcardTagId2: '550e8400-e29b-41d4-a716-446655440071',
+  flashcardTagId3: '550e8400-e29b-41d4-a716-446655440072',
+  flashcardTagId4: '550e8400-e29b-41d4-a716-446655440073',
+  flashcardTagId5: '550e8400-e29b-41d4-a716-446655440074',
 } as const;
 
 // Dados de seed para desenvolvimento
@@ -314,5 +321,36 @@ export const DEV_DATA = {
     id: DEV_IDS.answerId3,
     explanation: 'A cirurgia abdominal exploratória envolve incisão, exploração sistemática, identificação da patologia e correção',
     questionId: DEV_IDS.questionId3,
+  },
+
+  // Flashcard Tags
+  flashcardTag1: {
+    id: DEV_IDS.flashcardTagId1,
+    name: 'Farmacologia',
+    slug: 'farmacologia',
+  },
+
+  flashcardTag2: {
+    id: DEV_IDS.flashcardTagId2,
+    name: 'Anatomia',
+    slug: 'anatomia',
+  },
+
+  flashcardTag3: {
+    id: DEV_IDS.flashcardTagId3,
+    name: 'Fisiologia',
+    slug: 'fisiologia',
+  },
+
+  flashcardTag4: {
+    id: DEV_IDS.flashcardTagId4,
+    name: 'Patologia',
+    slug: 'patologia',
+  },
+
+  flashcardTag5: {
+    id: DEV_IDS.flashcardTagId5,
+    name: 'Medicina Legal',
+    slug: 'medicina-legal',
   },
 };

@@ -1,0 +1,68 @@
+@BASE_URL = http://localhost:3333
+@contentType = application/json
+
+### 1. Create FlashcardTag - Success (Simple)
+POST {{BASE_URL}}/flashcard-tags
+Content-Type: {{contentType}}
+
+{
+  "name": "Farmacologia"
+}
+
+### 2. Create FlashcardTag - Success (With custom slug)
+POST {{BASE_URL}}/flashcard-tags
+Content-Type: {{contentType}}
+
+{
+  "name": "Anatomia Cardiovascular",
+  "slug": "anatomia-cardio"
+}
+
+### 3. Create FlashcardTag - Success (Minimal length)
+POST {{BASE_URL}}/flashcard-tags
+Content-Type: {{contentType}}
+
+{
+  "name": "ABC"
+}
+
+### 4. Create FlashcardTag - Success (Special characters)
+POST {{BASE_URL}}/flashcard-tags
+Content-Type: {{contentType}}
+
+{
+  "name": "Farmacologia & Toxicologia"
+}
+
+### 5. Create FlashcardTag - Error (Name too short)
+POST {{BASE_URL}}/flashcard-tags
+Content-Type: {{contentType}}
+
+{
+  "name": "AB"
+}
+
+### 6. Create FlashcardTag - Error (Name too long)
+POST {{BASE_URL}}/flashcard-tags
+Content-Type: {{contentType}}
+
+{
+  "name": "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation"
+}
+
+### 7. Create FlashcardTag - Error (Invalid slug)
+POST {{BASE_URL}}/flashcard-tags
+Content-Type: {{contentType}}
+
+{
+  "name": "Valid Name",
+  "slug": "Invalid-SLUG"
+}
+
+### 8. Create FlashcardTag - Error (Duplicate name)
+POST {{BASE_URL}}/flashcard-tags
+Content-Type: {{contentType}}
+
+{
+  "name": "Farmacologia"
+}

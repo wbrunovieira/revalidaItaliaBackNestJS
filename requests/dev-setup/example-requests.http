@@ -69,6 +69,13 @@
 @attemptId = 550e8400-e29b-41d4-a716-446655440024
 @attemptAnswerId = 550e8400-e29b-41d4-a716-446655440025
 
+# Flashcard Tags
+@flashcardTagId1 = 550e8400-e29b-41d4-a716-446655440070
+@flashcardTagId2 = 550e8400-e29b-41d4-a716-446655440071
+@flashcardTagId3 = 550e8400-e29b-41d4-a716-446655440072
+@flashcardTagId4 = 550e8400-e29b-41d4-a716-446655440073
+@flashcardTagId5 = 550e8400-e29b-41d4-a716-446655440074
+
 ### Exemplos de uso
 
 ### Get Answer by ID - IMPLEMENTED ✅
