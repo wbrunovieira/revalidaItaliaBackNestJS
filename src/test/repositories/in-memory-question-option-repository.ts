@@ -30,6 +30,14 @@ export class InMemoryQuestionOptionRepository implements IQuestionOptionReposito
     return right(questionOptions);
   }
 
+  async findByQuestionIds(questionIds: string[]): Promise<Either<Error, QuestionOption[]>> {
+    const questionOptions = this.items.filter(
+      item => questionIds.includes(item.questionId.toString())
+    );
+
+    return right(questionOptions);
+  }
+
   async update(questionOption: QuestionOption): Promise<Either<Error, QuestionOption>> {
     const itemIndex = this.items.findIndex(
       item => item.id.toString() === questionOption.id.toString()

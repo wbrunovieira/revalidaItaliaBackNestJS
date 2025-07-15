@@ -87,6 +87,37 @@ export class PrismaQuestionOptionRepository
     }
   }
 
+  async findByQuestionIds(
+    questionIds: string[],
+  ): Promise<Either<Error, QuestionOption[]>> {
+    try {
+      const questionOptions = await this.prisma.questionOption.findMany({
+        where: { 
+          questionId: {
+            in: questionIds
+          }
+        },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      const entities = questionOptions.map((option) =>
+        QuestionOption.reconstruct(
+          {
+            text: option.text,
+            questionId: new UniqueEntityID(option.questionId),
+            createdAt: option.createdAt,
+            updatedAt: option.updatedAt,
+          },
+          new UniqueEntityID(option.id),
+        ),
+      );
+
+      return right(entities);
+    } catch (error) {
+      return left(new Error('Failed to find question options'));
+    }
+  }
+
   async update(
     questionOption: QuestionOption,
   ): Promise<Either<Error, QuestionOption>> {
