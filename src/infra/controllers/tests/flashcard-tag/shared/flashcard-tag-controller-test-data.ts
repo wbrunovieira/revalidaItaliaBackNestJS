@@ -65,9 +65,54 @@ export class FlashcardTagControllerTestData {
       error: 'DUPLICATE_FLASHCARD_TAG',
       message: 'FlashcardTag with this name already exists',
     },
+    NOT_FOUND: {
+      error: 'FLASHCARD_TAG_NOT_FOUND',
+      message: 'FlashcardTag not found',
+    },
     INTERNAL_ERROR: {
       error: 'INTERNAL_ERROR',
       message: 'Unexpected error occurred',
     },
   };
+
+  // Helper methods for GET by ID tests
+  static validFlashcardTag() {
+    return {
+      id: '550e8400-e29b-41d4-a716-446655440001',
+      name: 'Farmacologia',
+      slug: 'farmacologia',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    };
+  }
+
+  static flashcardTagWithSpecialChars() {
+    return {
+      id: '550e8400-e29b-41d4-a716-446655440002',
+      name: 'Anatomia & Fisiologia',
+      slug: 'anatomia-fisiologia',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    };
+  }
+
+  static flashcardTagWithCustomSlug() {
+    return {
+      id: '550e8400-e29b-41d4-a716-446655440003',
+      name: 'Medicina Legal',
+      slug: 'med-legal',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+    };
+  }
+
+  static flashcardTagWithDifferentTimestamps() {
+    return {
+      id: '550e8400-e29b-41d4-a716-446655440004',
+      name: 'Patologia',
+      slug: 'patologia',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T01:00:00.000Z'), // 1 hour later
+    };
+  }
 }

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from './database/database.module';
 import { FlashcardTagController } from './controllers/flashcard-tag.controller';
 import { CreateFlashcardTagUseCase } from '@/domain/flashcard/application/use-cases/create-flashcard-tag.use-case';
+import { GetFlashcardTagByIdUseCase } from '@/domain/flashcard/application/use-cases/get-flashcard-tag-by-id.use-case';
 import { PrismaFlashcardTagRepository } from './database/prisma/repositories/prisma-flashcard-tag-repository';
 import { PrismaFlashcardRepository } from './database/prisma/repositories/prisma-flashcard-repository';
 import { PrismaFlashcardInteractionRepository } from './database/prisma/repositories/prisma-flashcard-interaction-repository';
@@ -12,6 +13,7 @@ import { PrismaFlashcardInteractionRepository } from './database/prisma/reposito
   providers: [
     // Use Cases
     CreateFlashcardTagUseCase,
+    GetFlashcardTagByIdUseCase,
 
     // Repositories
     {
@@ -32,6 +34,7 @@ import { PrismaFlashcardInteractionRepository } from './database/prisma/reposito
     'FlashcardRepository', 
     'FlashcardInteractionRepository',
     CreateFlashcardTagUseCase,
+    GetFlashcardTagByIdUseCase,
   ],
 })
 export class FlashcardModule {}

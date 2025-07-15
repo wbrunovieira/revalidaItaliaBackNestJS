@@ -1,6 +1,7 @@
 import { left, right } from '@/core/either';
 import { InvalidInputError } from '@/domain/flashcard/application/use-cases/errors/invalid-input-error';
 import { DuplicateFlashcardTagError } from '@/domain/flashcard/application/use-cases/errors/duplicate-flashcard-tag-error';
+import { FlashcardTagNotFoundError } from '@/domain/flashcard/application/use-cases/errors/flashcard-tag-not-found-error';
 import { FlashcardTagControllerTestData } from './flashcard-tag-controller-test-data';
 import { vi } from 'vitest';
 
@@ -17,6 +18,10 @@ export class FlashcardTagControllerTestHelpers {
 
   static createDuplicateTagErrorResponse() {
     return left(new DuplicateFlashcardTagError());
+  }
+
+  static createNotFoundErrorResponse() {
+    return left(new FlashcardTagNotFoundError());
   }
 
   static createUnexpectedErrorResponse() {
@@ -85,6 +90,14 @@ export class FlashcardTagControllerTestHelpers {
       .fn()
       .mockResolvedValue(
         FlashcardTagControllerTestHelpers.createDuplicateTagErrorResponse(),
+      );
+  }
+
+  static mockUseCaseNotFound(mockUseCase: any) {
+    mockUseCase.execute = vi
+      .fn()
+      .mockResolvedValue(
+        FlashcardTagControllerTestHelpers.createNotFoundErrorResponse(),
       );
   }
 

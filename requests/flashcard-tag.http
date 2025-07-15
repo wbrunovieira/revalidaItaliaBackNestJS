@@ -1,6 +1,8 @@
 @BASE_URL = http://localhost:3333
 @contentType = application/json
 
+### === CREATE FLASHCARD TAG ===
+
 ### 1. Create FlashcardTag - Success (Simple)
 POST {{BASE_URL}}/flashcard-tags
 Content-Type: {{contentType}}
@@ -66,3 +68,23 @@ Content-Type: {{contentType}}
 {
   "name": "Farmacologia"
 }
+
+### === GET FLASHCARD TAG BY ID ===
+
+### 9. Get FlashcardTag - Success (Valid ID)
+GET {{BASE_URL}}/flashcard-tags/550e8400-e29b-41d4-a716-446655440070
+
+### 10. Get FlashcardTag - Success (Different valid ID)
+GET {{BASE_URL}}/flashcard-tags/550e8400-e29b-41d4-a716-446655440071
+
+### 11. Get FlashcardTag - Error (Invalid UUID)
+GET {{BASE_URL}}/flashcard-tags/invalid-uuid
+
+### 12. Get FlashcardTag - Error (Not found)
+GET {{BASE_URL}}/flashcard-tags/550e8400-e29b-41d4-a716-446655440999
+
+### 13. Get FlashcardTag - Error (Empty ID)
+GET {{BASE_URL}}/flashcard-tags/
+
+### 14. Get FlashcardTag - Error (Malformed UUID)
+GET {{BASE_URL}}/flashcard-tags/550e8400-e29b-41d4-a716-44665544000g
