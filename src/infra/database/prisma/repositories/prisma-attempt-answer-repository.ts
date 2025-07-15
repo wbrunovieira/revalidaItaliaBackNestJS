@@ -22,6 +22,7 @@ export class PrismaAttemptAnswerRepository implements IAttemptAnswerRepository {
           status: attemptAnswer.status.getValue(),
           isCorrect: attemptAnswer.isCorrect,
           teacherComment: attemptAnswer.teacherComment,
+          reviewerId: attemptAnswer.reviewerId,
           attemptId: attemptAnswer.attemptId,
           questionId: attemptAnswer.questionId,
           createdAt: attemptAnswer.createdAt,
@@ -120,6 +121,7 @@ export class PrismaAttemptAnswerRepository implements IAttemptAnswerRepository {
           status: attemptAnswer.status.getValue(),
           isCorrect: attemptAnswer.isCorrect,
           teacherComment: attemptAnswer.teacherComment,
+          reviewerId: attemptAnswer.reviewerId,
           updatedAt: attemptAnswer.updatedAt,
         },
       });
@@ -154,6 +156,39 @@ export class PrismaAttemptAnswerRepository implements IAttemptAnswerRepository {
     }
   }
 
+  async findByReviewerId(reviewerId: string): Promise<Either<Error, AttemptAnswer[]>> {
+    try {
+      const attemptAnswers = await this.prisma.attemptAnswer.findMany({
+        where: { reviewerId },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return right(attemptAnswers.map(this.toDomain));
+    } catch (error) {
+      return left(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
+  async findPendingReviewsByStatus(status: 'SUBMITTED' | 'GRADING' = 'SUBMITTED'): Promise<Either<Error, AttemptAnswer[]>> {
+    try {
+      const attemptAnswers = await this.prisma.attemptAnswer.findMany({
+        where: {
+          status: status as any, // Cast to satisfy Prisma enum
+          reviewerId: null,
+        },
+        orderBy: {
+          createdAt: 'asc', // Oldest first for review queue
+        },
+      });
+
+      return right(attemptAnswers.map(this.toDomain));
+    } catch (error) {
+      return left(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
   async countByAttemptId(attemptId: string): Promise<Either<Error, number>> {
     try {
       const count = await this.prisma.attemptAnswer.count({
@@ -174,6 +209,7 @@ export class PrismaAttemptAnswerRepository implements IAttemptAnswerRepository {
         status: new AttemptStatusVO(raw.status),
         isCorrect: raw.isCorrect,
         teacherComment: raw.teacherComment,
+        reviewerId: raw.reviewerId,
         attemptId: raw.attemptId,
         questionId: raw.questionId,
         createdAt: raw.createdAt,

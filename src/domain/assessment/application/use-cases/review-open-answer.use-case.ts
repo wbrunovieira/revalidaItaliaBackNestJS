@@ -109,8 +109,13 @@ export class ReviewOpenAnswerUseCase {
         return left(new AnswerNotReviewableError());
       }
 
+      // Verify answer hasn't been reviewed yet (no reviewerId)
+      if (attemptAnswer.reviewerId) {
+        return left(new AnswerNotReviewableError());
+      }
+
       // Grade the answer
-      attemptAnswer.grade(isCorrect, teacherComment);
+      attemptAnswer.grade(isCorrect, teacherComment, reviewerId);
 
       // Update attempt answer
       const updateAnswerResult = await this.attemptAnswerRepository.update(attemptAnswer);
@@ -178,6 +183,7 @@ export class ReviewOpenAnswerUseCase {
           status: attemptAnswer.status.getValue() as 'SUBMITTED' | 'GRADING' | 'GRADED',
           isCorrect: attemptAnswer.isCorrect!,
           teacherComment: attemptAnswer.teacherComment,
+          reviewerId: attemptAnswer.reviewerId,
           attemptId: attemptAnswer.attemptId,
           questionId: attemptAnswer.questionId,
           createdAt: attemptAnswer.createdAt,

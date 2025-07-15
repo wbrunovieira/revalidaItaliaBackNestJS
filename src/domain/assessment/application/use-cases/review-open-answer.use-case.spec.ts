@@ -107,6 +107,7 @@ describe('ReviewOpenAnswerUseCase', () => {
         expect(result.value.attemptAnswer.status).toBe('GRADED');
         expect(result.value.attemptAnswer.isCorrect).toBe(true);
         expect(result.value.attemptAnswer.teacherComment).toBe('Excellent explanation!');
+        expect(result.value.attemptAnswer.reviewerId).toBe(reviewerId.toString());
         expect(result.value.attemptAnswer.textAnswer).toBe('This is my detailed explanation');
         expect(result.value.attemptStatus.allOpenQuestionsReviewed).toBe(true);
       }
@@ -169,6 +170,7 @@ describe('ReviewOpenAnswerUseCase', () => {
       if (result.isRight()) {
         expect(result.value.attemptAnswer.isCorrect).toBe(false);
         expect(result.value.attemptAnswer.teacherComment).toBe('Please review the concept and try again');
+        expect(result.value.attemptAnswer.reviewerId).toBe(reviewerId.toString());
       }
     });
 
@@ -228,6 +230,7 @@ describe('ReviewOpenAnswerUseCase', () => {
       if (result.isRight()) {
         expect(result.value.attemptAnswer.isCorrect).toBe(true);
         expect(result.value.attemptAnswer.teacherComment).toBeUndefined();
+        expect(result.value.attemptAnswer.reviewerId).toBe(reviewerId.toString());
       }
     });
   });
@@ -663,6 +666,127 @@ describe('ReviewOpenAnswerUseCase', () => {
         expect(result.value).toBeInstanceOf(AnswerNotReviewableError);
       }
     });
+
+    it('should return AnswerNotReviewableError when answer is already reviewed', async () => {
+      // Arrange
+      const attemptAnswerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
+      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const reviewerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440003');
+      const previousReviewerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440008');
+
+      const reviewer = User.create({
+        name: 'Teacher Name',
+        email: 'teacher@example.com',
+        password: 'password123',
+        cpf: '12345678901',
+        role: 'tutor',
+      }, reviewerId);
+
+      const attempt = Attempt.create({
+        status: new AttemptStatusVO('SUBMITTED'),
+        startedAt: new Date(),
+        submittedAt: new Date(),
+        userId: '550e8400-e29b-41d4-a716-446655440004',
+        assessmentId: '550e8400-e29b-41d4-a716-446655440005',
+      }, attemptId);
+
+      const question = Question.create({
+        text: 'Open question',
+        type: new QuestionTypeVO('OPEN'),
+        assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440005'),
+        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440006'),
+      }, questionId);
+
+      const attemptAnswer = AttemptAnswer.create({
+        textAnswer: 'Some answer',
+        status: new AttemptStatusVO('GRADED'),
+        reviewerId: previousReviewerId.toString(), // Already reviewed
+        isCorrect: true,
+        teacherComment: 'Already reviewed',
+        attemptId: attemptId.toString(),
+        questionId: questionId.toString(),
+      }, attemptAnswerId);
+
+      await accountRepository.create(reviewer);
+      await attemptRepository.create(attempt);
+      await questionRepository.create(question);
+      await attemptAnswerRepository.create(attemptAnswer);
+
+      const request: ReviewOpenAnswerRequest = {
+        attemptAnswerId: attemptAnswerId.toString(),
+        reviewerId: reviewerId.toString(),
+        isCorrect: false,
+        teacherComment: 'Trying to review again',
+      };
+
+      // Act
+      const result = await useCase.execute(request);
+
+      // Assert
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(AnswerNotReviewableError);
+      }
+    });
+
+    it('should return AnswerNotReviewableError when answer is already graded', async () => {
+      // Arrange
+      const attemptAnswerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
+      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const reviewerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440003');
+
+      const reviewer = User.create({
+        name: 'Teacher Name',
+        email: 'teacher@example.com',
+        password: 'password123',
+        cpf: '12345678901',
+        role: 'tutor',
+      }, reviewerId);
+
+      const attempt = Attempt.create({
+        status: new AttemptStatusVO('SUBMITTED'),
+        startedAt: new Date(),
+        submittedAt: new Date(),
+        userId: '550e8400-e29b-41d4-a716-446655440004',
+        assessmentId: '550e8400-e29b-41d4-a716-446655440005',
+      }, attemptId);
+
+      const question = Question.create({
+        text: 'Open question',
+        type: new QuestionTypeVO('OPEN'),
+        assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440005'),
+        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440006'),
+      }, questionId);
+
+      const attemptAnswer = AttemptAnswer.create({
+        textAnswer: 'Some answer',
+        status: new AttemptStatusVO('GRADED'), // Already graded
+        attemptId: attemptId.toString(),
+        questionId: questionId.toString(),
+      }, attemptAnswerId);
+
+      await accountRepository.create(reviewer);
+      await attemptRepository.create(attempt);
+      await questionRepository.create(question);
+      await attemptAnswerRepository.create(attemptAnswer);
+
+      const request: ReviewOpenAnswerRequest = {
+        attemptAnswerId: attemptAnswerId.toString(),
+        reviewerId: reviewerId.toString(),
+        isCorrect: true,
+      };
+
+      // Act
+      const result = await useCase.execute(request);
+
+      // Assert
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(AnswerNotReviewableError);
+      }
+    });
   });
 
   describe('Repository Errors', () => {
@@ -743,6 +867,134 @@ describe('ReviewOpenAnswerUseCase', () => {
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(RepositoryError);
         expect(result.value.message).toBe('Failed to update attempt answer');
+      }
+    });
+  });
+
+  describe('ReviewerId Validation', () => {
+    it('should correctly save reviewerId when grading answer', async () => {
+      // Arrange
+      const attemptAnswerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
+      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const reviewerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440003');
+
+      const reviewer = User.create({
+        name: 'Teacher Name',
+        email: 'teacher@example.com',
+        password: 'password123',
+        cpf: '12345678901',
+        role: 'tutor',
+      }, reviewerId);
+
+      const attempt = Attempt.create({
+        status: new AttemptStatusVO('SUBMITTED'),
+        startedAt: new Date(),
+        submittedAt: new Date(),
+        userId: '550e8400-e29b-41d4-a716-446655440004',
+        assessmentId: '550e8400-e29b-41d4-a716-446655440005',
+      }, attemptId);
+
+      const question = Question.create({
+        text: 'Open question',
+        type: new QuestionTypeVO('OPEN'),
+        assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440005'),
+        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440006'),
+      }, questionId);
+
+      const attemptAnswer = AttemptAnswer.create({
+        textAnswer: 'Some answer',
+        status: new AttemptStatusVO('SUBMITTED'),
+        attemptId: attemptId.toString(),
+        questionId: questionId.toString(),
+      }, attemptAnswerId);
+
+      await accountRepository.create(reviewer);
+      await attemptRepository.create(attempt);
+      await questionRepository.create(question);
+      await attemptAnswerRepository.create(attemptAnswer);
+
+      const request: ReviewOpenAnswerRequest = {
+        attemptAnswerId: attemptAnswerId.toString(),
+        reviewerId: reviewerId.toString(),
+        isCorrect: true,
+        teacherComment: 'Good work!',
+      };
+
+      // Act
+      const result = await useCase.execute(request);
+
+      // Assert
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.attemptAnswer.reviewerId).toBe(reviewerId.toString());
+        
+        // Verify the answer was actually updated in repository
+        const updatedAnswerResult = await attemptAnswerRepository.findById(attemptAnswerId.toString());
+        expect(updatedAnswerResult.isRight()).toBe(true);
+        if (updatedAnswerResult.isRight()) {
+          expect(updatedAnswerResult.value.reviewerId).toBe(reviewerId.toString());
+        }
+      }
+    });
+
+    it('should return AnswerNotReviewableError when answer has reviewerId but status is SUBMITTED', async () => {
+      // Arrange - Edge case: answer has reviewerId but status is still SUBMITTED
+      const attemptAnswerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
+      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const reviewerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440003');
+      const previousReviewerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440008');
+
+      const reviewer = User.create({
+        name: 'Teacher Name',
+        email: 'teacher@example.com',
+        password: 'password123',
+        cpf: '12345678901',
+        role: 'tutor',
+      }, reviewerId);
+
+      const attempt = Attempt.create({
+        status: new AttemptStatusVO('SUBMITTED'),
+        startedAt: new Date(),
+        submittedAt: new Date(),
+        userId: '550e8400-e29b-41d4-a716-446655440004',
+        assessmentId: '550e8400-e29b-41d4-a716-446655440005',
+      }, attemptId);
+
+      const question = Question.create({
+        text: 'Open question',
+        type: new QuestionTypeVO('OPEN'),
+        assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440005'),
+        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440006'),
+      }, questionId);
+
+      const attemptAnswer = AttemptAnswer.create({
+        textAnswer: 'Some answer',
+        status: new AttemptStatusVO('SUBMITTED'), // Status SUBMITTED but has reviewerId
+        reviewerId: previousReviewerId.toString(), // Already has reviewerId
+        attemptId: attemptId.toString(),
+        questionId: questionId.toString(),
+      }, attemptAnswerId);
+
+      await accountRepository.create(reviewer);
+      await attemptRepository.create(attempt);
+      await questionRepository.create(question);
+      await attemptAnswerRepository.create(attemptAnswer);
+
+      const request: ReviewOpenAnswerRequest = {
+        attemptAnswerId: attemptAnswerId.toString(),
+        reviewerId: reviewerId.toString(),
+        isCorrect: true,
+      };
+
+      // Act
+      const result = await useCase.execute(request);
+
+      // Assert
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(AnswerNotReviewableError);
       }
     });
   });

@@ -7,6 +7,7 @@ export interface ReviewOpenAnswerResponse {
     status: 'SUBMITTED' | 'GRADING' | 'GRADED';
     isCorrect: boolean;
     teacherComment?: string;
+    reviewerId?: string;
     attemptId: string;
     questionId: string;
     createdAt: Date;

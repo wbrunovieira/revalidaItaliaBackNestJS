@@ -91,6 +91,28 @@ export class InMemoryAttemptAnswerRepository implements IAttemptAnswerRepository
     return right(count);
   }
 
+  async findByReviewerId(reviewerId: string): Promise<Either<Error, AttemptAnswer[]>> {
+    const attemptAnswers = this.items.filter(
+      (item) => item.reviewerId === reviewerId,
+    );
+
+    // Sort by createdAt descending
+    attemptAnswers.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    return right(attemptAnswers);
+  }
+
+  async findPendingReviewsByStatus(status: string = 'SUBMITTED'): Promise<Either<Error, AttemptAnswer[]>> {
+    const attemptAnswers = this.items.filter(
+      (item) => item.status.getValue() === status && !item.reviewerId,
+    );
+
+    // Sort by createdAt ascending (oldest first for review queue)
+    attemptAnswers.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+    return right(attemptAnswers);
+  }
+
   // Helper methods for testing
   clear(): void {
     this.items = [];
