@@ -9,11 +9,14 @@ import { CreateAssessmentUseCase } from '../../src/domain/assessment/application
 import { ListAssessmentsUseCase } from '../../src/domain/assessment/application/use-cases/list-assessments.use-case';
 import { GetAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/get-assessment.use-case';
 import { DeleteAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/delete-assessment.use-case';
+import { UpdateAssessmentUseCase } from '@/domain/assessment/application/use-cases/update-assessment.use-case';
+import { ListQuestionsByAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/list-questions-by-assessment.use-case';
 import { AssessmentController } from '../../src/infra/controllers/assessment.controller';
 import { PrismaAssessmentRepository } from '../../src/infra/database/prisma/repositories/prisma-assessment-repository';
 import { PrismaLessonRepository } from '../../src/infra/database/prisma/repositories/prisma-lesson-repository';
+import { PrismaQuestionRepository } from '../../src/infra/database/prisma/repositories/prisma-question-repository';
+import { PrismaQuestionOptionRepository } from '../../src/infra/database/prisma/repositories/prisma-question-option-repository';
 import { Module } from '@nestjs/common';
-import { UpdateAssessmentUseCase } from '@/domain/assessment/application/use-cases/update-assessment.use-case';
 
 @Module({
   controllers: [AssessmentController],
@@ -23,6 +26,7 @@ import { UpdateAssessmentUseCase } from '@/domain/assessment/application/use-cas
     GetAssessmentUseCase,
     DeleteAssessmentUseCase,
     UpdateAssessmentUseCase,
+    ListQuestionsByAssessmentUseCase,
     PrismaService,
     {
       provide: 'AssessmentRepository',
@@ -31,6 +35,14 @@ import { UpdateAssessmentUseCase } from '@/domain/assessment/application/use-cas
     {
       provide: 'LessonRepository',
       useClass: PrismaLessonRepository,
+    },
+    {
+      provide: 'QuestionRepository',
+      useClass: PrismaQuestionRepository,
+    },
+    {
+      provide: 'QuestionOptionRepository',
+      useClass: PrismaQuestionOptionRepository,
     },
   ],
 })

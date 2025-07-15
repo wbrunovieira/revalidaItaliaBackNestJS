@@ -114,9 +114,12 @@ GET {{BASE_URL}}/assessments?page=1&limit=3&type=QUIZ&lessonId=0ef04e01-8faa-45f
 ### 45. Buscar assessment por ID
 GET {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
 
+### 46. Listar questões de um assessment
+GET {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9/questions
+
 ### ==================== ROTAS DE ATUALIZAÇÃO ====================
 
-### 46. Atualizar todos os campos de um QUIZ
+### 47. Atualizar todos os campos de um QUIZ
 PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
 Content-Type: {{contentType}}
 
@@ -131,7 +134,7 @@ Content-Type: {{contentType}}
   "lessonId": "0ef04e01-8faa-45f3-813d-6f6d0b2d959f"
 }
 
-### 47. Atualizar apenas o título
+### 48. Atualizar apenas o título
 PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
 Content-Type: {{contentType}}
 
@@ -139,7 +142,7 @@ Content-Type: {{contentType}}
   "title": "Novo Título do Assessment"
 }
 
-### 48. Atualizar apenas a descrição
+### 49. Atualizar apenas a descrição
 PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
 Content-Type: {{contentType}}
 
@@ -149,7 +152,7 @@ Content-Type: {{contentType}}
 
 
 
-### 50. Atualizar tipo de QUIZ para SIMULADO
+### 51. Atualizar tipo de QUIZ para SIMULADO
 PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
 Content-Type: {{contentType}}
 
@@ -159,7 +162,7 @@ Content-Type: {{contentType}}
   "quizPosition": null
 }
 
-### 51. Atualizar tipo de SIMULADO para QUIZ
+### 52. Atualizar tipo de SIMULADO para QUIZ
 PUT {{BASE_URL}}/assessments/36286128-86d6-47c3-b0a3-202cafb746b8
 Content-Type: {{contentType}}
 
