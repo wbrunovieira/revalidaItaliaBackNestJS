@@ -115,4 +115,81 @@ export class FlashcardTagControllerTestData {
       updatedAt: new Date('2024-01-01T01:00:00.000Z'), // 1 hour later
     };
   }
+
+  // Helper methods for List All tests
+  static multipleFlashcardTags() {
+    return [
+      {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        name: 'Anatomia',
+        slug: 'anatomia',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      },
+      {
+        id: '550e8400-e29b-41d4-a716-446655440002',
+        name: 'Farmacologia',
+        slug: 'farmacologia',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      },
+      {
+        id: '550e8400-e29b-41d4-a716-446655440003',
+        name: 'Fisiologia',
+        slug: 'fisiologia',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      },
+    ];
+  }
+
+  static emptyFlashcardTagsList() {
+    return [];
+  }
+
+  static singleFlashcardTag() {
+    return [
+      {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        name: 'Única Tag',
+        slug: 'unica-tag',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      },
+    ];
+  }
+
+  static flashcardTagsWithSpecialChars() {
+    return [
+      {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        name: 'Anatomia & Fisiologia',
+        slug: 'anatomia-fisiologia',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      },
+      {
+        id: '550e8400-e29b-41d4-a716-446655440002',
+        name: 'Médico Português',
+        slug: 'medico-portugues',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+      },
+    ];
+  }
+
+  static readonly LIST_ALL_SUCCESS_RESPONSES = {
+    MULTIPLE_TAGS: {
+      flashcardTags: this.multipleFlashcardTags(),
+    },
+    EMPTY_LIST: {
+      flashcardTags: this.emptyFlashcardTagsList(),
+    },
+    SINGLE_TAG: {
+      flashcardTags: this.singleFlashcardTag(),
+    },
+    SPECIAL_CHARS: {
+      flashcardTags: this.flashcardTagsWithSpecialChars(),
+    },
+  };
 }

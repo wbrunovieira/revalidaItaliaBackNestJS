@@ -99,9 +99,9 @@ describe('CreateFlashcardTagUseCase', () => {
         expectedMessage: 'Name must be at least 3 characters long',
       },
       {
-        request: { name: 'A'.repeat(51) },
+        request: { name: 'A'.repeat(201) },
         expectedField: 'name',
-        expectedMessage: 'Name cannot exceed 50 characters',
+        expectedMessage: 'Name cannot exceed 200 characters',
       },
       {
         request: { name: 'Valid Name', slug: 'AB' },

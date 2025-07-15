@@ -69,22 +69,27 @@ Content-Type: {{contentType}}
   "name": "Farmacologia"
 }
 
+### === LIST ALL FLASHCARD TAGS ===
+
+### 9. List All FlashcardTags - Success
+GET {{BASE_URL}}/flashcard-tags
+
 ### === GET FLASHCARD TAG BY ID ===
 
-### 9. Get FlashcardTag - Success (Valid ID)
+### 11. Get FlashcardTag - Success (Valid ID)
 GET {{BASE_URL}}/flashcard-tags/2d38c57e-765c-4be6-b965-094df7af3f4b
 
-### 10. Get FlashcardTag - Success (Different valid ID)
+### 12. Get FlashcardTag - Success (Different valid ID)
 GET {{BASE_URL}}/flashcard-tags/550e8400-e29b-41d4-a716-446655440071
 
-### 11. Get FlashcardTag - Error (Invalid UUID)
+### 13. Get FlashcardTag - Error (Invalid UUID)
 GET {{BASE_URL}}/flashcard-tags/invalid-uuid
 
-### 12. Get FlashcardTag - Error (Not found)
+### 14. Get FlashcardTag - Error (Not found)
 GET {{BASE_URL}}/flashcard-tags/550e8400-e29b-41d4-a716-446655440999
 
-### 13. Get FlashcardTag - Error (Empty ID)
+### 15. Get FlashcardTag - Error (Empty ID)
 GET {{BASE_URL}}/flashcard-tags/
 
-### 14. Get FlashcardTag - Error (Malformed UUID)
+### 16. Get FlashcardTag - Error (Malformed UUID)
 GET {{BASE_URL}}/flashcard-tags/550e8400-e29b-41d4-a716-44665544000g

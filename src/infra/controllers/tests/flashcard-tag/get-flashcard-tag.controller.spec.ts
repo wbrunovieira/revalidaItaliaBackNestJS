@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { FlashcardTagController } from '@/infra/controllers/flashcard-tag.controller';
 import { GetFlashcardTagByIdUseCase } from '@/domain/flashcard/application/use-cases/get-flashcard-tag-by-id.use-case';
 import { CreateFlashcardTagUseCase } from '@/domain/flashcard/application/use-cases/create-flashcard-tag.use-case';
+import { ListAllFlashcardTagsUseCase } from '@/domain/flashcard/application/use-cases/list-all-flashcard-tags.use-case';
 import {
   NotFoundException,
   BadRequestException,
@@ -15,6 +16,7 @@ describe('FlashcardTagController - GET /flashcard-tags/:id', () => {
   let controller: FlashcardTagController;
   let mockGetByIdUseCase: GetFlashcardTagByIdUseCase;
   let mockCreateUseCase: CreateFlashcardTagUseCase;
+  let mockListAllUseCase: ListAllFlashcardTagsUseCase;
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -32,6 +34,12 @@ describe('FlashcardTagController - GET /flashcard-tags/:id', () => {
             execute: vi.fn(),
           },
         },
+        {
+          provide: ListAllFlashcardTagsUseCase,
+          useValue: {
+            execute: vi.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -41,6 +49,9 @@ describe('FlashcardTagController - GET /flashcard-tags/:id', () => {
     );
     mockCreateUseCase = moduleRef.get<CreateFlashcardTagUseCase>(
       CreateFlashcardTagUseCase,
+    );
+    mockListAllUseCase = moduleRef.get<ListAllFlashcardTagsUseCase>(
+      ListAllFlashcardTagsUseCase,
     );
   });
 

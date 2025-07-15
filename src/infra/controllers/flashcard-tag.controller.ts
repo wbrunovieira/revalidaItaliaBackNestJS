@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { CreateFlashcardTagUseCase } from '@/domain/flashcard/application/use-cases/create-flashcard-tag.use-case';
 import { GetFlashcardTagByIdUseCase } from '@/domain/flashcard/application/use-cases/get-flashcard-tag-by-id.use-case';
+import { ListAllFlashcardTagsUseCase } from '@/domain/flashcard/application/use-cases/list-all-flashcard-tags.use-case';
 import { CreateFlashcardTagDto } from './dtos/create-flashcard-tag.dto';
 import { InvalidInputError } from '@/domain/flashcard/application/use-cases/errors/invalid-input-error';
 import { DuplicateFlashcardTagError } from '@/domain/flashcard/application/use-cases/errors/duplicate-flashcard-tag-error';
@@ -27,7 +28,35 @@ export class FlashcardTagController {
     private readonly createFlashcardTagUseCase: CreateFlashcardTagUseCase,
     @Inject(GetFlashcardTagByIdUseCase)
     private readonly getFlashcardTagByIdUseCase: GetFlashcardTagByIdUseCase,
+    @Inject(ListAllFlashcardTagsUseCase)
+    private readonly listAllFlashcardTagsUseCase: ListAllFlashcardTagsUseCase,
   ) {}
+
+  @Get()
+  async findAll() {
+    const result = await this.listAllFlashcardTagsUseCase.execute({});
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: 'Unexpected error occurred',
+      });
+    }
+
+    return {
+      flashcardTags: result.value.flashcardTags,
+    };
+  }
 
   @Post()
   async create(@Body() createFlashcardTagDto: CreateFlashcardTagDto) {
