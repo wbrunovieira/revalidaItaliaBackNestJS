@@ -60,8 +60,6 @@ docker exec -it ead-backend-dev pnpm seed:dev
 
 # Atualização de schema.prisma e migrations
 
-# Copie e cole este bloco inteiro no seu arquivo .md
-
 # --- AMBIENTE LOCAL ---
 
 # 1. Parar servidor de desenvolvimento (Ctrl+C no terminal do pnpm run start:dev)

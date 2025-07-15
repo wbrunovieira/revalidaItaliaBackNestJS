@@ -27,15 +27,15 @@ Você é um desenvolvedor backend altamente experiente, com profundo conheciment
    1. Quiz: múltipla escolha, pontuação, explicações multilíngue.
    2. Simulado: múltipla escolha, tempo limitado, agrupamento por Argument.
    3. Prova Aberta: respostas abertas corrigidas manualmente.
-      • Fluxos Principais: cadastro de conteúdo, execução de assessments, registro de tentativas, métricas de desempenho.
+      • Fluxos Principais: cadastro de conteúdo, execução de assessments, interação com flashcards, registro de tentativas, métricas de desempenho.
 
 ⸻
 
 2. Regras de Negócio Detalhadas
 
 Usuários
-• student: realiza assessments, visualiza aulas e métricas pessoais.
-• tutor: cria e edita cursos, módulos, aulas, assessments e corrige provas abertas.
+• student: realiza assessments, visualiza aulas, interage com flashcards e métricas pessoais.
+• tutor: cria e edita cursos, módulos, aulas, assessments, flashcards e corrige provas abertas.
 • admin: gerencia usuários, conteúdo, relatórios e permissões.
 
 Assessments
@@ -57,6 +57,21 @@ Aulas e Conteúdo
 • Uma aula pode conter vídeos, documentos, assessments e flashcards.
 • Cada item pode possuir traduções específicas para pt, it e es.
 • Conteúdo pode ser reordenado dentro de módulos e aulas.
+
+Flashcards
+• Campos:
+  - Pergunta: texto (italiano) ou imagem
+  - Resposta: texto (italiano) ou imagem
+• Organização por Argumento: utiliza os mesmos Arguments dos assessments
+• Adição na aula: professor pode adicionar individualmente, todos de um Argument, ou por tags
+• Acesso autônomo: aluno pode acessar página dedicada além das aulas
+• Interação: clique para virar, deslize direita (fácil), esquerda (difícil)
+• Ordem aleatória para reforçar memória
+• Sistema de tags para filtros e subcategorias
+• Métricas: percentual de domínio por aluno e geral por Argument
+• Reapresentação: cards difíceis aparecem com maior frequência
+• Importação/Exportação: suporte a lotes via PDF/CSV
+• Stats: data última revisão e contadores por Argument
 
 ⸻
 
@@ -81,6 +96,10 @@ Aulas e Conteúdo
 src/
 ├─ core/ # Base: Entity, Either, UniqueEntityID, utils
 ├─ domain/ # DDD: enterprise/entities, application/use-cases, dtos, repos (interfaces), validações
+│  ├─ auth/ # Autenticação e usuários
+│  ├─ course-catalog/ # Cursos, módulos, aulas, vídeos, documentos
+│  ├─ assessment/ # Assessments, questões, tentativas, arguments
+│  └─ flashcard/ # Flashcards, tags, interações (NOVO)
 ├─ infra/ # Implementações: controllers, modules, guards, database/prisma/repositories
 ├─ prisma/ # schema.prisma, migrations, PrismaService
 ├─ test/ # unit/in-memory repos, e2e/setup

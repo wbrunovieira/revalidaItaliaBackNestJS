@@ -10,6 +10,12 @@ CREATE TYPE "QuestionType" AS ENUM ('MULTIPLE_CHOICE', 'OPEN');
 -- CreateEnum
 CREATE TYPE "AttemptStatus" AS ENUM ('IN_PROGRESS', 'SUBMITTED', 'GRADING', 'GRADED');
 
+-- CreateEnum
+CREATE TYPE "FlashcardContentType" AS ENUM ('TEXT', 'IMAGE');
+
+-- CreateEnum
+CREATE TYPE "FlashcardDifficultyLevel" AS ENUM ('EASY', 'HARD', 'NEUTRAL');
+
 -- CreateTable
 CREATE TABLE "Track" (
     "id" TEXT NOT NULL,
@@ -350,6 +356,78 @@ CREATE TABLE "AttemptAnswer" (
     CONSTRAINT "AttemptAnswer_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Flashcard" (
+    "id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "questionText" TEXT,
+    "questionImageUrl" TEXT,
+    "questionType" "FlashcardContentType" NOT NULL,
+    "answerText" TEXT,
+    "answerImageUrl" TEXT,
+    "answerType" "FlashcardContentType" NOT NULL,
+    "importBatchId" TEXT,
+    "exportedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "argumentId" TEXT NOT NULL,
+
+    CONSTRAINT "Flashcard_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "FlashcardTag" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "FlashcardTag_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "FlashcardInteraction" (
+    "id" TEXT NOT NULL,
+    "difficultyLevel" "FlashcardDifficultyLevel" NOT NULL,
+    "reviewedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL,
+    "flashcardId" TEXT NOT NULL,
+
+    CONSTRAINT "FlashcardInteraction_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "LessonFlashcard" (
+    "id" TEXT NOT NULL,
+    "order" INTEGER NOT NULL DEFAULT 1,
+    "lessonId" TEXT NOT NULL,
+    "flashcardId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "LessonFlashcard_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "FlashcardInteractionContext" (
+    "id" TEXT NOT NULL,
+    "difficultyLevel" "FlashcardDifficultyLevel" NOT NULL,
+    "reviewedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL,
+    "flashcardId" TEXT NOT NULL,
+    "lessonId" TEXT,
+
+    CONSTRAINT "FlashcardInteractionContext_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "_FlashcardToFlashcardTag" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_FlashcardToFlashcardTag_AB_pkey" PRIMARY KEY ("A","B")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Track_slug_key" ON "Track"("slug");
 
@@ -427,6 +505,66 @@ CREATE INDEX "AttemptAnswer_reviewerId_idx" ON "AttemptAnswer"("reviewerId");
 
 -- CreateIndex
 CREATE INDEX "AttemptAnswer_status_reviewerId_idx" ON "AttemptAnswer"("status", "reviewerId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Flashcard_slug_key" ON "Flashcard"("slug");
+
+-- CreateIndex
+CREATE INDEX "Flashcard_argumentId_idx" ON "Flashcard"("argumentId");
+
+-- CreateIndex
+CREATE INDEX "Flashcard_questionType_answerType_idx" ON "Flashcard"("questionType", "answerType");
+
+-- CreateIndex
+CREATE INDEX "Flashcard_importBatchId_idx" ON "Flashcard"("importBatchId");
+
+-- CreateIndex
+CREATE INDEX "Flashcard_createdAt_idx" ON "Flashcard"("createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FlashcardTag_slug_key" ON "FlashcardTag"("slug");
+
+-- CreateIndex
+CREATE INDEX "FlashcardTag_name_idx" ON "FlashcardTag"("name");
+
+-- CreateIndex
+CREATE INDEX "FlashcardInteraction_userId_difficultyLevel_idx" ON "FlashcardInteraction"("userId", "difficultyLevel");
+
+-- CreateIndex
+CREATE INDEX "FlashcardInteraction_flashcardId_difficultyLevel_idx" ON "FlashcardInteraction"("flashcardId", "difficultyLevel");
+
+-- CreateIndex
+CREATE INDEX "FlashcardInteraction_reviewedAt_idx" ON "FlashcardInteraction"("reviewedAt");
+
+-- CreateIndex
+CREATE INDEX "FlashcardInteraction_userId_reviewedAt_idx" ON "FlashcardInteraction"("userId", "reviewedAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FlashcardInteraction_userId_flashcardId_key" ON "FlashcardInteraction"("userId", "flashcardId");
+
+-- CreateIndex
+CREATE INDEX "LessonFlashcard_lessonId_idx" ON "LessonFlashcard"("lessonId");
+
+-- CreateIndex
+CREATE INDEX "LessonFlashcard_flashcardId_idx" ON "LessonFlashcard"("flashcardId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "LessonFlashcard_lessonId_flashcardId_key" ON "LessonFlashcard"("lessonId", "flashcardId");
+
+-- CreateIndex
+CREATE INDEX "FlashcardInteractionContext_userId_lessonId_idx" ON "FlashcardInteractionContext"("userId", "lessonId");
+
+-- CreateIndex
+CREATE INDEX "FlashcardInteractionContext_flashcardId_lessonId_idx" ON "FlashcardInteractionContext"("flashcardId", "lessonId");
+
+-- CreateIndex
+CREATE INDEX "FlashcardInteractionContext_reviewedAt_idx" ON "FlashcardInteractionContext"("reviewedAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FlashcardInteractionContext_userId_flashcardId_lessonId_key" ON "FlashcardInteractionContext"("userId", "flashcardId", "lessonId");
+
+-- CreateIndex
+CREATE INDEX "_FlashcardToFlashcardTag_B_index" ON "_FlashcardToFlashcardTag"("B");
 
 -- AddForeignKey
 ALTER TABLE "TrackCourse" ADD CONSTRAINT "TrackCourse_trackId_fkey" FOREIGN KEY ("trackId") REFERENCES "Track"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -517,3 +655,33 @@ ALTER TABLE "AttemptAnswer" ADD CONSTRAINT "AttemptAnswer_questionId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "AttemptAnswer" ADD CONSTRAINT "AttemptAnswer_reviewerId_fkey" FOREIGN KEY ("reviewerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Flashcard" ADD CONSTRAINT "Flashcard_argumentId_fkey" FOREIGN KEY ("argumentId") REFERENCES "Argument"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FlashcardInteraction" ADD CONSTRAINT "FlashcardInteraction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FlashcardInteraction" ADD CONSTRAINT "FlashcardInteraction_flashcardId_fkey" FOREIGN KEY ("flashcardId") REFERENCES "Flashcard"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LessonFlashcard" ADD CONSTRAINT "LessonFlashcard_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LessonFlashcard" ADD CONSTRAINT "LessonFlashcard_flashcardId_fkey" FOREIGN KEY ("flashcardId") REFERENCES "Flashcard"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FlashcardInteractionContext" ADD CONSTRAINT "FlashcardInteractionContext_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FlashcardInteractionContext" ADD CONSTRAINT "FlashcardInteractionContext_flashcardId_fkey" FOREIGN KEY ("flashcardId") REFERENCES "Flashcard"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FlashcardInteractionContext" ADD CONSTRAINT "FlashcardInteractionContext_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "Lesson"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_FlashcardToFlashcardTag" ADD CONSTRAINT "_FlashcardToFlashcardTag_A_fkey" FOREIGN KEY ("A") REFERENCES "Flashcard"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_FlashcardToFlashcardTag" ADD CONSTRAINT "_FlashcardToFlashcardTag_B_fkey" FOREIGN KEY ("B") REFERENCES "FlashcardTag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
