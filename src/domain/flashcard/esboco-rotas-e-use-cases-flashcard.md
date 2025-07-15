@@ -29,8 +29,8 @@ Professor:
 - POST /flashcards - Criar flashcard ##0k
 - PUT /flashcards/:id - Atualizar flashcard
 - DELETE /flashcards/:id - Deletar flashcard
-- GET /flashcards - Listar flashcards (com filtros)
-- POST /flashcard-tags - Criar tag
+- GET /flashcards - Listar flashcards (com filtros) ##ok
+- POST /flashcard-tags - Criar tag ##ok
 - PUT /flashcard-tags/:id - Atualizar tag
 
 Estudante:
@@ -41,13 +41,6 @@ Estudante:
   aula
 - GET /flashcards/by-argument/:argumentId - Flashcards
   do argumento
-
-💡 Recomendação:
-
-Flashcard + FlashcardTag: Repositórios e use cases
-completos
-FlashcardInteraction: Repositório simples + use case
-específico
 
 Concorda com esta abordagem?
 

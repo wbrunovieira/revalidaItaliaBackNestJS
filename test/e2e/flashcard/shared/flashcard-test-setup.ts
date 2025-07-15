@@ -6,6 +6,7 @@ import { FlashcardContentType } from '@prisma/client';
 import { PrismaService } from '../../../../src/prisma/prisma.service';
 import { FlashcardController } from '../../../../src/infra/controllers/flashcard.controller';
 import { CreateFlashcardUseCase } from '../../../../src/domain/flashcard/application/use-cases/create-flashcard.use-case';
+import { GetFlashcardByIdUseCase } from '../../../../src/domain/flashcard/application/use-cases/get-flashcard-by-id.use-case';
 import { PrismaFlashcardRepository } from '../../../../src/infra/database/prisma/repositories/prisma-flashcard-repository';
 import { PrismaFlashcardTagRepository } from '../../../../src/infra/database/prisma/repositories/prisma-flashcard-tag-repository';
 import { PrismaArgumentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-argument-repository';
@@ -14,6 +15,7 @@ import { PrismaArgumentRepository } from '../../../../src/infra/database/prisma/
   controllers: [FlashcardController],
   providers: [
     CreateFlashcardUseCase,
+    GetFlashcardByIdUseCase,
     PrismaService,
     {
       provide: 'FlashcardRepository',
@@ -55,9 +57,6 @@ export class FlashcardTestSetup {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
     }));
     await this.app.init();
   }
@@ -244,6 +243,48 @@ export class FlashcardTestSetup {
         argumentId: this.argumentId,
       },
     });
+  }
+
+  async createTestFlashcard(options?: {
+    id?: string;
+    slug?: string;
+    withTags?: boolean;
+    questionType?: FlashcardContentType;
+    answerType?: FlashcardContentType;
+  }): Promise<string> {
+    const flashcardId = options?.id || this.flashcardId1;
+    
+    const flashcardData: any = {
+      id: flashcardId,
+      slug: options?.slug || 'test-flashcard',
+      questionText: 'What is Domain-Driven Design?',
+      questionType: options?.questionType || FlashcardContentType.TEXT,
+      answerText: 'DDD is an approach to software development that centers the development on programming a domain model',
+      answerType: options?.answerType || FlashcardContentType.TEXT,
+      argumentId: this.argumentId,
+    };
+
+    if (options?.questionType === FlashcardContentType.IMAGE) {
+      flashcardData.questionText = null;
+      flashcardData.questionImageUrl = 'https://example.com/question.jpg';
+    }
+
+    if (options?.answerType === FlashcardContentType.IMAGE) {
+      flashcardData.answerText = null;
+      flashcardData.answerImageUrl = 'https://example.com/answer.jpg';
+    }
+
+    if (options?.withTags) {
+      flashcardData.tags = {
+        connect: [
+          { id: this.flashcardTagId1 },
+          { id: this.flashcardTagId2 },
+        ],
+      };
+    }
+
+    await this.prisma.flashcard.create({ data: flashcardData });
+    return flashcardId;
   }
 
   async teardown(): Promise<void> {

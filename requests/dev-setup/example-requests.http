@@ -482,3 +482,53 @@ Content-Type: application/json
   "isCorrect": true
 }
 
+### ==== FLASHCARDS ====
+
+### Create Flashcard - Text/Text - IMPLEMENTED ✅
+POST {{baseUrl}}/flashcards
+Content-Type: application/json
+
+{
+  "question": {
+    "type": "TEXT",
+    "content": "What is the capital of Brazil?"
+  },
+  "answer": {
+    "type": "TEXT",
+    "content": "Brasília"
+  },
+  "argumentId": "{{argumentId}}"
+}
+
+### Create Flashcard - With Tags - IMPLEMENTED ✅
+POST {{baseUrl}}/flashcards
+Content-Type: application/json
+
+{
+  "question": {
+    "type": "TEXT",
+    "content": "What is the function of the heart?"
+  },
+  "answer": {
+    "type": "TEXT",
+    "content": "Pumping blood throughout the body"
+  },
+  "argumentId": "{{argumentId}}",
+  "tagIds": ["{{flashcardTagId1}}", "{{flashcardTagId2}}"]
+}
+
+### Get Flashcard by ID - Without Filters - IMPLEMENTED ✅
+GET {{baseUrl}}/flashcards/{{flashcardId}}
+
+### Get Flashcard by ID - With Tags - IMPLEMENTED ✅
+GET {{baseUrl}}/flashcards/{{flashcardId}}?includeTags=true
+
+### Get Flashcard by ID - With All Filters - IMPLEMENTED ✅
+GET {{baseUrl}}/flashcards/{{flashcardId}}?includeTags=true&includeInteractionStats=true&includeRelatedFlashcards=true
+
+### Get Flashcard by ID - Non-existent - IMPLEMENTED ✅
+GET {{baseUrl}}/flashcards/550e8400-e29b-41d4-a716-446655440999
+
+### Get Flashcard by ID - Invalid UUID - IMPLEMENTED ✅
+GET {{baseUrl}}/flashcards/invalid-uuid
+
