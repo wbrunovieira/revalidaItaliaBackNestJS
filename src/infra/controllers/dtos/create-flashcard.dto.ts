@@ -29,10 +29,12 @@ class FlashcardContentDto {
 }
 
 export class CreateFlashcardDto {
+  @IsNotEmpty()
   @ValidateNested()
   @Type(() => FlashcardContentDto)
   question: FlashcardContentDto;
 
+  @IsNotEmpty()
   @ValidateNested()
   @Type(() => FlashcardContentDto)
   answer: FlashcardContentDto;
