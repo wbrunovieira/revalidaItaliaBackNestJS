@@ -530,4 +530,72 @@ export class AttemptTestData {
       maxExecutionTime: 1500,
     },
   };
+
+  // GetAttemptResults test data
+  readonly nonExistentAttemptId = '550e8400-e29b-41d4-a716-446655440000';
+  readonly otherStudentId = '550e8400-e29b-41d4-a716-446655440010';
+
+  /**
+   * Expected GetAttemptResults response structure
+   */
+  static readonly expectedGetAttemptResultsResponse = {
+    attempt: {
+      id: expect.any(String),
+      status: expect.stringMatching(/^(SUBMITTED|GRADING|GRADED)$/),
+      userId: expect.any(String),
+      assessmentId: expect.any(String),
+      startedAt: expect.any(String),
+    },
+    assessment: {
+      id: expect.any(String),
+      title: expect.any(String),
+      type: expect.stringMatching(/^(QUIZ|SIMULADO|PROVA_ABERTA)$/),
+      passingScore: expect.any(Number),
+    },
+    results: {
+      totalQuestions: expect.any(Number),
+      answeredQuestions: expect.any(Number),
+    },
+    answers: expect.any(Array),
+  };
+
+  /**
+   * Expected GetAttemptResults error responses
+   */
+  static readonly expectedGetAttemptResultsErrors = {
+    invalidInput: {
+      error: 'INVALID_INPUT',
+      message: 'Invalid input data',
+    },
+
+    attemptNotFound: {
+      error: 'ATTEMPT_NOT_FOUND',
+      message: 'Attempt not found',
+    },
+
+    attemptNotFinalized: {
+      error: 'ATTEMPT_NOT_FINALIZED',
+      message: 'Attempt is not finalized yet',
+    },
+
+    userNotFound: {
+      error: 'USER_NOT_FOUND',
+      message: 'User not found',
+    },
+
+    insufficientPermissions: {
+      error: 'INSUFFICIENT_PERMISSIONS',
+      message: 'Insufficient permissions to view this attempt',
+    },
+
+    assessmentNotFound: {
+      error: 'ASSESSMENT_NOT_FOUND',
+      message: 'Assessment not found',
+    },
+
+    internalError: {
+      error: 'INTERNAL_ERROR',
+      message: expect.any(String),
+    },
+  };
 }

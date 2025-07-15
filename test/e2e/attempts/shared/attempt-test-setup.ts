@@ -7,6 +7,7 @@ import { PrismaService } from '../../../../src/prisma/prisma.service';
 import { StartAttemptUseCase } from '../../../../src/domain/assessment/application/use-cases/start-attempt.use-case';
 import { SubmitAnswerUseCase } from '../../../../src/domain/assessment/application/use-cases/submit-answer.use-case';
 import { SubmitAttemptUseCase } from '../../../../src/domain/assessment/application/use-cases/submit-attempt.use-case';
+import { GetAttemptResultsUseCase } from '../../../../src/domain/assessment/application/use-cases/get-attempt-results.use-case';
 import { AttemptController } from '../../../../src/infra/controllers/attempt.controller';
 import { PrismaAttemptRepository } from '../../../../src/infra/database/prisma/repositories/prisma-attempt-repository';
 import { PrismaAssessmentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-assessment-repository';
@@ -14,6 +15,7 @@ import { PrismaAccountRepository } from '../../../../src/infra/database/prisma/r
 import { PrismaQuestionRepository } from '../../../../src/infra/database/prisma/repositories/prisma-question-repository';
 import { PrismaAttemptAnswerRepository } from '../../../../src/infra/database/prisma/repositories/prisma-attempt-answer-repository';
 import { PrismaAnswerRepository } from '../../../../src/infra/database/prisma/repositories/prisma-answer-repository';
+import { PrismaArgumentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-argument-repository';
 
 @Module({
   controllers: [AttemptController],
@@ -21,6 +23,7 @@ import { PrismaAnswerRepository } from '../../../../src/infra/database/prisma/re
     StartAttemptUseCase,
     SubmitAnswerUseCase,
     SubmitAttemptUseCase,
+    GetAttemptResultsUseCase,
     PrismaService,
     {
       provide: 'AttemptRepository',
@@ -45,6 +48,10 @@ import { PrismaAnswerRepository } from '../../../../src/infra/database/prisma/re
     {
       provide: 'AnswerRepository',
       useClass: PrismaAnswerRepository,
+    },
+    {
+      provide: 'ArgumentRepository',
+      useClass: PrismaArgumentRepository,
     },
   ],
 })
@@ -71,6 +78,8 @@ export class AttemptTestSetup {
   // Question IDs (for creating assessments)
   public multipleChoiceQuestionId: string;
   public openQuestionId: string;
+  public correctOptionId: string;
+  public incorrectOptionId: string;
 
   // Attempt IDs (created during tests)
   public attemptId: string;
@@ -251,6 +260,65 @@ export class AttemptTestSetup {
     });
     this.multipleChoiceQuestionId = multipleChoiceQuestion.id;
 
+    // Create question options for multiple choice question
+    const correctOption = await this.prisma.questionOption.create({
+      data: {
+        text: 'Brasília',
+        questionId: this.multipleChoiceQuestionId,
+      },
+    });
+    this.correctOptionId = correctOption.id;
+
+    const incorrectOption = await this.prisma.questionOption.create({
+      data: {
+        text: 'Rio de Janeiro',
+        questionId: this.multipleChoiceQuestionId,
+      },
+    });
+    this.incorrectOptionId = incorrectOption.id;
+
+    // Create answer with correct option
+    await this.prisma.answer.create({
+      data: {
+        questionId: this.multipleChoiceQuestionId,
+        correctOptionId: this.correctOptionId,
+        explanation: 'Brasília is the capital of Brazil since 1960.',
+      },
+    });
+
+    // Create a second question for quiz to have 2 questions total
+    const secondQuestion = await this.prisma.question.create({
+      data: {
+        text: 'What is the largest city in Brazil?',
+        type: 'MULTIPLE_CHOICE',
+        assessmentId: this.quizAssessmentId,
+      },
+    });
+
+    // Create options for second question
+    const correctOption2 = await this.prisma.questionOption.create({
+      data: {
+        text: 'São Paulo',
+        questionId: secondQuestion.id,
+      },
+    });
+
+    await this.prisma.questionOption.create({
+      data: {
+        text: 'Rio de Janeiro',
+        questionId: secondQuestion.id,
+      },
+    });
+
+    // Create answer for second question
+    await this.prisma.answer.create({
+      data: {
+        questionId: secondQuestion.id,
+        correctOptionId: correctOption2.id,
+        explanation: 'São Paulo is the largest city in Brazil.',
+      },
+    });
+
     // Create open question for prova aberta
     const openQuestion = await this.prisma.question.create({
       data: {
@@ -260,6 +328,14 @@ export class AttemptTestSetup {
       },
     });
     this.openQuestionId = openQuestion.id;
+
+    // Create answer for open question
+    await this.prisma.answer.create({
+      data: {
+        questionId: this.openQuestionId,
+        explanation: 'Expected answer about hypertension pathophysiology.',
+      },
+    });
   }
 
   async cleanupDatabase(): Promise<void> {
@@ -273,6 +349,7 @@ export class AttemptTestSetup {
       await this.prisma.answer.deleteMany({});
       await this.prisma.questionOption.deleteMany({});
       await this.prisma.question.deleteMany({});
+      await this.prisma.argument.deleteMany({});
       await this.prisma.assessment.deleteMany({});
       // Delete lesson documents before lessons
       await this.prisma.lessonDocument.deleteMany({});
@@ -409,7 +486,6 @@ export class AttemptTestSetup {
     if (!this.lessonId) {
       await this.createBaseCourseStructure();
     }
-    
 
     const assessment = await this.prisma.assessment.create({
       data: {
@@ -418,7 +494,9 @@ export class AttemptTestSetup {
         description: `${type} for testing`,
         type,
         passingScore: 70,
-        ...(options.timeLimitInMinutes && { timeLimitInMinutes: options.timeLimitInMinutes }),
+        ...(options.timeLimitInMinutes && {
+          timeLimitInMinutes: options.timeLimitInMinutes,
+        }),
         randomizeQuestions: type === 'SIMULADO',
         randomizeOptions: type === 'SIMULADO',
         lessonId: this.lessonId,
@@ -469,7 +547,8 @@ export class AttemptTestSetup {
 
         // Add options and correctOptionId as additional properties
         (question as any).options = questionOptions;
-        (question as any).correctOptionId = questionOptions[correctOptionIndex].id;
+        (question as any).correctOptionId =
+          questionOptions[correctOptionIndex].id;
       } else {
         // For open questions, create answer with expected content
         await this.prisma.answer.create({

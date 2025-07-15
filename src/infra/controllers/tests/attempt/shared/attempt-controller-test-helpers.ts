@@ -111,4 +111,16 @@ export class AttemptControllerTestHelpers {
   static verifyUseCaseNotCalled(mockUseCase: any): void {
     expect(mockUseCase.execute).not.toHaveBeenCalled();
   }
+
+  /**
+   * Captures an exception thrown by a function for testing purposes
+   */
+  async captureException(fn: () => Promise<any>): Promise<any> {
+    try {
+      await fn();
+      throw new Error('Expected function to throw an exception');
+    } catch (error) {
+      return error;
+    }
+  }
 }

@@ -1,7 +1,7 @@
 // src/domain/assessment/application/use-cases/get-attempt-results.use-case.ts
 
 import { Either, left, right } from '@/core/either';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { IAttemptRepository } from '../repositories/i-attempt.repository';
 import { IAttemptAnswerRepository } from '../repositories/i-attempt-answer-repository';
 
@@ -45,12 +45,19 @@ type GetAttemptResultsUseCaseResponse = Either<
 @Injectable()
 export class GetAttemptResultsUseCase {
   constructor(
+    @Inject('AttemptRepository')
     private attemptRepository: IAttemptRepository,
+    @Inject('AttemptAnswerRepository')
     private attemptAnswerRepository: IAttemptAnswerRepository,
+    @Inject('AssessmentRepository')
     private assessmentRepository: IAssessmentRepository,
+    @Inject('QuestionRepository')
     private questionRepository: IQuestionRepository,
+    @Inject('ArgumentRepository')
     private argumentRepository: IArgumentRepository,
+    @Inject('AnswerRepository')
     private answerRepository: IAnswerRepository,
+    @Inject('AccountRepository')
     private accountRepository: IAccountRepository,
   ) {}
 

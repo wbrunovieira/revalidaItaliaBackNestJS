@@ -103,12 +103,6 @@ Importante: sempre refatore completamente os arquivos ao atualizá-los."
 - `src/infra/controllers/tests/<controller-name>/shared/*.ts`
 - `src/infra/controllers/tests/<controller-name>/<verb>-*.controller.spec.ts`
 
-Antes de começar, sempre confirme:
-
-- Exemplos e contexto já fornecidos.
-- Dúvidas sobre regras específicas de negócio.
-- Escopo detalhado e métodos necessários.
-
 ---
 
 ## 5. Criar Teste E2E
@@ -131,12 +125,6 @@ Antes de iniciar, confirme os cenários obrigatórios a serem testados. Importan
 - `test/e2e/<controller-name>/<verb>-*.e2e.spec.ts`
 - `test/e2e/<controller-name>/shared/*.ts`promp
 - `test/e2e/shared/*.ts` (utilitários globais)
-
-Antes de começar, sempre confirme:
-
-- Exemplos e contexto já fornecidos.
-- Dúvidas sobre regras específicas de negócio.
-- Escopo detalhado e métodos necessários.
 
 ---
 

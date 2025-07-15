@@ -3,9 +3,11 @@
 import { StartAttemptDto } from '@/domain/assessment/application/dtos/start-attempt.dto';
 import { SubmitAnswerDto } from '@/domain/assessment/application/dtos/submit-answer.dto';
 import { SubmitAttemptParamDto } from '@/domain/assessment/application/dtos/submit-attempt-param.dto';
+import { GetAttemptResultsParamDto } from './dtos/get-attempt-results-param.dto';
 import { StartAttemptUseCase } from '@/domain/assessment/application/use-cases/start-attempt.use-case';
 import { SubmitAnswerUseCase } from '@/domain/assessment/application/use-cases/submit-answer.use-case';
 import { SubmitAttemptUseCase } from '@/domain/assessment/application/use-cases/submit-attempt.use-case';
+import { GetAttemptResultsUseCase } from '@/domain/assessment/application/use-cases/get-attempt-results.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { UserNotFoundError } from '@/domain/assessment/application/use-cases/errors/user-not-found-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
@@ -16,16 +18,20 @@ import { QuestionNotFoundError } from '@/domain/assessment/application/use-cases
 import { InvalidAnswerTypeError } from '@/domain/assessment/application/use-cases/errors/invalid-answer-type-error';
 import { NoAnswersFoundError } from '@/domain/assessment/application/use-cases/errors/no-answers-found-error';
 import { AttemptExpiredError } from '@/domain/assessment/application/use-cases/errors/attempt-expired-error';
+import { AttemptNotFinalizedError } from '@/domain/assessment/application/use-cases/errors/attempt-not-finalized-error';
+import { InsufficientPermissionsError } from '@/domain/assessment/application/use-cases/errors/insufficient-permissions-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
 import {
   Controller,
   Post,
+  Get,
   Body,
   Param,
   Inject,
   BadRequestException,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
   InternalServerErrorException,
 } from '@nestjs/common';
 
@@ -38,6 +44,8 @@ export class AttemptController {
     private readonly submitAnswerUseCase: SubmitAnswerUseCase,
     @Inject(SubmitAttemptUseCase)
     private readonly submitAttemptUseCase: SubmitAttemptUseCase,
+    @Inject(GetAttemptResultsUseCase)
+    private readonly getAttemptResultsUseCase: GetAttemptResultsUseCase,
   ) {}
 
   @Post('start')
@@ -216,6 +224,82 @@ export class AttemptController {
         throw new BadRequestException({
           error: 'ATTEMPT_EXPIRED',
           message: 'Attempt has expired',
+        });
+      }
+
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException({
+          error: 'INTERNAL_ERROR',
+          message: error.message,
+        });
+      }
+
+      // Fallback para erros não mapeados
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: 'Unexpected error occurred',
+      });
+    }
+
+    return result.value;
+  }
+
+  @Get(':id/results')
+  async getAttemptResults(@Param() params: GetAttemptResultsParamDto) {
+    // TODO: Extract requesterId from JWT context
+    // For now, using a valid UUID placeholder - will be replaced with actual JWT extraction
+    const requesterId = '550e8400-e29b-41d4-a716-446655440001'; 
+
+    const request = {
+      attemptId: params.id,
+      requesterId,
+    };
+
+    const result = await this.getAttemptResultsUseCase.execute(request);
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof AttemptNotFoundError) {
+        throw new NotFoundException({
+          error: 'ATTEMPT_NOT_FOUND',
+          message: 'Attempt not found',
+        });
+      }
+
+      if (error instanceof AttemptNotFinalizedError) {
+        throw new BadRequestException({
+          error: 'ATTEMPT_NOT_FINALIZED',
+          message: 'Attempt is not finalized yet',
+        });
+      }
+
+      if (error instanceof UserNotFoundError) {
+        throw new NotFoundException({
+          error: 'USER_NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      if (error instanceof InsufficientPermissionsError) {
+        throw new ForbiddenException({
+          error: 'INSUFFICIENT_PERMISSIONS',
+          message: 'Insufficient permissions to view this attempt',
+        });
+      }
+
+      if (error instanceof AssessmentNotFoundError) {
+        throw new NotFoundException({
+          error: 'ASSESSMENT_NOT_FOUND',
+          message: 'Assessment not found',
         });
       }
 

@@ -5,6 +5,7 @@ import { SubmitAttemptParamDto } from '@/domain/assessment/application/dtos/subm
 import { StartAttemptResponse } from '@/domain/assessment/application/dtos/start-attempt-response.dto';
 import { SubmitAnswerResponse } from '@/domain/assessment/application/dtos/submit-answer-response.dto';
 import { SubmitAttemptResponse } from '@/domain/assessment/application/dtos/submit-attempt-response.dto';
+import { GetAttemptResultsResponse, ArgumentResult } from '@/domain/assessment/application/dtos/get-attempt-results-response.dto';
 
 export class AttemptControllerTestData {
   static readonly validStartAttemptDto = (): StartAttemptDto => ({
@@ -281,5 +282,176 @@ export class AttemptControllerTestData {
         scorePercentage: 50.0,
       },
     }),
+  };
+
+  // GetAttemptResults test data
+  readonly validAttemptId = '550e8400-e29b-41d4-a716-446655440010';
+  readonly nonExistentAttemptId = '550e8400-e29b-41d4-a716-446655440000';
+
+  createGetAttemptResultsResponse(
+    assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
+    hasPendingReview = false
+  ): GetAttemptResultsResponse {
+    const baseResponse = {
+      attempt: {
+        id: this.validAttemptId,
+        status: 'GRADED' as const,
+        score: assessmentType === 'PROVA_ABERTA' && hasPendingReview ? undefined : 85.5,
+        startedAt: new Date('2023-01-01T10:00:00Z'),
+        submittedAt: new Date('2023-01-01T10:15:00Z'),
+        gradedAt: assessmentType === 'PROVA_ABERTA' && hasPendingReview ? undefined : new Date('2023-01-01T10:15:00Z'),
+        timeLimitExpiresAt: assessmentType === 'SIMULADO' ? new Date('2023-01-01T12:00:00Z') : undefined,
+        userId: '550e8400-e29b-41d4-a716-446655440001',
+        assessmentId: '550e8400-e29b-41d4-a716-446655440002',
+      },
+      assessment: {
+        id: '550e8400-e29b-41d4-a716-446655440002',
+        title: `Test ${assessmentType} Assessment`,
+        type: assessmentType,
+        passingScore: 70,
+        timeLimitInMinutes: assessmentType === 'SIMULADO' ? 120 : undefined,
+      },
+      results: this.createResultsByType(assessmentType, hasPendingReview),
+      answers: this.createAnswerDetails(assessmentType),
+    };
+
+    return baseResponse;
+  }
+
+  private createResultsByType(
+    assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
+    hasPendingReview: boolean
+  ) {
+    const baseResults = {
+      totalQuestions: 10,
+      answeredQuestions: 10,
+      timeSpent: 15,
+    };
+
+    if (assessmentType === 'PROVA_ABERTA') {
+      return {
+        ...baseResults,
+        reviewedQuestions: hasPendingReview ? 7 : 10,
+        pendingReview: hasPendingReview ? 3 : 0,
+        correctAnswers: hasPendingReview ? undefined : 8,
+        scorePercentage: hasPendingReview ? undefined : 80,
+        passed: hasPendingReview ? undefined : true,
+      };
+    }
+
+    const results = {
+      ...baseResults,
+      correctAnswers: 8,
+      scorePercentage: 80,
+      passed: true,
+    };
+
+    if (assessmentType === 'SIMULADO') {
+      return {
+        ...results,
+        argumentResults: this.createArgumentResults(),
+      };
+    }
+
+    return results;
+  }
+
+  private createArgumentResults(): ArgumentResult[] {
+    return [
+      {
+        argumentId: '550e8400-e29b-41d4-a716-446655440021',
+        argumentTitle: 'Clínica Médica',
+        totalQuestions: 5,
+        correctAnswers: 4,
+        scorePercentage: 80,
+      },
+      {
+        argumentId: '550e8400-e29b-41d4-a716-446655440022',
+        argumentTitle: 'Cirurgia Geral',
+        totalQuestions: 5,
+        correctAnswers: 4,
+        scorePercentage: 80,
+      },
+    ];
+  }
+
+  private createAnswerDetails(assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA') {
+    const baseAnswers = [
+      {
+        questionId: '550e8400-e29b-41d4-a716-446655440020',
+        questionText: 'Qual é o principal objetivo da medicina legal?',
+        questionType: 'MULTIPLE_CHOICE' as const,
+        selectedOptionId: '550e8400-e29b-41d4-a716-446655440021',
+        selectedOptionText: 'Aplicar conhecimentos médicos ao direito',
+        correctOptionId: '550e8400-e29b-41d4-a716-446655440021',
+        correctOptionText: 'Aplicar conhecimentos médicos ao direito',
+        explanation: 'A medicina legal é a aplicação dos conhecimentos médicos na resolução de questões jurídicas.',
+        isCorrect: true,
+        status: 'GRADED' as const,
+      },
+      {
+        questionId: '550e8400-e29b-41d4-a716-446655440023',
+        questionText: 'Como tratar hipertensão arterial?',
+        questionType: 'OPEN' as const,
+        textAnswer: 'O tratamento da hipertensão envolve mudanças no estilo de vida e medicamentos anti-hipertensivos.',
+        teacherComment: 'Resposta correta e completa.',
+        submittedAt: new Date('2023-01-01T10:10:00Z'),
+        reviewedAt: new Date('2023-01-01T10:15:00Z'),
+        isCorrect: true,
+        status: 'GRADED' as const,
+      },
+    ];
+
+    if (assessmentType === 'SIMULADO') {
+      return baseAnswers.map(answer => ({
+        ...answer,
+        argumentId: '550e8400-e29b-41d4-a716-446655440021',
+        argumentTitle: 'Clínica Médica',
+      }));
+    }
+
+    return baseAnswers;
+  }
+
+  static readonly getAttemptResultsErrorResponses = {
+    invalidInput: {
+      error: 'INVALID_INPUT',
+      message: 'Invalid input data',
+    },
+
+    attemptNotFound: {
+      error: 'ATTEMPT_NOT_FOUND',
+      message: 'Attempt not found',
+    },
+
+    attemptNotFinalized: {
+      error: 'ATTEMPT_NOT_FINALIZED',
+      message: 'Attempt is not finalized yet',
+    },
+
+    userNotFound: {
+      error: 'USER_NOT_FOUND',
+      message: 'User not found',
+    },
+
+    insufficientPermissions: {
+      error: 'INSUFFICIENT_PERMISSIONS',
+      message: 'Insufficient permissions to view this attempt',
+    },
+
+    assessmentNotFound: {
+      error: 'ASSESSMENT_NOT_FOUND',
+      message: 'Assessment not found',
+    },
+
+    internalError: {
+      error: 'INTERNAL_ERROR',
+      message: 'Unexpected error occurred',
+    },
+
+    repositoryError: {
+      error: 'INTERNAL_ERROR',
+      message: 'Database connection failed',
+    },
   };
 }
