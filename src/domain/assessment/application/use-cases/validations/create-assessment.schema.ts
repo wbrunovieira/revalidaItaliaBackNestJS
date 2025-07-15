@@ -22,7 +22,8 @@ export const createAssessmentSchema = z
       .number()
       .int('Passing score must be an integer')
       .min(0, 'Passing score must be at least 0')
-      .max(100, 'Passing score must be at most 100'),
+      .max(100, 'Passing score must be at most 100')
+      .optional(),
 
     timeLimitInMinutes: z
       .number()
@@ -30,9 +31,9 @@ export const createAssessmentSchema = z
       .positive('Time limit must be positive (minimum: 1)')
       .optional(),
 
-    randomizeQuestions: z.boolean().default(false),
+    randomizeQuestions: z.boolean().default(false).optional(),
 
-    randomizeOptions: z.boolean().default(false),
+    randomizeOptions: z.boolean().default(false).optional(),
 
     lessonId: z.string().uuid('Lesson ID must be a valid UUID').optional(),
   })
@@ -64,6 +65,33 @@ export const createAssessmentSchema = z
         message: 'Time limit can only be set for SIMULADO type assessments',
         path: ['timeLimitInMinutes'],
       });
+    }
+
+    // Regras para passingScore em PROVA_ABERTA
+    if (data.type !== 'PROVA_ABERTA' && data.passingScore === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Passing score is required for QUIZ and SIMULADO assessments',
+        path: ['passingScore'],
+      });
+    }
+
+    // Regras para randomizeQuestions e randomizeOptions em tipos diferentes de PROVA_ABERTA
+    if (data.type !== 'PROVA_ABERTA') {
+      if (data.randomizeQuestions === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'randomizeQuestions is required for QUIZ and SIMULADO assessments',
+          path: ['randomizeQuestions'],
+        });
+      }
+      if (data.randomizeOptions === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'randomizeOptions is required for QUIZ and SIMULADO assessments',
+          path: ['randomizeOptions'],
+        });
+      }
     }
 
     // Não há mais restrição de lessonId para tipos diferentes de QUIZ

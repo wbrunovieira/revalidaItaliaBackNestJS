@@ -8,10 +8,10 @@ export interface AssessmentProps {
   description?: string;
   type: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA';
   quizPosition?: 'BEFORE_LESSON' | 'AFTER_LESSON';
-  passingScore: number;
+  passingScore?: number;
   timeLimitInMinutes?: number;
-  randomizeQuestions: boolean;
-  randomizeOptions: boolean;
+  randomizeQuestions?: boolean;
+  randomizeOptions?: boolean;
   lessonId?: UniqueEntityID;
   createdAt: Date;
   updatedAt: Date;
@@ -43,7 +43,7 @@ export class Assessment extends Entity<AssessmentProps> {
     return this.props.quizPosition;
   }
 
-  public get passingScore(): number {
+  public get passingScore(): number | undefined {
     return this.props.passingScore;
   }
 
@@ -51,11 +51,11 @@ export class Assessment extends Entity<AssessmentProps> {
     return this.props.timeLimitInMinutes;
   }
 
-  public get randomizeQuestions(): boolean {
+  public get randomizeQuestions(): boolean | undefined {
     return this.props.randomizeQuestions;
   }
 
-  public get randomizeOptions(): boolean {
+  public get randomizeOptions(): boolean | undefined {
     return this.props.randomizeOptions;
   }
 

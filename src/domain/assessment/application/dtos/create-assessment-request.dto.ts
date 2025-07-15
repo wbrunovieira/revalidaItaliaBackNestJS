@@ -4,9 +4,9 @@ export interface CreateAssessmentRequest {
   description?: string;
   type: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA';
   quizPosition?: 'BEFORE_LESSON' | 'AFTER_LESSON';
-  passingScore: number;
+  passingScore?: number;
   timeLimitInMinutes?: number;
-  randomizeQuestions: boolean;
-  randomizeOptions: boolean;
+  randomizeQuestions?: boolean;
+  randomizeOptions?: boolean;
   lessonId?: string;
 }

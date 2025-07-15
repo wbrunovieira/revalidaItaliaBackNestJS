@@ -30,11 +30,13 @@ export class CreateAssessmentDto {
   @IsEnum(['BEFORE_LESSON', 'AFTER_LESSON'])
   quizPosition?: 'BEFORE_LESSON' | 'AFTER_LESSON';
 
+  @ValidateIf((o) => o.type !== 'PROVA_ABERTA')
   @IsNumber()
   @IsInt()
   @Min(0)
   @Max(100)
-  passingScore: number;
+  @IsOptional()
+  passingScore?: number;
 
   @ValidateIf((o) => o.type === 'SIMULADO')
   @IsNumber()
@@ -42,11 +44,15 @@ export class CreateAssessmentDto {
   @Min(1)
   timeLimitInMinutes?: number;
 
+  @ValidateIf((o) => o.type !== 'PROVA_ABERTA')
   @IsBoolean()
-  randomizeQuestions: boolean = false;
+  @IsOptional()
+  randomizeQuestions?: boolean = false;
 
+  @ValidateIf((o) => o.type !== 'PROVA_ABERTA')
   @IsBoolean()
-  randomizeOptions: boolean = false;
+  @IsOptional()
+  randomizeOptions?: boolean = false;
 
   // 🔧 ALTERAR AQUI: permitir sempre
   @IsOptional()

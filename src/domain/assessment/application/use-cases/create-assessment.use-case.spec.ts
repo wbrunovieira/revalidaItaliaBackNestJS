@@ -19,6 +19,7 @@ class MockAssessmentRepository implements IAssessmentRepository {
   findByLessonId = vi.fn();
   create = vi.fn();
   findAll = vi.fn();
+
   findAllPaginated = vi.fn();
   update = vi.fn();
   delete = vi.fn();
@@ -443,6 +444,94 @@ describe('CreateAssessmentUseCase', () => {
       if (result.isRight()) {
         expect(result.value.assessment.passingScore).toBe(100);
         expect(result.value.assessment.timeLimitInMinutes).toBe(9999);
+      }
+    });
+
+    it('PROVA_ABERTA without passingScore should succeed', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      assessmentRepo.create.mockResolvedValueOnce(right(undefined));
+      const result = await useCase.execute({
+        title: 'Prova Aberta Sem Passing Score',
+        type: 'PROVA_ABERTA',
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      });
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.assessment.type).toBe('PROVA_ABERTA');
+        expect(result.value.assessment.passingScore).toBeUndefined();
+      }
+    });
+
+    it('PROVA_ABERTA with only title and type should succeed', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      assessmentRepo.create.mockResolvedValueOnce(right(undefined));
+      const result = await useCase.execute({
+        title: 'Prova Dissertativa de Cardiologia 3',
+        type: 'PROVA_ABERTA',
+      });
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.assessment.type).toBe('PROVA_ABERTA');
+        expect(result.value.assessment.title).toBe('Prova Dissertativa de Cardiologia 3');
+        expect(result.value.assessment.passingScore).toBeUndefined();
+        expect(result.value.assessment.randomizeQuestions).toBeUndefined();
+        expect(result.value.assessment.randomizeOptions).toBeUndefined();
+        expect(result.value.assessment.description).toBeUndefined();
+      }
+    });
+
+    it('PROVA_ABERTA with title, description and type should succeed', async () => {
+      assessmentRepo.findByTitle.mockResolvedValueOnce(left(new Error()));
+      assessmentRepo.create.mockResolvedValueOnce(right(undefined));
+      const result = await useCase.execute({
+        title: 'Prova Dissertativa de Cardiologia 3',
+        description: 'Avaliação com questões dissertativas sobre cardiologia',
+        type: 'PROVA_ABERTA',
+      });
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.assessment.type).toBe('PROVA_ABERTA');
+        expect(result.value.assessment.title).toBe('Prova Dissertativa de Cardiologia 3');
+        expect(result.value.assessment.description).toBe('Avaliação com questões dissertativas sobre cardiologia');
+        expect(result.value.assessment.passingScore).toBeUndefined();
+        expect(result.value.assessment.randomizeQuestions).toBeUndefined();
+        expect(result.value.assessment.randomizeOptions).toBeUndefined();
+      }
+    });
+
+    it('QUIZ without passingScore should fail', async () => {
+      const result = await useCase.execute({
+        title: 'Quiz Sem Passing Score',
+        type: 'QUIZ',
+        quizPosition: 'BEFORE_LESSON',
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      });
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(InvalidInputError);
+        const error = result.value as InvalidInputError;
+        expect(error.details).toContain(
+          'passingScore: Passing score is required for QUIZ and SIMULADO assessments',
+        );
+      }
+    });
+
+    it('SIMULADO without passingScore should fail', async () => {
+      const result = await useCase.execute({
+        title: 'Simulado Sem Passing Score',
+        type: 'SIMULADO',
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      });
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(InvalidInputError);
+        const error = result.value as InvalidInputError;
+        expect(error.details).toContain(
+          'passingScore: Passing score is required for QUIZ and SIMULADO assessments',
+        );
       }
     });
 

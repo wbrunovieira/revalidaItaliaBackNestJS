@@ -251,7 +251,7 @@ CREATE TABLE "Assessment" (
     "description" TEXT,
     "type" "AssessmentType" NOT NULL,
     "quizPosition" "QuizPosition",
-    "passingScore" INTEGER NOT NULL,
+    "passingScore" INTEGER,
     "timeLimitInMinutes" INTEGER,
     "randomizeQuestions" BOOLEAN NOT NULL DEFAULT false,
     "randomizeOptions" BOOLEAN NOT NULL DEFAULT false,

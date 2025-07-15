@@ -73,10 +73,10 @@ type GetLessonUseCaseResponse = Either<
       description?: string;
       type: string;
       quizPosition?: string;
-      passingScore: number;
+      passingScore?: number;
       timeLimitInMinutes?: number;
-      randomizeQuestions: boolean;
-      randomizeOptions: boolean;
+      randomizeQuestions?: boolean;
+      randomizeOptions?: boolean;
       lessonId?: string;
       createdAt: Date;
       updatedAt: Date;

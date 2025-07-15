@@ -42,14 +42,11 @@ POST {{BASE_URL}}/assessments
 Content-Type: {{contentType}}
 
 {
-  "title": "Prova Dissertativa de Cardiologia 3",
+  "title": "Prova Dissertativa de Cardiologia 4",
   "description": "Avaliação com questões dissertativas sobre cardiologia",
-  "type": "PROVA_ABERTA",
-  "passingScore": 50,
-  "randomizeQuestions": false,
+  "type": "PROVA_ABERTA"
 
-  "randomizeOptions": false,
-   "lessonId": "0ef04e01-8faa-45f3-813d-6f6d0b2d959f"
+
 }
 
 ### 4. QUIZ com posição BEFORE_LESSON

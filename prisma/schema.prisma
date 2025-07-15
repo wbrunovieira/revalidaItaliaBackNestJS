@@ -338,7 +338,7 @@ model Assessment {
   description        String?
   type               AssessmentType
   quizPosition       QuizPosition? // Apenas para tipo QUIZ
-  passingScore       Int // Nota mínima para aprovação
+  passingScore       Int? // Nota mínima para aprovação (opcional para PROVA_ABERTA)
   timeLimitInMinutes Int? // Tempo limite (apenas para SIMULADO)
   randomizeQuestions Boolean        @default(false)
   randomizeOptions   Boolean        @default(false)
