@@ -25,6 +25,13 @@ export class FlashcardTagTestHelpers {
   }
 
   /**
+   * Make a GET request to list all flashcard tags
+   */
+  async listAllFlashcardTags(): Promise<Response> {
+    return request(this.testSetup.getHttpServer()).get('/flashcard-tags');
+  }
+
+  /**
    * Get a flashcard tag and expect success
    */
   async getFlashcardTagExpectSuccess(
@@ -101,6 +108,25 @@ export class FlashcardTagTestHelpers {
   }
 
   /**
+   * List all flashcard tags and expect success
+   */
+  async listAllFlashcardTagsExpectSuccess(
+    expectedCount?: number,
+  ): Promise<Response> {
+    const res = await this.listAllFlashcardTags();
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('flashcardTags');
+    expect(Array.isArray(res.body.flashcardTags)).toBe(true);
+
+    if (expectedCount !== undefined) {
+      expect(res.body.flashcardTags).toHaveLength(expectedCount);
+    }
+
+    return res;
+  }
+
+  /**
    * Verify the structure of a GET flashcard tag success response
    */
   verifyGetFlashcardTagSuccessResponseFormat(
@@ -166,6 +192,49 @@ export class FlashcardTagTestHelpers {
     // Verify dates are valid ISO strings
     expect(new Date(body.flashcardTag.createdAt)).toBeInstanceOf(Date);
     expect(new Date(body.flashcardTag.updatedAt)).toBeInstanceOf(Date);
+  }
+
+  /**
+   * Verify the structure of a LIST ALL flashcard tags success response
+   */
+  verifyListAllFlashcardTagsSuccessResponseFormat(
+    body: any,
+    expectedCount?: number,
+  ): void {
+    expect(body).toHaveProperty('flashcardTags');
+    expect(Array.isArray(body.flashcardTags)).toBe(true);
+
+    if (expectedCount !== undefined) {
+      expect(body.flashcardTags).toHaveLength(expectedCount);
+    }
+
+    // Verify structure of each tag
+    body.flashcardTags.forEach((tag: any) => {
+      expect(tag).toHaveProperty('id');
+      expect(tag).toHaveProperty('name');
+      expect(tag).toHaveProperty('slug');
+      expect(tag).toHaveProperty('createdAt');
+      expect(tag).toHaveProperty('updatedAt');
+
+      // Verify data types
+      expect(typeof tag.id).toBe('string');
+      expect(typeof tag.name).toBe('string');
+      expect(typeof tag.slug).toBe('string');
+      expect(typeof tag.createdAt).toBe('string');
+      expect(typeof tag.updatedAt).toBe('string');
+
+      // Verify UUID format
+      expect(tag.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      );
+
+      // Verify slug format
+      expect(tag.slug).toMatch(/^[a-z0-9-]+$/);
+
+      // Verify dates are valid ISO strings
+      expect(new Date(tag.createdAt)).toBeInstanceOf(Date);
+      expect(new Date(tag.updatedAt)).toBeInstanceOf(Date);
+    });
   }
 
   /**

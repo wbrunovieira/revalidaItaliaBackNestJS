@@ -6,6 +6,7 @@ import { PrismaService } from '../../../../src/prisma/prisma.service';
 import { FlashcardTagController } from '../../../../src/infra/controllers/flashcard-tag.controller';
 import { CreateFlashcardTagUseCase } from '../../../../src/domain/flashcard/application/use-cases/create-flashcard-tag.use-case';
 import { GetFlashcardTagByIdUseCase } from '../../../../src/domain/flashcard/application/use-cases/get-flashcard-tag-by-id.use-case';
+import { ListAllFlashcardTagsUseCase } from '../../../../src/domain/flashcard/application/use-cases/list-all-flashcard-tags.use-case';
 import { PrismaFlashcardTagRepository } from '../../../../src/infra/database/prisma/repositories/prisma-flashcard-tag-repository';
 
 @Module({
@@ -13,6 +14,7 @@ import { PrismaFlashcardTagRepository } from '../../../../src/infra/database/pri
   providers: [
     CreateFlashcardTagUseCase,
     GetFlashcardTagByIdUseCase,
+    ListAllFlashcardTagsUseCase,
     PrismaService,
     {
       provide: 'FlashcardTagRepository',

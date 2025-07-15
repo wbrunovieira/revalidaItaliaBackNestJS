@@ -10,6 +10,7 @@ import {
   NotFoundException,
   Inject,
   UseFilters,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CreateFlashcardTagUseCase } from '@/domain/flashcard/application/use-cases/create-flashcard-tag.use-case';
 import { GetFlashcardTagByIdUseCase } from '@/domain/flashcard/application/use-cases/get-flashcard-tag-by-id.use-case';
@@ -31,6 +32,39 @@ export class FlashcardTagController {
     @Inject(ListAllFlashcardTagsUseCase)
     private readonly listAllFlashcardTagsUseCase: ListAllFlashcardTagsUseCase,
   ) {}
+
+  @Get(':id')
+  async findById(@Param('id') id: string) {
+    const result = await this.getFlashcardTagByIdUseCase.execute({ id });
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof FlashcardTagNotFoundError) {
+        throw new NotFoundException({
+          error: 'FLASHCARD_TAG_NOT_FOUND',
+          message: error.message,
+        });
+      }
+
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: 'Unexpected error occurred',
+      });
+    }
+
+    return {
+      flashcardTag: result.value.flashcardTag,
+    };
+  }
 
   @Get()
   async findAll() {
@@ -79,39 +113,6 @@ export class FlashcardTagController {
       if (error instanceof DuplicateFlashcardTagError) {
         throw new ConflictException({
           error: 'DUPLICATE_FLASHCARD_TAG',
-          message: error.message,
-        });
-      }
-
-      throw new InternalServerErrorException({
-        error: 'INTERNAL_ERROR',
-        message: 'Unexpected error occurred',
-      });
-    }
-
-    return {
-      flashcardTag: result.value.flashcardTag,
-    };
-  }
-
-  @Get(':id')
-  async findById(@Param('id') id: string) {
-    const result = await this.getFlashcardTagByIdUseCase.execute({ id });
-
-    if (result.isLeft()) {
-      const error = result.value;
-
-      if (error instanceof InvalidInputError) {
-        throw new BadRequestException({
-          error: 'INVALID_INPUT',
-          message: 'Invalid input data',
-          details: error.details,
-        });
-      }
-
-      if (error instanceof FlashcardTagNotFoundError) {
-        throw new NotFoundException({
-          error: 'FLASHCARD_TAG_NOT_FOUND',
           message: error.message,
         });
       }

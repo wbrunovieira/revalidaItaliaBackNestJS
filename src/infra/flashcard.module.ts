@@ -4,9 +4,11 @@ import { FlashcardTagController } from './controllers/flashcard-tag.controller';
 import { CreateFlashcardTagUseCase } from '@/domain/flashcard/application/use-cases/create-flashcard-tag.use-case';
 import { GetFlashcardTagByIdUseCase } from '@/domain/flashcard/application/use-cases/get-flashcard-tag-by-id.use-case';
 import { ListAllFlashcardTagsUseCase } from '@/domain/flashcard/application/use-cases/list-all-flashcard-tags.use-case';
+import { CreateFlashcardUseCase } from '@/domain/flashcard/application/use-cases/create-flashcard.use-case';
 import { PrismaFlashcardTagRepository } from './database/prisma/repositories/prisma-flashcard-tag-repository';
 import { PrismaFlashcardRepository } from './database/prisma/repositories/prisma-flashcard-repository';
 import { PrismaFlashcardInteractionRepository } from './database/prisma/repositories/prisma-flashcard-interaction-repository';
+import { PrismaArgumentRepository } from './database/prisma/repositories/prisma-argument-repository';
 
 @Module({
   imports: [DatabaseModule],
@@ -16,6 +18,7 @@ import { PrismaFlashcardInteractionRepository } from './database/prisma/reposito
     CreateFlashcardTagUseCase,
     GetFlashcardTagByIdUseCase,
     ListAllFlashcardTagsUseCase,
+    CreateFlashcardUseCase,
 
     // Repositories
     {
@@ -30,14 +33,20 @@ import { PrismaFlashcardInteractionRepository } from './database/prisma/reposito
       provide: 'FlashcardInteractionRepository',
       useClass: PrismaFlashcardInteractionRepository,
     } as const,
+    {
+      provide: 'ArgumentRepository',
+      useClass: PrismaArgumentRepository,
+    } as const,
   ],
   exports: [
     'FlashcardTagRepository',
     'FlashcardRepository', 
     'FlashcardInteractionRepository',
+    'ArgumentRepository',
     CreateFlashcardTagUseCase,
     GetFlashcardTagByIdUseCase,
     ListAllFlashcardTagsUseCase,
+    CreateFlashcardUseCase,
   ],
 })
 export class FlashcardModule {}
