@@ -26,8 +26,8 @@ export class FlashcardTag extends Entity<FlashcardTagProps> {
       throw new Error('Tag name cannot be empty');
     }
 
-    if (props.name.length > 50) {
-      throw new Error('Tag name cannot exceed 50 characters');
+    if (props.name.length > 200) {
+      throw new Error('Tag name cannot exceed 200 characters');
     }
 
     // Auto-generate slug if not provided
@@ -56,10 +56,13 @@ export class FlashcardTag extends Entity<FlashcardTagProps> {
     return name
       .toLowerCase()
       .trim()
+      .normalize('NFD') // Normaliza caracteres unicode
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
       .replace(/[^a-z0-9\s-]/g, '') // Remove caracteres especiais
       .replace(/\s+/g, '-') // Substitui espaços por hífens
       .replace(/-+/g, '-') // Remove hífens duplicados
-      .replace(/^-|-$/g, ''); // Remove hífens no início e fim
+      .replace(/^-|-$/g, '') // Remove hífens no início e fim
+      .substring(0, 50); // Trunca para máximo 50 caracteres
   }
 
   private touch(): void {
@@ -102,8 +105,8 @@ export class FlashcardTag extends Entity<FlashcardTagProps> {
       throw new Error('Tag name cannot be empty');
     }
 
-    if (name.length > 50) {
-      throw new Error('Tag name cannot exceed 50 characters');
+    if (name.length > 200) {
+      throw new Error('Tag name cannot exceed 200 characters');
     }
 
     this.props.name = name.trim();

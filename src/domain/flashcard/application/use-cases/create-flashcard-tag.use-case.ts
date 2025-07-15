@@ -66,13 +66,30 @@ export class CreateFlashcardTagUseCase {
     }
 
     // 4. Create FlashcardTag entity
-    const flashcardTag = FlashcardTag.create(
-      {
-        name,
-        slug,
-      },
-      new UniqueEntityID(),
-    );
+    let flashcardTag: FlashcardTag;
+    try {
+      flashcardTag = FlashcardTag.create(
+        {
+          name,
+          slug,
+        },
+        new UniqueEntityID(),
+      );
+    } catch (error) {
+      // Handle entity validation errors
+      if (error instanceof Error) {
+        const details: Record<string, string[]> = {};
+        if (error.message.includes('Slug')) {
+          details.slug = [error.message];
+        } else if (error.message.includes('name')) {
+          details.name = [error.message];
+        } else {
+          details.general = [error.message];
+        }
+        return left(new InvalidInputError('Entity validation failed', details));
+      }
+      return left(new InvalidInputError('Failed to create flashcard tag'));
+    }
 
     // 5. Save to repository
     const createResult = await this.flashcardTagRepository.create(flashcardTag);

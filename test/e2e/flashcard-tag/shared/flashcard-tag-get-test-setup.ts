@@ -1,8 +1,7 @@
-// test/e2e/flashcard-tag/shared/flashcard-tag-test-setup.ts
+// test/e2e/flashcard-tag/shared/flashcard-tag-get-test-setup.ts
 import { Test } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Module } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../../src/prisma/prisma.service';
 import { FlashcardTagController } from '../../../../src/infra/controllers/flashcard-tag.controller';
 import { CreateFlashcardTagUseCase } from '../../../../src/domain/flashcard/application/use-cases/create-flashcard-tag.use-case';
@@ -23,7 +22,7 @@ import { PrismaFlashcardTagRepository } from '../../../../src/infra/database/pri
 })
 export class TestFlashcardTagModule {}
 
-export class FlashcardTagTestSetup {
+export class FlashcardTagGetTestSetup {
   public app: INestApplication;
   public prisma: PrismaService;
   public flashcardTagId1: string;
@@ -56,8 +55,36 @@ export class FlashcardTagTestSetup {
     // Clean up existing data
     await this.prisma.flashcardTag.deleteMany({});
 
-    // For POST tests, we only create specific data when needed
-    // This method is mainly for GET tests that need existing data
+    // Create test data for GET tests
+    await this.prisma.flashcardTag.createMany({
+      data: [
+        {
+          id: this.flashcardTagId1,
+          name: 'Farmacologia',
+          slug: 'farmacologia',
+        },
+        {
+          id: this.flashcardTagId2,
+          name: 'Anatomia',
+          slug: 'anatomia',
+        },
+        {
+          id: this.flashcardTagId3,
+          name: 'Fisiologia',
+          slug: 'fisiologia',
+        },
+        {
+          id: this.flashcardTagId4,
+          name: 'Patologia',
+          slug: 'patologia',
+        },
+        {
+          id: this.flashcardTagId5,
+          name: 'Anatomia & Fisiologia',
+          slug: 'anatomia-fisiologia',
+        },
+      ],
+    });
   }
 
   async teardown(): Promise<void> {

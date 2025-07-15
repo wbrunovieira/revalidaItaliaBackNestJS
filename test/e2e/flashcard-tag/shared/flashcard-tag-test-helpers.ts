@@ -2,10 +2,11 @@
 import request, { Response } from 'supertest';
 import { expect } from 'vitest';
 import { FlashcardTagTestSetup } from './flashcard-tag-test-setup';
+import { FlashcardTagGetTestSetup } from './flashcard-tag-get-test-setup';
 import { CreateFlashcardTagRequest, GetFlashcardTagByIdResponse } from './flashcard-tag-test-data';
 
 export class FlashcardTagTestHelpers {
-  constructor(private readonly testSetup: FlashcardTagTestSetup) {}
+  constructor(private readonly testSetup: FlashcardTagTestSetup | FlashcardTagGetTestSetup) {}
 
   /**
    * Make a GET request to retrieve a flashcard tag by ID

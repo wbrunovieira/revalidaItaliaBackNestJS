@@ -35,7 +35,7 @@ export class FlashcardTagTestData {
       name: 'ABC',
     },
     MAXIMUM_LENGTH: {
-      name: 'A'.repeat(50),
+      name: 'A'.repeat(200),
     },
     SPECIAL_CHARS: {
       name: 'Anatomia & Fisiologia',
@@ -51,7 +51,7 @@ export class FlashcardTagTestData {
       name: 'AB',
     },
     TOO_LONG: {
-      name: 'A'.repeat(51),
+      name: 'A'.repeat(201),
     },
     INVALID_SLUG_UPPERCASE: {
       name: 'Valid Name',

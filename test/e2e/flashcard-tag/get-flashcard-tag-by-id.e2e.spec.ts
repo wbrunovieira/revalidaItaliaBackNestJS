@@ -1,15 +1,15 @@
 // test/e2e/flashcard-tag/get-flashcard-tag-by-id.e2e.spec.ts
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { FlashcardTagTestSetup } from './shared/flashcard-tag-test-setup';
+import { FlashcardTagGetTestSetup } from './shared/flashcard-tag-get-test-setup';
 import { FlashcardTagTestHelpers } from './shared/flashcard-tag-test-helpers';
 import { FlashcardTagTestData } from './shared/flashcard-tag-test-data';
 
 describe('GET /flashcard-tags/:id E2E Tests', () => {
-  let testSetup: FlashcardTagTestSetup;
+  let testSetup: FlashcardTagGetTestSetup;
   let testHelpers: FlashcardTagTestHelpers;
 
   beforeEach(async () => {
-    testSetup = new FlashcardTagTestSetup();
+    testSetup = new FlashcardTagGetTestSetup();
     testHelpers = new FlashcardTagTestHelpers(testSetup);
     
     await testSetup.initialize();

@@ -4,7 +4,7 @@ export const createFlashcardTagSchema = z.object({
   name: z
     .string()
     .min(3, 'Name must be at least 3 characters long')
-    .max(50, 'Name cannot exceed 50 characters')
+    .max(200, 'Name cannot exceed 200 characters') // Permitir nomes mais longos
     .trim()
     .refine((value) => value.length > 0, {
       message: 'Name cannot be empty after trimming',

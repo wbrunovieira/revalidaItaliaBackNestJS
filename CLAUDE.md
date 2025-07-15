@@ -72,6 +72,8 @@ domain/
 - In-memory repositories for isolated unit testing
 - Testcontainers for e2e database testing
 
+**🚨 CRITICAL TESTING PRINCIPLE**: When E2E tests fail, **ALWAYS** fix the system implementation to make the tests pass, **NEVER** adjust the tests to match incorrect system behavior. E2E tests represent the expected behavior of the system and should be the source of truth.
+
 ### Development Notes
 - Uses Clean Architecture principles with dependency inversion
 - Domain entities are framework-agnostic

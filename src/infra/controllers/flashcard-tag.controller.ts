@@ -9,6 +9,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Inject,
+  UseFilters,
 } from '@nestjs/common';
 import { CreateFlashcardTagUseCase } from '@/domain/flashcard/application/use-cases/create-flashcard-tag.use-case';
 import { GetFlashcardTagByIdUseCase } from '@/domain/flashcard/application/use-cases/get-flashcard-tag-by-id.use-case';
@@ -16,8 +17,10 @@ import { CreateFlashcardTagDto } from './dtos/create-flashcard-tag.dto';
 import { InvalidInputError } from '@/domain/flashcard/application/use-cases/errors/invalid-input-error';
 import { DuplicateFlashcardTagError } from '@/domain/flashcard/application/use-cases/errors/duplicate-flashcard-tag-error';
 import { FlashcardTagNotFoundError } from '@/domain/flashcard/application/use-cases/errors/flashcard-tag-not-found-error';
+import { ValidationExceptionFilter } from '../filters/validation-exception.filter';
 
 @Controller('flashcard-tags')
+@UseFilters(ValidationExceptionFilter)
 export class FlashcardTagController {
   constructor(
     @Inject(CreateFlashcardTagUseCase)

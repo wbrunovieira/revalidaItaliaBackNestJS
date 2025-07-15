@@ -54,6 +54,15 @@ Antes de começar, sempre confirme:
 1. **Registrar no Module:** Adicione o Use-Case no module correspondente seguindo o padrão do projeto
 2. **Executar teste:** Execute o teste com o comando `docker exec -it ead-backend-dev sh -c "pnpm test src/path/to/use-case.spec.ts"`
 
+**🚨 PRINCÍPIO CRÍTICO DE TESTES UNITÁRIOS USE-CASE:**
+Quando testes unitários do use-case falham, **SEMPRE** corrija o sistema/implementação para fazer os testes passarem, **NUNCA** ajuste os testes para corresponder ao comportamento incorreto. Os testes unitários representam as regras de negócio esperadas.
+
+**Localização das correções conforme responsabilidades DDD:**
+- **Falha na validação de entrada:** Corrigir schema Zod em `use-cases/validations/`
+- **Falha na lógica de negócio:** Corrigir o use-case em `application/use-cases/`
+- **Falha nas regras de domínio:** Corrigir entidades em `enterprise/entities/`
+- **Falha na integração:** Corrigir repositórios em `infra/database/prisma/repositories/`
+
 Importante: sempre refatore completamente os arquivos ao atualizá-los."
 
 ### Arquivos de Referência:
@@ -98,6 +107,16 @@ export class ModuleName {}
 ```
 
 b) **Executar teste:** Após criação, execute `docker exec -it ead-backend-dev sh -c "pnpm test src/infra/controllers/tests/controller-name/verb-controller.spec.ts"`
+
+**🚨 PRINCÍPIO CRÍTICO DE TESTES UNITÁRIOS CONTROLLER:**
+Quando testes unitários do controller falham, **SEMPRE** corrija o sistema/implementação para fazer os testes passarem, **NUNCA** ajuste os testes para corresponder ao comportamento incorreto. Os testes unitários representam o comportamento esperado da API.
+
+**Localização das correções conforme responsabilidades DDD:**
+- **Falha na validação de entrada:** Corrigir DTOs em `controllers/dtos/` (class-validator)
+- **Falha no mapeamento de dados:** Corrigir o controller em `controllers/`
+- **Falha no tratamento de erros:** Corrigir exception filters em `filters/`
+- **Falha na integração com use-case:** Corrigir chamadas no controller
+- **Falha na resposta HTTP:** Corrigir status codes e estrutura de resposta
 
 c) **Request file:** Verifique se existe arquivo em `requests/controller-name.http` e adicione a rota de forma simples, seguindo o padrão existente
 
