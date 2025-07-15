@@ -76,6 +76,9 @@
 @flashcardTagId4 = 550e8400-e29b-41d4-a716-446655440073
 @flashcardTagId5 = 550e8400-e29b-41d4-a716-446655440074
 
+# Flashcards
+@flashcardId = 550e8400-e29b-41d4-a716-446655440080
+
 ### Exemplos de uso
 
 ### Get Answer by ID - IMPLEMENTED ✅

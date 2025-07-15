@@ -1,6 +1,7 @@
 // src/infra/controllers/tests/flashcard/shared/flashcard-controller-test-data.ts
 
 import { CreateFlashcardResponseDto } from '@/domain/flashcard/application/dtos/create-flashcard-response.dto';
+import { GetFlashcardByIdResponseDto } from '@/domain/flashcard/application/dtos/get-flashcard-by-id-response.dto';
 import { CreateFlashcardDto } from '@/infra/controllers/dtos/create-flashcard.dto';
 
 export class FlashcardControllerTestData {
@@ -316,5 +317,79 @@ export class FlashcardControllerTestData {
     invalidSlug: {
       slug: ['Slug must contain only lowercase letters, numbers, and hyphens'],
     },
+  };
+
+  static readonly getByIdResponses = {
+    withoutTags: (): GetFlashcardByIdResponseDto => ({
+      flashcard: {
+        id: FlashcardControllerTestData.VALID_UUID,
+        slug: 'what-is-domain-driven-design',
+        question: {
+          type: 'TEXT',
+          content: 'What is Domain-Driven Design?',
+        },
+        answer: {
+          type: 'TEXT',
+          content: 'DDD is an approach to software development that centers the development on programming a domain model',
+        },
+        argumentId: FlashcardControllerTestData.ARGUMENT_ID,
+        createdAt: new Date('2024-01-01T00:00:00Z'),
+        updatedAt: new Date('2024-01-01T00:00:00Z'),
+      },
+    }),
+
+    withTags: (): GetFlashcardByIdResponseDto => ({
+      flashcard: {
+        id: FlashcardControllerTestData.VALID_UUID,
+        slug: 'what-is-domain-driven-design',
+        question: {
+          type: 'TEXT',
+          content: 'What is Domain-Driven Design?',
+        },
+        answer: {
+          type: 'TEXT',
+          content: 'DDD is an approach to software development that centers the development on programming a domain model',
+        },
+        argumentId: FlashcardControllerTestData.ARGUMENT_ID,
+        createdAt: new Date('2024-01-01T00:00:00Z'),
+        updatedAt: new Date('2024-01-01T00:00:00Z'),
+        tags: [
+          {
+            id: FlashcardControllerTestData.TAG_ID_1,
+            name: 'Architecture',
+            slug: 'architecture',
+            createdAt: new Date('2024-01-01T00:00:00Z'),
+            updatedAt: new Date('2024-01-01T00:00:00Z'),
+          },
+          {
+            id: FlashcardControllerTestData.TAG_ID_2,
+            name: 'Design Patterns',
+            slug: 'design-patterns',
+            createdAt: new Date('2024-01-01T00:00:00Z'),
+            updatedAt: new Date('2024-01-01T00:00:00Z'),
+          },
+        ],
+      },
+    }),
+
+    withOptionalFields: (): GetFlashcardByIdResponseDto => ({
+      flashcard: {
+        id: FlashcardControllerTestData.VALID_UUID,
+        slug: 'imported-flashcard',
+        question: {
+          type: 'IMAGE',
+          content: 'https://example.com/diagram.jpg',
+        },
+        answer: {
+          type: 'TEXT',
+          content: 'This is an imported flashcard',
+        },
+        argumentId: FlashcardControllerTestData.ARGUMENT_ID,
+        importBatchId: 'batch-789',
+        exportedAt: new Date('2024-01-15T00:00:00Z'),
+        createdAt: new Date('2024-01-01T00:00:00Z'),
+        updatedAt: new Date('2024-01-01T00:00:00Z'),
+      },
+    }),
   };
 }

@@ -143,3 +143,27 @@ Authorization: Bearer {{authToken}}
   "slug": "germany-capital",
   "importBatchId": "batch-456"
 }
+
+### Get Flashcard by ID - Without Filters
+GET {{baseUrl}}/flashcards/{{flashcard_id}}
+Authorization: Bearer {{authToken}}
+
+### Get Flashcard by ID - With Tags
+GET {{baseUrl}}/flashcards/{{flashcard_id}}?includeTags=true
+Authorization: Bearer {{authToken}}
+
+### Get Flashcard by ID - With All Filters
+GET {{baseUrl}}/flashcards/{{flashcard_id}}?includeTags=true&includeInteractionStats=true&includeRelatedFlashcards=true
+Authorization: Bearer {{authToken}}
+
+### Get Flashcard by ID - Mixed Filters
+GET {{baseUrl}}/flashcards/{{flashcard_id}}?includeTags=true&includeInteractionStats=false&includeRelatedFlashcards=true
+Authorization: Bearer {{authToken}}
+
+### Get Flashcard by ID - Non-existent
+GET {{baseUrl}}/flashcards/550e8400-e29b-41d4-a716-446655440999
+Authorization: Bearer {{authToken}}
+
+### Get Flashcard by ID - Invalid UUID
+GET {{baseUrl}}/flashcards/invalid-uuid
+Authorization: Bearer {{authToken}}
