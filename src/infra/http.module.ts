@@ -18,6 +18,7 @@ import { QuestionModule } from './question.module';
 import { QuestionOptionModule } from './question-option.module';
 import { AnswerModule } from './answer.module';
 import { AttemptModule } from './attempt.module';
+import { FlashcardModule } from './flashcard.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AttemptModule } from './attempt.module';
     QuestionOptionModule,
     AnswerModule,
     AttemptModule,
+    FlashcardModule,
   ],
   controllers: [
     StudentsController,
