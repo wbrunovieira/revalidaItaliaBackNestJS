@@ -124,6 +124,13 @@ describe('SubmitAttemptUseCase', () => {
         expect(result.value.summary.answeredQuestions).toBe(1);
         expect(result.value.summary.correctAnswers).toBe(1);
         expect(result.value.summary.scorePercentage).toBe(100);
+
+        // Verify attempt answer was marked as SUBMITTED (then auto-graded)
+        const updatedAttemptAnswer = await attemptAnswerRepository.findById(attemptAnswer.id.toString());
+        expect(updatedAttemptAnswer.isRight()).toBe(true);
+        if (updatedAttemptAnswer.isRight()) {
+          expect(updatedAttemptAnswer.value.status.getValue()).toBe('SUBMITTED');
+        }
       }
     });
 
@@ -254,6 +261,13 @@ describe('SubmitAttemptUseCase', () => {
         expect(result.value.attempt.score).toBeUndefined();
         expect(result.value.summary.correctAnswers).toBeUndefined();
         expect(result.value.summary.scorePercentage).toBeUndefined();
+
+        // Verify attempt answer was marked as SUBMITTED
+        const updatedAttemptAnswer = await attemptAnswerRepository.findById(attemptAnswer.id.toString());
+        expect(updatedAttemptAnswer.isRight()).toBe(true);
+        if (updatedAttemptAnswer.isRight()) {
+          expect(updatedAttemptAnswer.value.status.getValue()).toBe('SUBMITTED');
+        }
       }
     });
 

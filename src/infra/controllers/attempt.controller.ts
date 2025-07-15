@@ -366,6 +366,13 @@ export class AttemptController {
         });
       }
 
+      if (error instanceof InsufficientPermissionsError) {
+        throw new ForbiddenException({
+          error: 'INSUFFICIENT_PERMISSIONS',
+          message: 'Insufficient permissions to review this answer',
+        });
+      }
+
       if (error instanceof AnswerNotReviewableError) {
         throw new BadRequestException({
           error: 'ANSWER_NOT_REVIEWABLE',

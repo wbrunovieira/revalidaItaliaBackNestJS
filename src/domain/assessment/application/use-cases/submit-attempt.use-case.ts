@@ -177,6 +177,15 @@ export class SubmitAttemptUseCase {
         attempt.grade(score);
       }
 
+      // Update all attempt answers to SUBMITTED status
+      for (const attemptAnswer of answers) {
+        attemptAnswer.submit();
+        const updateAnswerResult = await this.attemptAnswerRepository.update(attemptAnswer);
+        if (updateAnswerResult.isLeft()) {
+          return left(new RepositoryError('Failed to update attempt answer'));
+        }
+      }
+
       // Update attempt in repository
       const updateResult = await this.attemptRepository.update(attempt);
       if (updateResult.isLeft()) {

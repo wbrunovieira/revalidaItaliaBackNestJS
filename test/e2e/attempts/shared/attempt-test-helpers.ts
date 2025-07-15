@@ -127,6 +127,133 @@ export class AttemptTestHelpers {
   }
 
   /**
+   * Submit an attempt
+   */
+  async submitAttempt(attemptId: string): Promise<any> {
+    const response = await request(this.getApp().getHttpServer())
+      .post(`/attempts/${attemptId}/submit`)
+      .expect(201);
+
+    return response.body.attempt;
+  }
+
+  /**
+   * Create a prova aberta attempt and submit it
+   */
+  async createProvaAbertaAttemptAndSubmit(): Promise<{ attemptId: string; attemptAnswerIds: string[] }> {
+    const setup = this.testSetup;
+    
+    // Start attempt
+    const attempt = await this.startAttempt(setup.studentUserId, setup.provaAbertaAssessmentId);
+    
+    // Submit answer for open question
+    const attemptAnswer = await this.submitAnswer(attempt.id, {
+      questionId: setup.openQuestionId,
+      textAnswer: 'This is my detailed answer about hypertension pathophysiology.',
+    });
+    
+    // Submit the attempt
+    await this.submitAttempt(attempt.id);
+    
+    return {
+      attemptId: attempt.id,
+      attemptAnswerIds: [attemptAnswer.id],
+    };
+  }
+
+  /**
+   * Create a prova aberta attempt in progress (not submitted)
+   */
+  async createProvaAbertaAttemptInProgress(): Promise<{ attemptId: string }> {
+    const setup = this.testSetup;
+    
+    // Start attempt
+    const attempt = await this.startAttempt(setup.studentUserId, setup.provaAbertaAssessmentId);
+    
+    // Submit answer for open question but don't submit the attempt
+    await this.submitAnswer(attempt.id, {
+      questionId: setup.openQuestionId,
+      textAnswer: 'This is my answer in progress.',
+    });
+    
+    // Don't submit the attempt - leave it in progress
+    return {
+      attemptId: attempt.id,
+    };
+  }
+
+  /**
+   * Create a quiz attempt and submit it
+   */
+  async createQuizAttemptAndSubmit(): Promise<{ attemptId: string; attemptAnswerIds: string[] }> {
+    const setup = this.testSetup;
+    
+    // Start attempt
+    const attempt = await this.startAttempt(setup.studentUserId, setup.quizAssessmentId);
+    
+    // Submit answer for multiple choice question
+    const attemptAnswer = await this.submitAnswer(attempt.id, {
+      questionId: setup.multipleChoiceQuestionId,
+      selectedOptionId: setup.correctOptionId,
+    });
+    
+    // Submit the attempt
+    await this.submitAttempt(attempt.id);
+    
+    return {
+      attemptId: attempt.id,
+      attemptAnswerIds: [attemptAnswer.id],
+    };
+  }
+
+  /**
+   * Create attempt and submit for a specific assessment
+   */
+  async createAttemptAndSubmitForAssessment(
+    assessmentId: string,
+    userId: string,
+    type: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA'
+  ): Promise<{ attemptId: string; attemptAnswerIds: string[] }> {
+    // Start attempt
+    const attempt = await this.startAttempt(userId, assessmentId);
+    
+    // Get questions for this assessment
+    const questions = await this.getPrisma().question.findMany({
+      where: { assessmentId },
+      include: { options: true },
+    });
+    
+    const attemptAnswerIds: string[] = [];
+    
+    // Submit answers for all questions
+    for (const question of questions) {
+      let attemptAnswer;
+      
+      if (question.type === 'MULTIPLE_CHOICE') {
+        attemptAnswer = await this.submitAnswer(attempt.id, {
+          questionId: question.id,
+          selectedOptionId: question.options[0]?.id,
+        });
+      } else {
+        attemptAnswer = await this.submitAnswer(attempt.id, {
+          questionId: question.id,
+          textAnswer: `Sample answer for question: ${question.text}`,
+        });
+      }
+      
+      attemptAnswerIds.push(attemptAnswer.id);
+    }
+    
+    // Submit the attempt
+    await this.submitAttempt(attempt.id);
+    
+    return {
+      attemptId: attempt.id,
+      attemptAnswerIds,
+    };
+  }
+
+  /**
    * Verify attempt response format
    */
   verifyAttemptResponseFormat(attempt: any): void {

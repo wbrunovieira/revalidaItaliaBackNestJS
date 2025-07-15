@@ -57,3 +57,75 @@ npx prisma migrate dev --name add_url_to_lesson_document_translation
 npx prisma generate
 
 docker exec -it ead-backend-dev pnpm seed:dev
+
+# Atualização de schema.prisma e migrations
+
+# Copie e cole este bloco inteiro no seu arquivo .md
+
+# --- AMBIENTE LOCAL ---
+
+# 1. Parar servidor de desenvolvimento (Ctrl+C no terminal do pnpm run start:dev)
+
+# 2. Remover migrations antigas
+
+rm -rf prisma/migrations/\*
+
+# 3. Resetar schema do banco (dropa e recria schema public)
+
+npx prisma migrate reset --force
+
+# 4. Gerar nova migration "init"
+
+npx prisma migrate dev --name init
+
+# 5. Atualizar Prisma Client e tipagens
+
+npx prisma generate
+
+# 6. Reiniciar servidor de desenvolvimento
+
+pnpm run start:dev
+
+# --- AMBIENTE DOCKER COMPOSE ---
+
+# 1. Parar e remover containers + volume do Postgres
+
+docker-compose -f compose.dev.yaml down -v
+
+# 2. Remover migrations no host
+
+rm -rf prisma/migrations/\*
+
+# 3. Reconstruir imagens sem cache (atualiza Prisma Client embutido)
+
+docker-compose -f compose.dev.yaml build --no-cache
+
+# 4. Subir apenas o serviço de banco (Postgres)
+
+docker-compose -f compose.dev.yaml up -d db
+
+# 5. Criar e aplicar migration "init" no backend
+
+# Opção A: container temporário
+
+docker-compose -f compose.dev.yaml run --rm backend \
+ npx prisma migrate dev --name init
+
+# (ou) Opção B: subir backend e depois exec
+
+docker-compose -f compose.dev.yaml up -d backend
+docker-compose -f compose.dev.yaml exec backend \
+ npx prisma migrate dev --name init
+
+# 6. Gerar Prisma Client dentro do container backend
+
+docker-compose -f compose.dev.yaml exec backend \
+ npx prisma generate
+
+# 7. Subir backend em modo dev (caso ainda não esteja)
+
+docker-compose -f compose.dev.yaml up -d backend
+
+# 8. Acompanhar logs
+
+docker-compose -f compose.dev.yaml logs -f

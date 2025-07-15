@@ -438,7 +438,7 @@ export class AttemptTestSetup {
    * Generate a non-existent UUID for testing
    */
   getNonExistentUUID(): string {
-    return '00000000-0000-0000-0000-000000000000';
+    return '00000000-0000-4000-8000-000000000000';
   }
 
   /**
@@ -688,7 +688,7 @@ export class AttemptTestSetup {
             isCorrect: true,
             teacherComment: 'Good answer',
             reviewedAt: new Date(Date.now() - 900000), // 15 minutes ago
-            // reviewerId: this.tutorUserId, // TODO: Uncomment after schema update
+            reviewerId: this.tutorUserId,
           }),
         },
       });
@@ -750,7 +750,7 @@ export class AttemptTestSetup {
         isCorrect,
         teacherComment,
         reviewedAt: new Date(),
-        // reviewerId, // TODO: Uncomment after schema update
+        reviewerId,
       },
     });
   }
