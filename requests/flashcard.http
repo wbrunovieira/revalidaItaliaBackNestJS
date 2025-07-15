@@ -1,0 +1,145 @@
+@baseUrl = http://localhost:4000
+@contentType = application/json
+@authToken = {{auth_token}}
+
+### Create Flashcard - Text/Text
+POST {{baseUrl}}/flashcards
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "question": {
+    "type": "TEXT",
+    "content": "What is the capital of Brazil?"
+  },
+  "answer": {
+    "type": "TEXT",
+    "content": "Brasília"
+  },
+  "argumentId": "{{argument_id}}"
+}
+
+### Create Flashcard - Image/Image
+POST {{baseUrl}}/flashcards
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "question": {
+    "type": "IMAGE",
+    "content": "https://example.com/question.jpg"
+  },
+  "answer": {
+    "type": "IMAGE",
+    "content": "https://example.com/answer.jpg"
+  },
+  "argumentId": "{{argument_id}}"
+}
+
+### Create Flashcard - Image/Text
+POST {{baseUrl}}/flashcards
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "question": {
+    "type": "IMAGE",
+    "content": "https://example.com/anatomy-diagram.jpg"
+  },
+  "answer": {
+    "type": "TEXT",
+    "content": "The heart is a muscular organ that pumps blood throughout the body"
+  },
+  "argumentId": "{{argument_id}}"
+}
+
+### Create Flashcard - Text/Image
+POST {{baseUrl}}/flashcards
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "question": {
+    "type": "TEXT",
+    "content": "What organ is shown in the diagram?"
+  },
+  "answer": {
+    "type": "IMAGE",
+    "content": "https://example.com/heart-diagram.jpg"
+  },
+  "argumentId": "{{argument_id}}"
+}
+
+### Create Flashcard with Tags
+POST {{baseUrl}}/flashcards
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "question": {
+    "type": "TEXT",
+    "content": "What is the function of the heart?"
+  },
+  "answer": {
+    "type": "TEXT",
+    "content": "Pumping blood throughout the body"
+  },
+  "argumentId": "{{argument_id}}",
+  "tagIds": ["{{flashcard_tag_id_1}}", "{{flashcard_tag_id_2}}"]
+}
+
+### Create Flashcard with Custom Slug
+POST {{baseUrl}}/flashcards
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "question": {
+    "type": "TEXT",
+    "content": "What is the capital of Italy?"
+  },
+  "answer": {
+    "type": "TEXT",
+    "content": "Rome"
+  },
+  "argumentId": "{{argument_id}}",
+  "slug": "italy-capital"
+}
+
+### Create Flashcard with Import Batch ID
+POST {{baseUrl}}/flashcards
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "question": {
+    "type": "TEXT",
+    "content": "What is the capital of France?"
+  },
+  "answer": {
+    "type": "TEXT",
+    "content": "Paris"
+  },
+  "argumentId": "{{argument_id}}",
+  "importBatchId": "batch-123"
+}
+
+### Create Flashcard with All Optional Fields
+POST {{baseUrl}}/flashcards
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "question": {
+    "type": "TEXT",
+    "content": "What is the capital of Germany?"
+  },
+  "answer": {
+    "type": "TEXT",
+    "content": "Berlin"
+  },
+  "argumentId": "{{argument_id}}",
+  "tagIds": ["{{flashcard_tag_id_1}}"],
+  "slug": "germany-capital",
+  "importBatchId": "batch-456"
+}
