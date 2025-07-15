@@ -8,6 +8,7 @@ import { StartAttemptUseCase } from '../../../../src/domain/assessment/applicati
 import { SubmitAnswerUseCase } from '../../../../src/domain/assessment/application/use-cases/submit-answer.use-case';
 import { SubmitAttemptUseCase } from '../../../../src/domain/assessment/application/use-cases/submit-attempt.use-case';
 import { GetAttemptResultsUseCase } from '../../../../src/domain/assessment/application/use-cases/get-attempt-results.use-case';
+import { ReviewOpenAnswerUseCase } from '../../../../src/domain/assessment/application/use-cases/review-open-answer.use-case';
 import { AttemptController } from '../../../../src/infra/controllers/attempt.controller';
 import { PrismaAttemptRepository } from '../../../../src/infra/database/prisma/repositories/prisma-attempt-repository';
 import { PrismaAssessmentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-assessment-repository';
@@ -24,6 +25,7 @@ import { PrismaArgumentRepository } from '../../../../src/infra/database/prisma/
     SubmitAnswerUseCase,
     SubmitAttemptUseCase,
     GetAttemptResultsUseCase,
+    ReviewOpenAnswerUseCase,
     PrismaService,
     {
       provide: 'AttemptRepository',
@@ -641,5 +643,135 @@ export class AttemptTestSetup {
    */
   async init(): Promise<void> {
     await this.initialize();
+  }
+
+  /**
+   * Create attempt with open answers for review testing
+   */
+  async createAttemptWithOpenAnswers(
+    userId: string,
+    assessmentId: string,
+    status: 'SUBMITTED' | 'GRADED' = 'SUBMITTED',
+  ): Promise<{ attemptId: string; attemptAnswerIds: string[] }> {
+    const attempt = await this.prisma.attempt.create({
+      data: {
+        status,
+        startedAt: new Date(Date.now() - 3600000), // 1 hour ago
+        ...(status === 'SUBMITTED' && { submittedAt: new Date(Date.now() - 1800000) }), // 30 minutes ago
+        ...(status === 'GRADED' && { 
+          submittedAt: new Date(Date.now() - 1800000),
+          gradedAt: new Date(Date.now() - 900000) // 15 minutes ago
+        }),
+        userId,
+        assessmentId,
+      },
+    });
+
+    // Get open questions from the assessment
+    const openQuestions = await this.prisma.question.findMany({
+      where: {
+        assessmentId,
+        type: 'OPEN',
+      },
+    });
+
+    const attemptAnswerIds: string[] = [];
+
+    for (const question of openQuestions) {
+      const attemptAnswer = await this.prisma.attemptAnswer.create({
+        data: {
+          attemptId: attempt.id,
+          questionId: question.id,
+          textAnswer: `Sample answer for question: ${question.text}`,
+          status: status === 'GRADED' ? 'GRADED' : 'SUBMITTED',
+          ...(status === 'GRADED' && {
+            isCorrect: true,
+            teacherComment: 'Good answer',
+            reviewedAt: new Date(Date.now() - 900000), // 15 minutes ago
+            // reviewerId: this.tutorUserId, // TODO: Uncomment after schema update
+          }),
+        },
+      });
+      attemptAnswerIds.push(attemptAnswer.id);
+    }
+
+    return {
+      attemptId: attempt.id,
+      attemptAnswerIds,
+    };
+  }
+
+  /**
+   * Create attempt answer for specific testing scenarios
+   */
+  async createAttemptAnswer(
+    attemptId: string,
+    questionId: string,
+    textAnswer: string,
+    status: 'SUBMITTED' | 'GRADING' | 'GRADED' = 'SUBMITTED',
+  ): Promise<string> {
+    const attemptAnswer = await this.prisma.attemptAnswer.create({
+      data: {
+        attemptId,
+        questionId,
+        textAnswer,
+        status,
+      },
+    });
+    return attemptAnswer.id;
+  }
+
+  /**
+   * Find attempt answer by ID
+   */
+  async findAttemptAnswerById(id: string) {
+    return await this.prisma.attemptAnswer.findUnique({
+      where: { id },
+      include: {
+        attempt: true,
+        question: true,
+      },
+    });
+  }
+
+  /**
+   * Mark attempt answer as already reviewed
+   */
+  async markAttemptAnswerAsReviewed(
+    attemptAnswerId: string,
+    reviewerId: string,
+    isCorrect: boolean,
+    teacherComment?: string,
+  ): Promise<void> {
+    await this.prisma.attemptAnswer.update({
+      where: { id: attemptAnswerId },
+      data: {
+        status: 'GRADED',
+        isCorrect,
+        teacherComment,
+        reviewedAt: new Date(),
+        // reviewerId, // TODO: Uncomment after schema update
+      },
+    });
+  }
+
+  /**
+   * Create attempt from multiple choice question (non-reviewable)
+   */
+  async createMultipleChoiceAttemptAnswer(
+    attemptId: string,
+    questionId: string,
+    selectedOptionId: string,
+  ): Promise<string> {
+    const attemptAnswer = await this.prisma.attemptAnswer.create({
+      data: {
+        attemptId,
+        questionId,
+        selectedOptionId,
+        status: 'GRADED',
+        isCorrect: true, // Assume correct for testing
+      },
+    });
+    return attemptAnswer.id;
   }
 }

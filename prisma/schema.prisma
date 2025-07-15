@@ -208,9 +208,10 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  Address    Address[]
-  videosSeen VideoSeen[]
-  Attempt    Attempt[]
+  Address         Address[]
+  videosSeen      VideoSeen[]
+  Attempt         Attempt[]
+  reviewedAnswers AttemptAnswer[] @relation("ReviewedAnswers")
 }
 
 model Address {
@@ -374,7 +375,8 @@ model Question {
 }
 
 model QuestionOption {
-  id   String @id @default(uuid())
+  id String @id @default(uuid())
+
   text String
 
   createdAt DateTime @default(now())
@@ -443,14 +445,15 @@ model AttemptAnswer {
   isCorrect        Boolean? // Calculado para múltipla escolha, definido pelo professor para abertas
 
   // Campos para controle de versioning e feedback
-  version          Int           @default(1) // Versão da resposta (1, 2, 3...)
-  isLatest         Boolean       @default(true) // Apenas a última versão fica true
-  teacherComment   String? // Comentário do professor (questões abertas)
-  submittedAt      DateTime?     // Quando o aluno submeteu esta versão
-  reviewedAt       DateTime?     // Quando o professor revisou esta versão
-  
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  version        Int       @default(1) // Versão da resposta (1, 2, 3...)
+  isLatest       Boolean   @default(true) // Apenas a última versão fica true
+  teacherComment String? // Comentário do professor (questões abertas)
+  submittedAt    DateTime? // Quando o aluno submeteu esta versão
+  reviewedAt     DateTime? // Quando o professor revisou esta versão
+  reviewerId     String? // ID do usuário que revisou (tutor/admin)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relações
   attempt   Attempt @relation(fields: [attemptId], references: [id])
@@ -459,7 +462,11 @@ model AttemptAnswer {
   question   Question @relation(fields: [questionId], references: [id])
   questionId String
 
+  reviewer User? @relation("ReviewedAnswers", fields: [reviewerId], references: [id])
+
   // Índices para performance e busca de versões
   @@index([attemptId, questionId, isLatest])
   @@index([attemptId, questionId, version])
+  @@index([reviewerId]) // Para queries de "minhas revisões"
+  @@index([status, reviewerId]) // Para revisar pendências por reviewer
 }

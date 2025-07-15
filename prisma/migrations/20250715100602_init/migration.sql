@@ -341,6 +341,7 @@ CREATE TABLE "AttemptAnswer" (
     "teacherComment" TEXT,
     "submittedAt" TIMESTAMP(3),
     "reviewedAt" TIMESTAMP(3),
+    "reviewerId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "attemptId" TEXT NOT NULL,
@@ -420,6 +421,12 @@ CREATE INDEX "AttemptAnswer_attemptId_questionId_isLatest_idx" ON "AttemptAnswer
 
 -- CreateIndex
 CREATE INDEX "AttemptAnswer_attemptId_questionId_version_idx" ON "AttemptAnswer"("attemptId", "questionId", "version");
+
+-- CreateIndex
+CREATE INDEX "AttemptAnswer_reviewerId_idx" ON "AttemptAnswer"("reviewerId");
+
+-- CreateIndex
+CREATE INDEX "AttemptAnswer_status_reviewerId_idx" ON "AttemptAnswer"("status", "reviewerId");
 
 -- AddForeignKey
 ALTER TABLE "TrackCourse" ADD CONSTRAINT "TrackCourse_trackId_fkey" FOREIGN KEY ("trackId") REFERENCES "Track"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -507,3 +514,6 @@ ALTER TABLE "AttemptAnswer" ADD CONSTRAINT "AttemptAnswer_attemptId_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "AttemptAnswer" ADD CONSTRAINT "AttemptAnswer_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AttemptAnswer" ADD CONSTRAINT "AttemptAnswer_reviewerId_fkey" FOREIGN KEY ("reviewerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

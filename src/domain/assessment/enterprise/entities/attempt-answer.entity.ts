@@ -9,6 +9,7 @@ export interface AttemptAnswerProps {
   status: AttemptStatusVO;
   isCorrect?: boolean;
   teacherComment?: string;
+  reviewerId?: string;
   attemptId: string;
   questionId: string;
   createdAt: Date;
@@ -38,6 +39,10 @@ export class AttemptAnswer extends Entity<AttemptAnswerProps> {
 
   public get teacherComment(): string | undefined {
     return this.props.teacherComment;
+  }
+
+  public get reviewerId(): string | undefined {
+    return this.props.reviewerId;
   }
 
   public get attemptId(): string {
@@ -85,7 +90,7 @@ export class AttemptAnswer extends Entity<AttemptAnswerProps> {
     this.touch();
   }
 
-  public grade(isCorrect: boolean, teacherComment?: string): void {
+  public grade(isCorrect: boolean, teacherComment?: string, reviewerId?: string): void {
     if (!this.status.isSubmitted() && !this.status.isGrading()) {
       throw new Error('Can only grade submitted or grading answers');
     }
@@ -93,6 +98,7 @@ export class AttemptAnswer extends Entity<AttemptAnswerProps> {
     this.props.status = new AttemptStatusVO('GRADED');
     this.props.isCorrect = isCorrect;
     this.props.teacherComment = teacherComment;
+    this.props.reviewerId = reviewerId;
     this.touch();
   }
 
@@ -145,6 +151,7 @@ export class AttemptAnswer extends Entity<AttemptAnswerProps> {
     status: string;
     isCorrect?: boolean;
     teacherComment?: string;
+    reviewerId?: string;
     attemptId: string;
     questionId: string;
     createdAt: Date;
@@ -157,6 +164,7 @@ export class AttemptAnswer extends Entity<AttemptAnswerProps> {
       status: this.status.getValue(),
       isCorrect: this.isCorrect,
       teacherComment: this.teacherComment,
+      reviewerId: this.reviewerId,
       attemptId: this.attemptId,
       questionId: this.questionId,
       createdAt: this.createdAt,

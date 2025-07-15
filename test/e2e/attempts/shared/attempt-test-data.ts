@@ -10,6 +10,17 @@ export interface SubmitAttemptRequestData {
   id: string; // attemptId as path parameter
 }
 
+export interface ReviewOpenAnswerRequestData {
+  params: {
+    id: string; // attemptAnswerId as path parameter
+  };
+  body: {
+    reviewerId: string;
+    isCorrect: boolean;
+    teacherComment?: string;
+  };
+}
+
 export class AttemptTestData {
   /**
    * Valid start attempt requests
@@ -493,6 +504,223 @@ export class AttemptTestData {
   static isValidUUID(uuid: string): boolean {
     return this.UUID_REGEX.test(uuid);
   }
+
+  /**
+   * Valid review open answer requests
+   */
+  static readonly validReviewRequests = {
+    tutorReviewCorrect: (attemptAnswerId: string, reviewerId: string): ReviewOpenAnswerRequestData => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId,
+        isCorrect: true,
+        teacherComment: 'Excelente resposta! Demonstrou conhecimento completo sobre o tema.',
+      },
+    }),
+
+    tutorReviewIncorrect: (attemptAnswerId: string, reviewerId: string): ReviewOpenAnswerRequestData => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId,
+        isCorrect: false,
+        teacherComment: 'Resposta incompleta. Faltou abordar aspectos importantes do tratamento.',
+      },
+    }),
+
+    tutorReviewWithoutComment: (attemptAnswerId: string, reviewerId: string): ReviewOpenAnswerRequestData => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId,
+        isCorrect: true,
+      },
+    }),
+
+    adminReviewCorrect: (attemptAnswerId: string, reviewerId: string): ReviewOpenAnswerRequestData => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId,
+        isCorrect: true,
+        teacherComment: 'Admin review: Resposta está correta.',
+      },
+    }),
+  };
+
+  /**
+   * Invalid review open answer requests
+   */
+  static readonly invalidReviewRequests = {
+    invalidAttemptAnswerId: (reviewerId: string): any => ({
+      params: { id: 'invalid-uuid-format' },
+      body: {
+        reviewerId,
+        isCorrect: true,
+        teacherComment: 'Test comment',
+      },
+    }),
+
+    invalidReviewerId: (attemptAnswerId: string): any => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId: 'invalid-uuid-format',
+        isCorrect: true,
+        teacherComment: 'Test comment',
+      },
+    }),
+
+    missingReviewerId: (attemptAnswerId: string): any => ({
+      params: { id: attemptAnswerId },
+      body: {
+        isCorrect: true,
+        teacherComment: 'Test comment',
+      },
+    }),
+
+    missingIsCorrect: (attemptAnswerId: string, reviewerId: string): any => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId,
+        teacherComment: 'Test comment',
+      },
+    }),
+
+    invalidIsCorrect: (attemptAnswerId: string, reviewerId: string): any => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId,
+        isCorrect: 'yes', // Should be boolean
+        teacherComment: 'Test comment',
+      },
+    }),
+
+    emptyTeacherComment: (attemptAnswerId: string, reviewerId: string): any => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId,
+        isCorrect: true,
+        teacherComment: '', // Empty string should be invalid
+      },
+    }),
+
+    tooLongTeacherComment: (attemptAnswerId: string, reviewerId: string): any => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId,
+        isCorrect: true,
+        teacherComment: 'A'.repeat(1001), // Exceeds 1000 character limit
+      },
+    }),
+
+    nullReviewerId: (attemptAnswerId: string): any => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId: null,
+        isCorrect: true,
+        teacherComment: 'Test comment',
+      },
+    }),
+
+    nullIsCorrect: (attemptAnswerId: string, reviewerId: string): any => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId,
+        isCorrect: null,
+        teacherComment: 'Test comment',
+      },
+    }),
+  };
+
+  /**
+   * Non-existent review requests for testing 404 errors
+   */
+  static readonly nonExistentReviewRequests = {
+    nonExistentAttemptAnswer: (reviewerId: string): ReviewOpenAnswerRequestData => ({
+      params: { id: '40000000-0000-4000-8000-000000000000' },
+      body: {
+        reviewerId,
+        isCorrect: true,
+        teacherComment: 'Test comment',
+      },
+    }),
+
+    nonExistentReviewer: (attemptAnswerId: string): ReviewOpenAnswerRequestData => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId: '50000000-0000-4000-8000-000000000000',
+        isCorrect: true,
+        teacherComment: 'Test comment',
+      },
+    }),
+
+    randomAttemptAnswer: (reviewerId: string): ReviewOpenAnswerRequestData => ({
+      params: { id: randomUUID() },
+      body: {
+        reviewerId,
+        isCorrect: true,
+        teacherComment: 'Test comment',
+      },
+    }),
+
+    randomReviewer: (attemptAnswerId: string): ReviewOpenAnswerRequestData => ({
+      params: { id: attemptAnswerId },
+      body: {
+        reviewerId: randomUUID(),
+        isCorrect: true,
+        teacherComment: 'Test comment',
+      },
+    }),
+  };
+
+  /**
+   * Expected review success response structure
+   */
+  static readonly expectedReviewSuccessResponse = {
+    attemptAnswer: {
+      id: expect.any(String),
+      attemptId: expect.any(String),
+      questionId: expect.any(String),
+      textAnswer: expect.any(String),
+      status: 'GRADED',
+      isCorrect: expect.any(Boolean),
+      teacherComment: expect.any(String),
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    },
+    attemptStatus: {
+      id: expect.any(String),
+      status: expect.stringMatching(/^(SUBMITTED|GRADED)$/),
+      allOpenQuestionsReviewed: expect.any(Boolean),
+    },
+  };
+
+  /**
+   * Expected review error responses
+   */
+  static readonly expectedReviewErrorResponses = {
+    invalidInput: {
+      error: 'Bad Request',
+      message: expect.any(Array),
+    },
+
+    attemptAnswerNotFound: {
+      error: 'ATTEMPT_ANSWER_NOT_FOUND',
+      message: 'Attempt answer not found',
+    },
+
+    userNotFound: {
+      error: 'USER_NOT_FOUND',
+      message: 'User not found',
+    },
+
+    answerNotReviewable: {
+      error: 'ANSWER_NOT_REVIEWABLE',
+      message: 'Answer is not reviewable',
+    },
+
+    internalError: {
+      error: 'INTERNAL_ERROR',
+      message: expect.any(String),
+    },
+  };
 
   /**
    * Test scenario configurations

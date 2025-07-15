@@ -1056,4 +1056,263 @@ export class AttemptTestHelpers {
       expect(response).toHaveProperty('message', expectedMessage);
     }
   }
+
+  // Review Open Answer helper methods
+
+  /**
+   * Review open answer with success expectation
+   */
+  async reviewOpenAnswerExpectSuccess(
+    attemptAnswerId: string,
+    reviewData: { reviewerId: string; isCorrect: boolean; teacherComment?: string }
+  ): Promise<Response> {
+    const response = await request(this.getApp().getHttpServer())
+      .post(`/attempts/answers/${attemptAnswerId}/review`)
+      .send(reviewData)
+      .expect(200);
+
+    return response;
+  }
+
+  /**
+   * Review open answer with error expectation
+   */
+  async reviewOpenAnswerExpectError(
+    attemptAnswerId: string,
+    reviewData: any,
+    expectedStatus: number
+  ): Promise<Response> {
+    const response = await request(this.getApp().getHttpServer())
+      .post(`/attempts/answers/${attemptAnswerId}/review`)
+      .send(reviewData)
+      .expect(expectedStatus);
+
+    return response;
+  }
+
+  /**
+   * Verify review open answer success response format
+   */
+  verifyReviewOpenAnswerSuccessResponseFormat(
+    responseBody: any,
+    expectedIsCorrect: boolean,
+    expectedTeacherComment?: string
+  ): void {
+    expect(responseBody).toHaveProperty('attemptAnswer');
+    expect(responseBody).toHaveProperty('attemptStatus');
+
+    const attemptAnswer = responseBody.attemptAnswer;
+    expect(attemptAnswer).toHaveProperty('id');
+    expect(attemptAnswer).toHaveProperty('attemptId');
+    expect(attemptAnswer).toHaveProperty('questionId');
+    expect(attemptAnswer).toHaveProperty('textAnswer');
+    expect(attemptAnswer).toHaveProperty('status', 'GRADED');
+    expect(attemptAnswer).toHaveProperty('isCorrect', expectedIsCorrect);
+    expect(attemptAnswer).toHaveProperty('createdAt');
+    expect(attemptAnswer).toHaveProperty('updatedAt');
+
+    if (expectedTeacherComment) {
+      expect(attemptAnswer).toHaveProperty('teacherComment', expectedTeacherComment);
+    }
+
+    const attemptStatus = responseBody.attemptStatus;
+    expect(attemptStatus).toHaveProperty('id');
+    expect(attemptStatus).toHaveProperty('status');
+    expect(attemptStatus).toHaveProperty('allOpenQuestionsReviewed');
+    expect(typeof attemptStatus.allOpenQuestionsReviewed).toBe('boolean');
+  }
+
+  /**
+   * Verify review data integrity between API response and database
+   */
+  async verifyReviewDataIntegrity(
+    responseBody: any,
+    expectedReviewerId: string,
+    expectedIsCorrect: boolean,
+    expectedTeacherComment?: string
+  ): Promise<void> {
+    const attemptAnswer = responseBody.attemptAnswer;
+    const prisma = this.getPrisma();
+    
+    const dbAttemptAnswer = await prisma.attemptAnswer.findUnique({
+      where: { id: attemptAnswer.id },
+    });
+
+    expect(dbAttemptAnswer).toBeDefined();
+    expect(dbAttemptAnswer.id).toBe(attemptAnswer.id);
+    expect(dbAttemptAnswer.status).toBe('GRADED');
+    expect(dbAttemptAnswer.isCorrect).toBe(expectedIsCorrect);
+    expect(dbAttemptAnswer.reviewerId).toBe(expectedReviewerId);
+    expect(dbAttemptAnswer.reviewedAt).toBeDefined();
+    
+    if (expectedTeacherComment) {
+      expect(dbAttemptAnswer.teacherComment).toBe(expectedTeacherComment);
+    }
+
+    // Compare timestamps (API returns ISO strings, DB returns Date objects)
+    expect(new Date(attemptAnswer.createdAt)).toEqual(dbAttemptAnswer.createdAt);
+    expect(new Date(attemptAnswer.updatedAt)).toEqual(dbAttemptAnswer.updatedAt);
+  }
+
+  /**
+   * Create reviewable attempt answer for testing
+   */
+  async createReviewableAttemptAnswer(
+    userId: string,
+    assessmentId: string,
+    textAnswer: string = 'Sample answer for testing review functionality.'
+  ): Promise<{ attemptId: string; attemptAnswerId: string; questionId: string }> {
+    const testSetup = this.testSetup;
+    
+    // Create attempt with open answer
+    const attemptResult = await testSetup.createAttemptWithOpenAnswers(
+      userId,
+      assessmentId,
+      'SUBMITTED'
+    );
+
+    return {
+      attemptId: attemptResult.attemptId,
+      attemptAnswerId: attemptResult.attemptAnswerIds[0],
+      questionId: testSetup.openQuestionId
+    };
+  }
+
+  /**
+   * Create already reviewed attempt answer for testing
+   */
+  async createAlreadyReviewedAttemptAnswer(
+    userId: string,
+    assessmentId: string,
+    reviewerId: string,
+    isCorrect: boolean = true,
+    teacherComment?: string
+  ): Promise<{ attemptId: string; attemptAnswerId: string; questionId: string }> {
+    const testSetup = this.testSetup;
+    
+    // Create attempt with open answer
+    const attemptResult = await testSetup.createAttemptWithOpenAnswers(
+      userId,
+      assessmentId,
+      'GRADED'
+    );
+
+    // Mark as already reviewed
+    await testSetup.markAttemptAnswerAsReviewed(
+      attemptResult.attemptAnswerIds[0],
+      reviewerId,
+      isCorrect,
+      teacherComment
+    );
+
+    return {
+      attemptId: attemptResult.attemptId,
+      attemptAnswerId: attemptResult.attemptAnswerIds[0],
+      questionId: testSetup.openQuestionId
+    };
+  }
+
+  /**
+   * Create multiple choice attempt answer (non-reviewable)
+   */
+  async createMultipleChoiceAttemptAnswer(
+    userId: string,
+    assessmentId: string
+  ): Promise<{ attemptId: string; attemptAnswerId: string; questionId: string }> {
+    const testSetup = this.testSetup;
+    
+    // Create attempt
+    const attempt = await testSetup.prisma.attempt.create({
+      data: {
+        status: 'SUBMITTED',
+        startedAt: new Date(Date.now() - 3600000), // 1 hour ago
+        submittedAt: new Date(Date.now() - 1800000), // 30 minutes ago
+        userId,
+        assessmentId,
+      },
+    });
+
+    // Create multiple choice answer
+    const attemptAnswerId = await testSetup.createMultipleChoiceAttemptAnswer(
+      attempt.id,
+      testSetup.multipleChoiceQuestionId,
+      testSetup.correctOptionId
+    );
+
+    return {
+      attemptId: attempt.id,
+      attemptAnswerId,
+      questionId: testSetup.multipleChoiceQuestionId
+    };
+  }
+
+  /**
+   * Get attempt answer by ID
+   */
+  async getAttemptAnswer(attemptAnswerId: string): Promise<any> {
+    const prisma = this.getPrisma();
+    return await prisma.attemptAnswer.findUnique({
+      where: { id: attemptAnswerId },
+      include: {
+        attempt: true,
+        question: true,
+      },
+    });
+  }
+
+  /**
+   * Verify attempt answer status in database
+   */
+  async verifyAttemptAnswerStatus(
+    attemptAnswerId: string,
+    expectedStatus: 'SUBMITTED' | 'GRADING' | 'GRADED'
+  ): Promise<void> {
+    const attemptAnswer = await this.getAttemptAnswer(attemptAnswerId);
+    expect(attemptAnswer).toBeDefined();
+    expect(attemptAnswer.status).toBe(expectedStatus);
+  }
+
+  /**
+   * Verify attempt answer is reviewable
+   */
+  async verifyAttemptAnswerIsReviewable(attemptAnswerId: string): Promise<void> {
+    const attemptAnswer = await this.getAttemptAnswer(attemptAnswerId);
+    expect(attemptAnswer).toBeDefined();
+    expect(attemptAnswer.question.type).toBe('OPEN');
+    expect(attemptAnswer.status).toBe('SUBMITTED');
+    expect(attemptAnswer.textAnswer).toBeDefined();
+  }
+
+  /**
+   * Verify attempt answer is not reviewable
+   */
+  async verifyAttemptAnswerIsNotReviewable(attemptAnswerId: string): Promise<void> {
+    const attemptAnswer = await this.getAttemptAnswer(attemptAnswerId);
+    expect(attemptAnswer).toBeDefined();
+    
+    // Either it's not an open question or it's already reviewed
+    const isNotOpenQuestion = attemptAnswer.question.type !== 'OPEN';
+    const isAlreadyReviewed = attemptAnswer.status === 'GRADED';
+    
+    expect(isNotOpenQuestion || isAlreadyReviewed).toBe(true);
+  }
+
+  /**
+   * Test review performance
+   */
+  async testReviewPerformance(
+    description: string,
+    attemptAnswerId: string,
+    reviewData: any,
+    maxExecutionTime: number,
+  ): Promise<void> {
+    const { executionTime } = await this.measureExecutionTime(async () => {
+      return this.reviewOpenAnswerExpectSuccess(attemptAnswerId, reviewData);
+    });
+
+    console.log(
+      `${description}: ${executionTime}ms (max: ${maxExecutionTime}ms)`,
+    );
+    expect(executionTime).toBeLessThan(maxExecutionTime);
+  }
 }
