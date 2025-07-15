@@ -26,7 +26,7 @@
 
 Professor:
 
-- POST /flashcards - Criar flashcard
+- POST /flashcards - Criar flashcard ##0k
 - PUT /flashcards/:id - Atualizar flashcard
 - DELETE /flashcards/:id - Deletar flashcard
 - GET /flashcards - Listar flashcards (com filtros)
