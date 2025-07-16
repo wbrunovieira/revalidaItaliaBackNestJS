@@ -5,6 +5,7 @@ import { ListQuestionsByAssessmentUseCase } from './list-questions-by-assessment
 import { InMemoryQuestionRepository } from '@/test/repositories/in-memory-question-repository';
 import { InMemoryQuestionOptionRepository } from '@/test/repositories/in-memory-question-option-repository';
 import { InMemoryAssessmentRepository } from '@/test/repositories/in-memory-assessment-repository';
+import { InMemoryArgumentRepository } from '@/test/repositories/in-memory-argument-repository';
 import { Question } from '@/domain/assessment/enterprise/entities/question.entity';
 import { QuestionOption } from '@/domain/assessment/enterprise/entities/question-option.entity';
 import { Assessment } from '@/domain/assessment/enterprise/entities/assessment.entity';
@@ -18,16 +19,19 @@ let useCase: ListQuestionsByAssessmentUseCase;
 let questionRepository: InMemoryQuestionRepository;
 let questionOptionRepository: InMemoryQuestionOptionRepository;
 let assessmentRepository: InMemoryAssessmentRepository;
+let argumentRepository: InMemoryArgumentRepository;
 
 describe('ListQuestionsByAssessmentUseCase', () => {
   beforeEach(() => {
     questionRepository = new InMemoryQuestionRepository();
     questionOptionRepository = new InMemoryQuestionOptionRepository();
     assessmentRepository = new InMemoryAssessmentRepository();
+    argumentRepository = new InMemoryArgumentRepository();
     useCase = new ListQuestionsByAssessmentUseCase(
       questionRepository,
       questionOptionRepository,
       assessmentRepository,
+      argumentRepository,
     );
   });
 

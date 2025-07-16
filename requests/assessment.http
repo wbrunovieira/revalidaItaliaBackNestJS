@@ -115,7 +115,7 @@ GET {{BASE_URL}}/assessments/2241e5d2-5d0b-4af9-bad7-895ad9563684
 GET {{BASE_URL}}/assessments/2241e5d2-5d0b-4af9-bad7-895ad9563684/questions
 
 ### 47. Obter questões detalhadas de um assessment (admin view)
-GET {{BASE_URL}}/assessments/10ce14b9-9729-4cfb-812d-2745b1772f4c/questions/detailed
+GET {{BASE_URL}}/assessments/2241e5d2-5d0b-4af9-bad7-895ad9563684/questions/detailed
 
 ### ==================== ROTAS DE ATUALIZAÇÃO ====================
 

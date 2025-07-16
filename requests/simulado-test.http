@@ -1,0 +1,58 @@
+### Simulado Assessment Tests
+@BASE_URL = http://localhost:3333
+
+### Login to get token
+# @name loginForSimulado
+POST {{BASE_URL}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@admin.com",
+  "password": "Admin123\!"
+}
+
+###
+@authToken = {{loginForSimulado.response.body.accessToken}}
+
+### List arguments for a specific assessment
+# @name listArgumentsByAssessment
+GET {{BASE_URL}}/arguments?assessmentId=YOUR_SIMULADO_ASSESSMENT_ID
+Authorization: Bearer {{authToken}}
+
+###
+
+### Get simulado assessment with questions grouped by arguments
+# @name getSimuladoDetailed
+GET {{BASE_URL}}/assessments/YOUR_SIMULADO_ASSESSMENT_ID/questions/detailed
+Authorization: Bearer {{authToken}}
+
+###
+
+### Create a new argument for simulado
+# @name createArgument
+POST {{BASE_URL}}/arguments
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Cardiologia",
+  "assessmentId": "YOUR_SIMULADO_ASSESSMENT_ID"
+}
+
+###
+
+### Create a question linked to argument and assessment
+# @name createQuestionWithArgument
+POST {{BASE_URL}}/questions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "text": "Qual é a frequência cardíaca normal em repouso?",
+  "type": "MULTIPLE_CHOICE",
+  "assessmentId": "YOUR_SIMULADO_ASSESSMENT_ID",
+  "argumentId": "YOUR_ARGUMENT_ID"
+}
+
+###
+EOF < /dev/null

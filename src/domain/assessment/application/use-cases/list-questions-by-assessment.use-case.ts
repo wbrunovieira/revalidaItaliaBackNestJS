@@ -5,6 +5,7 @@ import { Either, left, right } from '@/core/either';
 import { IQuestionRepository } from '../repositories/i-question-repository';
 import { IQuestionOptionRepository } from '../repositories/i-question-option-repository';
 import { IAssessmentRepository } from '../repositories/i-assessment-repository';
+import { IArgumentRepository } from '../repositories/i-argument-repository';
 import { ListQuestionsByAssessmentRequest } from '../dtos/list-questions-by-assessment-request.dto';
 import { ListQuestionsByAssessmentResponse, QuestionResponse } from '../dtos/list-questions-by-assessment-response.dto';
 import { listQuestionsByAssessmentSchema } from './validations/list-questions-by-assessment.schema';
@@ -28,6 +29,8 @@ export class ListQuestionsByAssessmentUseCase {
     private questionOptionRepository: IQuestionOptionRepository,
     @Inject('AssessmentRepository')
     private assessmentRepository: IAssessmentRepository,
+    @Inject('ArgumentRepository')
+    private argumentRepository: IArgumentRepository,
   ) {}
 
   async execute(request: ListQuestionsByAssessmentRequest): Promise<ListQuestionsByAssessmentUseCaseResponse> {
@@ -75,20 +78,60 @@ export class ListQuestionsByAssessmentUseCase {
         optionsByQuestionId.get(questionId)!.push(option);
       });
 
+      const assessment = assessmentResult.value;
+
+      // Fetch arguments by ID for all questions that have argumentId
+      const argumentsByIdMap = new Map<string, string>();
+      const argumentIds = questions
+        .map(q => q.argumentId?.toString())
+        .filter(Boolean) as string[];
+      
+      // Fetch each argument individually by ID
+      for (const argumentId of argumentIds) {
+        const argResult = await this.argumentRepository.findById(argumentId);
+        if (argResult.isRight()) {
+          argumentsByIdMap.set(argumentId, argResult.value.title);
+        }
+      }
+
       // Build response
-      const questionsResponse: QuestionResponse[] = questions.map(question => ({
-        id: question.id.toString(),
-        text: question.text,
-        type: question.type.getValue() as 'MULTIPLE_CHOICE' | 'OPEN',
-        options: (optionsByQuestionId.get(question.id.toString()) || []).map(option => ({
-          id: option.id.toString(),
-          text: option.text,
-        })),
-        createdAt: question.createdAt,
-        updatedAt: question.updatedAt,
-      }));
+      const questionsResponse: QuestionResponse[] = questions.map(question => {
+        const argumentId = question.argumentId?.toString();
+        const argumentName = argumentId ? argumentsByIdMap.get(argumentId) || null : null;
+        
+        const questionResponse: QuestionResponse = {
+          id: question.id.toString(),
+          text: question.text,
+          type: question.type.getValue() as 'MULTIPLE_CHOICE' | 'OPEN',
+          argumentId,
+          argumentName,
+          options: (optionsByQuestionId.get(question.id.toString()) || []).map(option => ({
+            id: option.id.toString(),
+            text: option.text,
+          })),
+          createdAt: question.createdAt,
+          updatedAt: question.updatedAt,
+        };
+        
+        return questionResponse;
+      });
 
       return right({
+        assessment: {
+          id: assessment.id.toString(),
+          slug: assessment.slug,
+          title: assessment.title,
+          description: assessment.description,
+          type: assessment.type,
+          quizPosition: assessment.quizPosition,
+          passingScore: assessment.passingScore,
+          timeLimitInMinutes: assessment.timeLimitInMinutes,
+          randomizeQuestions: assessment.randomizeQuestions,
+          randomizeOptions: assessment.randomizeOptions,
+          lessonId: assessment.lessonId?.toString(),
+          createdAt: assessment.createdAt,
+          updatedAt: assessment.updatedAt,
+        },
         questions: questionsResponse,
       });
     } catch (error) {
