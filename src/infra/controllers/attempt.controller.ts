@@ -6,11 +6,13 @@ import { SubmitAttemptParamDto } from '@/domain/assessment/application/dtos/subm
 import { GetAttemptResultsParamDto } from './dtos/get-attempt-results-param.dto';
 import { ReviewOpenAnswerParamDto } from './dtos/review-open-answer-param.dto';
 import { ReviewOpenAnswerBodyDto } from './dtos/review-open-answer-body.dto';
+import { ListAttemptsQueryDto } from './dtos/list-attempts-query.dto';
 import { StartAttemptUseCase } from '@/domain/assessment/application/use-cases/start-attempt.use-case';
 import { SubmitAnswerUseCase } from '@/domain/assessment/application/use-cases/submit-answer.use-case';
 import { SubmitAttemptUseCase } from '@/domain/assessment/application/use-cases/submit-attempt.use-case';
 import { GetAttemptResultsUseCase } from '@/domain/assessment/application/use-cases/get-attempt-results.use-case';
 import { ReviewOpenAnswerUseCase } from '@/domain/assessment/application/use-cases/review-open-answer.use-case';
+import { ListAttemptsUseCase } from '@/domain/assessment/application/use-cases/list-attempts.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { UserNotFoundError } from '@/domain/assessment/application/use-cases/errors/user-not-found-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
@@ -58,7 +60,67 @@ export class AttemptController {
     private readonly getAttemptResultsUseCase: GetAttemptResultsUseCase,
     @Inject(ReviewOpenAnswerUseCase)
     private readonly reviewOpenAnswerUseCase: ReviewOpenAnswerUseCase,
+    @Inject(ListAttemptsUseCase)
+    private readonly listAttemptsUseCase: ListAttemptsUseCase,
   ) {}
+
+  @Get()
+  async listAttempts(
+    @Query() query: ListAttemptsQueryDto,
+    @CurrentUser() user: UserPayload,
+  ) {
+    const request = {
+      status: query.status,
+      userId: query.userId,
+      assessmentId: query.assessmentId,
+      page: query.page,
+      pageSize: query.pageSize,
+      requesterId: user.sub,
+    };
+
+    const result = await this.listAttemptsUseCase.execute(request);
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof UserNotFoundError) {
+        throw new NotFoundException({
+          error: 'USER_NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      if (error instanceof InsufficientPermissionsError) {
+        throw new ForbiddenException({
+          error: 'INSUFFICIENT_PERMISSIONS',
+          message: 'Insufficient permissions to view attempts',
+        });
+      }
+
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException({
+          error: 'INTERNAL_ERROR',
+          message: error.message,
+        });
+      }
+
+      // Fallback para erros não mapeados
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: 'Unexpected error occurred',
+      });
+    }
+
+    return result.value;
+  }
 
   @Post('start')
   async startAttempt(@Body() dto: StartAttemptDto) {

@@ -74,6 +74,7 @@ export class AttemptControllerTestData {
       createdAt: new Date('2023-01-01T10:00:00Z'),
       updatedAt: new Date('2023-01-01T10:00:00Z'),
     },
+    isNew: true,
   });
 
   static readonly mockStartAttemptResponseForQuiz = (): StartAttemptResponse => ({
@@ -86,6 +87,7 @@ export class AttemptControllerTestData {
       createdAt: new Date('2023-01-01T10:00:00Z'),
       updatedAt: new Date('2023-01-01T10:00:00Z'),
     },
+    isNew: true,
   });
 
   static readonly mockStartAttemptResponseWithTimeLimit = (): StartAttemptResponse => ({
@@ -99,6 +101,7 @@ export class AttemptControllerTestData {
       createdAt: new Date('2023-01-01T10:00:00Z'),
       updatedAt: new Date('2023-01-01T10:00:00Z'),
     },
+    isNew: true,
   });
 
   static readonly expectedErrorResponses = {

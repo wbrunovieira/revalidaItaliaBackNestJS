@@ -6,7 +6,8 @@ import { Attempt } from '@/domain/assessment/enterprise/entities/attempt.entity'
 import { AttemptStatusVO } from '@/domain/assessment/enterprise/value-objects/attempt-status.vo';
 import { ScoreVO } from '@/domain/assessment/enterprise/value-objects/score.vo';
 import { UniqueEntityID } from '@/core/unique-entity-id';
-import { IAttemptRepository } from '@/domain/assessment/application/repositories/i-attempt.repository';
+import { IAttemptRepository, ListAttemptsFilters } from '@/domain/assessment/application/repositories/i-attempt.repository';
+import { PaginationParams } from '@/core/repositories/pagination-params';
 import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
@@ -176,6 +177,41 @@ export class PrismaAttemptRepository implements IAttemptRepository {
       });
 
       return right(count);
+    } catch (error) {
+      return left(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
+  async findWithFilters(
+    filters: ListAttemptsFilters,
+    pagination?: PaginationParams,
+  ): Promise<Either<Error, Attempt[]>> {
+    try {
+      const where: any = {};
+
+      // Apply filters
+      if (filters.status) {
+        where.status = filters.status;
+      }
+
+      if (filters.userId) {
+        where.userId = filters.userId;
+      }
+
+      if (filters.assessmentId) {
+        where.assessmentId = filters.assessmentId;
+      }
+
+      const attempts = await this.prisma.attempt.findMany({
+        where,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip: pagination ? (pagination.page - 1) * pagination.pageSize : undefined,
+        take: pagination ? pagination.pageSize : undefined,
+      });
+
+      return right(attempts.map(this.toDomain));
     } catch (error) {
       return left(error instanceof Error ? error : new Error('Unknown error'));
     }

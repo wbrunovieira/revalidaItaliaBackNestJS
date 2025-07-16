@@ -47,6 +47,7 @@ export class AttemptControllerTestSetup {
       this.submitAttemptUseCase as any,
       this.getAttemptResultsUseCase as any,
       this.reviewOpenAnswerUseCase as any,
+      {} as any, // Mock ListAttemptsUseCase - placeholder
     );
   }
 

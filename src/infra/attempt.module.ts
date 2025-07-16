@@ -6,6 +6,8 @@ import { SubmitAnswerUseCase } from '@/domain/assessment/application/use-cases/s
 import { SubmitAttemptUseCase } from '@/domain/assessment/application/use-cases/submit-attempt.use-case';
 import { GetAttemptResultsUseCase } from '@/domain/assessment/application/use-cases/get-attempt-results.use-case';
 import { ReviewOpenAnswerUseCase } from '@/domain/assessment/application/use-cases/review-open-answer.use-case';
+import { ListAttemptsUseCase } from '@/domain/assessment/application/use-cases/list-attempts.use-case';
+import { ListPendingReviewsUseCase } from '@/domain/assessment/application/use-cases/list-pending-reviews.use-case';
 import { PrismaAttemptRepository } from '@/infra/database/prisma/repositories/prisma-attempt-repository';
 import { PrismaAssessmentRepository } from '@/infra/database/prisma/repositories/prisma-assessment-repository';
 import { PrismaAccountRepository } from '@/infra/database/prisma/repositories/prisma-account-repositories';
@@ -25,6 +27,8 @@ import { AttemptController } from './controllers/attempt.controller';
     SubmitAttemptUseCase,
     GetAttemptResultsUseCase,
     ReviewOpenAnswerUseCase,
+    ListAttemptsUseCase,
+    ListPendingReviewsUseCase,
     {
       provide: 'AttemptRepository',
       useClass: PrismaAttemptRepository,
@@ -63,6 +67,8 @@ import { AttemptController } from './controllers/attempt.controller';
     SubmitAttemptUseCase,
     GetAttemptResultsUseCase,
     ReviewOpenAnswerUseCase,
+    ListAttemptsUseCase,
+    ListPendingReviewsUseCase,
   ],
 })
 export class AttemptModule {}
