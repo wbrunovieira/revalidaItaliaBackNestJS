@@ -223,6 +223,18 @@ GET {{baseUrl}}/assessments?type=QUIZ
 GET {{baseUrl}}/assessments?type=SIMULADO
 GET {{baseUrl}}/assessments?type=PROVA_ABERTA
 
+### Get Assessment 1 Questions (Regular View)
+GET {{baseUrl}}/assessments/{{assessmentId}}/questions
+
+### Get Assessment 1 Questions Detailed (Admin View) - IMPLEMENTED ✅
+GET {{baseUrl}}/assessments/{{assessmentId}}/questions/detailed
+
+### Get Assessment 2 Questions Detailed (Simulado) - IMPLEMENTED ✅
+GET {{baseUrl}}/assessments/{{assessmentId2}}/questions/detailed
+
+### Get Assessment 3 Questions Detailed (Prova Aberta) - IMPLEMENTED ✅
+GET {{baseUrl}}/assessments/{{assessmentId3}}/questions/detailed
+
 ### ==== ARGUMENTS ====
 
 ### Get Argument 1

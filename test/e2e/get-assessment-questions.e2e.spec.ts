@@ -12,11 +12,14 @@ import { GetAssessmentUseCase } from '../../src/domain/assessment/application/us
 import { DeleteAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/delete-assessment.use-case';
 import { UpdateAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/update-assessment.use-case';
 import { ListQuestionsByAssessmentUseCase } from '../../src/domain/assessment/application/use-cases/list-questions-by-assessment.use-case';
+import { GetQuestionsDetailedUseCase } from '../../src/domain/assessment/application/use-cases/get-questions-detailed.use-case';
 import { AssessmentController } from '../../src/infra/controllers/assessment.controller';
 import { PrismaQuestionRepository } from '../../src/infra/database/prisma/repositories/prisma-question-repository';
 import { PrismaQuestionOptionRepository } from '../../src/infra/database/prisma/repositories/prisma-question-option-repository';
 import { PrismaAssessmentRepository } from '../../src/infra/database/prisma/repositories/prisma-assessment-repository';
 import { PrismaLessonRepository } from '../../src/infra/database/prisma/repositories/prisma-lesson-repository';
+import { PrismaAnswerRepository } from '../../src/infra/database/prisma/repositories/prisma-answer-repository';
+import { PrismaArgumentRepository } from '../../src/infra/database/prisma/repositories/prisma-argument-repository';
 
 @Module({
   controllers: [AssessmentController],
@@ -27,6 +30,7 @@ import { PrismaLessonRepository } from '../../src/infra/database/prisma/reposito
     DeleteAssessmentUseCase,
     UpdateAssessmentUseCase,
     ListQuestionsByAssessmentUseCase,
+    GetQuestionsDetailedUseCase,
     PrismaService,
     {
       provide: 'QuestionRepository',
@@ -43,6 +47,14 @@ import { PrismaLessonRepository } from '../../src/infra/database/prisma/reposito
     {
       provide: 'LessonRepository',
       useClass: PrismaLessonRepository,
+    },
+    {
+      provide: 'AnswerRepository',
+      useClass: PrismaAnswerRepository,
+    },
+    {
+      provide: 'ArgumentRepository',
+      useClass: PrismaArgumentRepository,
     },
   ],
 })
