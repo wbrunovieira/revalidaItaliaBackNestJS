@@ -3,6 +3,8 @@ import { Test } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Module } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from '../../../../src/infra/auth/guards/jwt-auth.guard';
 import { PrismaService } from '../../../../src/prisma/prisma.service';
 import { StartAttemptUseCase } from '../../../../src/domain/assessment/application/use-cases/start-attempt.use-case';
 import { SubmitAnswerUseCase } from '../../../../src/domain/assessment/application/use-cases/submit-answer.use-case';
@@ -87,9 +89,25 @@ export class AttemptTestSetup {
   public attemptId: string;
 
   async initialize(): Promise<void> {
+    // Mock user that will be injected when @CurrentUser() is used
+    const mockUser = {
+      sub: '550e8400-e29b-41d4-a716-446655440001', // Default to student user ID
+      email: 'student@test.com',
+      role: 'student',
+    };
+
     const moduleRef = await Test.createTestingModule({
       imports: [TestAttemptModule],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({
+        canActivate: (context) => {
+          const request = context.switchToHttp().getRequest();
+          request.user = mockUser;
+          return true;
+        },
+      })
+      .compile();
 
     this.app = moduleRef.createNestApplication();
     this.app.useGlobalPipes(

@@ -251,7 +251,8 @@ export class GetAttemptResultsUseCase {
           );
           if (
             correctAnswer &&
-            attemptAnswer.selectedOptionId === correctAnswer.id.toString()
+            correctAnswer.correctOptionId &&
+            attemptAnswer.selectedOptionId === correctAnswer.correctOptionId.toString()
           ) {
             correctAnswersCount++;
           }
@@ -370,7 +371,8 @@ export class GetAttemptResultsUseCase {
             );
             if (
               correctAnswer &&
-              attemptAnswer.selectedOptionId === correctAnswer.id.toString()
+              correctAnswer.correctOptionId &&
+              attemptAnswer.selectedOptionId === correctAnswer.correctOptionId.toString()
             ) {
               result.correctAnswers++;
             }
@@ -433,9 +435,9 @@ export class GetAttemptResultsUseCase {
         baseResult.selectedOptionId = attemptAnswer.selectedOptionId;
         baseResult.selectedOptionText = `Option ${attemptAnswer.selectedOptionId}`; // Placeholder
 
-        if (correctAnswer) {
-          baseResult.correctOptionId = correctAnswer.id.toString();
-          baseResult.correctOptionText = `Option ${correctAnswer.id.toString()}`; // Placeholder
+        if (correctAnswer && correctAnswer.correctOptionId) {
+          baseResult.correctOptionId = correctAnswer.correctOptionId.toString();
+          baseResult.correctOptionText = `Option ${correctAnswer.correctOptionId.toString()}`; // Placeholder
           baseResult.explanation = correctAnswer.explanation;
         }
       }

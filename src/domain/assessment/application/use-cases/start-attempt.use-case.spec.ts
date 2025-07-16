@@ -379,9 +379,11 @@ describe('StartAttemptUseCase', () => {
       const result = await useCase.execute(request);
 
       // Assert
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(AttemptAlreadyActiveError);
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.attempt.id).toBe(existingAttempt.id.toString());
+        expect(result.value.isNew).toBe(false);
+        expect(result.value.attempt.status).toBe('IN_PROGRESS');
       }
     });
   });

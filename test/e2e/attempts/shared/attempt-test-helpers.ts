@@ -421,14 +421,17 @@ export class AttemptTestHelpers {
 
   /**
    * Start attempt and expect conflict error (409)
+   * Note: This behavior has changed - now returns existing attempt with 201
    */
   async startAttemptExpectConflict(data: StartAttemptRequest): Promise<any> {
     const response = await request(this.getApp().getHttpServer())
       .post('/attempts/start')
       .send(data)
-      .expect(409);
+      .expect(201); // Changed: now returns existing attempt instead of 409
 
-    expect(response.body).toHaveProperty('error', 'ATTEMPT_ALREADY_ACTIVE');
+    // Should return the existing attempt with isNew: false
+    expect(response.body).toHaveProperty('isNew', false);
+    expect(response.body).toHaveProperty('attempt');
     return response;
   }
 
@@ -467,6 +470,16 @@ export class AttemptTestHelpers {
     expectedAssessmentId: string,
   ): void {
     expect(responseBody).toHaveProperty('attempt');
+    expect(responseBody).toHaveProperty('isNew');
+    expect(typeof responseBody.isNew).toBe('boolean');
+    
+    // These fields may be undefined
+    if (responseBody.answeredQuestions !== undefined) {
+      expect(typeof responseBody.answeredQuestions).toBe('number');
+    }
+    if (responseBody.totalQuestions !== undefined) {
+      expect(typeof responseBody.totalQuestions).toBe('number');
+    }
 
     const attempt = responseBody.attempt;
     expect(attempt).toHaveProperty('id');

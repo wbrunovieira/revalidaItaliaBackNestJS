@@ -109,10 +109,10 @@ GET {{BASE_URL}}/assessments?page=1&limit=3&type=QUIZ&lessonId=0ef04e01-8faa-45f
 
 
 ### 45. Buscar assessment por ID
-GET {{BASE_URL}}/assessments/10ce14b9-9729-4cfb-812d-2745b1772f4c
+GET {{BASE_URL}}/assessments/2241e5d2-5d0b-4af9-bad7-895ad9563684
 
 ### 46. Listar questões de um assessment
-GET {{BASE_URL}}/assessments/550e8400-e29b-41d4-a716-446655440020/questions
+GET {{BASE_URL}}/assessments/2241e5d2-5d0b-4af9-bad7-895ad9563684/questions
 
 ### 47. Obter questões detalhadas de um assessment (admin view)
 GET {{BASE_URL}}/assessments/10ce14b9-9729-4cfb-812d-2745b1772f4c/questions/detailed

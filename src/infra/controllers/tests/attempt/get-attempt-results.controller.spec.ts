@@ -18,12 +18,19 @@ describe('AttemptController - GET /attempts/:id/results', () => {
   let setup: AttemptControllerTestSetup;
   let helpers: AttemptControllerTestHelpers;
   let data: AttemptControllerTestData;
+  let mockUser: any;
 
   beforeEach(() => {
     setup = new AttemptControllerTestSetup();
     helpers = new AttemptControllerTestHelpers();
     data = new AttemptControllerTestData();
     setup.resetMocks();
+    
+    // Mock user from JWT
+    mockUser = {
+      sub: '550e8400-e29b-41d4-a716-446655440001',
+      role: 'admin'
+    };
   });
 
   describe('Success Cases', () => {
@@ -35,13 +42,13 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
 
       // Act
-      const result = await setup.controller.getAttemptResults(params);
+      const result = await setup.controller.getAttemptResults(params, mockUser);
 
       // Assert
       expect(result).toEqual(mockResponse);
       expect(setup.getAttemptResultsUseCase.execute).toHaveBeenCalledWith({
         attemptId: data.validAttemptId,
-        requesterId: '550e8400-e29b-41d4-a716-446655440001',
+        requesterId: mockUser.sub,
       });
     });
 
@@ -53,7 +60,7 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
 
       // Act
-      const result = await setup.controller.getAttemptResults(params);
+      const result = await setup.controller.getAttemptResults(params, mockUser);
 
       // Assert
       expect(result).toEqual(mockResponse);
@@ -69,7 +76,7 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
 
       // Act
-      const result = await setup.controller.getAttemptResults(params);
+      const result = await setup.controller.getAttemptResults(params, mockUser);
 
       // Assert
       expect(result).toEqual(mockResponse);
@@ -86,7 +93,7 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
 
       // Act
-      const result = await setup.controller.getAttemptResults(params);
+      const result = await setup.controller.getAttemptResults(params, mockUser);
 
       // Assert
       expect(result).toEqual(mockResponse);
@@ -105,12 +112,12 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params)).rejects.toThrow(
+      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
         BadRequestException
       );
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params)
+        setup.controller.getAttemptResults(params, mockUser)
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -128,12 +135,12 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params)).rejects.toThrow(
+      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
         NotFoundException
       );
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params)
+        setup.controller.getAttemptResults(params, mockUser)
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -150,12 +157,12 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params)).rejects.toThrow(
+      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
         BadRequestException
       );
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params)
+        setup.controller.getAttemptResults(params, mockUser)
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -172,12 +179,12 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params)).rejects.toThrow(
+      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
         NotFoundException
       );
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params)
+        setup.controller.getAttemptResults(params, mockUser)
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -194,12 +201,12 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params)).rejects.toThrow(
+      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
         ForbiddenException
       );
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params)
+        setup.controller.getAttemptResults(params, mockUser)
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -216,12 +223,12 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params)).rejects.toThrow(
+      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
         NotFoundException
       );
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params)
+        setup.controller.getAttemptResults(params, mockUser)
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -238,12 +245,12 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params)).rejects.toThrow(
+      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
         InternalServerErrorException
       );
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params)
+        setup.controller.getAttemptResults(params, mockUser)
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -260,12 +267,12 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params)).rejects.toThrow(
+      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
         InternalServerErrorException
       );
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params)
+        setup.controller.getAttemptResults(params, mockUser)
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -284,13 +291,13 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
 
       // Act
-      await setup.controller.getAttemptResults(params);
+      await setup.controller.getAttemptResults(params, mockUser);
 
       // Assert
       expect(setup.getAttemptResultsUseCase.execute).toHaveBeenCalledTimes(1);
       expect(setup.getAttemptResultsUseCase.execute).toHaveBeenCalledWith({
         attemptId: data.validAttemptId,
-        requesterId: '550e8400-e29b-41d4-a716-446655440001',
+        requesterId: mockUser.sub,
       });
     });
 
@@ -302,7 +309,7 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params)).rejects.toThrow(
+      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
         BadRequestException
       );
     });
@@ -317,7 +324,7 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
 
       // Act
-      const result = await setup.controller.getAttemptResults(params);
+      const result = await setup.controller.getAttemptResults(params, mockUser);
 
       // Assert
       expect(result).toHaveProperty('attempt');
@@ -350,7 +357,7 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
 
       // Act
-      const result = await setup.controller.getAttemptResults(params);
+      const result = await setup.controller.getAttemptResults(params, mockUser);
 
       // Assert
       expect(result.results).toHaveProperty('argumentResults');
@@ -374,7 +381,7 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
 
       // Act
-      const result = await setup.controller.getAttemptResults(params);
+      const result = await setup.controller.getAttemptResults(params, mockUser);
 
       // Assert
       expect(result.results).toHaveProperty('reviewedQuestions');

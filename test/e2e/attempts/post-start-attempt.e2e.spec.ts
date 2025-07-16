@@ -474,11 +474,14 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       const assessmentNotFoundResponse = await testHelpers.startAttemptExpectNotFound(assessmentNotFoundRequest, 'ASSESSMENT_NOT_FOUND');
       expect(assessmentNotFoundResponse.body).toMatchObject(AttemptTestData.expectedErrorResponses.assessmentNotFound);
 
-      // Test conflict error
+      // Test returning existing attempt (no longer a conflict error)
       const conflictRequest = testHelpers.createValidStartAttemptRequest();
-      await testHelpers.startAttemptExpectSuccess(conflictRequest);
-      const conflictResponse = await testHelpers.startAttemptExpectConflict(conflictRequest);
-      expect(conflictResponse.body).toMatchObject(AttemptTestData.expectedErrorResponses.attemptAlreadyActive);
+      const firstResponse = await testHelpers.startAttemptExpectSuccess(conflictRequest);
+      expect(firstResponse.body.isNew).toBe(true);
+      
+      const secondResponse = await testHelpers.startAttemptExpectConflict(conflictRequest);
+      expect(secondResponse.body.isNew).toBe(false);
+      expect(secondResponse.body.attempt.id).toBe(firstResponse.body.attempt.id);
     });
   });
 });

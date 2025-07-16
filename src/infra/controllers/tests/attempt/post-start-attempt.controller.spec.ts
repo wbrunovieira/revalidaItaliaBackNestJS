@@ -13,7 +13,6 @@ import { AttemptControllerTestHelpers } from './shared/attempt-controller-test-h
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { UserNotFoundError } from '@/domain/assessment/application/use-cases/errors/user-not-found-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
-import { AttemptAlreadyActiveError } from '@/domain/assessment/application/use-cases/errors/attempt-already-active-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
 import { StartAttemptDto } from '@/domain/assessment/application/dtos/start-attempt.dto';
 
@@ -152,19 +151,34 @@ describe('AttemptController - startAttempt', () => {
     });
   });
 
-  describe('Error Cases - Conflict', () => {
-    it('should throw ConflictException when attempt already active', async () => {
+  describe('Success Cases - Existing Attempt', () => {
+    it('should return existing attempt when attempt already active', async () => {
       const dto: StartAttemptDto =
         AttemptControllerTestData.validStartAttemptDto();
-      const attemptAlreadyActiveError = new AttemptAlreadyActiveError();
+      const existingAttemptResponse = {
+        attempt: {
+          id: 'existing-attempt-id',
+          status: 'IN_PROGRESS' as const,
+          startedAt: new Date(),
+          timeLimitExpiresAt: undefined,
+          userId: dto.userId,
+          assessmentId: dto.assessmentId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        isNew: false,
+        answeredQuestions: 3,
+        totalQuestions: 10,
+      };
 
       testSetup.startAttemptUseCase.execute.mockResolvedValueOnce(
-        left(attemptAlreadyActiveError),
+        right(existingAttemptResponse),
       );
 
-      await expect(testSetup.controller.startAttempt(dto)).rejects.toThrow(
-        ConflictException,
-      );
+      const result = await testSetup.controller.startAttempt(dto);
+      
+      expect(result).toEqual(existingAttemptResponse);
+      expect(result.isNew).toBe(false);
     });
   });
 
