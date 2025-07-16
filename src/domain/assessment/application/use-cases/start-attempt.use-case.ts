@@ -86,8 +86,40 @@ export class StartAttemptUseCase {
       );
 
     if (activeAttemptResult.isRight()) {
-      // User already has an active attempt
-      return left(new AttemptAlreadyActiveError());
+      // User already has an active attempt - return it instead of error
+      const existingAttempt = activeAttemptResult.value;
+      
+      // Get total questions count
+      const questionsResult = await this.assessmentRepository.findById(
+        validatedData.assessmentId,
+      );
+      let totalQuestions: number | undefined;
+      if (questionsResult.isRight()) {
+        // This is a simplified count - in a real implementation you'd need to query questions
+        totalQuestions = undefined; // Will be implemented when we have question repository access
+      }
+
+      // Get answered questions count
+      // This would require access to attempt answers repository
+      const answeredQuestions = undefined; // Will be implemented when we have attempt answer repository access
+
+      const response: StartAttemptResponse = {
+        attempt: {
+          id: existingAttempt.id.toString(),
+          status: existingAttempt.status.getValue() as any,
+          startedAt: existingAttempt.startedAt,
+          timeLimitExpiresAt: existingAttempt.timeLimitExpiresAt,
+          userId: existingAttempt.userId,
+          assessmentId: existingAttempt.assessmentId,
+          createdAt: existingAttempt.createdAt,
+          updatedAt: existingAttempt.updatedAt,
+        },
+        isNew: false,
+        answeredQuestions,
+        totalQuestions,
+      };
+
+      return right(response);
     }
 
     // 5. Create new attempt
@@ -127,6 +159,9 @@ export class StartAttemptUseCase {
         createdAt: attempt.createdAt,
         updatedAt: attempt.updatedAt,
       },
+      isNew: true,
+      answeredQuestions: 0,
+      totalQuestions: undefined, // Will be implemented when we have question repository access
     };
 
     return right(response);

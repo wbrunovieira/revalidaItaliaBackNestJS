@@ -14,7 +14,6 @@ import { ReviewOpenAnswerUseCase } from '@/domain/assessment/application/use-cas
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { UserNotFoundError } from '@/domain/assessment/application/use-cases/errors/user-not-found-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
-import { AttemptAlreadyActiveError } from '@/domain/assessment/application/use-cases/errors/attempt-already-active-error';
 import { AttemptNotFoundError } from '@/domain/assessment/application/use-cases/errors/attempt-not-found-error';
 import { AttemptNotActiveError } from '@/domain/assessment/application/use-cases/errors/attempt-not-active-error';
 import { QuestionNotFoundError } from '@/domain/assessment/application/use-cases/errors/question-not-found-error';
@@ -95,12 +94,7 @@ export class AttemptController {
         });
       }
 
-      if (error instanceof AttemptAlreadyActiveError) {
-        throw new ConflictException({
-          error: 'ATTEMPT_ALREADY_ACTIVE',
-          message: 'User already has an active attempt for this assessment',
-        });
-      }
+      // AttemptAlreadyActiveError is no longer thrown - existing attempts are returned instead
 
       if (error instanceof RepositoryError) {
         throw new InternalServerErrorException({

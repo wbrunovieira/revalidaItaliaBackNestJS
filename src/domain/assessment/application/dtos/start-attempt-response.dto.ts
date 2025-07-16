@@ -11,4 +11,7 @@ export interface StartAttemptResponse {
     createdAt: Date;
     updatedAt: Date;
   };
+  isNew: boolean;
+  answeredQuestions?: number;
+  totalQuestions?: number;
 }
