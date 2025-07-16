@@ -97,7 +97,7 @@ GET {{BASE_URL}}/assessments?type=SIMULADO&page=1&limit=20
 GET {{BASE_URL}}/assessments?type=PROVA_ABERTA
 
 ### 31. Filtrar assessments por lessonId
-GET {{BASE_URL}}/assessments?lessonId=0ef04e01-8faa-45f3-813d-6f6d0b2d959f
+GET {{BASE_URL}}/assessments?lessonId=c6acfbda-2f43-43a5-a2db-0ed83eb5b8a0
 
 ### 32. Filtrar por tipo e lessonId combinados
 GET {{BASE_URL}}/assessments?type=QUIZ&lessonId=0ef04e01-8faa-45f3-813d-6f6d0b2d959f
@@ -112,7 +112,7 @@ GET {{BASE_URL}}/assessments?page=1&limit=3&type=QUIZ&lessonId=0ef04e01-8faa-45f
 GET {{BASE_URL}}/assessments/10ce14b9-9729-4cfb-812d-2745b1772f4c
 
 ### 46. Listar questões de um assessment
-GET {{BASE_URL}}/assessments/10ce14b9-9729-4cfb-812d-2745b1772f4c/questions
+GET {{BASE_URL}}/assessments/550e8400-e29b-41d4-a716-446655440020/questions
 
 ### 47. Obter questões detalhadas de um assessment (admin view)
 GET {{BASE_URL}}/assessments/10ce14b9-9729-4cfb-812d-2745b1772f4c/questions/detailed

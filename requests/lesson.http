@@ -3,7 +3,7 @@
 #@BASE_URL = http://18.216.107.74:3333
 
 ### Create Lesson
-POST {{BASE_URL}}/courses/8adec2b1-7297-4345-9c02-807e1e7d4277/modules/1d3f50dc-ee26-4651-afa9-a14c0dbd20ff/lessons
+POST {{BASE_URL}}/courses/1dddd700-2a21-4817-b237-02a60442b28e/modules/aa1c0615-23cb-4e1d-b14b-2e66bae17995/lessons
 Content-Type: application/json
 
 {
@@ -32,7 +32,7 @@ Content-Type: application/json
 }
 
 ### List Lessons
-GET {{BASE_URL}}/courses/66daab0-ce1f-49ab-ac90-f83500ae3868/modules/1d3f50dc-ee26-4651-afa9-a14c0dbd20ff/lessons
+GET {{BASE_URL}}/courses/66daab0-ce1f-49ab-ac90-f83500ae3868/modules/8aedfdb7-39ba-4e3a-bed7-ece858e8f588/lessons
 
 ### List Lessons (with pagination)
 GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef/lessons?page=1&limit=5&includeVideo=true

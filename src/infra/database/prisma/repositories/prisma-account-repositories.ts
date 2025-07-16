@@ -114,15 +114,15 @@ export class PrismaAccountRepository implements IAccountRepository {
       const account = User.create(
         {
           name: accountData.name,
-
           email: accountData.email,
           password: accountData.password,
+          cpf: accountData.cpf,
           phone: accountData.phone ?? undefined,
           birthDate: accountData.birthDate ?? undefined,
-
           profileImageUrl: accountData.profileImageUrl ?? undefined,
           role: accountData.role as 'student' | 'admin' | 'tutor',
-          cpf: accountData.cpf ?? undefined,
+          createdAt: accountData.createdAt,
+          updatedAt: accountData.updatedAt,
         },
         new UniqueEntityID(accountData.id),
       );

@@ -32,15 +32,21 @@ import {
   Get,
   Body,
   Param,
+  Query,
   Inject,
   BadRequestException,
   NotFoundException,
   ConflictException,
   ForbiddenException,
   InternalServerErrorException,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '@/infra/auth/guards/jwt-auth.guard';
+import { CurrentUser } from '@/infra/auth/current-user-decorator';
+import { UserPayload } from '@/infra/auth/strategies/jwt.strategy';
 
 @Controller('attempts')
+@UseGuards(JwtAuthGuard)
 export class AttemptController {
   constructor(
     @Inject(StartAttemptUseCase)
@@ -252,14 +258,13 @@ export class AttemptController {
   }
 
   @Get(':id/results')
-  async getAttemptResults(@Param() params: GetAttemptResultsParamDto) {
-    // TODO: Extract requesterId from JWT context
-    // For now, using a valid UUID placeholder - will be replaced with actual JWT extraction
-    const requesterId = '550e8400-e29b-41d4-a716-446655440001'; 
-
+  async getAttemptResults(
+    @Param() params: GetAttemptResultsParamDto,
+    @CurrentUser() user: UserPayload,
+  ) {
     const request = {
       attemptId: params.id,
-      requesterId,
+      requesterId: user.sub,
     };
 
     const result = await this.getAttemptResultsUseCase.execute(request);

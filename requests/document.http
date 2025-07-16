@@ -4,7 +4,7 @@
 #@BASE_URL = http://18.216.107.74:3333
 ###
 # @name create-document
-POST {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents
+POST {{BASE_URL}}/lessons/c6acfbda-2f43-43a5-a2db-0ed83eb5b8a0/documents
 Content-Type: application/json
 
 {
@@ -102,7 +102,7 @@ Accept: application/json
 
 ### 
 # @name list-documents
-GET {{BASE_URL}}/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/documents
+GET {{BASE_URL}}/lessons/c6acfbda-2f43-43a5-a2db-0ed83eb5b8a0/documents
 Accept: application/json
 
 ### 

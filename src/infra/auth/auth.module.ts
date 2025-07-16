@@ -79,7 +79,7 @@ import { GetUserByIdUseCase } from '@/domain/auth/application/use-cases/get-user
           publicKey,
           signOptions: {
             algorithm: 'RS256',
-            expiresIn: '1h',
+            expiresIn: '7d',
           },
         };
       },
