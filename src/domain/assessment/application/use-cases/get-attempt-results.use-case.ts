@@ -280,7 +280,7 @@ export class GetAttemptResultsUseCase {
             ? Math.round((correctAnswersCount / totalQuestions) * 100)
             : undefined,
         passed:
-          pendingReview === 0
+          pendingReview === 0 && assessment.passingScore !== undefined
             ? (correctAnswersCount / totalQuestions) * 100 >=
               assessment.passingScore
             : undefined,
@@ -292,7 +292,9 @@ export class GetAttemptResultsUseCase {
       totalQuestions > 0
         ? Math.round((correctAnswersCount / totalQuestions) * 100)
         : 0;
-    const passed = scorePercentage >= assessment.passingScore;
+    const passed = assessment.passingScore !== undefined 
+      ? scorePercentage >= assessment.passingScore
+      : undefined;
 
     const results = {
       ...baseResults,

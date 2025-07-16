@@ -114,9 +114,12 @@ GET {{BASE_URL}}/assessments/10ce14b9-9729-4cfb-812d-2745b1772f4c
 ### 46. Listar questões de um assessment
 GET {{BASE_URL}}/assessments/10ce14b9-9729-4cfb-812d-2745b1772f4c/questions
 
+### 47. Obter questões detalhadas de um assessment (admin view)
+GET {{BASE_URL}}/assessments/10ce14b9-9729-4cfb-812d-2745b1772f4c/questions/detailed
+
 ### ==================== ROTAS DE ATUALIZAÇÃO ====================
 
-### 47. Atualizar todos os campos de um QUIZ
+### 48. Atualizar todos os campos de um QUIZ
 PUT {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
 Content-Type: {{contentType}}
 

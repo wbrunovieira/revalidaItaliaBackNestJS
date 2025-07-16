@@ -7,6 +7,7 @@ import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-case
 import { GetAssessmentUseCase } from '@/domain/assessment/application/use-cases/get-assessment.use-case';
 import { DeleteAssessmentUseCase } from '@/domain/assessment/application/use-cases/delete-assessment.use-case';
 import { ListQuestionsByAssessmentUseCase } from '@/domain/assessment/application/use-cases/list-questions-by-assessment.use-case';
+import { GetQuestionsDetailedUseCase } from '@/domain/assessment/application/use-cases/get-questions-detailed.use-case';
 import { DuplicateAssessmentError } from '@/domain/assessment/application/use-cases/errors/duplicate-assessment-error';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { LessonNotFoundError } from '@/domain/assessment/application/use-cases/errors/lesson-not-found-error';
@@ -43,6 +44,8 @@ export class AssessmentController {
     private readonly deleteAssessmentUseCase: DeleteAssessmentUseCase,
     @Inject(ListQuestionsByAssessmentUseCase)
     private readonly listQuestionsByAssessmentUseCase: ListQuestionsByAssessmentUseCase,
+    @Inject(GetQuestionsDetailedUseCase)
+    private readonly getQuestionsDetailedUseCase: GetQuestionsDetailedUseCase,
   ) {}
 
   @Post()
@@ -306,6 +309,46 @@ export class AssessmentController {
   async getQuestions(@Param('id') assessmentId: string) {
     const request = { assessmentId };
     const result = await this.listQuestionsByAssessmentUseCase.execute(request);
+
+    if (result.isLeft()) {
+      const error = result.value;
+
+      if (error instanceof InvalidInputError) {
+        throw new BadRequestException({
+          error: 'INVALID_INPUT',
+          message: 'Invalid input data',
+          details: error.details,
+        });
+      }
+
+      if (error instanceof AssessmentNotFoundError) {
+        throw new NotFoundException({
+          error: 'ASSESSMENT_NOT_FOUND',
+          message: 'Assessment not found',
+        });
+      }
+
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException({
+          error: 'REPOSITORY_ERROR',
+          message: error.message,
+        });
+      }
+
+      // Fallback para erros não mapeados
+      throw new InternalServerErrorException({
+        error: 'INTERNAL_ERROR',
+        message: 'An unexpected error occurred',
+      });
+    }
+
+    return result.value;
+  }
+
+  @Get(':id/questions/detailed')
+  async getQuestionsDetailed(@Param('id') assessmentId: string) {
+    const request = { assessmentId };
+    const result = await this.getQuestionsDetailedUseCase.execute(request);
 
     if (result.isLeft()) {
       const error = result.value;

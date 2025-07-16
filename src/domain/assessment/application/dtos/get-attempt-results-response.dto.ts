@@ -46,7 +46,7 @@ export interface GetAttemptResultsResponse {
     id: string;
     title: string;
     type: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA';
-    passingScore: number;
+    passingScore?: number;
     timeLimitInMinutes?: number;
   };
   results: {
