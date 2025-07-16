@@ -1,7 +1,8 @@
 // src/test/repositories/in-memory-attempt-repository.ts
 import { Either, left, right } from '@/core/either';
+import { PaginationParams } from '@/core/repositories/pagination-params';
 import { Attempt } from '@/domain/assessment/enterprise/entities/attempt.entity';
-import { IAttemptRepository } from '@/domain/assessment/application/repositories/i-attempt.repository';
+import { IAttemptRepository, ListAttemptsFilters } from '@/domain/assessment/application/repositories/i-attempt.repository';
 
 export class InMemoryAttemptRepository implements IAttemptRepository {
   public items: Attempt[] = [];
@@ -107,6 +108,44 @@ export class InMemoryAttemptRepository implements IAttemptRepository {
     ).length;
 
     return right(count);
+  }
+
+  async findWithFilters(
+    filters: ListAttemptsFilters,
+    pagination?: PaginationParams,
+  ): Promise<Either<Error, Attempt[]>> {
+    let filteredItems = [...this.items];
+
+    // Apply filters
+    if (filters.status) {
+      filteredItems = filteredItems.filter(
+        (item) => item.status.getValue() === filters.status,
+      );
+    }
+
+    if (filters.userId) {
+      filteredItems = filteredItems.filter(
+        (item) => item.userId === filters.userId,
+      );
+    }
+
+    if (filters.assessmentId) {
+      filteredItems = filteredItems.filter(
+        (item) => item.assessmentId === filters.assessmentId,
+      );
+    }
+
+    // Sort by createdAt descending
+    filteredItems.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    // Apply pagination
+    if (pagination) {
+      const startIndex = (pagination.page - 1) * pagination.pageSize;
+      const endIndex = startIndex + pagination.pageSize;
+      filteredItems = filteredItems.slice(startIndex, endIndex);
+    }
+
+    return right(filteredItems);
   }
 
   // Helper methods for testing

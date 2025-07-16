@@ -112,7 +112,7 @@ GET {{BASE_URL}}/assessments?page=1&limit=3&type=QUIZ&lessonId=0ef04e01-8faa-45f
 GET {{BASE_URL}}/assessments/2241e5d2-5d0b-4af9-bad7-895ad9563684
 
 ### 46. Listar questões de um assessment
-GET {{BASE_URL}}/assessments/2241e5d2-5d0b-4af9-bad7-895ad9563684/questions
+GET {{BASE_URL}}/assessments/31787041-8743-40a3-a581-9fd9794b647e/questions
 
 ### 47. Obter questões detalhadas de um assessment (admin view)
 GET {{BASE_URL}}/assessments/2241e5d2-5d0b-4af9-bad7-895ad9563684/questions/detailed
