@@ -45,45 +45,8 @@ Content-Type: {{contentType}}
   "argumentId": "argument-uuid-here"
 }
 
-### 5. Erro - Texto muito curto
-POST {{BASE_URL}}/questions
-Content-Type: {{contentType}}
 
-{
-  "text": "Curto",
-  "type": "MULTIPLE_CHOICE",
-  "assessmentId": "quiz-assessment-uuid-here"
-}
 
-### 6. Erro - Tipo incompatível (OPEN em QUIZ)
-POST {{BASE_URL}}/questions
-Content-Type: {{contentType}}
-
-{
-  "text": "Esta questão deveria ser múltipla escolha para QUIZ",
-  "type": "OPEN",
-  "assessmentId": "quiz-assessment-uuid-here"
-}
-
-### 7. Erro - Assessment não encontrado
-POST {{BASE_URL}}/questions
-Content-Type: {{contentType}}
-
-{
-  "text": "Questão com assessment inexistente",
-  "type": "MULTIPLE_CHOICE",
-  "assessmentId": "00000000-0000-0000-0000-000000000000"
-}
-
-### 8. Erro - Questão duplicada
-POST {{BASE_URL}}/questions
-Content-Type: {{contentType}}
-
-{
-  "text": "Qual é a capital do Brasil?",
-  "type": "MULTIPLE_CHOICE",
-  "assessmentId": "quiz-assessment-uuid-here"
-}
 
 ### 9. Buscar Question por ID - Sucesso
 GET {{BASE_URL}}/questions/f5b59e4e-738c-400d-8735-c194b5598a86

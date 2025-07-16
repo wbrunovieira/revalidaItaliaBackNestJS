@@ -109,10 +109,10 @@ GET {{BASE_URL}}/assessments?page=1&limit=3&type=QUIZ&lessonId=0ef04e01-8faa-45f
 
 
 ### 45. Buscar assessment por ID
-GET {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9
+GET {{BASE_URL}}/assessments/10ce14b9-9729-4cfb-812d-2745b1772f4c
 
 ### 46. Listar questões de um assessment
-GET {{BASE_URL}}/assessments/a78d5558-6962-41de-911b-d8c12821b9b9/questions
+GET {{BASE_URL}}/assessments/10ce14b9-9729-4cfb-812d-2745b1772f4c/questions
 
 ### ==================== ROTAS DE ATUALIZAÇÃO ====================
 

@@ -36,6 +36,10 @@ Content-Type: {{contentType}}
       "locale": "it",
       "explanation": "Questa è la risposta corretta per la domanda a scelta multipla."
     }
+    {
+      "locale": "es",
+      "explanation": "Questa è la risposta corretta per la domanda a scelta multipla. em espanhol"
+    }
   ]
 }
 

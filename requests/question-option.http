@@ -120,34 +120,3 @@ Content-Type: {{contentType}}
   "text": "Esta é uma opção muito detalhada que contém informações abrangentes sobre o tópico em questão e deve estar dentro do limite de 500 caracteres, mas ainda assim ser bastante compreensiva em sua explicação sobre medicina legal e suas aplicações práticas no contexto jurídico brasileiro e internacional."
 }
 
-### 12. Teste de Erro - Question ID inválido
-POST {{BASE_URL}}/questions/invalid-uuid/options
-Content-Type: {{contentType}}
-
-{
-  "text": "Texto de teste para UUID inválido"
-}
-
-### 13. Teste de Erro - Question não encontrada
-POST {{BASE_URL}}/questions/550e8400-e29b-41d4-a716-446655440000/options
-Content-Type: {{contentType}}
-
-{
-  "text": "Texto de teste para questão inexistente"
-}
-
-### 14. Teste de Erro - Texto vazio
-POST {{BASE_URL}}/questions/550e8400-e29b-41d4-a716-446655440022/options
-Content-Type: {{contentType}}
-
-{
-  "text": ""
-}
-
-### 15. Teste de Erro - Texto muito longo (>500 caracteres)
-POST {{BASE_URL}}/questions/550e8400-e29b-41d4-a716-446655440022/options
-Content-Type: {{contentType}}
-
-{
-  "text": "Este é um texto extremamente longo que excede o limite de 500 caracteres estabelecido para as opções de questões. O objetivo deste teste é verificar se a validação está funcionando corretamente ao rejeitar textos que são muito longos para serem processados pelo sistema. Este texto continua sendo escrito para garantir que ultrapasse o limite estabelecido e cause uma falha de validação apropriada no sistema, demonstrando assim que os controles de qualidade estão funcionando conforme esperado e protegendo a integridade dos dados."
-}

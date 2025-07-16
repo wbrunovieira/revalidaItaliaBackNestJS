@@ -32,7 +32,7 @@ Content-Type: application/json
 }
 
 ### List Lessons
-GET {{BASE_URL}}/courses/0989caf1-e194-4aab-ab2b-9ca6e67f913d/modules/1d3f50dc-ee26-4651-afa9-a14c0dbd20ff/lessons
+GET {{BASE_URL}}/courses/66daab0-ce1f-49ab-ac90-f83500ae3868/modules/1d3f50dc-ee26-4651-afa9-a14c0dbd20ff/lessons
 
 ### List Lessons (with pagination)
 GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/modules/64436979-2173-4518-be2f-6415961d9cef/lessons?page=1&limit=5&includeVideo=true

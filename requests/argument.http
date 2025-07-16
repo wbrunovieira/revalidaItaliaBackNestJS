@@ -25,8 +25,9 @@ Content-Type: {{contentType}}
 ### ==================== GET ARGUMENT REQUESTS ====================
 
 ### 26. GET - Buscar Argument por ID válido - Sucesso
-GET {{BASE_URL}}/arguments/eca4848c-07e4-49d0-b8b3-b26be563a4f4
+GET {{BASE_URL}}/arguments/efcab69b-b421-4326-898f-3bbb2b0c9803
 Content-Type: {{contentType}}
+
 
 
 ### 26. GET - Buscar Argument List

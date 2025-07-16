@@ -3,7 +3,7 @@
 
 ###
 # @name create-module
-POST {{BASE_URL}}/courses/0989caf1-e194-4aab-ab2b-9ca6e67f913d/modules
+POST {{BASE_URL}}/courses/366daab0-ce1f-49ab-ac90-f83500ae3868/modules
 Content-Type: application/json
 
 {
@@ -32,7 +32,7 @@ Content-Type: application/json
 ###
 
 # @name list-modules
-GET {{BASE_URL}}/courses/8adec2b1-7297-4345-9c02-807e1e7d4277/modules
+GET {{BASE_URL}}/courses/366daab0-ce1f-49ab-ac90-f83500ae3868/modules
 Content-Type: application/json
 
 ###

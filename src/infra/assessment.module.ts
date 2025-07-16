@@ -2,11 +2,14 @@
 import { Module } from '@nestjs/common';
 
 import { CreateAssessmentUseCase } from '@/domain/assessment/application/use-cases/create-assessment.use-case';
+import { GetQuestionsDetailedUseCase } from '@/domain/assessment/application/use-cases/get-questions-detailed.use-case';
 
 import { PrismaAssessmentRepository } from '@/infra/database/prisma/repositories/prisma-assessment-repository';
 import { PrismaLessonRepository } from '@/infra/database/prisma/repositories/prisma-lesson-repository';
 import { PrismaQuestionRepository } from '@/infra/database/prisma/repositories/prisma-question-repository';
 import { PrismaQuestionOptionRepository } from '@/infra/database/prisma/repositories/prisma-question-option-repository';
+import { PrismaAnswerRepository } from '@/infra/database/prisma/repositories/prisma-answer-repository';
+import { PrismaArgumentRepository } from '@/infra/database/prisma/repositories/prisma-argument-repository';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { AssessmentController } from './controllers/assessment.controller';
 import { ListAssessmentsUseCase } from '@/domain/assessment/application/use-cases/list-assessments.use-case';
@@ -25,6 +28,7 @@ import { ListQuestionsByAssessmentUseCase } from '@/domain/assessment/applicatio
     DeleteAssessmentUseCase,
     UpdateAssessmentUseCase,
     ListQuestionsByAssessmentUseCase,
+    GetQuestionsDetailedUseCase,
 
     {
       provide: 'AssessmentRepository',
@@ -42,11 +46,20 @@ import { ListQuestionsByAssessmentUseCase } from '@/domain/assessment/applicatio
       provide: 'QuestionOptionRepository',
       useClass: PrismaQuestionOptionRepository,
     } as const,
+    {
+      provide: 'AnswerRepository',
+      useClass: PrismaAnswerRepository,
+    } as const,
+    {
+      provide: 'ArgumentRepository',
+      useClass: PrismaArgumentRepository,
+    } as const,
   ],
   exports: [
     'AssessmentRepository',
     CreateAssessmentUseCase,
     ListAssessmentsUseCase,
+    GetQuestionsDetailedUseCase,
   ], // Exporte o use case se necessário
 })
 export class AssessmentModule {}
