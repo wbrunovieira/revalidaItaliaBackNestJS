@@ -1,54 +1,45 @@
-// src/infra/controllers/tests/attempt/get-list-attempts.controller.spec.ts
+// src/infra/controllers/tests/attempt/get-list-pending-reviews.controller.spec.ts
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import {
-  BadRequestException,
-  NotFoundException,
-  ForbiddenException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
 import { AttemptController } from '../../attempt.controller';
-import { ListAttemptsUseCase } from '@/domain/assessment/application/use-cases/list-attempts.use-case';
+import { ListPendingReviewsUseCase } from '@/domain/assessment/application/use-cases/list-pending-reviews.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { UserNotFoundError } from '@/domain/assessment/application/use-cases/errors/user-not-found-error';
 import { InsufficientPermissionsError } from '@/domain/assessment/application/use-cases/errors/insufficient-permissions-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
 import { right, left } from '@/core/either';
-import { ListAttemptsQueryDto } from '../../dtos/list-attempts-query.dto';
+import { ListPendingReviewsQueryDto } from '../../dtos/list-pending-reviews-query.dto';
 
-describe('AttemptController - GET /attempts', () => {
+describe('AttemptController - GET /attempts/pending-review', () => {
   let controller: AttemptController;
-  let listAttemptsUseCase: any;
+  let listPendingReviewsUseCase: any;
 
-  const mockUser = {
-    sub: '550e8400-e29b-41d4-a716-446655440010',
-    email: 'admin@example.com',
-    name: 'Admin User',
-    role: 'admin',
+  const mockTutorUser = {
+    sub: '550e8400-e29b-41d4-a716-446655440002',
+    email: 'tutor@example.com',
+    name: 'Tutor User',
+    role: 'tutor',
   };
 
-  const mockAttemptsList = {
+  const mockPendingReviewsList = {
     attempts: [
       {
         id: '550e8400-e29b-41d4-a716-446655440040',
         status: 'SUBMITTED' as const,
-        score: 85,
-
-        startedAt: new Date('2024-01-01T10:00:00Z'),
         submittedAt: new Date('2024-01-01T11:00:00Z'),
-        userId: '550e8400-e29b-41d4-a716-446655440020',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440030',
         assessment: {
           id: '550e8400-e29b-41d4-a716-446655440030',
-          title: 'Test Assessment',
-          type: 'QUIZ' as const,
-          passingScore: 70,
+          title: 'Test Prova Aberta',
+          type: 'PROVA_ABERTA' as const,
         },
         student: {
           id: '550e8400-e29b-41d4-a716-446655440020',
           name: 'Student User',
           email: 'student@example.com',
         },
+        pendingAnswers: 3,
+        totalOpenQuestions: 5,
         createdAt: new Date('2024-01-01T09:00:00Z'),
         updatedAt: new Date('2024-01-01T11:00:00Z'),
       },
@@ -68,8 +59,8 @@ describe('AttemptController - GET /attempts', () => {
     const mockSubmitAttemptUseCase = { execute: vi.fn() };
     const mockGetAttemptResultsUseCase = { execute: vi.fn() };
     const mockReviewOpenAnswerUseCase = { execute: vi.fn() };
-    listAttemptsUseCase = { execute: vi.fn() };
-    const mockListPendingReviewsUseCase = { execute: vi.fn() };
+    const mockListAttemptsUseCase = { execute: vi.fn() };
+    listPendingReviewsUseCase = { execute: vi.fn() };
 
     controller = new AttemptController(
       mockStartAttemptUseCase as any,
@@ -77,70 +68,60 @@ describe('AttemptController - GET /attempts', () => {
       mockSubmitAttemptUseCase as any,
       mockGetAttemptResultsUseCase as any,
       mockReviewOpenAnswerUseCase as any,
-      listAttemptsUseCase as any,
-      mockListPendingReviewsUseCase as any,
+      mockListAttemptsUseCase as any,
+      listPendingReviewsUseCase as any,
     );
   });
 
-  describe('listAttempts', () => {
-    it('should return attempts list successfully', async () => {
+  describe('listPendingReviews', () => {
+    it('should return pending reviews list successfully', async () => {
       // Arrange
-      listAttemptsUseCase.execute.mockResolvedValue(right(mockAttemptsList));
+      listPendingReviewsUseCase.execute.mockResolvedValue(right(mockPendingReviewsList));
 
-      const query: ListAttemptsQueryDto = {
+      const query: ListPendingReviewsQueryDto = {
         page: 1,
         pageSize: 20,
       };
 
       // Act
-      const result = await controller.listAttempts(query, mockUser);
+      const result = await controller.listPendingReviews(query, mockTutorUser);
 
       // Assert
-      expect(result).toEqual(mockAttemptsList);
-      expect(listAttemptsUseCase.execute).toHaveBeenCalledWith({
-        status: undefined,
-        userId: undefined,
-        assessmentId: undefined,
+      expect(result).toEqual(mockPendingReviewsList);
+      expect(listPendingReviewsUseCase.execute).toHaveBeenCalledWith({
+        requesterId: mockTutorUser.sub,
         page: 1,
         pageSize: 20,
-        requesterId: mockUser.sub,
       });
     });
 
-    it('should return attempts filtered by status', async () => {
+    it('should use default pagination when not provided', async () => {
       // Arrange
-      listAttemptsUseCase.execute.mockResolvedValue(right(mockAttemptsList));
+      listPendingReviewsUseCase.execute.mockResolvedValue(right(mockPendingReviewsList));
 
-      const query: ListAttemptsQueryDto = {
-        status: 'SUBMITTED',
-        page: 1,
-        pageSize: 20,
-      };
+      const query: ListPendingReviewsQueryDto = {};
 
       // Act
-      const result = await controller.listAttempts(query, mockUser);
+      const result = await controller.listPendingReviews(query, mockTutorUser);
 
       // Assert
-      expect(result).toEqual(mockAttemptsList);
-      expect(listAttemptsUseCase.execute).toHaveBeenCalledWith({
-        status: 'SUBMITTED',
-        userId: undefined,
-        assessmentId: undefined,
-        page: 1,
-        pageSize: 20,
-        requesterId: mockUser.sub,
+      expect(result).toEqual(mockPendingReviewsList);
+      expect(listPendingReviewsUseCase.execute).toHaveBeenCalledWith({
+        requesterId: mockTutorUser.sub,
+        page: undefined,
+        pageSize: undefined,
       });
     });
 
     it('should throw BadRequestException for invalid input error', async () => {
       // Arrange
       const invalidInputError = new InvalidInputError('Invalid input data');
-      listAttemptsUseCase.execute.mockResolvedValue(left(invalidInputError));
+      listPendingReviewsUseCase.execute.mockResolvedValue(left(invalidInputError));
 
-      const query: ListAttemptsQueryDto = {};
+      const query: ListPendingReviewsQueryDto = {};
 
       // Act & Assert
-      await expect(controller.listAttempts(query, mockUser)).rejects.toThrow(
+      await expect(controller.listPendingReviews(query, mockTutorUser)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -148,12 +129,12 @@ describe('AttemptController - GET /attempts', () => {
     it('should throw NotFoundException for user not found error', async () => {
       // Arrange
       const userNotFoundError = new UserNotFoundError();
-      listAttemptsUseCase.execute.mockResolvedValue(left(userNotFoundError));
+      listPendingReviewsUseCase.execute.mockResolvedValue(left(userNotFoundError));
 
-      const query: ListAttemptsQueryDto = {};
+      const query: ListPendingReviewsQueryDto = {};
 
       // Act & Assert
-      await expect(controller.listAttempts(query, mockUser)).rejects.toThrow(
+      await expect(controller.listPendingReviews(query, mockTutorUser)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -161,14 +142,12 @@ describe('AttemptController - GET /attempts', () => {
     it('should throw ForbiddenException for insufficient permissions error', async () => {
       // Arrange
       const insufficientPermissionsError = new InsufficientPermissionsError();
-      listAttemptsUseCase.execute.mockResolvedValue(
-        left(insufficientPermissionsError),
-      );
+      listPendingReviewsUseCase.execute.mockResolvedValue(left(insufficientPermissionsError));
 
-      const query: ListAttemptsQueryDto = {};
+      const query: ListPendingReviewsQueryDto = {};
 
       // Act & Assert
-      await expect(controller.listAttempts(query, mockUser)).rejects.toThrow(
+      await expect(controller.listPendingReviews(query, mockTutorUser)).rejects.toThrow(
         ForbiddenException,
       );
     });
@@ -176,12 +155,12 @@ describe('AttemptController - GET /attempts', () => {
     it('should throw InternalServerErrorException for repository error', async () => {
       // Arrange
       const repositoryError = new RepositoryError('Database error');
-      listAttemptsUseCase.execute.mockResolvedValue(left(repositoryError));
+      listPendingReviewsUseCase.execute.mockResolvedValue(left(repositoryError));
 
-      const query: ListAttemptsQueryDto = {};
+      const query: ListPendingReviewsQueryDto = {};
 
       // Act & Assert
-      await expect(controller.listAttempts(query, mockUser)).rejects.toThrow(
+      await expect(controller.listPendingReviews(query, mockTutorUser)).rejects.toThrow(
         InternalServerErrorException,
       );
     });

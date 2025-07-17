@@ -12,6 +12,7 @@ import { SubmitAttemptUseCase } from '../../../../src/domain/assessment/applicat
 import { GetAttemptResultsUseCase } from '../../../../src/domain/assessment/application/use-cases/get-attempt-results.use-case';
 import { ReviewOpenAnswerUseCase } from '../../../../src/domain/assessment/application/use-cases/review-open-answer.use-case';
 import { ListAttemptsUseCase } from '../../../../src/domain/assessment/application/use-cases/list-attempts.use-case';
+import { ListPendingReviewsUseCase } from '../../../../src/domain/assessment/application/use-cases/list-pending-reviews.use-case';
 import { AttemptController } from '../../../../src/infra/controllers/attempt.controller';
 import { PrismaAttemptRepository } from '../../../../src/infra/database/prisma/repositories/prisma-attempt-repository';
 import { PrismaAssessmentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-assessment-repository';
@@ -30,6 +31,7 @@ import { PrismaArgumentRepository } from '../../../../src/infra/database/prisma/
     GetAttemptResultsUseCase,
     ReviewOpenAnswerUseCase,
     ListAttemptsUseCase,
+    ListPendingReviewsUseCase,
     PrismaService,
     {
       provide: 'AttemptRepository',
