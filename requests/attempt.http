@@ -31,6 +31,18 @@ POST http://localhost:3000/attempts/550e8400-e29b-41d4-a716-446655440010/submit
 ### Get Attempt Results
 GET http://localhost:3000/attempts/550e8400-e29b-41d4-a716-446655440010/results
 
+### List Attempts (Admin view - all attempts)
+GET http://localhost:3000/attempts
+
+### List Attempts with Filters
+GET http://localhost:3000/attempts?status=SUBMITTED&userId=550e8400-e29b-41d4-a716-446655440001&page=1&pageSize=20
+
+### List Pending Reviews (Tutor only)
+GET http://localhost:3000/attempts/pending-review
+
+### List Pending Reviews with Pagination
+GET http://localhost:3000/attempts/pending-review?page=1&pageSize=10
+
 ### Review Open Answer
 POST http://localhost:3000/attempts/answers/550e8400-e29b-41d4-a716-446655440030/review
 Content-Type: application/json
