@@ -11,6 +11,7 @@ import { SubmitAnswerUseCase } from '../../../../src/domain/assessment/applicati
 import { SubmitAttemptUseCase } from '../../../../src/domain/assessment/application/use-cases/submit-attempt.use-case';
 import { GetAttemptResultsUseCase } from '../../../../src/domain/assessment/application/use-cases/get-attempt-results.use-case';
 import { ReviewOpenAnswerUseCase } from '../../../../src/domain/assessment/application/use-cases/review-open-answer.use-case';
+import { ListAttemptsUseCase } from '../../../../src/domain/assessment/application/use-cases/list-attempts.use-case';
 import { AttemptController } from '../../../../src/infra/controllers/attempt.controller';
 import { PrismaAttemptRepository } from '../../../../src/infra/database/prisma/repositories/prisma-attempt-repository';
 import { PrismaAssessmentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-assessment-repository';
@@ -28,6 +29,7 @@ import { PrismaArgumentRepository } from '../../../../src/infra/database/prisma/
     SubmitAttemptUseCase,
     GetAttemptResultsUseCase,
     ReviewOpenAnswerUseCase,
+    ListAttemptsUseCase,
     PrismaService,
     {
       provide: 'AttemptRepository',
@@ -103,6 +105,30 @@ export class AttemptTestSetup {
       .useValue({
         canActivate: (context) => {
           const request = context.switchToHttp().getRequest();
+          const authHeader = request.headers.authorization;
+          
+          // Check if Authorization header is present
+          if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return false; // This will cause a 401 Unauthorized
+          }
+          
+          // Extract user info from mock token
+          const token = authHeader.replace('Bearer ', '');
+          if (token.startsWith('mock-token-')) {
+            // Parse token format: mock-token-{userId}-{role}
+            const tokenParts = token.replace('mock-token-', '').split('-');
+            const userId = tokenParts.slice(0, -1).join('-'); // All parts except last are userId
+            const role = tokenParts[tokenParts.length - 1]; // Last part is role
+            
+            request.user = {
+              sub: userId,
+              email: `${role}@test.com`,
+              role: role,
+            };
+            return true;
+          }
+          
+          // Fallback for other tests
           request.user = mockUser;
           return true;
         },
@@ -791,5 +817,113 @@ export class AttemptTestSetup {
       },
     });
     return attemptAnswer.id;
+  }
+
+  /**
+   * Create test data for list attempts tests
+   */
+  async createTestData(): Promise<{
+    adminUser: any;
+    studentUser: any;
+    otherStudentUser: any;
+    assessment: any;
+    otherAssessment: any;
+    attempt: any;
+  }> {
+    await this.setupTestData();
+
+    const adminUser = await this.createUser('admin');
+    const studentUser = await this.findUserById(this.studentUserId);
+    const otherStudentUser = await this.createUser('student');
+    
+    if (!studentUser) {
+      throw new Error('Student user not found');
+    }
+    
+    const assessment = await this.findAssessmentById(this.quizAssessmentId);
+    const otherAssessment = await this.findAssessmentById(this.simuladoAssessmentId);
+    
+    if (!assessment) {
+      throw new Error('Quiz assessment not found');
+    }
+    
+    if (!otherAssessment) {
+      throw new Error('Simulado assessment not found');
+    }
+    
+    const attempt = await this.createActiveAttempt(studentUser.id, assessment.id);
+    
+    return {
+      adminUser,
+      studentUser,
+      otherStudentUser,
+      assessment,
+      otherAssessment,
+      attempt,
+    };
+  }
+
+  /**
+   * Create attempt for specific user and assessment
+   */
+  async createAttemptForUser(userId: string, assessmentId: string): Promise<any> {
+    return await this.prisma.attempt.create({
+      data: {
+        status: 'SUBMITTED',
+        startedAt: new Date(Date.now() - 3600000), // 1 hour ago
+        submittedAt: new Date(Date.now() - 1800000), // 30 minutes ago
+        userId,
+        assessmentId,
+      },
+    });
+  }
+
+  /**
+   * Create attempt with specific status
+   */
+  async createAttemptWithStatus(
+    userId: string,
+    assessmentId: string,
+    status: 'IN_PROGRESS' | 'SUBMITTED' | 'GRADING' | 'GRADED',
+  ): Promise<any> {
+    const data: any = {
+      status,
+      startedAt: new Date(Date.now() - 3600000), // 1 hour ago
+      userId,
+      assessmentId,
+    };
+
+    if (status !== 'IN_PROGRESS') {
+      data.submittedAt = new Date(Date.now() - 1800000); // 30 minutes ago
+    }
+
+    if (status === 'GRADED') {
+      data.gradedAt = new Date(Date.now() - 900000); // 15 minutes ago
+    }
+
+    return await this.prisma.attempt.create({ data });
+  }
+
+  /**
+   * Generate JWT token for testing
+   */
+  generateJwtToken(user: any): string {
+    // Simple mock token - in real tests you might want to use actual JWT
+    return `mock-token-${user.id}-${user.role}`;
+  }
+
+  /**
+   * Create app instance for testing
+   */
+  async createApp(): Promise<INestApplication> {
+    await this.initialize();
+    return this.app;
+  }
+
+  /**
+   * Cleanup after tests
+   */
+  async cleanup(): Promise<void> {
+    await this.teardown();
   }
 }
