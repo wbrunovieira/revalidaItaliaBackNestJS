@@ -140,11 +140,11 @@ export class PrismaAccountRepository implements IAccountRepository {
         data: {
           name: user.name,
           email: user.email,
-
+          cpf: user.cpf,
+          phone: user.phone,
+          birthDate: user.birthDate,
           profileImageUrl: user.profileImageUrl,
-
           role: user.role,
-
           updatedAt: new Date(),
         },
       });
