@@ -6,6 +6,7 @@ import { StudentsController } from './controllers/students.controller';
 import { DatabaseModule } from './database/database.module';
 import { AuthController } from './controllers/auth.controller';
 import { AddressController } from './controllers/address.controller';
+import { ProfileController } from './controllers/profile.controller';
 
 import { CourseModule } from '@/infra/course.module';
 import { ModuleModule } from './module.module';
@@ -40,6 +41,7 @@ import { FlashcardModule } from './flashcard.module';
     AuthController,
     AddressController,
     VideoController,
+    ProfileController,
   ],
   providers: [],
 })

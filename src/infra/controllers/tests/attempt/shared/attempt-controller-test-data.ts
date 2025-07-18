@@ -382,6 +382,7 @@ export class AttemptControllerTestData {
   private createAnswerDetails(assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA') {
     const baseAnswers = [
       {
+        id: '650e8400-e29b-41d4-a716-446655440030',
         questionId: '550e8400-e29b-41d4-a716-446655440020',
         questionText: 'Qual é o principal objetivo da medicina legal?',
         questionType: 'MULTIPLE_CHOICE' as const,
@@ -394,6 +395,7 @@ export class AttemptControllerTestData {
         status: 'GRADED' as const,
       },
       {
+        id: '650e8400-e29b-41d4-a716-446655440031',
         questionId: '550e8400-e29b-41d4-a716-446655440023',
         questionText: 'Como tratar hipertensão arterial?',
         questionType: 'OPEN' as const,

@@ -1,0 +1,114 @@
+### Variables
+@BASE_URL = http://localhost:3333
+@TOKEN = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0NTM0OGZlMy05NjgzLTQxMDEtYWFmMi1lNDQ4M2ZmYWJjZjUiLCJyb2xlIjoic3R1ZGVudCIsImlhdCI6MTczNzEyOTA3MCwiZXhwIjoxNzM3NzMzODcwfQ.FGHxHBo4t7lCcGgzBHGo5rxxdYZr-AwTCiJE_8kQwXVo1L0wCzRcgJ2A1lRQlf7WK1YJKS7S-Hn4a7i2_S_CzGNQ37BqKGhJ-6QdKmnrT4Ai5xvNP0VQhP3ktBnKODJJCXx51GG7L6wbdCBzx7F0Y7xGLKJe2yqhKP2uXwevV-8OksL5I6t7Ev9_t7AH5B9pHGV-pGCMKDr6QszoMFbBQgpuK5L8xgE9OKdFiLJ8wUrQQcJB9LYLVRVGq0G11N3IVbJrxo2GXaUILXLHKr0CKTS0UJDQHcRrCnr_iGFPQJsAGLGNBP42cC-Hv0LXEKHiE0KBBnz52VJJJwZ7G6_cBw
+
+### Update User Profile - All Fields
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "name": "Bruno Vieira Updated",
+  "email": "bruno.updated@example.com",
+  "cpf": "12345678901",
+  "phone": "+5511999999999",
+  "birthDate": "1990-01-15",
+  "profileImageUrl": "https://example.com/profile.jpg"
+}
+
+### Update User Profile - Partial Fields (Name and Phone)
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "name": "Bruno Vieira",
+  "phone": "+5511988888888"
+}
+
+### Update User Profile - Only Email
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "email": "bruno.new@example.com"
+}
+
+### Update User Profile - Only Profile Image (URL)
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "profileImageUrl": "https://gravatar.com/avatar/12345"
+}
+
+### Update User Profile - Only Profile Image (Relative Path)
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "profileImageUrl": "/images/profiles/user123.jpg"
+}
+
+### Update User Profile - Birth Date
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "birthDate": "1995-05-20"
+}
+
+### Update User Profile - Invalid Email (Should Return 400)
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "email": "invalid-email"
+}
+
+### Update User Profile - Invalid CPF (Should Return 400)
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "cpf": "123"
+}
+
+### Update User Profile - Short Name (Should Return 400)
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "name": "AB"
+}
+
+### Update User Profile - Invalid Profile Image URL (Should Return 400)
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "profileImageUrl": "not-a-valid-url"
+}
+
+### Update User Profile - Empty Body (Should Return 400)
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{}
+
+### Update User Profile - No Authorization (Should Return 401)
+PATCH {{BASE_URL}}/profile
+Content-Type: application/json
+
+{
+  "name": "Test Without Auth"
+}
