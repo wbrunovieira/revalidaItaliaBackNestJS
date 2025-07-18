@@ -134,7 +134,7 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.errors).toContainEqual({
+      expect(res.body.errors.details).toContainEqual({
         code: 'invalid_type',
         expected: 'string',
         message: 'Required',
@@ -155,7 +155,7 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.errors).toContainEqual({
+      expect(res.body.errors.details).toContainEqual({
         code: 'invalid_type',
         expected: 'string',
         message: 'Required',
@@ -176,7 +176,7 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.errors).toContainEqual({
+      expect(res.body.errors.details).toContainEqual({
         code: 'invalid_type',
         expected: 'string',
         message: 'Required',
@@ -198,7 +198,7 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.errors).toContainEqual({
+      expect(res.body.errors.details).toContainEqual({
         code: 'invalid_string',
         validation: 'email',
         message: 'Invalid email',
@@ -221,14 +221,14 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.errors).toContainEqual(
+      expect(res.body.errors.details).toContainEqual(
         expect.objectContaining({
           code: 'too_small',
           minimum: 6,
           path: ['password'],
         }),
       );
-      expect(res.body.errors).toContainEqual(
+      expect(res.body.errors.details).toContainEqual(
         expect.objectContaining({
           code: 'invalid_string',
           message: 'Password must contain at least one uppercase letter',
@@ -254,13 +254,14 @@ describe('Students Controller (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           ...payload,
           cpf: '44455566677',
         });
 
       expect(res.status).toBe(409);
-      expect(res.body.detail).toContain('already exists');
+      expect(res.body.detail).toBe('Unable to create resource due to conflict');
     });
 
     it('[POST] /students - CPF Conflict', async () => {
@@ -289,7 +290,7 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(409);
-      expect(res.body.detail).toContain('already exists');
+      expect(res.body.detail).toBe('Unable to create resource due to conflict');
     });
   });
 
@@ -349,10 +350,10 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({});
       expect(res.status).toBe(400);
-      expect(res.body.message).toBe(
-        'At least one field to update must be provided',
+      expect(res.body.detail).toBe(
+        'One or more fields failed validation',
       );
-      expect(res.body.errors).toEqual([]);
+      expect(res.body.errors.details).toEqual([]);
     });
 
     it('[PATCH] /students/:id - Not Found', async () => {
@@ -361,7 +362,7 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: 'X' });
       expect(res.status).toBe(400);
-      expect(res.body.detail).toBe('User not found');
+      expect(res.body.detail).toBe('The requested resource was not found');
     });
 
     it('[PATCH] /students/:id - Email Conflict', async () => {
@@ -392,7 +393,7 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ email: 'emailb@example.com' });
       expect(res.status).toBe(409);
-      expect(res.body.detail).toContain('already exists');
+      expect(res.body.detail).toBe('Unable to create resource due to conflict');
     });
 
     it('[PATCH] /students/:id - CPF Conflict', async () => {
@@ -423,7 +424,7 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ cpf: '60606060606' });
       expect(res.status).toBe(409);
-      expect(res.body.detail).toContain('already exists');
+      expect(res.body.detail).toBe('Unable to create resource due to conflict');
     });
   });
 
@@ -996,7 +997,7 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(404);
 
-      expect(res.body.detail).toBe('User not found');
+      expect(res.body.detail).toBe('The requested resource was not found');
       expect(res.body.status).toBe(404);
     });
 
@@ -1295,7 +1296,7 @@ describe('Students Controller (E2E)', () => {
         expect(res.body).toHaveProperty('message');
       } else {
         // Se for 404, é usuário não encontrado
-        expect(res.body.detail).toBe('User not found');
+        expect(res.body.detail).toBe('The requested resource was not found');
         expect(res.body.status).toBe(404);
       }
     });
@@ -1311,7 +1312,7 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(404);
 
-      expect(res.body.detail).toBe('User not found');
+      expect(res.body.detail).toBe('The requested resource was not found');
       expect(res.body.status).toBe(404);
     });
 

@@ -5,6 +5,8 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../../../src/infra/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../src/infra/auth/guards/roles.guard';
 import { JwtStrategy } from '../../../src/infra/auth/strategies/jwt.strategy';
+import { HttpExceptionFilter } from '../../../src/infra/filters/http-exception.filter';
+import { LoggingInterceptor } from '../../../src/infra/interceptors/logging.interceptor';
 
 export class E2ETestModule {
   static async create(moduleImports: any[]): Promise<{
@@ -183,6 +185,13 @@ vwIDAQAB
       .compile();
 
     const app = moduleRef.createNestApplication();
+    
+    // Register global interceptors
+    app.useGlobalInterceptors(new LoggingInterceptor());
+    
+    // Register global filters
+    app.useGlobalFilters(new HttpExceptionFilter());
+    
     app.useGlobalPipes(
       new ValidationPipe({ 
         whitelist: true, 
