@@ -7,6 +7,8 @@ import { AttemptTestData } from './shared/attempt-test-data';
 describe('[E2E] POST /attempts/start - Start Attempt', () => {
   let testSetup: AttemptTestSetup;
   let testHelpers: AttemptTestHelpers;
+  let studentToken: string;
+  let tutorToken: string;
 
   beforeAll(async () => {
     testSetup = new AttemptTestSetup();
@@ -17,6 +19,12 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
   beforeEach(async () => {
     // Setup fresh test data for each test to ensure isolation
     await testSetup.setupTestData();
+    
+    // Generate tokens for common users
+    const tutorUser = await testSetup.findUserById(testSetup.tutorUserId);
+    const studentUser = await testSetup.findUserById(testSetup.studentUserId);
+    tutorToken = testSetup.generateJwtToken(tutorUser);
+    studentToken = testSetup.generateJwtToken(studentUser);
   });
 
   afterAll(async () => {
@@ -30,7 +38,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
         testSetup.quizAssessmentId,
       );
 
-      const response = await testHelpers.startAttemptExpectSuccess(requestData);
+      const response = await testHelpers.startAttemptExpectSuccess(requestData, studentToken);
 
       // Verify response format
       testHelpers.verifyStartAttemptSuccessResponseFormat(
@@ -56,7 +64,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
         testSetup.simuladoAssessmentId,
       );
 
-      const response = await testHelpers.startAttemptExpectSuccess(requestData);
+      const response = await testHelpers.startAttemptExpectSuccess(requestData, studentToken);
 
       // Verify response includes time limit
       testHelpers.verifyStartAttemptResponseWithTimeLimit(
@@ -79,7 +87,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
         testSetup.provaAbertaAssessmentId,
       );
 
-      const response = await testHelpers.startAttemptExpectSuccess(requestData);
+      const response = await testHelpers.startAttemptExpectSuccess(requestData, studentToken);
 
       testHelpers.verifyStartAttemptSuccessResponseFormat(
         response.body,
@@ -96,7 +104,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
         testSetup.quizAssessmentId,
       );
 
-      const response = await testHelpers.startAttemptExpectSuccess(requestData);
+      const response = await testHelpers.startAttemptExpectSuccess(requestData, tutorToken);
 
       testHelpers.verifyStartAttemptSuccessResponseFormat(
         response.body,
@@ -144,7 +152,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       it(`should return 400 for ${name}`, async () => {
         const invalidData = testFn();
         
-        const response = await testHelpers.startAttemptExpectValidationError(invalidData);
+        const response = await testHelpers.startAttemptExpectValidationError(invalidData, tutorToken);
         
         testHelpers.verifyValidationErrorResponseFormat(response.body);
         
@@ -163,6 +171,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       await testHelpers.startAttemptExpectNotFound(
         requestData,
         'USER_NOT_FOUND',
+        studentToken,
       );
 
       await testHelpers.verifyDatabaseState(0);
@@ -176,6 +185,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       await testHelpers.startAttemptExpectNotFound(
         requestData,
         'ASSESSMENT_NOT_FOUND',
+        studentToken,
       );
 
       await testHelpers.verifyDatabaseState(0);
@@ -188,6 +198,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       await testHelpers.startAttemptExpectNotFound(
         requestData,
         'USER_NOT_FOUND',
+        studentToken,
       );
 
       await testHelpers.verifyDatabaseState(0);
@@ -201,6 +212,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       await testHelpers.startAttemptExpectNotFound(
         requestData,
         'USER_NOT_FOUND',
+        studentToken,
       );
     });
 
@@ -212,6 +224,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       await testHelpers.startAttemptExpectNotFound(
         requestData,
         'ASSESSMENT_NOT_FOUND',
+        studentToken,
       );
     });
   });
@@ -224,10 +237,10 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       );
 
       // Create first attempt successfully
-      await testHelpers.startAttemptExpectSuccess(requestData);
+      await testHelpers.startAttemptExpectSuccess(requestData, studentToken);
 
       // Try to create second attempt - should fail
-      await testHelpers.startAttemptExpectConflict(requestData);
+      await testHelpers.startAttemptExpectConflict(requestData, studentToken);
 
       // Verify only one attempt exists
       await testHelpers.verifyDatabaseState(1);
@@ -240,10 +253,10 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       );
 
       // Create first attempt
-      await testHelpers.startAttemptExpectSuccess(requestData);
+      await testHelpers.startAttemptExpectSuccess(requestData, studentToken);
 
       // Try to create second attempt
-      await testHelpers.startAttemptExpectConflict(requestData);
+      await testHelpers.startAttemptExpectConflict(requestData, studentToken);
 
       await testHelpers.verifyDatabaseState(1);
     });
@@ -255,10 +268,10 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       );
 
       // Create first attempt
-      await testHelpers.startAttemptExpectSuccess(requestData);
+      await testHelpers.startAttemptExpectSuccess(requestData, tutorToken);
 
       // Try to create second attempt
-      await testHelpers.startAttemptExpectConflict(requestData);
+      await testHelpers.startAttemptExpectConflict(requestData, tutorToken);
 
       await testHelpers.verifyDatabaseState(1);
     });
@@ -273,6 +286,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
         'Single start attempt request',
         requestData,
         maxExecutionTime,
+        studentToken,
       );
     });
 
@@ -293,7 +307,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
         // Wait a small amount to avoid exact timing conflicts
         await testHelpers.waitForDatabase(index * 10);
         try {
-          const result = await testHelpers.startAttempt(request.userId, request.assessmentId);
+          const result = await testHelpers.startAttempt(request.userId, request.assessmentId, 'test-jwt-token');
           return { status: 201, body: result };
         } catch (error) {
           // Handle expected conflicts (409) and other errors
@@ -331,7 +345,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
           assessmentId,
         );
         
-        await testHelpers.startAttempt(requestData.userId, requestData.assessmentId);
+        await testHelpers.startAttempt(requestData.userId, requestData.assessmentId, 'test-jwt-token');
         
         // Clean up between requests to allow new attempts
         await testSetup.cleanupDatabase();
@@ -360,6 +374,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       await testHelpers.startAttemptExpectNotFound(
         requestData,
         'USER_NOT_FOUND',
+        studentToken,
       );
     });
 
@@ -374,6 +389,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       await testHelpers.startAttemptExpectNotFound(
         requestData,
         'USER_NOT_FOUND',
+        studentToken,
       );
     });
 
@@ -390,6 +406,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       await testHelpers.startAttemptExpectNotFound(
         requestData,
         'USER_NOT_FOUND',
+        studentToken,
       );
     });
 
@@ -397,13 +414,13 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       const requestData = testHelpers.createValidStartAttemptRequest();
       
       // Start attempt
-      const response1 = await testHelpers.startAttemptExpectSuccess(requestData);
+      const response1 = await testHelpers.startAttemptExpectSuccess(requestData, studentToken);
       
       // Wait briefly
       await testHelpers.waitForDatabase(50);
       
       // Try again (should conflict)
-      await testHelpers.startAttemptExpectConflict(requestData);
+      await testHelpers.startAttemptExpectConflict(requestData, studentToken);
       
       // Verify data integrity of first attempt
       await testHelpers.verifyAttemptDataIntegrity(
@@ -417,7 +434,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       const requestData = testHelpers.createValidStartAttemptRequest();
       
       // Perform multiple operations rapidly
-      const response = await testHelpers.startAttemptExpectSuccess(requestData);
+      const response = await testHelpers.startAttemptExpectSuccess(requestData, studentToken);
       
       // Verify attempt exists
       const attemptId = response.body.attempt.id;
@@ -440,7 +457,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
         testSetup.quizAssessmentId,
       );
 
-      const response = await testHelpers.startAttemptExpectSuccess(requestData);
+      const response = await testHelpers.startAttemptExpectSuccess(requestData, studentToken);
       
       // Verify exact response structure matches expected
       expect(response.body).toMatchObject(AttemptTestData.expectedSuccessResponse);
@@ -452,7 +469,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
         testSetup.simuladoAssessmentId,
       );
 
-      const response = await testHelpers.startAttemptExpectSuccess(requestData);
+      const response = await testHelpers.startAttemptExpectSuccess(requestData, studentToken);
       
       // Verify response includes time limit
       expect(response.body).toMatchObject(AttemptTestData.expectedSuccessResponseWithTimeLimit);
@@ -461,25 +478,25 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
     it('should return properly formatted error responses', async () => {
       // Test invalid input error
       const invalidRequest = AttemptTestData.invalidRequests.invalidUserId();
-      const invalidResponse = await testHelpers.startAttemptExpectValidationError(invalidRequest);
+      const invalidResponse = await testHelpers.startAttemptExpectValidationError(invalidRequest, studentToken);
       expect(invalidResponse.body).toMatchObject(AttemptTestData.expectedErrorResponses.invalidInput);
 
       // Test user not found error
       const userNotFoundRequest = AttemptTestData.nonExistentRequests.nonExistentUser(testSetup.quizAssessmentId);
-      const userNotFoundResponse = await testHelpers.startAttemptExpectNotFound(userNotFoundRequest, 'USER_NOT_FOUND');
+      const userNotFoundResponse = await testHelpers.startAttemptExpectNotFound(userNotFoundRequest, 'USER_NOT_FOUND', studentToken);
       expect(userNotFoundResponse.body).toMatchObject(AttemptTestData.expectedErrorResponses.userNotFound);
 
       // Test assessment not found error
       const assessmentNotFoundRequest = AttemptTestData.nonExistentRequests.nonExistentAssessment(testSetup.studentUserId);
-      const assessmentNotFoundResponse = await testHelpers.startAttemptExpectNotFound(assessmentNotFoundRequest, 'ASSESSMENT_NOT_FOUND');
+      const assessmentNotFoundResponse = await testHelpers.startAttemptExpectNotFound(assessmentNotFoundRequest, 'ASSESSMENT_NOT_FOUND', studentToken);
       expect(assessmentNotFoundResponse.body).toMatchObject(AttemptTestData.expectedErrorResponses.assessmentNotFound);
 
       // Test returning existing attempt (no longer a conflict error)
       const conflictRequest = testHelpers.createValidStartAttemptRequest();
-      const firstResponse = await testHelpers.startAttemptExpectSuccess(conflictRequest);
+      const firstResponse = await testHelpers.startAttemptExpectSuccess(conflictRequest, studentToken);
       expect(firstResponse.body.isNew).toBe(true);
       
-      const secondResponse = await testHelpers.startAttemptExpectConflict(conflictRequest);
+      const secondResponse = await testHelpers.startAttemptExpectConflict(conflictRequest, studentToken);
       expect(secondResponse.body.isNew).toBe(false);
       expect(secondResponse.body.attempt.id).toBe(firstResponse.body.attempt.id);
     });

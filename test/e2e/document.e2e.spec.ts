@@ -1,8 +1,9 @@
 //test/e2e/document.e2e.spec.ts
 import request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+
 import { AppModule } from '../../src/app.module';
+import { E2ETestModule } from './test-helpers/e2e-test-module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
 describe('DocumentController (E2E)', () => {
@@ -14,23 +15,8 @@ describe('DocumentController (E2E)', () => {
   let createdDocumentId: string;
 
   beforeAll(async () => {
-    const modRef = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = modRef.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-        transformOptions: {
-          enableImplicitConversion: true,
-        },
-      }),
-    );
-    await app.init();
-
+    const { app: testApp } = await E2ETestModule.create([AppModule]);
+    app = testApp;
     prisma = app.get(PrismaService);
   });
 

@@ -71,10 +71,7 @@ Content-Type: application/json
 
 ###
 
-### Get User By ID - Success
-# @name getUserById
-GET {{BASE_URL}}/students/1533f9c1-23a1-421c-868e-b305996ac5d0
-Authorization: Bearer {{token}}
+∏
 
 ###
 

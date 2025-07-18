@@ -10,6 +10,8 @@ describe('GET /attempts/:id/results (E2E)', () => {
   let testSetup: AttemptTestSetup;
   let testHelpers: AttemptTestHelpers;
   let testData: AttemptTestData;
+  let studentToken: string;
+  let tutorToken: string;
 
   beforeAll(async () => {
     testSetup = new AttemptTestSetup();
@@ -20,6 +22,12 @@ describe('GET /attempts/:id/results (E2E)', () => {
 
   beforeEach(async () => {
     await testSetup.setupTestData();
+    
+    // Generate tokens for common users
+    const tutorUser = await testSetup.findUserById(testSetup.tutorUserId);
+    const studentUser = await testSetup.findUserById(testSetup.studentUserId);
+    tutorToken = testSetup.generateJwtToken(tutorUser);
+    studentToken = testSetup.generateJwtToken(studentUser);
   });
 
   afterAll(async () => {
@@ -34,6 +42,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -56,6 +65,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -85,6 +95,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -106,6 +117,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -127,6 +139,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -150,6 +163,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -172,6 +186,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -186,6 +201,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get('/attempts/invalid-uuid/results')
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(400);
 
       // Assert
@@ -199,6 +215,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${testData.nonExistentAttemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(404);
 
       // Assert
@@ -212,6 +229,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(400);
 
       // Assert
@@ -225,6 +243,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -264,6 +283,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .expect(200);
 
       // Assert
@@ -278,6 +298,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -294,6 +315,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -314,6 +336,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -329,6 +352,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -361,6 +385,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -377,6 +402,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert
@@ -391,6 +417,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Act
       const response = await request(testSetup.app.getHttpServer())
         .get(`/attempts/${attemptData.attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       // Assert

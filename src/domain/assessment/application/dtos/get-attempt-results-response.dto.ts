@@ -9,6 +9,7 @@ export interface ArgumentResult {
 }
 
 export interface AttemptAnswerResult {
+  id: string;
   questionId: string;
   questionText: string;
   questionType: 'MULTIPLE_CHOICE' | 'OPEN';

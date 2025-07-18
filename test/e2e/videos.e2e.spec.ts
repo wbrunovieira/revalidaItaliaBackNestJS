@@ -1,37 +1,39 @@
 // test/e2e/videos.e2e.spec.ts
 import request from 'supertest';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+
 import { AppModule } from '../../src/app.module';
+import { E2ETestModule } from './test-helpers/e2e-test-module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
 describe('VideoController (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  const realVideoId = 'any-video-id';
+  const realVideoId = '00000000-0000-4000-8000-000000000000'; // Valid UUID v4 format
   let courseId: string;
   let moduleId: string;
   let lessonId: string;
   let createdVideoId: string;
+  let adminToken: string;
 
   beforeAll(async () => {
-    const modRef = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider('VideoHostProvider')
-      .useValue({
-        getMetadata: async () => ({ durationInSeconds: 123 }),
-        getEmbedUrl: () => 'https://fake/embed/url',
-      })
-      .compile();
-
-    app = modRef.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
-    );
-    await app.init();
-
+    const { app: testApp } = await E2ETestModule.create([AppModule]);
+    app = testApp;
     prisma = app.get(PrismaService);
+    
+    // Create admin user and generate token
+    const adminUser = await prisma.user.create({
+      data: {
+        name: 'Admin User',
+        email: 'admin@test.com',
+        password: 'hashed',
+        cpf: '11111111111',
+        role: 'admin',
+      },
+    });
+    
+    // Generate test JWT token
+    adminToken = 'test-jwt-token';
   });
 
   afterAll(async () => {
@@ -137,7 +139,13 @@ describe('VideoController (E2E)', () => {
 
     const res = await request(app.getHttpServer())
       .post(endpoint())
+      .set('Authorization', `Bearer ${adminToken}`)
       .send(payload);
+
+    if (res.status !== 201) {
+      console.error('Failed to create video:', res.status, res.body);
+    }
+    expect(res.status).toBe(201);
 
     return res.body.id;
   };
@@ -156,6 +164,7 @@ describe('VideoController (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .post(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
         .send(payload);
 
       expect(res.status).toBe(201);
@@ -183,10 +192,14 @@ describe('VideoController (E2E)', () => {
 
       let res = await request(app.getHttpServer())
         .post(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
         .send(payload);
       expect(res.status).toBe(201);
 
-      res = await request(app.getHttpServer()).post(endpoint()).send(payload);
+      res = await request(app.getHttpServer())
+        .post(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(payload);
       expect(res.status).toBe(409);
     });
 
@@ -202,6 +215,7 @@ describe('VideoController (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .post(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
         .send(payload);
 
       expect(res.status).toBe(400);
@@ -219,6 +233,7 @@ describe('VideoController (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .post(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
         .send(payload);
 
       expect(res.status).toBe(400);
@@ -247,6 +262,7 @@ describe('VideoController (E2E)', () => {
 
       const firstRes = await request(app.getHttpServer())
         .post(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
         .send(firstPayload);
 
       // Se o primeiro está falhando, vamos verificar o erro
@@ -276,6 +292,7 @@ describe('VideoController (E2E)', () => {
 
       const secondRes = await request(app.getHttpServer())
         .post(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
         .send(secondPayload);
       expect(secondRes.status).toBe(409);
       expect(secondRes.body.message).toContain('already has a video');
@@ -286,6 +303,7 @@ describe('VideoController (E2E)', () => {
     beforeEach(async () => {
       const res = await request(app.getHttpServer())
         .post(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           slug: 'e2e-video',
           providerVideoId: realVideoId,
@@ -301,6 +319,7 @@ describe('VideoController (E2E)', () => {
     it('→ Success returns all translations', async () => {
       const res = await request(app.getHttpServer())
         .get(`${endpoint()}/${createdVideoId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
       expect(res.status).toBe(200);
@@ -334,6 +353,7 @@ describe('VideoController (E2E)', () => {
     it('→ Not Found for nonexistent id', async () => {
       const res = await request(app.getHttpServer())
         .get(`${endpoint()}/00000000-0000-0000-0000-000000000000`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
       expect(res.status).toBe(404);
     });
@@ -341,6 +361,7 @@ describe('VideoController (E2E)', () => {
     it('→ Bad Request for invalid UUID', async () => {
       const res = await request(app.getHttpServer())
         .get(`${endpoint()}/not-a-uuid`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
       expect(res.status).toBe(400);
     });
@@ -365,6 +386,7 @@ describe('VideoController (E2E)', () => {
         .get(
           `/courses/${courseId}/lessons/${otherLesson.id}/videos/${createdVideoId}`,
         )
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
       expect(res.status).toBe(404);
@@ -382,9 +404,9 @@ describe('VideoController (E2E)', () => {
           { locale: 'es', title: 'Single ES', description: 'Desc1 ES' },
         ],
       };
-      await request(app.getHttpServer()).post(endpoint()).send(payload);
+      await request(app.getHttpServer()).post(endpoint()).set('Authorization', `Bearer ${adminToken}`).send(payload);
 
-      const res = await request(app.getHttpServer()).get(endpoint()).send();
+      const res = await request(app.getHttpServer()).get(endpoint()).set('Authorization', `Bearer ${adminToken}`).send();
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
       expect(res.body).toHaveLength(1);
@@ -400,7 +422,7 @@ describe('VideoController (E2E)', () => {
     });
 
     it('→ Success returns empty array when lesson has no video', async () => {
-      const res = await request(app.getHttpServer()).get(endpoint()).send();
+      const res = await request(app.getHttpServer()).get(endpoint()).set('Authorization', `Bearer ${adminToken}`).send();
       expect(res.status).toBe(200);
       expect(res.body).toEqual([]);
     });
@@ -414,12 +436,14 @@ describe('VideoController (E2E)', () => {
       // Verificar que o vídeo existe
       const getRes = await request(app.getHttpServer())
         .get(`${endpoint()}/${videoId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
       expect(getRes.status).toBe(200);
 
       // Deletar o vídeo
       const deleteRes = await request(app.getHttpServer())
         .delete(`${endpoint()}/${videoId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
       expect(deleteRes.status).toBe(200);
@@ -433,6 +457,7 @@ describe('VideoController (E2E)', () => {
       // Verificar que o vídeo foi realmente deletado
       const getAfterDeleteRes = await request(app.getHttpServer())
         .get(`${endpoint()}/${videoId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
       expect(getAfterDeleteRes.status).toBe(404);
     });
@@ -451,6 +476,7 @@ describe('VideoController (E2E)', () => {
       // Deletar o vídeo
       const deleteRes = await request(app.getHttpServer())
         .delete(`${endpoint()}/${videoId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
       expect(deleteRes.status).toBe(200);
@@ -467,6 +493,7 @@ describe('VideoController (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .delete(`${endpoint()}/${nonExistentId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
       expect(res.status).toBe(404);
@@ -480,6 +507,7 @@ describe('VideoController (E2E)', () => {
     it('→ Bad Request for invalid UUID', async () => {
       const res = await request(app.getHttpServer())
         .delete(`${endpoint()}/not-a-uuid`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
       expect(res.status).toBe(400);
@@ -493,6 +521,7 @@ describe('VideoController (E2E)', () => {
         .delete(
           `/courses/${courseId}/lessons/${invalidLessonId}/videos/${videoId}`,
         )
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
       expect(res.status).toBe(404);
@@ -526,6 +555,7 @@ describe('VideoController (E2E)', () => {
         .delete(
           `/courses/${courseId}/lessons/${otherLesson.id}/videos/${videoId}`,
         )
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
       expect(res.status).toBe(404);
@@ -556,6 +586,7 @@ describe('VideoController (E2E)', () => {
         .delete(
           `/courses/${otherCourse.id}/lessons/${lessonId}/videos/${videoId}`,
         )
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
       expect(res.status).toBe(404);
@@ -592,6 +623,7 @@ describe('VideoController (E2E)', () => {
       // Tentar deletar o vídeo
       const res = await request(app.getHttpServer())
         .delete(`${endpoint()}/${videoId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
       expect(res.status).toBe(409);
@@ -640,6 +672,7 @@ describe('VideoController (E2E)', () => {
       // Agora deve ser possível deletar
       const res = await request(app.getHttpServer())
         .delete(`${endpoint()}/${videoId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
       expect(res.status).toBe(200);
@@ -653,6 +686,7 @@ describe('VideoController (E2E)', () => {
     beforeEach(async () => {
       const res = await request(app.getHttpServer())
         .post(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           slug: 'video-to-update',
           providerVideoId: 'original-provider-id',
@@ -686,6 +720,7 @@ describe('VideoController (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .put(`${endpoint()}/${existingVideoId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send(updatePayload);
 
       expect(res.status).toBe(200);
@@ -707,6 +742,7 @@ describe('VideoController (E2E)', () => {
       // Criar outro vídeo com slug diferente
       await request(app.getHttpServer())
         .post(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           slug: 'existing-slug',
           providerVideoId: 'some-id',
@@ -722,6 +758,7 @@ describe('VideoController (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .put(`${endpoint()}/${existingVideoId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send(updatePayload);
 
       expect(res.status).toBe(409);
@@ -734,6 +771,7 @@ describe('VideoController (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .put(`${endpoint()}/00000000-0000-0000-0000-000000000000`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send(updatePayload);
 
       expect(res.status).toBe(404);

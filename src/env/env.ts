@@ -5,7 +5,7 @@ const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/;
 export const envSchema = z
   .object({
     // Base Configuration
-    NODE_ENV: z.enum(['development', 'production']),
+    NODE_ENV: z.enum(['development', 'production', 'test']),
     DATABASE_URL: z.string().nonempty('DATABASE_URL não pode ser vazio'),
 
     NEXT_PUBLIC_URL: z.string().url(),

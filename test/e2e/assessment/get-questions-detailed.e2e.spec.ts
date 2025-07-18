@@ -1,7 +1,7 @@
 // test/e2e/assessment/get-questions-detailed.e2e.spec.ts
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { Test } from '@nestjs/testing';
+
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
@@ -9,6 +9,7 @@ import { AssessmentTestSetup } from './shared/assessment-test-setup';
 import { AssessmentTestHelpers } from './shared/assessment-test-helpers';
 import { AssessmentTestData } from './shared/assessment-test-data';
 import { AppModule } from '@/app.module';
+import { E2ETestModule } from '../test-helpers/e2e-test-module';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 
@@ -20,25 +21,10 @@ describe('[E2E] GET /assessments/:id/questions/detailed', () => {
   let testData: any;
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(PrismaService)
-      .useValue(prisma)
-      .compile();
-
-    app = moduleRef.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        transform: true,
-        whitelist: true,
-        forbidNonWhitelisted: true,
-      }),
-    );
-
-    await app.init();
-
-    prisma = new PrismaClient();
+    const { app: testApp } = await E2ETestModule.create([AppModule]);
+    app = testApp;
+    prisma = app.get(PrismaService);
+    
     testSetup = new AssessmentTestSetup(prisma);
     testHelpers = new AssessmentTestHelpers(app);
 

@@ -406,6 +406,7 @@ export class GetAttemptResultsUseCase {
       );
 
       const baseResult: AttemptAnswerResult = {
+        id: attemptAnswer.id.toString(),
         questionId: attemptAnswer.questionId,
         questionText: question?.text || '',
         questionType: question?.type.isMultipleChoice()

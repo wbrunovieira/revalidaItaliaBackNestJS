@@ -33,12 +33,16 @@ export class AttemptTestHelpers {
   /**
    * Start an attempt
    */
-  async startAttempt(userId: string, assessmentId: string): Promise<any> {
-    const response = await request(this.getApp().getHttpServer())
+  async startAttempt(userId: string, assessmentId: string, token?: string): Promise<any> {
+    const req = request(this.getApp().getHttpServer())
       .post('/attempts/start')
-      .send({ userId, assessmentId })
-      .expect(201);
-
+      .send({ userId, assessmentId });
+    
+    if (token) {
+      req.set('Authorization', `Bearer ${token}`);
+    }
+    
+    const response = await req.expect(201);
     return response.body.attempt;
   }
 
@@ -48,12 +52,17 @@ export class AttemptTestHelpers {
   async submitAnswer(
     attemptId: string,
     data: SubmitAnswerRequest,
+    token?: string,
   ): Promise<any> {
-    const response = await request(this.getApp().getHttpServer())
+    const req = request(this.getApp().getHttpServer())
       .post(`/attempts/${attemptId}/answers`)
-      .send(data)
-      .expect(201);
-
+      .send(data);
+    
+    if (token) {
+      req.set('Authorization', `Bearer ${token}`);
+    }
+    
+    const response = await req.expect(201);
     return response.body.attemptAnswer;
   }
 
@@ -83,27 +92,28 @@ export class AttemptTestHelpers {
   async submitMultipleAnswers(
     attemptId: string,
     answers: SubmitAnswerRequest[],
+    token?: string,
   ): Promise<void> {
     for (const answer of answers) {
-      await this.submitAnswer(attemptId, answer);
+      await this.submitAnswer(attemptId, answer, token);
     }
   }
 
   /**
    * Submit all answers for an assessment
    */
-  async submitAllAnswers(attemptId: string, questions: any[]): Promise<void> {
+  async submitAllAnswers(attemptId: string, questions: any[], token?: string): Promise<void> {
     for (const question of questions) {
       if (question.type === 'MULTIPLE_CHOICE') {
         await this.submitAnswer(attemptId, {
           questionId: question.id,
           selectedOptionId: question.options[0].id,
-        });
+        }, token);
       } else {
         await this.submitAnswer(attemptId, {
           questionId: question.id,
           textAnswer: 'Test answer for open question',
-        });
+        }, token);
       }
     }
   }
@@ -111,49 +121,65 @@ export class AttemptTestHelpers {
   /**
    * Make a raw request to start an attempt (for error testing)
    */
-  async makeStartAttemptRequest(data: any): Promise<Response> {
-    return request(this.getApp().getHttpServer())
+  async makeStartAttemptRequest(data: any, token?: string): Promise<Response> {
+    const req = request(this.getApp().getHttpServer())
       .post('/attempts/start')
       .send(data);
+    
+    if (token) {
+      req.set('Authorization', `Bearer ${token}`);
+    }
+    
+    return req;
   }
 
   /**
    * Make a raw request to submit an attempt (for error testing)
    */
-  async makeSubmitAttemptRequest(attemptId: string): Promise<Response> {
-    return request(this.getApp().getHttpServer()).post(
+  async makeSubmitAttemptRequest(attemptId: string, token?: string): Promise<Response> {
+    const req = request(this.getApp().getHttpServer()).post(
       `/attempts/${attemptId}/submit`,
     );
+    
+    if (token) {
+      req.set('Authorization', `Bearer ${token}`);
+    }
+    
+    return req;
   }
 
   /**
    * Submit an attempt
    */
-  async submitAttempt(attemptId: string): Promise<any> {
-    const response = await request(this.getApp().getHttpServer())
-      .post(`/attempts/${attemptId}/submit`)
-      .expect(201);
-
+  async submitAttempt(attemptId: string, token?: string): Promise<any> {
+    const req = request(this.getApp().getHttpServer())
+      .post(`/attempts/${attemptId}/submit`);
+    
+    if (token) {
+      req.set('Authorization', `Bearer ${token}`);
+    }
+    
+    const response = await req.expect(201);
     return response.body.attempt;
   }
 
   /**
    * Create a prova aberta attempt and submit it
    */
-  async createProvaAbertaAttemptAndSubmit(): Promise<{ attemptId: string; attemptAnswerIds: string[] }> {
+  async createProvaAbertaAttemptAndSubmit(token?: string): Promise<{ attemptId: string; attemptAnswerIds: string[] }> {
     const setup = this.testSetup;
     
     // Start attempt
-    const attempt = await this.startAttempt(setup.studentUserId, setup.provaAbertaAssessmentId);
+    const attempt = await this.startAttempt(setup.studentUserId, setup.provaAbertaAssessmentId, token);
     
     // Submit answer for open question
     const attemptAnswer = await this.submitAnswer(attempt.id, {
       questionId: setup.openQuestionId,
       textAnswer: 'This is my detailed answer about hypertension pathophysiology.',
-    });
+    }, token);
     
     // Submit the attempt
-    await this.submitAttempt(attempt.id);
+    await this.submitAttempt(attempt.id, token);
     
     return {
       attemptId: attempt.id,
@@ -164,17 +190,17 @@ export class AttemptTestHelpers {
   /**
    * Create a prova aberta attempt in progress (not submitted)
    */
-  async createProvaAbertaAttemptInProgress(): Promise<{ attemptId: string }> {
+  async createProvaAbertaAttemptInProgress(token?: string): Promise<{ attemptId: string }> {
     const setup = this.testSetup;
     
     // Start attempt
-    const attempt = await this.startAttempt(setup.studentUserId, setup.provaAbertaAssessmentId);
+    const attempt = await this.startAttempt(setup.studentUserId, setup.provaAbertaAssessmentId, token);
     
     // Submit answer for open question but don't submit the attempt
     await this.submitAnswer(attempt.id, {
       questionId: setup.openQuestionId,
       textAnswer: 'This is my answer in progress.',
-    });
+    }, token);
     
     // Don't submit the attempt - leave it in progress
     return {
@@ -185,20 +211,20 @@ export class AttemptTestHelpers {
   /**
    * Create a quiz attempt and submit it
    */
-  async createQuizAttemptAndSubmit(): Promise<{ attemptId: string; attemptAnswerIds: string[] }> {
+  async createQuizAttemptAndSubmit(token?: string): Promise<{ attemptId: string; attemptAnswerIds: string[] }> {
     const setup = this.testSetup;
     
     // Start attempt
-    const attempt = await this.startAttempt(setup.studentUserId, setup.quizAssessmentId);
+    const attempt = await this.startAttempt(setup.studentUserId, setup.quizAssessmentId, token);
     
     // Submit answer for multiple choice question
     const attemptAnswer = await this.submitAnswer(attempt.id, {
       questionId: setup.multipleChoiceQuestionId,
       selectedOptionId: setup.correctOptionId,
-    });
+    }, token);
     
     // Submit the attempt
-    await this.submitAttempt(attempt.id);
+    await this.submitAttempt(attempt.id, token);
     
     return {
       attemptId: attempt.id,
@@ -212,10 +238,11 @@ export class AttemptTestHelpers {
   async createAttemptAndSubmitForAssessment(
     assessmentId: string,
     userId: string,
-    type: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA'
+    type: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
+    token?: string
   ): Promise<{ attemptId: string; attemptAnswerIds: string[] }> {
     // Start attempt
-    const attempt = await this.startAttempt(userId, assessmentId);
+    const attempt = await this.startAttempt(userId, assessmentId, token);
     
     // Get questions for this assessment
     const questions = await this.getPrisma().question.findMany({
@@ -233,19 +260,19 @@ export class AttemptTestHelpers {
         attemptAnswer = await this.submitAnswer(attempt.id, {
           questionId: question.id,
           selectedOptionId: question.options[0]?.id,
-        });
+        }, token);
       } else {
         attemptAnswer = await this.submitAnswer(attempt.id, {
           questionId: question.id,
           textAnswer: `Sample answer for question: ${question.text}`,
-        });
+        }, token);
       }
       
       attemptAnswerIds.push(attemptAnswer.id);
     }
     
     // Submit the attempt
-    await this.submitAttempt(attempt.id);
+    await this.submitAttempt(attempt.id, token);
     
     return {
       attemptId: attempt.id,
@@ -382,24 +409,32 @@ export class AttemptTestHelpers {
   /**
    * Start attempt and expect success (201)
    */
-  async startAttemptExpectSuccess(data: StartAttemptRequest): Promise<any> {
-    const response = await request(this.getApp().getHttpServer())
+  async startAttemptExpectSuccess(data: StartAttemptRequest, token?: string): Promise<any> {
+    const req = request(this.getApp().getHttpServer())
       .post('/attempts/start')
-      .send(data)
-      .expect(201);
-
+      .send(data);
+    
+    if (token) {
+      req.set('Authorization', `Bearer ${token}`);
+    }
+    
+    const response = await req.expect(201);
     return response;
   }
 
   /**
    * Start attempt and expect validation error (400)
    */
-  async startAttemptExpectValidationError(data: any): Promise<any> {
-    const response = await request(this.getApp().getHttpServer())
+  async startAttemptExpectValidationError(data: any, token?: string): Promise<any> {
+    const req = request(this.getApp().getHttpServer())
       .post('/attempts/start')
-      .send(data)
-      .expect(400);
-
+      .send(data);
+    
+    if (token) {
+      req.set('Authorization', `Bearer ${token}`);
+    }
+    
+    const response = await req.expect(400);
     return response;
   }
 
@@ -409,11 +444,17 @@ export class AttemptTestHelpers {
   async startAttemptExpectNotFound(
     data: StartAttemptRequest,
     expectedError: string,
+    token?: string,
   ): Promise<any> {
-    const response = await request(this.getApp().getHttpServer())
+    const req = request(this.getApp().getHttpServer())
       .post('/attempts/start')
-      .send(data)
-      .expect(404);
+      .send(data);
+    
+    if (token) {
+      req.set('Authorization', `Bearer ${token}`);
+    }
+    
+    const response = await req.expect(404);
 
     expect(response.body).toHaveProperty('error', expectedError);
     return response;
@@ -423,11 +464,16 @@ export class AttemptTestHelpers {
    * Start attempt and expect conflict error (409)
    * Note: This behavior has changed - now returns existing attempt with 201
    */
-  async startAttemptExpectConflict(data: StartAttemptRequest): Promise<any> {
-    const response = await request(this.getApp().getHttpServer())
+  async startAttemptExpectConflict(data: StartAttemptRequest, token?: string): Promise<any> {
+    const req = request(this.getApp().getHttpServer())
       .post('/attempts/start')
-      .send(data)
-      .expect(201); // Changed: now returns existing attempt instead of 409
+      .send(data);
+    
+    if (token) {
+      req.set('Authorization', `Bearer ${token}`);
+    }
+    
+    const response = await req.expect(201); // Changed: now returns existing attempt instead of 409
 
     // Should return the existing attempt with isNew: false
     expect(response.body).toHaveProperty('isNew', false);
@@ -618,9 +664,10 @@ export class AttemptTestHelpers {
     description: string,
     requestData: StartAttemptRequest,
     maxExecutionTime: number,
+    token?: string,
   ): Promise<void> {
     const { executionTime } = await this.measureExecutionTime(async () => {
-      return this.startAttemptExpectSuccess(requestData);
+      return this.startAttemptExpectSuccess(requestData, token);
     });
 
     console.log(

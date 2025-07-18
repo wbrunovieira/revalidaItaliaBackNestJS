@@ -95,6 +95,24 @@ export class SubmitAnswerUseCase {
         // Update existing answer
         attemptAnswer = existingAnswerResult.value;
         
+        // For PROVA_ABERTA: prevent updating answers that are approved (isCorrect=true)
+        if (question.type.isOpen() && attemptAnswer.isCorrect === true) {
+          return left(
+            new InvalidAnswerTypeError(
+              'Cannot modify approved answers in open assessments',
+            ),
+          );
+        }
+        
+        // For PROVA_ABERTA: prevent updating if not rejected by teacher
+        if (question.type.isOpen() && attemptAnswer.status.isGraded() && attemptAnswer.isCorrect !== false) {
+          return left(
+            new InvalidAnswerTypeError(
+              'Can only resubmit answers that were rejected by teacher',
+            ),
+          );
+        }
+        
         if (isMultipleChoice) {
           attemptAnswer.selectOption(selectedOptionId);
         } else {
@@ -106,6 +124,23 @@ export class SubmitAnswerUseCase {
           return left(new RepositoryError('Failed to update answer'));
         }
       } else {
+        // For PROVA_ABERTA: Check if any previous answer exists and was approved
+        if (question.type.isOpen()) {
+          const allAnswersResult = await this.attemptAnswerRepository.findByAttemptId(attemptId);
+          if (allAnswersResult.isRight()) {
+            const existingApprovedAnswer = allAnswersResult.value.find(
+              answer => answer.questionId === questionId && answer.isCorrect === true
+            );
+            if (existingApprovedAnswer) {
+              return left(
+                new InvalidAnswerTypeError(
+                  'Cannot create new answer for approved question in open assessments',
+                ),
+              );
+            }
+          }
+        }
+        
         // Create new answer
         attemptAnswer = AttemptAnswer.create({
           selectedOptionId,

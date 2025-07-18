@@ -8,6 +8,9 @@ import { AttemptTestHelpers } from './shared/attempt-test-helpers';
 describe('POST /attempts/answers/:id/review (E2E)', () => {
   let setup: AttemptTestSetup;
   let helpers: AttemptTestHelpers;
+  let tutorToken: string;
+  let adminToken: string;
+  let studentToken: string;
 
   beforeAll(async () => {
     setup = new AttemptTestSetup();
@@ -21,17 +24,23 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
   beforeEach(async () => {
     await setup.setupTestData();
+    // Generate tokens for common users
+    const tutorUser = await setup.findUserById(setup.tutorUserId);
+    const studentUser = await setup.findUserById(setup.studentUserId);
+    tutorToken = setup.generateJwtToken(tutorUser);
+    studentToken = setup.generateJwtToken(studentUser);
   });
 
   describe('Success Cases', () => {
     it('should successfully review open answer as correct', async () => {
       // Arrange
-      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       // Act
       const response = await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -83,12 +92,13 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
     it('should successfully review open answer as incorrect', async () => {
       // Arrange
-      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       // Act
       const response = await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: false,
@@ -105,12 +115,13 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
     it('should successfully review open answer without teacher comment', async () => {
       // Arrange
-      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       // Act
       const response = await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -126,12 +137,14 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
     it('should work with admin role reviewer', async () => {
       // Arrange
       const admin = await setup.createUser('admin');
-      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      adminToken = setup.generateJwtToken(admin);
+      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       // Act
       const response = await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           reviewerId: admin.id,
           isCorrect: true,
@@ -149,6 +162,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
     it('should return 400 for invalid attemptAnswerId format', async () => {
       await request(setup.getHttpServer())
         .post('/attempts/answers/invalid-uuid/review')
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -157,11 +171,12 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
     });
 
     it('should return 400 for invalid reviewerId format', async () => {
-      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: 'invalid-uuid',
           isCorrect: true,
@@ -170,11 +185,12 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
     });
 
     it('should return 400 for missing reviewerId', async () => {
-      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           isCorrect: true,
         })
@@ -182,11 +198,12 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
     });
 
     it('should return 400 for missing isCorrect', async () => {
-      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
         })
@@ -194,11 +211,12 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
     });
 
     it('should return 400 for non-boolean isCorrect', async () => {
-      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: 'true', // String instead of boolean
@@ -207,11 +225,12 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
     });
 
     it('should return 400 for empty teacherComment', async () => {
-      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -221,11 +240,12 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
     });
 
     it('should return 400 for teacherComment exceeding max length', async () => {
-      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -239,6 +259,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
     it('should return 404 for non-existent attemptAnswerId', async () => {
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${setup.getNonExistentUUID()}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -247,11 +268,12 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
     });
 
     it('should return 404 for non-existent reviewerId', async () => {
-      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.getNonExistentUUID(),
           isCorrect: true,
@@ -261,11 +283,12 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
     it('should return 403 for student role reviewer', async () => {
       const student = await setup.createUser('student');
-      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .send({
           reviewerId: student.id,
           isCorrect: true,
@@ -275,7 +298,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
     it('should return 400 for multiple choice question', async () => {
       // Arrange - Create quiz attempt with multiple choice question
-      const { attemptId } = await helpers.createQuizAttemptAndSubmit();
+      const { attemptId } = await helpers.createQuizAttemptAndSubmit(studentToken);
       
       // Get the multiple choice answer ID
       const attemptAnswers = await setup.prisma.attemptAnswer.findMany({
@@ -287,6 +310,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       // Act & Assert
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${multipleChoiceAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -296,7 +320,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
     it('should return 400 for attempt answer without text', async () => {
       // Arrange - Create submitted attempt first
-      const { attemptId } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptId } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       
       // Create an additional answer with empty text
       const attemptAnswerId = await setup.createAttemptAnswer(
@@ -309,6 +333,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       // Act & Assert
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -318,12 +343,13 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
     it('should return 400 for attempt answer that is already reviewed', async () => {
       // Arrange
-      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       // First review
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -334,6 +360,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       // Try to review again
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: false,
@@ -344,7 +371,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
     it('should return 400 for attempt that is not submitted', async () => {
       // Arrange - Create attempt in progress
-      const { attemptId } = await helpers.createProvaAbertaAttemptInProgress();
+      const { attemptId } = await helpers.createProvaAbertaAttemptInProgress(studentToken);
       
       // Get the attempt answer that was created
       const attemptAnswers = await setup.prisma.attemptAnswer.findMany({
@@ -355,6 +382,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       // Act & Assert
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -364,7 +392,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
     it('should return 400 for attempt answer with status IN_PROGRESS', async () => {
       // Arrange - Create attempt in progress (not submitted)
-      const { attemptId } = await helpers.createProvaAbertaAttemptInProgress();
+      const { attemptId } = await helpers.createProvaAbertaAttemptInProgress(studentToken);
       
       // Get the attempt answer (it will be in IN_PROGRESS status because attempt wasn't submitted)
       const attemptAnswers = await setup.prisma.attemptAnswer.findMany({
@@ -382,6 +410,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       // Act & Assert - Should fail because attempt is not submitted
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -401,7 +430,8 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       const { attemptId } = await helpers.createAttemptAndSubmitForAssessment(
         assessment.id,
         setup.studentUserId,
-        'PROVA_ABERTA'
+        'PROVA_ABERTA',
+        studentToken
       );
 
       // Get all attempt answers
@@ -416,6 +446,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       // Act
       const response = await request(setup.getHttpServer())
         .post(`/attempts/answers/${firstAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -438,7 +469,8 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       const { attemptId } = await helpers.createAttemptAndSubmitForAssessment(
         assessment.id,
         setup.studentUserId,
-        'PROVA_ABERTA'
+        'PROVA_ABERTA',
+        studentToken
       );
 
       const attemptAnswers = await setup.prisma.attemptAnswer.findMany({
@@ -450,6 +482,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       // Review first question
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswers[0]?.id}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -459,6 +492,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       // Review second question (should complete the attempt)
       const response = await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswers[1]?.id}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: false,
@@ -473,13 +507,14 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
     it('should handle teacher comment at maximum length', async () => {
       // Arrange
-      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
       const maxLengthComment = 'a'.repeat(1000);
 
       // Act
       const response = await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -493,7 +528,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
     it('should preserve original attempt answer data after review', async () => {
       // Arrange
-      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       // Get original answer data
@@ -502,6 +537,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       // Act
       const response = await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -521,7 +557,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
   describe('Performance Tests', () => {
     it('should handle review request within acceptable time', async () => {
       // Arrange
-      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       // Act & Assert
@@ -529,6 +565,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -546,12 +583,13 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
   describe('Integration Tests', () => {
     it('should update attempt status correctly in database', async () => {
       // Arrange
-      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       // Act
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -574,12 +612,13 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
 
     it('should be accessible via GET /attempts/:id/results after review', async () => {
       // Arrange
-      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit();
+      const { attemptId, attemptAnswerIds } = await helpers.createProvaAbertaAttemptAndSubmit(studentToken);
       const attemptAnswerId = attemptAnswerIds[0];
 
       // Act - Review the answer
       await request(setup.getHttpServer())
         .post(`/attempts/answers/${attemptAnswerId}/review`)
+        .set('Authorization', `Bearer ${tutorToken}`)
         .send({
           reviewerId: setup.tutorUserId,
           isCorrect: true,
@@ -590,6 +629,7 @@ describe('POST /attempts/answers/:id/review (E2E)', () => {
       // Assert - Check results endpoint
       const resultsResponse = await request(setup.getHttpServer())
         .get(`/attempts/${attemptId}/results`)
+        .set('Authorization', `Bearer ${studentToken}`)
         .expect(200);
 
       expect(resultsResponse.body.attempt.status).toBe('GRADED');

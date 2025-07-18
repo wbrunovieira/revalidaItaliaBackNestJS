@@ -39,6 +39,7 @@ lerna-debug.log*
 
 # dotenv environment variable files
 .env
+.env.test
 .env.development.local
 .env.test.local
 .env.production.local
@@ -64,3 +65,9 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
 terraform/.terraform/panda-api-key.txt
+
+# Test files
+test/keys/
+test/storage/
+*.spec.ts.bak
+fix-*.py

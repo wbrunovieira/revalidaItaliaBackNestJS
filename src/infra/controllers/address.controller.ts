@@ -71,6 +71,13 @@ export class AddressController {
           );
         }
 
+        if (err instanceof ResourceNotFoundError) {
+          throw new HttpException(
+            { message: err.message },
+            HttpStatus.NOT_FOUND,
+          );
+        }
+
         throw new HttpException(
           { message: err.message },
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -88,8 +95,8 @@ export class AddressController {
         err.code === 'P2003'
       ) {
         throw new HttpException(
-          'Database error creating address',
-          HttpStatus.INTERNAL_SERVER_ERROR,
+          { message: 'User not found' },
+          HttpStatus.NOT_FOUND,
         );
       }
 
@@ -161,7 +168,7 @@ export class AddressController {
         if (err instanceof ResourceNotFoundError) {
           throw new HttpException(
             { message: err.message },
-            HttpStatus.INTERNAL_SERVER_ERROR,
+            HttpStatus.NOT_FOUND,
           );
         }
 
