@@ -79,6 +79,49 @@
 # Flashcards
 @flashcardId = 550e8400-e29b-41d4-a716-446655440080
 
+### ==== AUTHENTICATION ====
+
+### Login as Admin (bruno@wbdigitalsolutions.com)
+# @name adminLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "bruno@wbdigitalsolutions.com",
+  "password": "Senha123!"
+}
+
+###
+@adminToken = {{adminLogin.response.body.accessToken}}
+
+### ==== STUDENTS ====
+
+### Create Student (Requires admin auth)
+# @name createStudent
+POST {{baseUrl}}/students
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Giulia Bianchi",
+  "email": "giulia.bianchi@medicina.it",
+  "password": "SecurePass123!",
+  "role": "student",
+  "cpf": "IT123456789"
+}
+
+### Get Student by ID
+GET {{baseUrl}}/students/{{createStudent.response.body.user.id}}
+Authorization: Bearer {{adminToken}}
+
+### List Students (Admin only)
+GET {{baseUrl}}/students
+Authorization: Bearer {{adminToken}}
+
+### Search Students by Name
+GET {{baseUrl}}/students/search?name=Giulia
+Authorization: Bearer {{adminToken}}
+
 ### Exemplos de uso
 
 ### Get Answer by ID - IMPLEMENTED ✅

@@ -62,23 +62,23 @@ export class ConflictErrorResponseDto extends ErrorResponseDto {
     example: 'https://api.revalidaitalia.com/errors/resource-conflict',
     description: 'Conflict error type',
   })
-  type: string;
+  declare type: string;
 
   @ApiProperty({
     example: 'Resource Conflict',
     description: 'Conflict error title',
   })
-  title: string;
+  declare title: string;
 
   @ApiProperty({
     example: 409,
     description: 'Conflict status code',
   })
-  status: number;
+  declare status: number;
 
   @ApiProperty({
     example: 'Unable to create resource due to conflict',
     description: 'Generic conflict message for security',
   })
-  detail: string;
+  declare detail: string;
 }

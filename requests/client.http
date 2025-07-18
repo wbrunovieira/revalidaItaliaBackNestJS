@@ -3,26 +3,27 @@
 #@BASE_URL = http://18.216.107.74:3333
 
 
-###
-# @name create-account-tutor
+### Create Student Account (Requires admin auth)
+# @name create-account-student
 POST {{BASE_URL}}/students
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
-  "name": "aluno",
-  "email": "aluno@revalidaitalia.com.br",
-  "password": "Senha123!",
+  "name": "Mario Rossi",
+  "email": "mario.rossi@medicina.it",
+  "password": "SecurePass123!",
   "role": "student",
-  "cpf": "78655443458"
-  
+  "cpf": "12345678901"
 }
 ###
 
 
-### 1. Create Admin Account
+### 1. Create Admin Account (Requires admin auth)
 # @name createAdmin
 POST {{BASE_URL}}/students
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
   "name": "Admin User",
@@ -201,10 +202,11 @@ Authorization: Bearer {{token}}
 ### ADDITIONAL DYNAMIC TESTS
 ### ====================================
 
-### 30. Create Test User for ID Testing
+### 30. Create Test User for ID Testing (Requires admin auth)
 # @name createTestUser
 POST {{BASE_URL}}/students
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
   "name": "Test User for ID",

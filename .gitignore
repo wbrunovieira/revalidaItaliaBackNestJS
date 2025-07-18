@@ -71,3 +71,7 @@ test/keys/
 test/storage/
 *.spec.ts.bak
 fix-*.py
+
+# Backup files
+*.tar.gz
+revalida-backup-*.tar.gz

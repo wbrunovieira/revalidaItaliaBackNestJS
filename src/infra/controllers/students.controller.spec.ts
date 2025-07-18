@@ -117,28 +117,14 @@ describe('StudentsController', () => {
       expect(result).toEqual({ user: mockUser });
     });
 
-    it('should throw BadRequest when validation fails', async () => {
+    it('should throw InvalidInputError when validation fails', async () => {
       const validationError = new InvalidInputError('Validation failed', [
         { field: 'email', message: 'Invalid email format' },
       ]);
 
       createAccountUseCase.execute.mockResolvedValue(left(validationError));
 
-      await expect(controller.create(createDto)).rejects.toMatchObject({
-        status: HttpStatus.BAD_REQUEST,
-        response: expect.objectContaining({
-          type: 'https://api.revalidaitalia.com/errors/validation-failed',
-          title: 'Validation Failed',
-          status: 400,
-          detail: 'One or more fields failed validation',
-          instance: '/students',
-          traceId: expect.any(String),
-          timestamp: expect.any(String),
-          errors: {
-            details: [{ field: 'email', message: 'Invalid email format' }],
-          },
-        }),
-      });
+      await expect(controller.create(createDto)).rejects.toThrow(validationError);
 
       expect(createAccountUseCase.execute).toHaveBeenCalledWith({
         ...createDto,
@@ -147,22 +133,11 @@ describe('StudentsController', () => {
       expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw Conflict when email already exists', async () => {
+    it('should throw DuplicateEmailError when email already exists', async () => {
       const duplicateEmailError = new DuplicateEmailError();
       createAccountUseCase.execute.mockResolvedValue(left(duplicateEmailError));
 
-      await expect(controller.create(createDto)).rejects.toMatchObject({
-        status: HttpStatus.CONFLICT,
-        response: expect.objectContaining({
-          type: 'https://api.revalidaitalia.com/errors/resource-conflict',
-          title: 'Resource Conflict',
-          status: 409,
-          detail: 'Unable to create resource due to conflict',
-          instance: '/students',
-          traceId: expect.any(String),
-          timestamp: expect.any(String),
-        }),
-      });
+      await expect(controller.create(createDto)).rejects.toThrow(duplicateEmailError);
 
       expect(createAccountUseCase.execute).toHaveBeenCalledWith({
         ...createDto,
@@ -171,22 +146,11 @@ describe('StudentsController', () => {
       expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw InternalServerError for generic errors', async () => {
+    it('should throw generic Error for unknown errors', async () => {
       const genericError = new Error('Unknown error');
       createAccountUseCase.execute.mockResolvedValue(left(genericError));
 
-      await expect(controller.create(createDto)).rejects.toMatchObject({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        response: expect.objectContaining({
-          type: 'https://api.revalidaitalia.com/errors/internal-error',
-          title: 'Internal Server Error',
-          status: 500,
-          detail: 'An error occurred while processing your request',
-          instance: '/students',
-          traceId: expect.any(String),
-          timestamp: expect.any(String),
-        }),
-      });
+      await expect(controller.create(createDto)).rejects.toThrow(genericError);
 
       expect(createAccountUseCase.execute).toHaveBeenCalledWith({
         ...createDto,
@@ -195,22 +159,11 @@ describe('StudentsController', () => {
       expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw InternalServerError when error has no message', async () => {
+    it('should throw Error when error has no message', async () => {
       const errorWithoutMessage = new Error('');
       createAccountUseCase.execute.mockResolvedValue(left(errorWithoutMessage));
 
-      await expect(controller.create(createDto)).rejects.toMatchObject({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        response: expect.objectContaining({
-          type: 'https://api.revalidaitalia.com/errors/internal-error',
-          title: 'Internal Server Error',
-          status: 500,
-          detail: 'An error occurred while processing your request',
-          instance: '/students',
-          traceId: expect.any(String),
-          timestamp: expect.any(String),
-        }),
-      });
+      await expect(controller.create(createDto)).rejects.toThrow(errorWithoutMessage);
 
       expect(createAccountUseCase.execute).toHaveBeenCalledWith({
         ...createDto,
@@ -242,38 +195,22 @@ describe('StudentsController', () => {
       expect(result).toEqual({ user: updatedUser });
     });
 
-    it('should throw BadRequest when no fields provided', async () => {
-      await expect(controller.update('user-id-123', {})).rejects.toThrow(
-        new HttpException(
-          {
-            message: 'At least one field to update must be provided',
-            errors: { details: [] },
-          },
-          HttpStatus.BAD_REQUEST,
-        ),
-      );
+    it('should throw InvalidInputError when no fields provided', async () => {
+      await expect(controller.update('user-id-123', {})).rejects.toThrow(InvalidInputError);
 
       expect(updateAccountUseCase.execute).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequest when validation fails', async () => {
+    it('should throw InvalidInputError when validation fails', async () => {
       const validationError = new InvalidInputError('Validation failed', [
         { field: 'email', message: 'Invalid email format' },
       ]);
 
       updateAccountUseCase.execute.mockResolvedValue(left(validationError));
 
-      await expect(controller.update('user-id-123', updateDto)).rejects.toThrow(
-        new HttpException(
-          {
-            message: 'Validation failed',
-            errors: {
-              details: [{ field: 'email', message: 'Invalid email format' }],
-            },
-          },
-          HttpStatus.BAD_REQUEST,
-        ),
-      );
+      await expect(
+        controller.update('user-id-123', updateDto),
+      ).rejects.toThrow(validationError);
 
       expect(updateAccountUseCase.execute).toHaveBeenCalledWith({
         id: 'user-id-123',
@@ -282,13 +219,13 @@ describe('StudentsController', () => {
       expect(updateAccountUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw BadRequest when user not found', async () => {
-      const notFoundError = new ResourceNotFoundError('User not found');
+    it('should throw ResourceNotFoundError when user not found', async () => {
+      const notFoundError = new ResourceNotFoundError();
       updateAccountUseCase.execute.mockResolvedValue(left(notFoundError));
 
-      await expect(controller.update('user-id-123', updateDto)).rejects.toThrow(
-        new HttpException('User not found', HttpStatus.BAD_REQUEST),
-      );
+      await expect(
+        controller.update('user-id-123', updateDto),
+      ).rejects.toThrow(notFoundError);
 
       expect(updateAccountUseCase.execute).toHaveBeenCalledWith({
         id: 'user-id-123',
@@ -297,28 +234,13 @@ describe('StudentsController', () => {
       expect(updateAccountUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw Conflict for generic errors', async () => {
-      const genericError = new Error('Database error');
+    it('should throw generic Error for other errors', async () => {
+      const genericError = new Error('Unknown error');
       updateAccountUseCase.execute.mockResolvedValue(left(genericError));
 
-      await expect(controller.update('user-id-123', updateDto)).rejects.toThrow(
-        new HttpException('Database error', HttpStatus.CONFLICT),
-      );
-
-      expect(updateAccountUseCase.execute).toHaveBeenCalledWith({
-        id: 'user-id-123',
-        ...updateDto,
-      });
-      expect(updateAccountUseCase.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw Conflict with default message when error has no message', async () => {
-      const errorWithoutMessage = new Error('');
-      updateAccountUseCase.execute.mockResolvedValue(left(errorWithoutMessage));
-
-      await expect(controller.update('user-id-123', updateDto)).rejects.toThrow(
-        new HttpException('Failed to update account', HttpStatus.CONFLICT),
-      );
+      await expect(
+        controller.update('user-id-123', updateDto),
+      ).rejects.toThrow(genericError);
 
       expect(updateAccountUseCase.execute).toHaveBeenCalledWith({
         id: 'user-id-123',
@@ -329,31 +251,16 @@ describe('StudentsController', () => {
   });
 
   describe('GET /students - List Users', () => {
-    const listQuery = { page: 1, pageSize: 20 };
-    const mockListResponse = {
-      users: [mockUser],
-      pagination: {
+    it('should list users successfully with default pagination', async () => {
+      const mockResponse = {
+        users: [mockUser, mockUser2],
+        total: 2,
         page: 1,
-        pageSize: 20,
-        total: 1,
-      },
-    };
+        pageSize: 10,
+        totalPages: 1,
+      };
 
-    it('should list users successfully', async () => {
-      listUsersUseCase.execute.mockResolvedValue(right(mockListResponse));
-
-      const result = await controller.list(listQuery);
-
-      expect(listUsersUseCase.execute).toHaveBeenCalledWith({
-        page: 1,
-        pageSize: 20,
-      });
-      expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(mockListResponse);
-    });
-
-    it('should handle default pagination values', async () => {
-      listUsersUseCase.execute.mockResolvedValue(right(mockListResponse));
+      listUsersUseCase.execute.mockResolvedValue(right(mockResponse));
 
       const result = await controller.list({});
 
@@ -362,261 +269,294 @@ describe('StudentsController', () => {
         pageSize: undefined,
       });
       expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(mockListResponse);
+      expect(result).toEqual(mockResponse);
     });
 
-    it('should throw InternalServerError when repository fails', async () => {
-      const repositoryError = new RepositoryError('Database connection failed');
-      listUsersUseCase.execute.mockResolvedValue(left(repositoryError));
+    it('should list users with custom pagination', async () => {
+      const mockResponse = {
+        users: [mockUser],
+        total: 2,
+        page: 2,
+        pageSize: 1,
+        totalPages: 2,
+      };
 
-      await expect(controller.list(listQuery)).rejects.toThrow(
-        new HttpException(
-          'Failed to list users',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        ),
-      );
+      listUsersUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      const result = await controller.list({ page: 2, pageSize: 1 });
 
       expect(listUsersUseCase.execute).toHaveBeenCalledWith({
+        page: 2,
+        pageSize: 1,
+      });
+      expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should handle default pagination values', async () => {
+      const mockResponse = {
+        users: [mockUser, mockUser2],
+        total: 2,
         page: 1,
-        pageSize: 20,
+        pageSize: 10,
+        totalPages: 1,
+      };
+
+      listUsersUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      const result = await controller.list({ page: undefined, pageSize: undefined });
+
+      expect(listUsersUseCase.execute).toHaveBeenCalledWith({
+        page: undefined,
+        pageSize: undefined,
+      });
+      expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should throw RepositoryError when repository fails', async () => {
+      const repoError = new RepositoryError('Database connection failed');
+      listUsersUseCase.execute.mockResolvedValue(left(repoError));
+
+      await expect(controller.list({})).rejects.toThrow(repoError);
+
+      expect(listUsersUseCase.execute).toHaveBeenCalledWith({
+        page: undefined,
+        pageSize: undefined,
       });
       expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw InternalServerError for generic errors', async () => {
+    it('should throw generic Error for other errors', async () => {
       const genericError = new Error('Unknown error');
       listUsersUseCase.execute.mockResolvedValue(left(genericError));
 
-      await expect(controller.list(listQuery)).rejects.toThrow(
-        new HttpException(
-          'Failed to list users',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        ),
-      );
+      await expect(controller.list({})).rejects.toThrow(genericError);
 
       expect(listUsersUseCase.execute).toHaveBeenCalledWith({
-        page: 1,
-        pageSize: 20,
+        page: undefined,
+        pageSize: undefined,
       });
       expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw InternalServerError when error has no message', async () => {
+    it('should throw Error when error has no message', async () => {
       const errorWithoutMessage = new Error('');
       listUsersUseCase.execute.mockResolvedValue(left(errorWithoutMessage));
 
-      await expect(controller.list(listQuery)).rejects.toThrow(
-        new HttpException(
-          'Failed to list users',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        ),
-      );
+      await expect(controller.list({})).rejects.toThrow(errorWithoutMessage);
 
       expect(listUsersUseCase.execute).toHaveBeenCalledWith({
-        page: 1,
-        pageSize: 20,
+        page: undefined,
+        pageSize: undefined,
       });
       expect(listUsersUseCase.execute).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('GET /students/search - Find Users', () => {
-    const mockFindResponse = {
-      users: [mockUser, mockUser2],
-      pagination: {
-        page: 1,
-        pageSize: 20,
-      },
-    };
-
     it('should find users successfully without filters', async () => {
-      findUsersUseCase.execute.mockResolvedValue(right(mockFindResponse));
+      const mockResponse = {
+        users: [mockUser, mockUser2],
+        total: 2,
+        page: 1,
+        pageSize: 10,
+        totalPages: 1,
+      };
+
+      findUsersUseCase.execute.mockResolvedValue(right(mockResponse));
 
       const result = await controller.find({});
 
       expect(findUsersUseCase.execute).toHaveBeenCalledWith({});
       expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(mockFindResponse);
+      expect(result).toEqual(mockResponse);
     });
 
     it('should find users by name filter', async () => {
-      const query: FindUsersRequestDto = { name: 'John' };
-      const filteredResponse = {
-        ...mockFindResponse,
+      const mockResponse = {
         users: [mockUser],
+        total: 1,
+        page: 1,
+        pageSize: 10,
+        totalPages: 1,
       };
 
-      findUsersUseCase.execute.mockResolvedValue(right(filteredResponse));
+      findUsersUseCase.execute.mockResolvedValue(right(mockResponse));
 
+      const query: FindUsersRequestDto = { name: 'John' };
       const result = await controller.find(query);
 
       expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
       expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(filteredResponse);
+      expect(result).toEqual(mockResponse);
     });
 
     it('should find users by email filter', async () => {
-      const query: FindUsersRequestDto = { email: 'john@example.com' };
-      const filteredResponse = {
-        ...mockFindResponse,
+      const mockResponse = {
         users: [mockUser],
+        total: 1,
+        page: 1,
+        pageSize: 10,
+        totalPages: 1,
       };
 
-      findUsersUseCase.execute.mockResolvedValue(right(filteredResponse));
+      findUsersUseCase.execute.mockResolvedValue(right(mockResponse));
 
+      const query: FindUsersRequestDto = { email: 'john@example.com' };
       const result = await controller.find(query);
 
       expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
       expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(filteredResponse);
+      expect(result).toEqual(mockResponse);
     });
 
     it('should find users by cpf filter', async () => {
-      const query: FindUsersRequestDto = { cpf: '12345678900' };
-      const filteredResponse = {
-        ...mockFindResponse,
+      const mockResponse = {
         users: [mockUser],
+        total: 1,
+        page: 1,
+        pageSize: 10,
+        totalPages: 1,
       };
 
-      findUsersUseCase.execute.mockResolvedValue(right(filteredResponse));
+      findUsersUseCase.execute.mockResolvedValue(right(mockResponse));
 
+      const query: FindUsersRequestDto = { cpf: '12345678900' };
       const result = await controller.find(query);
 
       expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
       expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(filteredResponse);
+      expect(result).toEqual(mockResponse);
     });
 
     it('should find users with multiple filters', async () => {
-      const query: FindUsersRequestDto = {
-        name: 'John',
-        email: 'john@example.com',
+      const mockResponse = {
+        users: [mockUser],
+        total: 1,
         page: 1,
         pageSize: 10,
+        totalPages: 1,
       };
 
-      findUsersUseCase.execute.mockResolvedValue(right(mockFindResponse));
+      findUsersUseCase.execute.mockResolvedValue(right(mockResponse));
 
-      const result = await controller.find(query);
-
-      expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
-      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(mockFindResponse);
-    });
-
-    it('should find users with pagination', async () => {
-      const query: FindUsersRequestDto = { page: 2, pageSize: 5 };
-      const paginatedResponse = {
-        users: [],
-        pagination: {
-          page: 2,
-          pageSize: 5,
-        },
-      };
-
-      findUsersUseCase.execute.mockResolvedValue(right(paginatedResponse));
-
-      const result = await controller.find(query);
-
-      expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
-      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(paginatedResponse);
-    });
-
-    it('should return empty results when no users match filters', async () => {
-      const query: FindUsersRequestDto = { name: 'NonExistent' };
-      const emptyResponse = {
-        users: [],
-        pagination: {
-          page: 1,
-          pageSize: 20,
-        },
-      };
-
-      findUsersUseCase.execute.mockResolvedValue(right(emptyResponse));
-
-      const result = await controller.find(query);
-
-      expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
-      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(emptyResponse);
-    });
-
-    it('should throw InternalServerError when repository fails', async () => {
-      const query: FindUsersRequestDto = { name: 'John' };
-      const repositoryError = new RepositoryError('Database connection failed');
-
-      findUsersUseCase.execute.mockResolvedValue(left(repositoryError));
-
-      await expect(controller.find(query)).rejects.toThrow(
-        new HttpException(
-          'Failed to search users',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        ),
-      );
-
-      expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
-      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw InternalServerError for generic errors', async () => {
-      const query: FindUsersRequestDto = { email: 'john@example.com' };
-      const genericError = new Error('Unknown error');
-
-      findUsersUseCase.execute.mockResolvedValue(left(genericError));
-
-      await expect(controller.find(query)).rejects.toThrow(
-        new HttpException('Unknown error', HttpStatus.INTERNAL_SERVER_ERROR),
-      );
-
-      expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
-      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw InternalServerError with default message when error has no message', async () => {
-      const query: FindUsersRequestDto = { cpf: '12345678900' };
-      const errorWithoutMessage = new Error('');
-
-      findUsersUseCase.execute.mockResolvedValue(left(errorWithoutMessage));
-
-      await expect(controller.find(query)).rejects.toThrow(
-        new HttpException(
-          'Failed to search users',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        ),
-      );
-
-      expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
-      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle all filters and pagination together', async () => {
       const query: FindUsersRequestDto = {
         name: 'John',
         email: 'john@example.com',
         cpf: '12345678900',
-        page: 3,
-        pageSize: 15,
       };
-
-      const complexResponse = {
-        users: [mockUser],
-        pagination: {
-          page: 3,
-          pageSize: 15,
-        },
-      };
-
-      findUsersUseCase.execute.mockResolvedValue(right(complexResponse));
-
       const result = await controller.find(query);
 
       expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
       expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(complexResponse);
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should find users with pagination', async () => {
+      const mockResponse = {
+        users: [mockUser],
+        total: 2,
+        page: 2,
+        pageSize: 1,
+        totalPages: 2,
+      };
+
+      findUsersUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      const query: FindUsersRequestDto = { page: 2, pageSize: 1 };
+      const result = await controller.find(query);
+
+      expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
+      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should return empty results when no users match filters', async () => {
+      const mockResponse = {
+        users: [],
+        total: 0,
+        page: 1,
+        pageSize: 10,
+        totalPages: 0,
+      };
+
+      findUsersUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      const query: FindUsersRequestDto = { name: 'NonExistent' };
+      const result = await controller.find(query);
+
+      expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
+      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should throw RepositoryError when repository fails', async () => {
+      const repoError = new RepositoryError('Database connection failed');
+      findUsersUseCase.execute.mockResolvedValue(left(repoError));
+
+      await expect(controller.find({})).rejects.toThrow(repoError);
+
+      expect(findUsersUseCase.execute).toHaveBeenCalledWith({});
+      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw generic Error for other errors', async () => {
+      const genericError = new Error('Unknown error');
+      findUsersUseCase.execute.mockResolvedValue(left(genericError));
+
+      await expect(controller.find({})).rejects.toThrow(genericError);
+
+      expect(findUsersUseCase.execute).toHaveBeenCalledWith({});
+      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw Error with default message when error has no message', async () => {
+      const errorWithoutMessage = new Error('');
+      findUsersUseCase.execute.mockResolvedValue(left(errorWithoutMessage));
+
+      await expect(controller.find({})).rejects.toThrow(errorWithoutMessage);
+
+      expect(findUsersUseCase.execute).toHaveBeenCalledWith({});
+      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle all filters and pagination together', async () => {
+      const mockResponse = {
+        users: [mockUser],
+        total: 1,
+        page: 1,
+        pageSize: 5,
+        totalPages: 1,
+      };
+
+      findUsersUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      const query: FindUsersRequestDto = {
+        name: 'John',
+        email: 'john@example.com',
+        cpf: '12345678900',
+        page: 1,
+        pageSize: 5,
+      };
+      const result = await controller.find(query);
+
+      expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
+      expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockResponse);
     });
 
     it('should handle undefined query parameters', async () => {
+      const mockResponse = {
+        users: [mockUser, mockUser2],
+        total: 2,
+        page: 1,
+        pageSize: 10,
+        totalPages: 1,
+      };
+
+      findUsersUseCase.execute.mockResolvedValue(right(mockResponse));
+
       const query: FindUsersRequestDto = {
         name: undefined,
         email: undefined,
@@ -624,24 +564,19 @@ describe('StudentsController', () => {
         page: undefined,
         pageSize: undefined,
       };
-
-      findUsersUseCase.execute.mockResolvedValue(right(mockFindResponse));
-
       const result = await controller.find(query);
 
       expect(findUsersUseCase.execute).toHaveBeenCalledWith(query);
       expect(findUsersUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(mockFindResponse);
+      expect(result).toEqual(mockResponse);
     });
   });
 
   describe('DELETE /students/:id - Delete User', () => {
-    const mockDeleteResponse = {
-      message: 'User deleted successfully',
-    };
-
     it('should delete a user successfully as admin', async () => {
-      deleteUserUseCase.execute.mockResolvedValue(right(mockDeleteResponse));
+      const mockResponse = { message: 'User deleted successfully' };
+
+      deleteUserUseCase.execute.mockResolvedValue(right(mockResponse));
 
       const result = await controller.delete('user-id-123');
 
@@ -649,32 +584,28 @@ describe('StudentsController', () => {
         id: 'user-id-123',
       });
       expect(deleteUserUseCase.execute).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(mockDeleteResponse);
+      expect(result).toEqual(mockResponse);
     });
 
-    it('should throw NotFound when user does not exist', async () => {
-      const notFoundError = new ResourceNotFoundError('User not found');
+    it('should throw ResourceNotFoundError when user does not exist', async () => {
+      const notFoundError = new ResourceNotFoundError();
       deleteUserUseCase.execute.mockResolvedValue(left(notFoundError));
 
-      await expect(controller.delete('user-id-123')).rejects.toThrow(
-        new HttpException('User not found', HttpStatus.NOT_FOUND),
-      );
+      await expect(controller.delete('non-existent-id')).rejects.toThrow(notFoundError);
 
       expect(deleteUserUseCase.execute).toHaveBeenCalledWith({
-        id: 'user-id-123',
+        id: 'non-existent-id',
       });
       expect(deleteUserUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw Forbidden when unauthorized', async () => {
+    it('should throw UnauthorizedError when unauthorized', async () => {
       const unauthorizedError = new UnauthorizedError(
         'Only admins can delete users',
       );
       deleteUserUseCase.execute.mockResolvedValue(left(unauthorizedError));
 
-      await expect(controller.delete('user-id-123')).rejects.toThrow(
-        new HttpException('Only admins can delete users', HttpStatus.FORBIDDEN),
-      );
+      await expect(controller.delete('user-id-123')).rejects.toThrow(unauthorizedError);
 
       expect(deleteUserUseCase.execute).toHaveBeenCalledWith({
         id: 'user-id-123',
@@ -682,16 +613,11 @@ describe('StudentsController', () => {
       expect(deleteUserUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw InternalServerError for generic errors', async () => {
-      const genericError = new Error('Database error');
+    it('should throw generic Error for other errors', async () => {
+      const genericError = new Error('Unknown error');
       deleteUserUseCase.execute.mockResolvedValue(left(genericError));
 
-      await expect(controller.delete('user-id-123')).rejects.toThrow(
-        new HttpException(
-          'Failed to delete user',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        ),
-      );
+      await expect(controller.delete('user-id-123')).rejects.toThrow(genericError);
 
       expect(deleteUserUseCase.execute).toHaveBeenCalledWith({
         id: 'user-id-123',
@@ -699,16 +625,11 @@ describe('StudentsController', () => {
       expect(deleteUserUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw InternalServerError for repository errors', async () => {
-      const repositoryError = new RepositoryError('Database connection failed');
-      deleteUserUseCase.execute.mockResolvedValue(left(repositoryError));
+    it('should throw RepositoryError for repository errors', async () => {
+      const repoError = new RepositoryError('Database connection failed');
+      deleteUserUseCase.execute.mockResolvedValue(left(repoError));
 
-      await expect(controller.delete('user-id-123')).rejects.toThrow(
-        new HttpException(
-          'Failed to delete user',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        ),
-      );
+      await expect(controller.delete('user-id-123')).rejects.toThrow(repoError);
 
       expect(deleteUserUseCase.execute).toHaveBeenCalledWith({
         id: 'user-id-123',
@@ -717,14 +638,8 @@ describe('StudentsController', () => {
     });
 
     describe('GET /students/:id - Get User By Id', () => {
-      const mockGetUserResponse = {
-        user: mockUser,
-      };
-
       it('should get a user by id successfully', async () => {
-        getUserByIdUseCase.execute.mockResolvedValue(
-          right(mockGetUserResponse),
-        );
+        getUserByIdUseCase.execute.mockResolvedValue(right({ user: mockUser }));
 
         const result = await controller.findById('user-id-123');
 
@@ -732,41 +647,41 @@ describe('StudentsController', () => {
           id: 'user-id-123',
         });
         expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
-        expect(result).toEqual(mockGetUserResponse);
+        expect(result).toEqual({ user: mockUser });
       });
 
-      it('should throw BadRequest when validation fails', async () => {
+      it('should throw InvalidInputError when validation fails', async () => {
         const validationError = new InvalidInputError('Validation failed', [
-          { field: 'id', message: 'ID must be a valid UUID' },
+          { field: 'id', message: 'Invalid UUID format' },
         ]);
 
         getUserByIdUseCase.execute.mockResolvedValue(left(validationError));
 
-        await expect(controller.findById('invalid-id')).rejects.toThrow(
-          new HttpException(
-            {
-              message: 'Validation failed',
-              errors: {
-                details: [{ field: 'id', message: 'ID must be a valid UUID' }],
-              },
-            },
-            HttpStatus.BAD_REQUEST,
-          ),
-        );
+        await expect(controller.findById('invalid-uuid')).rejects.toThrow(validationError);
 
         expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
-          id: 'invalid-id',
+          id: 'invalid-uuid',
         });
         expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
       });
 
-      it('should throw NotFound when user does not exist', async () => {
-        const notFoundError = new ResourceNotFoundError('User not found');
+      it('should throw ResourceNotFoundError when user does not exist', async () => {
+        const notFoundError = new ResourceNotFoundError();
         getUserByIdUseCase.execute.mockResolvedValue(left(notFoundError));
 
-        await expect(controller.findById('user-id-123')).rejects.toThrow(
-          new HttpException('User not found', HttpStatus.NOT_FOUND),
-        );
+        await expect(controller.findById('non-existent-id')).rejects.toThrow(notFoundError);
+
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
+          id: 'non-existent-id',
+        });
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
+      });
+
+      it('should throw RepositoryError when repository fails', async () => {
+        const repoError = new RepositoryError('Database connection failed');
+        getUserByIdUseCase.execute.mockResolvedValue(left(repoError));
+
+        await expect(controller.findById('user-id-123')).rejects.toThrow(repoError);
 
         expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
           id: 'user-id-123',
@@ -774,32 +689,11 @@ describe('StudentsController', () => {
         expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
       });
 
-      it('should throw InternalServerError when repository fails', async () => {
-        const repositoryError = new RepositoryError(
-          'Database connection failed',
-        );
-        getUserByIdUseCase.execute.mockResolvedValue(left(repositoryError));
-
-        await expect(controller.findById('user-id-123')).rejects.toThrow(
-          new HttpException(
-            'Failed to get user',
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          ),
-        );
-
-        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
-          id: 'user-id-123',
-        });
-        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
-      });
-
-      it('should throw InternalServerError for generic errors', async () => {
+      it('should throw generic Error for other errors', async () => {
         const genericError = new Error('Unknown error');
         getUserByIdUseCase.execute.mockResolvedValue(left(genericError));
 
-        await expect(controller.findById('user-id-123')).rejects.toThrow(
-          new HttpException('Unknown error', HttpStatus.INTERNAL_SERVER_ERROR),
-        );
+        await expect(controller.findById('user-id-123')).rejects.toThrow(genericError);
 
         expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
           id: 'user-id-123',
@@ -807,16 +701,11 @@ describe('StudentsController', () => {
         expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
       });
 
-      it('should throw InternalServerError with default message when error has no message', async () => {
+      it('should throw Error with default message when error has no message', async () => {
         const errorWithoutMessage = new Error('');
         getUserByIdUseCase.execute.mockResolvedValue(left(errorWithoutMessage));
 
-        await expect(controller.findById('user-id-123')).rejects.toThrow(
-          new HttpException(
-            'Failed to get user',
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          ),
-        );
+        await expect(controller.findById('user-id-123')).rejects.toThrow(errorWithoutMessage);
 
         expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
           id: 'user-id-123',
@@ -825,42 +714,10 @@ describe('StudentsController', () => {
       });
 
       it('should handle different user roles', async () => {
-        const adminUser = {
-          ...mockUser,
-          id: 'admin-id-123',
-          role: 'admin' as const,
-        };
-
-        const adminResponse = {
-          user: adminUser,
-        };
-
-        getUserByIdUseCase.execute.mockResolvedValue(right(adminResponse));
-
-        const result = await controller.findById('admin-id-123');
-
-        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
-          id: 'admin-id-123',
-        });
-        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
-        expect(result).toEqual(adminResponse);
-        expect(result.user.role).toBe('admin');
-      });
-
-      it('should handle user with all optional fields populated', async () => {
-        const fullUser = {
-          ...mockUser,
-          phone: '+5511999999999',
-          birthDate: new Date('1990-01-01'),
-          profileImageUrl: 'https://example.com/avatar.jpg',
-          lastLogin: new Date(),
-        };
-
-        const fullUserResponse = {
-          user: fullUser,
-        };
-
-        getUserByIdUseCase.execute.mockResolvedValue(right(fullUserResponse));
+        const adminUser = { ...mockUser, role: 'admin' as const };
+        getUserByIdUseCase.execute.mockResolvedValue(
+          right({ user: adminUser }),
+        );
 
         const result = await controller.findById('user-id-123');
 
@@ -868,13 +725,26 @@ describe('StudentsController', () => {
           id: 'user-id-123',
         });
         expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
-        expect(result).toEqual(fullUserResponse);
-        expect(result.user.phone).toBe('+5511999999999');
-        expect(result.user.birthDate).toEqual(new Date('1990-01-01'));
-        expect(result.user.profileImageUrl).toBe(
-          'https://example.com/avatar.jpg',
+        expect(result).toEqual({ user: adminUser });
+      });
+
+      it('should handle user with all optional fields populated', async () => {
+        const userWithAllFields = {
+          ...mockUser,
+          phone: '+5511999999999',
+          profileImageUrl: 'https://example.com/profile.jpg',
+        };
+        getUserByIdUseCase.execute.mockResolvedValue(
+          right({ user: userWithAllFields }),
         );
-        expect(result.user.lastLogin).toBeDefined();
+
+        const result = await controller.findById('user-id-123');
+
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledWith({
+          id: 'user-id-123',
+        });
+        expect(getUserByIdUseCase.execute).toHaveBeenCalledTimes(1);
+        expect(result).toEqual({ user: userWithAllFields });
       });
     });
   });

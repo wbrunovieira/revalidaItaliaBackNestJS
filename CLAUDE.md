@@ -4,6 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **IMPORTANT**: Always start your session by running `/exec-prompt` to load the complete development guidelines and coding standards for this project. This ensures consistent code quality and adherence to project patterns.
 
+## Documentation Structure
+
+All documentation has been organized in the `/docs` directory:
+
+- **docs/CLAUDE.md** - Complete Claude development guidelines  
+- **docs/README.md** - Project overview and setup
+- **docs/architecture.md** - System architecture documentation
+- **docs/commands.md** - Available commands and shortcuts
+- **docs/TROUBLESHOOTING.md** - Common problems and solutions ⚠️
+- **docs/project-reference-guide.md** - Development reference guide
+- **docs/prompts.md** - Prompt templates and examples
+
+## Specialized Commands
+
 Additional specialized commands are available:
 
 - `/create-entity` - Create DDD entities
@@ -64,6 +78,15 @@ The application runs in Docker containers:
 ## Commands
 
 ...
+
+## Emergency Procedures
+
+If you encounter build issues or Docker problems, check:
+
+1. **docs/TROUBLESHOOTING.md** - Common issues and solutions database
+2. **Available backups** - Check for docker image backups: `docker images | grep backup`
+3. **Container logs** - `docker logs ead-backend-dev`
+4. **Restore backup** - `docker load < revalida-backup-YYYYMMDD.tar.gz`
 
 ## Troubleshooting
 
