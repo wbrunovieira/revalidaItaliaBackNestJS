@@ -4,19 +4,29 @@ description: Regras e padrões para commits no projeto
 
 # Regras de Commit e Git
 
-## ⚠️ REGRA CRÍTICA: Atribuição
+## ⚠️ REGRA CRÍTICA: Mensagens de Commit Simples e Diretas
 
-### NUNCA adicione estas linhas nos commits ou arquivos:
+### SEMPRE use commits curtos e sem metadados extras:
 
-❌ PROIBIDO:
-🤖 Generated with Claude Code (https://claude.ai/code)
-Co-Authored-By: Claude noreply@anthropic.com
+✅ CORRETO:
+```bash
+git commit -m "feat: add user authentication"
+git commit -m "fix: resolve navigation issue"
+git commit -m "refactor: simplify payment logic"
+```
+
+❌ EVITAR:
+- Mensagens multi-linha desnecessárias
+- Metadados de ferramentas (Co-Authored-By, Generated with, etc)
+- Emojis ou formatações especiais
+- Referências a ferramentas de IA
 
 ### Por quê?
 
-- O código é propriedade do projeto/empresa
+- Mantém o histórico limpo e profissional
+- Facilita a leitura do log
 - Evita poluição no histórico do git
-- Mantém profissionalismo nos commits
+- Padrão da indústria
 
 ## Padrão de Commits (Conventional Commits)
 
@@ -74,8 +84,16 @@ git add .
 
 # Interativo (recomendado)
 git add -p
-3. Commit com mensagem apropriada:
-bashgit commit -m "feat: add course enrollment animation"
+3. Commit com mensagem simples e direta:
+```bash
+# SEMPRE prefira o formato curto:
+git commit -m "feat: add course enrollment animation"
+
+# NÃO use formatações extras ou metadados:
+# ❌ git commit -m "$(cat <<'EOF'..."
+# ❌ Adicionar Co-Authored-By
+# ❌ Adicionar links ou emojis
+```
 4. Push para o repositório:
 bashgit push origin main
 # ou
@@ -94,16 +112,23 @@ bash✅ git commit -m "add loading state" (não "added" ou "adding")
 bash✅ git commit -m "fix: prevent form double submission"
 ❌ git commit -m "fix: bug fix"
 ❌ git commit -m "update files"
-Commits Multi-line (quando necessário)
-Para mudanças complexas:
-bashgit commit -m "feat: implement course recommendation system
+## Commits Multi-line (apenas quando estritamente necessário)
 
-- Add recommendation algorithm based on user progress
-- Create new API endpoint for recommendations
-- Add UI component to display suggestions
-- Include A/B testing framework
+⚠️ **IMPORTANTE**: Prefira sempre commits simples de uma linha. Use multi-line APENAS para:
+- Pull Requests que agregam múltiplos commits
+- Mudanças muito complexas que requerem contexto extra
+- Quando explicitamente solicitado
+
+### Exemplo (use com moderação):
+```bash
+git commit -m "feat: implement course recommendation system
+
+- Add recommendation algorithm
+- Create API endpoint
+- Add UI component
 
 Closes #123"
+```
 Corrigindo Commits
 Alterar último commit:
 bash# Mudar mensagem apenas
@@ -145,24 +170,28 @@ Checklist Antes do Commit
  Sem informações sensíveis (tokens, passwords)
  Sem atribuições automáticas do Claude
 
-Exemplo de Sessão Completa
-bash# 1. Criar feature
-🔍 Analisando: estrutura de componentes de formulário
-🛠️ Implementando: componente de recuperação de senha
+## Exemplo de Sessão Completa
 
-# 2. Verificar mudanças
+```bash
+# 1. Verificar mudanças
 git status
 git diff
 
-# 3. Adicionar arquivos
+# 2. Adicionar arquivos
 git add src/components/PasswordResetForm.tsx
 git add src/components/PasswordResetForm.module.css
 
-# 4. Commit
-git commit -m "feat(auth): add password reset form component"
+# 3. Commit SIMPLES e DIRETO
+git commit -m "feat(auth): add password reset form"
 
-# 5. Push
+# 4. Push
 git push origin main
+```
 
-✅ Concluído: feature implementada e versionada
+## Instruções para Claude/IA
+
+1. **SEMPRE** use o formato simples: `git commit -m "tipo: descrição"`
+2. **NUNCA** use HEREDOC ou formatações complexas
+3. **NUNCA** adicione metadados extras (Co-Authored-By, links, etc)
+4. **MANTENHA** as mensagens curtas e diretas
 ```

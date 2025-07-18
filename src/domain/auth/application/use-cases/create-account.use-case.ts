@@ -25,7 +25,7 @@ const createAccountSchema = z.object({
   name: z.string().min(3, 'User name must be at least 3 characters long'),
   email: z.string().email('Invalid email'),
   password: passwordSchema,
-  cpf: z.string().regex(/^\d{11}$/, 'Invalid CPF'),
+  cpf: z.string().min(1, 'Document is required'),
   role: z.enum(['admin', 'tutor', 'student']),
 });
 

@@ -6,7 +6,7 @@ export const updateUserProfileSchema = z.object({
   userId: z.string().uuid('ID do usuário deve ser um UUID válido'),
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres').optional(),
   email: z.string().email('Email inválido').optional(),
-  cpf: z.string().regex(/^\d{11}$/, 'CPF deve conter 11 dígitos numéricos').optional(),
+  cpf: z.string().min(1, 'Documento é obrigatório').optional(),
   phone: z.string().optional(),
   birthDate: z.coerce.date().optional(),
   profileImageUrl: z.string().refine(

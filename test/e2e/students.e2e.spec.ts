@@ -28,7 +28,10 @@ describe('Students Controller (E2E)', () => {
 
     if (!existingAdmin) {
       // Criar admin user para os testes
-      await request(app.getHttpServer()).post('/students').send({
+      await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         name: 'Admin User',
         email: 'admin@example.com',
         password: 'Admin123!',
@@ -96,7 +99,11 @@ describe('Students Controller (E2E)', () => {
 
   describe('Create Account', () => {
     it('[POST] /students - Success', async () => {
-      const res = await request(app.getHttpServer()).post('/students').send({
+      const token = await getValidAdminToken();
+      const res = await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
         name: 'Bruno Vieira',
         email: 'bruno@example.com',
         password: '12345@aA',
@@ -116,7 +123,10 @@ describe('Students Controller (E2E)', () => {
     });
 
     it('[POST] /students - Missing Name', async () => {
-      const res = await request(app.getHttpServer()).post('/students').send({
+      const res = await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         email: 'missingname@example.com',
         password: '12345@aA',
         cpf: '11122233344',
@@ -124,7 +134,7 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.errors.details).toContainEqual({
+      expect(res.body.errors).toContainEqual({
         code: 'invalid_type',
         expected: 'string',
         message: 'Required',
@@ -134,7 +144,10 @@ describe('Students Controller (E2E)', () => {
     });
 
     it('[POST] /students - Missing CPF', async () => {
-      const res = await request(app.getHttpServer()).post('/students').send({
+      const res = await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         name: 'Alice',
         email: 'alice@example.com',
         password: '12345@aA',
@@ -142,7 +155,7 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.errors.details).toContainEqual({
+      expect(res.body.errors).toContainEqual({
         code: 'invalid_type',
         expected: 'string',
         message: 'Required',
@@ -152,7 +165,10 @@ describe('Students Controller (E2E)', () => {
     });
 
     it('[POST] /students - Missing Role', async () => {
-      const res = await request(app.getHttpServer()).post('/students').send({
+      const res = await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         name: 'Bob',
         email: 'bob@example.com',
         password: '12345@aA',
@@ -160,7 +176,7 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.errors.details).toContainEqual({
+      expect(res.body.errors).toContainEqual({
         code: 'invalid_type',
         expected: 'string',
         message: 'Required',
@@ -170,7 +186,10 @@ describe('Students Controller (E2E)', () => {
     });
 
     it('[POST] /students - Invalid Email', async () => {
-      const res = await request(app.getHttpServer()).post('/students').send({
+      const res = await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         name: 'Invalid Email',
         email: 'invalid-email',
         password: '12345@aA',
@@ -179,7 +198,7 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.errors.details).toContainEqual({
+      expect(res.body.errors).toContainEqual({
         code: 'invalid_string',
         validation: 'email',
         message: 'Invalid email',
@@ -187,26 +206,13 @@ describe('Students Controller (E2E)', () => {
       });
     });
 
-    it('[POST] /students - Invalid CPF', async () => {
-      const res = await request(app.getHttpServer()).post('/students').send({
-        name: 'Invalid CPF',
-        email: 'cpf@example.com',
-        password: '12345@aA',
-        cpf: 'abc123',
-        role: 'student',
-      });
-
-      expect(res.status).toBe(400);
-      expect(res.body.errors.details).toContainEqual({
-        code: 'invalid_string',
-        validation: 'regex',
-        message: 'Invalid CPF',
-        path: ['cpf'],
-      });
-    });
+    // Teste removido - agora aceitamos qualquer documento, não apenas CPF
 
     it('[POST] /students - Weak Password', async () => {
-      const res = await request(app.getHttpServer()).post('/students').send({
+      const res = await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         name: 'Weak Password',
         email: 'weak@example.com',
         password: 'weak',
@@ -215,14 +221,14 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.errors.details).toContainEqual(
+      expect(res.body.errors).toContainEqual(
         expect.objectContaining({
           code: 'too_small',
           minimum: 6,
           path: ['password'],
         }),
       );
-      expect(res.body.errors.details).toContainEqual(
+      expect(res.body.errors).toContainEqual(
         expect.objectContaining({
           code: 'invalid_string',
           message: 'Password must contain at least one uppercase letter',
@@ -241,7 +247,10 @@ describe('Students Controller (E2E)', () => {
         role: 'student',
       };
 
-      await request(app.getHttpServer()).post('/students').send(payload);
+      await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(payload);
 
       const res = await request(app.getHttpServer())
         .post('/students')
@@ -251,7 +260,7 @@ describe('Students Controller (E2E)', () => {
         });
 
       expect(res.status).toBe(409);
-      expect(res.body.message).toContain('already exists');
+      expect(res.body.detail).toContain('already exists');
     });
 
     it('[POST] /students - CPF Conflict', async () => {
@@ -263,9 +272,15 @@ describe('Students Controller (E2E)', () => {
         role: 'student',
       };
 
-      await request(app.getHttpServer()).post('/students').send(payload1);
+      await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(payload1);
 
-      const res = await request(app.getHttpServer()).post('/students').send({
+      const res = await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         name: 'User B',
         email: 'another@example.com',
         password: '12345@aA',
@@ -274,7 +289,7 @@ describe('Students Controller (E2E)', () => {
       });
 
       expect(res.status).toBe(409);
-      expect(res.body.message).toContain('already exists');
+      expect(res.body.detail).toContain('already exists');
     });
   });
 
@@ -286,6 +301,7 @@ describe('Students Controller (E2E)', () => {
     it('[PATCH] /students/:id - Success', async () => {
       const createRes = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Updater',
           email: 'updater@example.com',
@@ -298,6 +314,7 @@ describe('Students Controller (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .patch(`/students/${id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Updated Name',
           email: 'updated@example.com',
@@ -317,6 +334,7 @@ describe('Students Controller (E2E)', () => {
     it('[PATCH] /students/:id - Missing Fields', async () => {
       const createRes = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'NoFields',
           email: 'nofields@example.com',
@@ -328,31 +346,39 @@ describe('Students Controller (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .patch(`/students/${id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({});
       expect(res.status).toBe(400);
       expect(res.body.message).toBe(
         'At least one field to update must be provided',
       );
-      expect(res.body.errors.details).toEqual([]);
+      expect(res.body.errors).toEqual([]);
     });
 
     it('[PATCH] /students/:id - Not Found', async () => {
       const res = await request(app.getHttpServer())
         .patch('/students/nonexistent-id')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: 'X' });
       expect(res.status).toBe(400);
-      expect(res.body.message).toBe('User not found');
+      expect(res.body.detail).toBe('User not found');
     });
 
     it('[PATCH] /students/:id - Email Conflict', async () => {
-      const u1 = await request(app.getHttpServer()).post('/students').send({
+      const u1 = await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         name: 'EmailA',
         email: 'emaila@example.com',
         password: 'Cc33$$cc',
         cpf: '30303030303',
         role: 'student',
       });
-      const u2 = await request(app.getHttpServer()).post('/students').send({
+      const u2 = await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         name: 'EmailB',
         email: 'emailb@example.com',
         password: 'Dd44%%dd',
@@ -363,20 +389,27 @@ describe('Students Controller (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .patch(`/students/${idA}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ email: 'emailb@example.com' });
       expect(res.status).toBe(409);
-      expect(res.body.message).toContain('already exists');
+      expect(res.body.detail).toContain('already exists');
     });
 
     it('[PATCH] /students/:id - CPF Conflict', async () => {
-      const u1 = await request(app.getHttpServer()).post('/students').send({
+      const u1 = await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         name: 'CpfA',
         email: 'cpfa@example.com',
         password: 'Ee55^^ee',
         cpf: '50505050505',
         role: 'student',
       });
-      const u2 = await request(app.getHttpServer()).post('/students').send({
+      const u2 = await request(app.getHttpServer())
+        .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         name: 'CpfB',
         email: 'cpfb@example.com',
         password: 'Ff66&&ff',
@@ -387,9 +420,10 @@ describe('Students Controller (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .patch(`/students/${idA}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ cpf: '60606060606' });
       expect(res.status).toBe(409);
-      expect(res.body.message).toContain('already exists');
+      expect(res.body.detail).toContain('already exists');
     });
   });
 
@@ -445,8 +479,8 @@ describe('Students Controller (E2E)', () => {
         .get('/students')
         .expect(401);
 
-      expect(res.body.message).toBe('Unauthorized');
-      expect(res.body.statusCode).toBe(401);
+      expect(res.body.detail).toBe('Unauthorized');
+      expect(res.body.status).toBe(401);
     });
 
     it('[GET] /students - Unauthorized with invalid token', async () => {
@@ -455,14 +489,15 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', 'Bearer invalid-token')
         .expect(401);
 
-      expect(res.body.message).toBe('Unauthorized');
-      expect(res.body.statusCode).toBe(401);
+      expect(res.body.detail).toBe('Unauthorized');
+      expect(res.body.status).toBe(401);
     });
 
     it('[GET] /students - Forbidden for non-admin users', async () => {
       // Criar usuário estudante
       const createStudentRes = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Student User',
           email: 'student@test.com',
@@ -482,8 +517,8 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${studentToken}`)
         .expect(403);
 
-      expect(res.body.message).toBe('Forbidden resource');
-      expect(res.body.statusCode).toBe(403);
+      expect(res.body.detail).toBe('Forbidden resource');
+      expect(res.body.status).toBe(403);
     });
 
     it('[GET] /students - Success with default pagination when no params provided', async () => {
@@ -830,8 +865,8 @@ describe('Students Controller (E2E)', () => {
         .get('/students/search?name=John')
         .expect(401);
 
-      expect(res.body.message).toBe('Unauthorized');
-      expect(res.body.statusCode).toBe(401);
+      expect(res.body.detail).toBe('Unauthorized');
+      expect(res.body.status).toBe(401);
     });
 
     it('[GET] /students/search - Unauthorized with invalid token', async () => {
@@ -840,14 +875,15 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', 'Bearer invalid-token-here')
         .expect(401);
 
-      expect(res.body.message).toBe('Unauthorized');
-      expect(res.body.statusCode).toBe(401);
+      expect(res.body.detail).toBe('Unauthorized');
+      expect(res.body.status).toBe(401);
     });
 
     it('[GET] /students/search - Forbidden for non-admin users', async () => {
       // Criar usuário estudante
       const createStudentRes = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Search Student',
           email: 'searchstudent@test.com',
@@ -867,8 +903,8 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${studentToken}`)
         .expect(403);
 
-      expect(res.body.message).toBe('Forbidden resource');
-      expect(res.body.statusCode).toBe(403);
+      expect(res.body.detail).toBe('Forbidden resource');
+      expect(res.body.status).toBe(403);
     });
 
     it('[GET] /students/search - Case insensitive name search', async () => {
@@ -918,6 +954,7 @@ describe('Students Controller (E2E)', () => {
       // Primeiro criar um usuário para deletar
       const createRes = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'To Delete',
           email: 'todelete@example.com',
@@ -959,14 +996,15 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(404);
 
-      expect(res.body.message).toBe('User not found');
-      expect(res.body.statusCode).toBe(404);
+      expect(res.body.detail).toBe('User not found');
+      expect(res.body.status).toBe(404);
     });
 
     it('[DELETE] /students/:id - Unauthorized without token', async () => {
       // Criar usuário para tentar deletar
       const createRes = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Delete Me',
           email: 'deleteme@example.com',
@@ -981,8 +1019,8 @@ describe('Students Controller (E2E)', () => {
         .delete(`/students/${userId}`)
         .expect(401);
 
-      expect(res.body.message).toBe('Unauthorized');
-      expect(res.body.statusCode).toBe(401);
+      expect(res.body.detail).toBe('Unauthorized');
+      expect(res.body.status).toBe(401);
 
       // Verificar que o usuário ainda existe
       const userStillExists = await prisma.user.findUnique({
@@ -995,6 +1033,7 @@ describe('Students Controller (E2E)', () => {
       // Criar usuário para tentar deletar
       const createRes = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Delete Test',
           email: 'deletetest@example.com',
@@ -1010,8 +1049,8 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', 'Bearer invalid-token')
         .expect(401);
 
-      expect(res.body.message).toBe('Unauthorized');
-      expect(res.body.statusCode).toBe(401);
+      expect(res.body.detail).toBe('Unauthorized');
+      expect(res.body.status).toBe(401);
 
       // Verificar que o usuário ainda existe
       const userStillExists = await prisma.user.findUnique({
@@ -1024,6 +1063,7 @@ describe('Students Controller (E2E)', () => {
       // Criar usuário estudante
       const createStudentRes = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Student Delete Test',
           email: 'studentdelete@test.com',
@@ -1057,8 +1097,8 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${studentToken}`)
         .expect(403);
 
-      expect(res.body.message).toBe('Forbidden resource');
-      expect(res.body.statusCode).toBe(403);
+      expect(res.body.detail).toBe('Forbidden resource');
+      expect(res.body.status).toBe(403);
 
       // Verificar que o usuário alvo ainda existe
       const targetUserStillExists = await prisma.user.findUnique({
@@ -1094,7 +1134,7 @@ describe('Students Controller (E2E)', () => {
       // Dependendo da regra de negócio, pode ser 403 (Forbidden) ou 200 (Success)
       // Ajuste conforme sua implementação
       if (res.status === 403) {
-        expect(res.body.statusCode).toBe(403);
+        expect(res.body.status).toBe(403);
       } else {
         expect(res.status).toBe(200);
       }
@@ -1255,8 +1295,8 @@ describe('Students Controller (E2E)', () => {
         expect(res.body).toHaveProperty('message');
       } else {
         // Se for 404, é usuário não encontrado
-        expect(res.body.message).toBe('User not found');
-        expect(res.body.statusCode).toBe(404);
+        expect(res.body.detail).toBe('User not found');
+        expect(res.body.status).toBe(404);
       }
     });
 
@@ -1271,8 +1311,8 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(404);
 
-      expect(res.body.message).toBe('User not found');
-      expect(res.body.statusCode).toBe(404);
+      expect(res.body.detail).toBe('User not found');
+      expect(res.body.status).toBe(404);
     });
 
     it('[GET] /students/:id - Bad Request for malformed UUID', async () => {
@@ -1297,8 +1337,8 @@ describe('Students Controller (E2E)', () => {
         .get(`/students/${testUserId}`)
         .expect(401);
 
-      expect(res.body.message).toBe('Unauthorized');
-      expect(res.body.statusCode).toBe(401);
+      expect(res.body.detail).toBe('Unauthorized');
+      expect(res.body.status).toBe(401);
     });
 
     it('[GET] /students/:id - Unauthorized with invalid token', async () => {
@@ -1307,14 +1347,15 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', 'Bearer invalid-token-here')
         .expect(401);
 
-      expect(res.body.message).toBe('Unauthorized');
-      expect(res.body.statusCode).toBe(401);
+      expect(res.body.detail).toBe('Unauthorized');
+      expect(res.body.status).toBe(401);
     });
 
     it('[GET] /students/:id - Success for non-admin users accessing their own data', async () => {
       // Criar usuário estudante
       const createStudentRes = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Get By ID Student',
           email: 'getbyidstudent@test.com',
@@ -1343,6 +1384,7 @@ describe('Students Controller (E2E)', () => {
       // Criar usuário estudante
       const createStudentRes = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Self Access Student',
           email: 'selfaccess@test.com',
@@ -1458,6 +1500,7 @@ describe('Students Controller (E2E)', () => {
       // Criar usuário com todos os campos preenchidos via atualização
       const createRes = await request(app.getHttpServer())
         .post('/students')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Full User',
           email: 'fulluser@example.com',
@@ -1470,7 +1513,10 @@ describe('Students Controller (E2E)', () => {
       const fullUserId = createRes.body.user.id;
 
       // Atualizar com campos opcionais
-      await request(app.getHttpServer()).patch(`/students/${fullUserId}`).send({
+      await request(app.getHttpServer())
+        .patch(`/students/${fullUserId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
         phone: '+5511888888888',
         // birthDate seria necessário adicionar no update se suportado
       });
