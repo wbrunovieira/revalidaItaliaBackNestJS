@@ -12,6 +12,7 @@ import { HttpModule as AxiosHttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { ModuleModule } from './module.module';
 import { DeleteVideoUseCase } from '@/domain/course-catalog/application/use-cases/delete-video.use-case';
+import { UpdateVideoUseCase } from '@/domain/course-catalog/application/use-cases/update-video.use-case';
 
 @Module({
   imports: [DatabaseModule, AxiosHttpModule, ConfigModule, ModuleModule],
@@ -21,6 +22,7 @@ import { DeleteVideoUseCase } from '@/domain/course-catalog/application/use-case
     GetVideoUseCase,
     ListVideosUseCase,
     DeleteVideoUseCase,
+    UpdateVideoUseCase,
 
     { provide: 'VideoRepository', useClass: PrismaVideoRepository },
     { provide: 'LessonRepository', useClass: PrismaLessonRepository },
@@ -31,6 +33,7 @@ import { DeleteVideoUseCase } from '@/domain/course-catalog/application/use-case
     GetVideoUseCase,
     ListVideosUseCase,
     DeleteVideoUseCase,
+    UpdateVideoUseCase,
     'VideoRepository',
     'LessonRepository',
   ],

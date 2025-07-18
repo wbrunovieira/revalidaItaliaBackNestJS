@@ -77,7 +77,7 @@ export class Video extends Entity<VideoProps> {
       this.props.slug = updates.slug;
       this.touch();
     }
-    if (updates.imageUrl !== undefined) {
+    if ('imageUrl' in updates) {
       this.props.imageUrl = updates.imageUrl;
       this.touch();
     }

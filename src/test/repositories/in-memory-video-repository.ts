@@ -184,7 +184,17 @@ export class InMemoryVideoRepository implements IVideoRepository {
         return left(new Error('Video not found'));
       }
 
+      // Update video entity
       this.items[index].video = video;
+      
+      // Update translations from video entity
+      const translations = video.translations.map(t => ({
+        locale: t.locale,
+        title: t.title,
+        description: t.description,
+      }));
+      this.items[index].translations = translations;
+      
       return right(undefined);
     } catch (err: any) {
       return left(new Error(`Failed to update video: ${err.message}`));

@@ -2,18 +2,7 @@
 
 #@BASE_URL = http://18.216.107.74:3333
 
-###
-# @name create-account
-POST {{BASE_URL}}/students
-Content-Type: application/json
-{
-  "name": "admin Super",
-  "email": "admin@revalidaitalia.com.br",
-  "password": "Senha123!",
-  "role": "admin",
-  "cpf": "12145678914"
-}
-###
+
 ###
 # @name create-account-tutor
 POST {{BASE_URL}}/students
@@ -25,6 +14,7 @@ Content-Type: application/json
   "password": "Senha123!",
   "role": "student",
   "cpf": "78655443458"
+  
 }
 ###
 
@@ -70,8 +60,6 @@ Content-Type: application/json
 @adminToken = {{adminLogin.response.body.accessToken}}
 
 ###
-
-∏
 
 ###
 
@@ -234,6 +222,13 @@ GET {{BASE_URL}}/students/{{createTestUser.response.body.user.id}}
 Authorization: Bearer {{adminToken}}
 
 ###
+
+### 31. Get Test User By ID 
+# @name getTestUserById
+GET {{BASE_URL}}/students/9ba7732-4624-445d-99ed-c8d94493f87a
+Authorization: Bearer {{adminToken}}
+
+
 
 ### 32. Delete Test User (cleanup)
 # @name deleteTestUser
