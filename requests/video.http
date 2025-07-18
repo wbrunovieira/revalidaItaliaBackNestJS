@@ -29,6 +29,62 @@ Content-Type: application/json
   ]
 }
 
+### update-video
+# @name update-video
+PUT {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/videos/43dd24be-0ef7-4e6e-b54c-cd5b2f879c68
+Content-Type: application/json
+
+{
+  "slug": "intro-derivadas-updated",
+  "imageUrl": "https://example.com/new-image.jpg",
+  "providerVideoId": "09a2f980-48fe-4724-adc8-e9d1f9d6daa8",
+  "durationInSeconds": 180,
+  "translations": [
+    {
+      "locale": "pt",
+      "title": "Vídeo Atualizado PT",
+      "description": "Descrição atualizada do vídeo sobre derivadas."
+    },
+    {
+      "locale": "it",
+      "title": "Video Aggiornato IT",
+      "description": "Descrizione aggiornata del video sulle derivate."
+    },
+    {
+      "locale": "es",
+      "title": "Video Actualizado ES",
+      "description": "Descripción actualizada del video sobre derivadas."
+    }
+  ]
+}
+
+### update-video-partial-slug
+# Exemplo de atualização parcial - apenas slug
+PUT {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/videos/43dd24be-0ef7-4e6e-b54c-cd5b2f879c68
+Content-Type: application/json
+
+{
+  "slug": "novo-slug-do-video"
+}
+
+### update-video-remove-lesson
+# Exemplo de remoção da associação com lesson
+PUT {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/videos/43dd24be-0ef7-4e6e-b54c-cd5b2f879c68
+Content-Type: application/json
+
+{
+  "lessonId": null
+}
+
+### update-video-move-to-another-lesson
+# Exemplo de mover vídeo para outra lesson
+PUT {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97a/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/videos/43dd24be-0ef7-4e6e-b54c-cd5b2f879c68
+Content-Type: application/json
+
+{
+  "lessonId": "nova-lesson-id-aqui"
+}
+
 ### get-video
 GET {{BASE_URL}}/courses/04799601-bc16-4872-a2ff-91dc69b8d97/lessons/e936312a-d6f2-44d7-997d-4c6ea6066a6f/videos/43dd24be-0ef7-4e6e-b54c-cd5b2f879c68
 Accept: application/json

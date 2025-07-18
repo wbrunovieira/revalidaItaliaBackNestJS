@@ -4,6 +4,7 @@ import {
   Controller,
   Post,
   Get,
+  Put,
   Param,
   Body,
   BadRequestException,
@@ -18,10 +19,13 @@ import {
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateVideoUseCase } from '@/domain/course-catalog/application/use-cases/create-video.use-case';
 import { GetVideoUseCase } from '@/domain/course-catalog/application/use-cases/get-video.use-case';
+import { UpdateVideoUseCase } from '@/domain/course-catalog/application/use-cases/update-video.use-case';
 
 import { CreateVideoRequest } from '@/domain/course-catalog/application/dtos/create-video-request.dto';
+import { UpdateVideoDto } from './dtos/update-video.dto';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
+import { LessonNotFoundError as UpdateLessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found.error';
 import { DuplicateVideoError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-video-error';
 import { VideoNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/video-not-found-error';
 import { ListVideosUseCase } from '@/domain/course-catalog/application/use-cases/list-videos.use-case';
@@ -33,6 +37,7 @@ export class VideoController {
   constructor(
     private readonly createVideo: CreateVideoUseCase,
     private readonly getVideo: GetVideoUseCase,
+    private readonly updateVideo: UpdateVideoUseCase,
     private readonly listVideos: ListVideosUseCase,
     private readonly deleteVideo: DeleteVideoUseCase,
     private readonly prisma: PrismaService,
@@ -136,6 +141,63 @@ export class VideoController {
     }
 
     return result.value.video;
+  }
+
+  @Put(':videoId')
+  @HttpCode(HttpStatus.OK)
+  async update(
+    @Param('courseId', ParseUUIDPipe) courseId: string,
+    @Param('lessonId', ParseUUIDPipe) lessonId: string,
+    @Param('videoId', ParseUUIDPipe) videoId: string,
+    @Body() body: UpdateVideoDto,
+  ) {
+    // 1. Validar se lesson existe e pertence ao course
+    await this.validateLesson(courseId, lessonId);
+
+    // 2. Validar se video pertence à lesson
+    const video = await this.prisma.video.findUnique({
+      where: { id: videoId },
+    });
+    if (!video || video.lessonId !== lessonId) {
+      throw new NotFoundException('Video not found in this lesson');
+    }
+
+    // 3. Se está atualizando para uma nova lesson, validar se ela existe e pertence ao course
+    if (body.lessonId !== undefined && body.lessonId !== null) {
+      await this.validateLesson(courseId, body.lessonId);
+    }
+
+    // 4. Executar use-case
+    const result = await this.updateVideo.execute({
+      videoId,
+      ...body,
+    });
+
+    // 5. Tratar erros
+    if (result.isLeft()) {
+      const err = result.value;
+
+      if (err instanceof InvalidInputError) {
+        throw new BadRequestException(err.details);
+      }
+
+      if (err instanceof VideoNotFoundError) {
+        throw new NotFoundException(err.message);
+      }
+
+      if (err instanceof UpdateLessonNotFoundError) {
+        throw new NotFoundException(err.message);
+      }
+
+      if (err instanceof DuplicateVideoError) {
+        throw new ConflictException(err.message);
+      }
+
+      throw new InternalServerErrorException(err.message);
+    }
+
+    // 6. Retornar sucesso
+    return result.value;
   }
 
   @Delete(':videoId')

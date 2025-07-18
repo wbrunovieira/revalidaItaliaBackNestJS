@@ -9,15 +9,18 @@ import { left, right } from '@/core/either';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
 import { DuplicateVideoError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-video-error';
 import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
+import { LessonNotFoundError as UpdateLessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found.error';
 import { VideoNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/video-not-found-error';
 import { VideoHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/video-has-dependencies-error';
 import { CreateVideoDto } from '@/domain/course-catalog/application/dtos/create-video.dto';
+import { UpdateVideoDto } from './dtos/update-video.dto';
 import { VideoController } from './video.controller';
 
 describe('VideoController', () => {
   let controller: VideoController;
   let createUc: any;
   let getUc: any;
+  let updateUc: any;
   let listUc: any;
   let deleteUc: any;
   let prisma: any;
@@ -39,6 +42,7 @@ describe('VideoController', () => {
   beforeEach(() => {
     createUc = { execute: vi.fn() };
     getUc = { execute: vi.fn() };
+    updateUc = { execute: vi.fn() };
     listUc = { execute: vi.fn() };
     deleteUc = { execute: vi.fn() };
 
@@ -53,7 +57,185 @@ describe('VideoController', () => {
       },
     };
 
-    controller = new VideoController(createUc, getUc, deleteUc, listUc, prisma);
+    controller = new VideoController(createUc, getUc, updateUc, listUc, deleteUc, prisma);
+  });
+
+  describe('update()', () => {
+    const updateDto: UpdateVideoDto = {
+      slug: 'updated-video-slug',
+      imageUrl: 'https://example.com/image.jpg',
+      providerVideoId: 'newProviderVideoId',
+      durationInSeconds: 120,
+      lessonId: 'new-lesson-id',
+      translations: [
+        { locale: 'pt', title: 'Título Atualizado', description: 'Descrição Atualizada' },
+        { locale: 'it', title: 'Titolo Aggiornato', description: 'Descrizione Aggiornata' },
+        { locale: 'es', title: 'Título Actualizado', description: 'Descripción Actualizada' },
+      ],
+    };
+
+    it('→ atualiza o vídeo e retorna mensagem de sucesso quando tudo OK', async () => {
+      updateUc.execute.mockResolvedValue(
+        right({ message: 'Video updated successfully' }),
+      );
+
+      const result = await controller.update(courseId, lessonId, videoId, updateDto);
+
+      expect(updateUc.execute).toHaveBeenCalledWith({
+        videoId,
+        ...updateDto,
+      });
+      expect(result).toEqual({ message: 'Video updated successfully' });
+    });
+
+    it('→ lança NotFoundException se lesson não existir', async () => {
+      prisma.lesson.findUnique.mockResolvedValue(null);
+
+      await expect(
+        controller.update(courseId, lessonId, videoId, updateDto),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('→ lança NotFoundException se lesson não pertencer ao course', async () => {
+      prisma.lesson.findUnique.mockResolvedValue({
+        id: lessonId,
+        module: { courseId: 'other-course' },
+      });
+
+      await expect(
+        controller.update(courseId, lessonId, videoId, updateDto),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('→ lança NotFoundException se vídeo não existir', async () => {
+      prisma.video.findUnique.mockResolvedValue(null);
+
+      await expect(
+        controller.update(courseId, lessonId, videoId, updateDto),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('→ lança NotFoundException se vídeo não pertencer à lesson', async () => {
+      prisma.video.findUnique.mockResolvedValue({
+        id: videoId,
+        lessonId: 'other-lesson',
+      });
+
+      await expect(
+        controller.update(courseId, lessonId, videoId, updateDto),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('→ valida nova lesson quando lessonId é fornecido', async () => {
+      const updateWithNewLesson = { ...updateDto, lessonId: 'new-lesson-id' };
+      
+      // Mock para a nova lesson
+      prisma.lesson.findUnique
+        .mockResolvedValueOnce({ id: lessonId, module: { courseId } }) // lesson atual
+        .mockResolvedValueOnce({ id: 'new-lesson-id', module: { courseId } }); // nova lesson
+
+      updateUc.execute.mockResolvedValue(
+        right({ message: 'Video updated successfully' }),
+      );
+
+      await controller.update(courseId, lessonId, videoId, updateWithNewLesson);
+
+      expect(prisma.lesson.findUnique).toHaveBeenCalledTimes(2);
+    });
+
+    it('→ lança NotFoundException se nova lesson não existir', async () => {
+      const updateWithNewLesson = { ...updateDto, lessonId: 'new-lesson-id' };
+      
+      prisma.lesson.findUnique
+        .mockResolvedValueOnce({ id: lessonId, module: { courseId } }) // lesson atual existe
+        .mockResolvedValueOnce(null); // nova lesson não existe
+
+      await expect(
+        controller.update(courseId, lessonId, videoId, updateWithNewLesson),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('→ lança BadRequestException em caso de InvalidInputError', async () => {
+      updateUc.execute.mockResolvedValue(
+        left(new InvalidInputError('Validation failed', [
+          { path: ['slug'], message: 'Invalid slug format' },
+        ])),
+      );
+
+      await expect(
+        controller.update(courseId, lessonId, videoId, updateDto),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('→ lança NotFoundException em caso de VideoNotFoundError', async () => {
+      updateUc.execute.mockResolvedValue(left(new VideoNotFoundError()));
+
+      await expect(
+        controller.update(courseId, lessonId, videoId, updateDto),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('→ lança NotFoundException em caso de LessonNotFoundError', async () => {
+      updateUc.execute.mockResolvedValue(
+        left(new UpdateLessonNotFoundError('lesson-id')),
+      );
+
+      await expect(
+        controller.update(courseId, lessonId, videoId, updateDto),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('→ lança ConflictException em caso de DuplicateVideoError', async () => {
+      updateUc.execute.mockResolvedValue(left(new DuplicateVideoError()));
+
+      await expect(
+        controller.update(courseId, lessonId, videoId, updateDto),
+      ).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('→ lança InternalServerErrorException em outros erros', async () => {
+      updateUc.execute.mockResolvedValue(
+        left(new Error('Database connection failed')),
+      );
+
+      await expect(
+        controller.update(courseId, lessonId, videoId, updateDto),
+      ).rejects.toBeInstanceOf(InternalServerErrorException);
+    });
+
+    it('→ permite atualização parcial do vídeo', async () => {
+      const partialUpdate: UpdateVideoDto = {
+        slug: 'new-slug',
+      };
+
+      updateUc.execute.mockResolvedValue(
+        right({ message: 'Video updated successfully' }),
+      );
+
+      await controller.update(courseId, lessonId, videoId, partialUpdate);
+
+      expect(updateUc.execute).toHaveBeenCalledWith({
+        videoId,
+        slug: 'new-slug',
+      });
+    });
+
+    it('→ permite remover lesson do vídeo com lessonId null', async () => {
+      const updateWithNullLesson: UpdateVideoDto = {
+        lessonId: null,
+      };
+
+      updateUc.execute.mockResolvedValue(
+        right({ message: 'Video updated successfully' }),
+      );
+
+      await controller.update(courseId, lessonId, videoId, updateWithNullLesson);
+
+      expect(updateUc.execute).toHaveBeenCalledWith({
+        videoId,
+        lessonId: null,
+      });
+    });
   });
 
   describe('create()', () => {
