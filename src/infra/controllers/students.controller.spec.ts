@@ -124,19 +124,26 @@ describe('StudentsController', () => {
 
       createAccountUseCase.execute.mockResolvedValue(left(validationError));
 
-      await expect(controller.create(createDto)).rejects.toThrow(
-        new HttpException(
-          {
-            message: 'Validation failed',
-            errors: {
-              details: [{ field: 'email', message: 'Invalid email format' }],
-            },
+      await expect(controller.create(createDto)).rejects.toMatchObject({
+        status: HttpStatus.BAD_REQUEST,
+        response: expect.objectContaining({
+          type: 'https://api.revalidaitalia.com/errors/validation-failed',
+          title: 'Validation Failed',
+          status: 400,
+          detail: 'One or more fields failed validation',
+          instance: '/students',
+          traceId: expect.any(String),
+          timestamp: expect.any(String),
+          errors: {
+            details: [{ field: 'email', message: 'Invalid email format' }],
           },
-          HttpStatus.BAD_REQUEST,
-        ),
-      );
+        }),
+      });
 
-      expect(createAccountUseCase.execute).toHaveBeenCalledWith(createDto);
+      expect(createAccountUseCase.execute).toHaveBeenCalledWith({
+        ...createDto,
+        role: 'student'
+      });
       expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
@@ -144,38 +151,71 @@ describe('StudentsController', () => {
       const duplicateEmailError = new DuplicateEmailError();
       createAccountUseCase.execute.mockResolvedValue(left(duplicateEmailError));
 
-      await expect(controller.create(createDto)).rejects.toThrow(
-        new HttpException(
-          duplicateEmailError.message || 'Failed to create account',
-          HttpStatus.CONFLICT,
-        ),
-      );
+      await expect(controller.create(createDto)).rejects.toMatchObject({
+        status: HttpStatus.CONFLICT,
+        response: expect.objectContaining({
+          type: 'https://api.revalidaitalia.com/errors/resource-conflict',
+          title: 'Resource Conflict',
+          status: 409,
+          detail: 'Unable to create resource due to conflict',
+          instance: '/students',
+          traceId: expect.any(String),
+          timestamp: expect.any(String),
+        }),
+      });
 
-      expect(createAccountUseCase.execute).toHaveBeenCalledWith(createDto);
+      expect(createAccountUseCase.execute).toHaveBeenCalledWith({
+        ...createDto,
+        role: 'student'
+      });
       expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw Conflict for generic errors', async () => {
+    it('should throw InternalServerError for generic errors', async () => {
       const genericError = new Error('Unknown error');
       createAccountUseCase.execute.mockResolvedValue(left(genericError));
 
-      await expect(controller.create(createDto)).rejects.toThrow(
-        new HttpException('Unknown error', HttpStatus.CONFLICT),
-      );
+      await expect(controller.create(createDto)).rejects.toMatchObject({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        response: expect.objectContaining({
+          type: 'https://api.revalidaitalia.com/errors/internal-error',
+          title: 'Internal Server Error',
+          status: 500,
+          detail: 'An error occurred while processing your request',
+          instance: '/students',
+          traceId: expect.any(String),
+          timestamp: expect.any(String),
+        }),
+      });
 
-      expect(createAccountUseCase.execute).toHaveBeenCalledWith(createDto);
+      expect(createAccountUseCase.execute).toHaveBeenCalledWith({
+        ...createDto,
+        role: 'student'
+      });
       expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw Conflict with default message when error has no message', async () => {
+    it('should throw InternalServerError when error has no message', async () => {
       const errorWithoutMessage = new Error('');
       createAccountUseCase.execute.mockResolvedValue(left(errorWithoutMessage));
 
-      await expect(controller.create(createDto)).rejects.toThrow(
-        new HttpException('Failed to create account', HttpStatus.CONFLICT),
-      );
+      await expect(controller.create(createDto)).rejects.toMatchObject({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        response: expect.objectContaining({
+          type: 'https://api.revalidaitalia.com/errors/internal-error',
+          title: 'Internal Server Error',
+          status: 500,
+          detail: 'An error occurred while processing your request',
+          instance: '/students',
+          traceId: expect.any(String),
+          timestamp: expect.any(String),
+        }),
+      });
 
-      expect(createAccountUseCase.execute).toHaveBeenCalledWith(createDto);
+      expect(createAccountUseCase.execute).toHaveBeenCalledWith({
+        ...createDto,
+        role: 'student'
+      });
       expect(createAccountUseCase.execute).toHaveBeenCalledTimes(1);
     });
   });

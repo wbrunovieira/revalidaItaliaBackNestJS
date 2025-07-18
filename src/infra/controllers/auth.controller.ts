@@ -52,24 +52,21 @@ export class AuthController {
     description: 'Login credentials',
     examples: {
       student: {
-        summary: 'Student login',
-        description: 'Medical student accessing course content',
+        summary: 'Student login - Medical student accessing course content',
         value: {
           email: 'mario.rossi@medicina.it',
           password: 'SecurePass123!'
         }
       },
       admin: {
-        summary: 'Admin login',
-        description: 'System administrator login',
+        summary: 'Admin login - System administrator',
         value: {
           email: 'admin@revalidaitalia.com',
           password: 'AdminSecure456!'
         }
       },
       testAccount: {
-        summary: 'Test account (dev only)',
-        description: 'Use this account for testing in development environment',
+        summary: 'Test account (dev environment only)',
         value: {
           email: 'test.student@example.com',
           password: 'TestPassword123'
@@ -88,8 +85,7 @@ export class AuthController {
     type: AuthErrorResponseDto,
     examples: {
       invalidCredentials: {
-        summary: 'Any authentication failure',
-        description: 'Same response for: invalid email format, password too short, user not found, wrong password, or suspicious characters',
+        summary: 'Any authentication failure (email invalid, password too short, user not found, wrong password)',
         value: {
           statusCode: 401,
           message: 'Invalid credentials',
