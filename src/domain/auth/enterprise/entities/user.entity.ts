@@ -83,6 +83,7 @@ export class User extends Entity<UserProps> {
     role?: UserProps['role'];
     phone?: string;
     profileImageUrl?: string;
+    birthDate?: Date;
   }) {
     if (updates.name !== undefined) {
       this.props.name = updates.name;
@@ -106,6 +107,10 @@ export class User extends Entity<UserProps> {
     }
     if (updates.profileImageUrl !== undefined) {
       this.props.profileImageUrl = updates.profileImageUrl;
+      this.touch();
+    }
+    if (updates.birthDate !== undefined) {
+      this.props.birthDate = updates.birthDate;
       this.touch();
     }
   }
