@@ -2,7 +2,7 @@
 import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
 import { RepositoryError } from './errors/repository-error';
-import { IAccountRepository } from '../repositories/i-account-repository';
+import { IUserRepository } from '../repositories/i-user-repository';
 import { PaginationParams } from '@/core/repositories/pagination-params';
 
 export interface ListUsersRequest {
@@ -17,7 +17,7 @@ export type ListUsersResponse = Either<
       id: string;
       name: string;
       email: string;
-      cpf: string;
+      nationalId: string;
       phone?: string;
       profileImageUrl?: string;
       role: 'admin' | 'tutor' | 'student';
@@ -35,8 +35,8 @@ export type ListUsersResponse = Either<
 @Injectable()
 export class ListUsersUseCase {
   constructor(
-    @Inject(IAccountRepository)
-    private readonly accountRepo: IAccountRepository,
+    @Inject(IUserRepository)
+    private readonly userRepo: IUserRepository,
   ) {}
 
   async execute(request: ListUsersRequest = {}): Promise<ListUsersResponse> {
@@ -54,7 +54,7 @@ export class ListUsersUseCase {
         pageSize,
       };
 
-      const result = await this.accountRepo.findAll(paginationParams);
+      const result = await this.userRepo.findAll(paginationParams);
 
       if (result.isLeft()) {
         return left(new RepositoryError(result.value.message));
@@ -64,7 +64,7 @@ export class ListUsersUseCase {
         id: user.id.toString(),
         name: user.name,
         email: user.email,
-        cpf: user.cpf,
+        nationalId: user.nationalId,
         phone: user.phone,
         profileImageUrl: user.profileImageUrl,
         role: user.role,

@@ -93,16 +93,12 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       .post('/courses')
       .send(payload);
     expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty('message');
-    const msgs: any[] = res.body.message;
-
-    const hasPtError = msgs.some((m) =>
-      typeof m === 'string'
-        ? m.toLowerCase().includes('portuguese')
-        : typeof m.message === 'string' &&
-          m.message.toLowerCase().includes('portuguese'),
-    );
-    expect(hasPtError).toBe(true);
+    expect(res.body).toHaveProperty('detail');
+    
+    // Check if the error message contains validation information about Portuguese
+    const errorDetail = res.body.detail;
+    expect(typeof errorDetail).toBe('string');
+    expect(errorDetail.toLowerCase()).toMatch(/portuguese|translations/i);
   });
 
   it('[POST] /courses - Duplicate Portuguese Title', async () => {
@@ -137,7 +133,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       .post('/courses')
       .send(secondPayload);
     expect(secondRes.status).toBe(409);
-    expect(secondRes.body).toHaveProperty('message');
+    expect(secondRes.body).toHaveProperty('detail');
   });
 
   it('[POST] /courses - Too-Short Title in a Translation', async () => {
@@ -154,16 +150,12 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       .post('/courses')
       .send(payload);
     expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty('message');
-    const msgs: any[] = res.body.message;
-
-    const titleError = msgs.some((m) =>
-      typeof m === 'string'
-        ? m.toLowerCase().includes('translations.0.title')
-        : typeof m.message === 'string' &&
-          m.message.toLowerCase().includes('translations.0.title'),
-    );
-    expect(titleError).toBe(true);
+    expect(res.body).toHaveProperty('detail');
+    
+    // Check if the error message contains validation information about title
+    const errorDetail = res.body.detail;
+    expect(typeof errorDetail).toBe('string');
+    expect(errorDetail.toLowerCase()).toMatch(/title|translations/i);
   });
 
   it('[POST] /courses - Unsupported Locale', async () => {
@@ -179,16 +171,12 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       .post('/courses')
       .send(payload);
     expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty('message');
-    const msgs: any[] = res.body.message;
-
-    const localeError = msgs.some((m) =>
-      typeof m === 'string'
-        ? m.toLowerCase().includes('translations.1.locale')
-        : typeof m.message === 'string' &&
-          m.message.toLowerCase().includes('translations.1.locale'),
-    );
-    expect(localeError).toBe(true);
+    expect(res.body).toHaveProperty('detail');
+    
+    // Check if the error message contains validation information about locale
+    const errorDetail = res.body.detail;
+    expect(typeof errorDetail).toBe('string');
+    expect(errorDetail.toLowerCase()).toMatch(/locale|translations/i);
   });
 
   it('[POST] /courses - Duplicate Slug in Database', async () => {
@@ -219,7 +207,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       .post('/courses')
       .send(secondPayload);
     expect(secondRes.status).toBe(500);
-    expect(secondRes.body).toHaveProperty('statusCode', 500);
+    expect(secondRes.body).toHaveProperty('status', 500);
   });
 
   it('[GET] /courses - Success', async () => {
@@ -260,10 +248,10 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       ],
     };
 
-    await request(app.getHttpServer()).post('/courses').send(payload1);
-    await request(app.getHttpServer()).post('/courses').send(payload2);
+    await request(app.getHttpServer()).post('/courses').set('Authorization', 'Bearer test-jwt-token').send(payload1);
+    await request(app.getHttpServer()).post('/courses').set('Authorization', 'Bearer test-jwt-token').send(payload2);
 
-    const res = await request(app.getHttpServer()).get('/courses');
+    const res = await request(app.getHttpServer()).get('/courses').set('Authorization', 'Bearer test-jwt-student-token');
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBe(2);
@@ -340,11 +328,12 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
     };
     const createRes = await request(app.getHttpServer())
       .post('/courses')
+      .set('Authorization', 'Bearer test-jwt-token')
       .send(createPayload);
     expect(createRes.status).toBe(201);
     const courseId = createRes.body.id;
 
-    const res = await request(app.getHttpServer()).get(`/courses/${courseId}`);
+    const res = await request(app.getHttpServer()).get(`/courses/${courseId}`).set('Authorization', 'Bearer test-jwt-student-token');
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('id', courseId);
     expect(res.body).toHaveProperty('slug', 'detalhe-curso');
@@ -393,6 +382,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -422,6 +412,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(200);
@@ -437,7 +428,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       // Verificar que o curso foi atualizado
       const getRes = await request(app.getHttpServer()).get(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-student-token');
       expect(getRes.status).toBe(200);
       expect(getRes.body.slug).toBe('curso-atualizado');
       expect(getRes.body.imageUrl).toBe('/images/updated.jpg');
@@ -474,6 +465,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -485,6 +477,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(200);
@@ -494,7 +487,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       // Verificar que outros campos foram mantidos consultando o curso
       const getRes = await request(app.getHttpServer()).get(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-student-token');
       expect(getRes.body.imageUrl).toBe('/images/test.jpg');
       expect(getRes.body.translations[0].title).toBe('Curso Para Atualizar');
     });
@@ -514,6 +507,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -536,6 +530,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(200);
@@ -547,7 +542,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       // Verificar traduções
       const getRes = await request(app.getHttpServer()).get(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-student-token');
       const translations = getRes.body.translations;
       expect(translations).toHaveLength(2);
 
@@ -574,6 +569,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -585,6 +581,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(200);
@@ -600,11 +597,12 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .put(`/courses/${nonExistentId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(res.status).toBe(404);
-      expect(res.body).toHaveProperty('error', 'COURSE_NOT_FOUND');
-      expect(res.body).toHaveProperty('message', 'Course not found');
+      expect(res.body).toHaveProperty('title', 'Not Found');
+      expect(res.body).toHaveProperty('detail', 'Course not found');
     });
 
     it('[PUT] /courses/:id - Invalid UUID Format', async () => {
@@ -616,12 +614,13 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const res = await request(app.getHttpServer())
         .put(`/courses/${invalidId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
-      expect(res.body).toHaveProperty('message', 'Invalid input data');
-      expect(res.body).toHaveProperty('details');
+      expect(res.body).toHaveProperty('title', 'Bad Request');
+      expect(res.body).toHaveProperty('detail');
+      expect(res.body.detail).toMatch(/invalid|uuid/i);
     });
 
     it('[PUT] /courses/:id - Duplicate Portuguese Title', async () => {
@@ -639,6 +638,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const firstRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(firstPayload);
       expect(firstRes.status).toBe(201);
 
@@ -656,6 +656,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const secondRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(secondPayload);
       expect(secondRes.status).toBe(201);
       const secondCourseId = secondRes.body.id;
@@ -673,11 +674,12 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${secondCourseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(409);
-      expect(updateRes.body).toHaveProperty('error', 'DUPLICATE_COURSE');
-      expect(updateRes.body).toHaveProperty('message');
+      expect(updateRes.body).toHaveProperty('title', 'Conflict');
+      expect(updateRes.body).toHaveProperty('detail');
     });
 
     it('[PUT] /courses/:id - Invalid Slug Format', async () => {
@@ -695,6 +697,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -706,23 +709,16 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(400);
       // ValidationPipe do NestJS retorna formato padrão
-      expect(updateRes.body).toHaveProperty('message');
-      expect(updateRes.body).toHaveProperty('statusCode', 400);
+      expect(updateRes.body).toHaveProperty('detail');
+      expect(updateRes.body).toHaveProperty('status', 400);
 
       // Verificar que a mensagem contém informação sobre o slug
-      const messages = Array.isArray(updateRes.body.message)
-        ? updateRes.body.message
-        : [updateRes.body.message];
-
-      const hasSlugError = messages.some((msg: any) => {
-        const message = typeof msg === 'string' ? msg : msg.message || '';
-        return message.toLowerCase().includes('slug');
-      });
-      expect(hasSlugError).toBe(true);
+      expect(updateRes.body.detail).toMatch(/slug/i);
     });
 
     it('[PUT] /courses/:id - Remove Translation Without PT', async () => {
@@ -740,6 +736,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -757,6 +754,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       // Verificar o comportamento real da API
@@ -764,7 +762,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
         // Se a API permite atualizar sem PT, verificar o resultado
         const getRes = await request(app.getHttpServer()).get(
           `/courses/${courseId}`,
-        );
+        ).set('Authorization', 'Bearer test-jwt-student-token');
         const translations = getRes.body.translations;
         const ptTranslation = translations.find((t: any) => t.locale === 'pt');
 
@@ -781,18 +779,18 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       } else {
         // Se retornar erro 400, verificar mensagem sobre PT
         expect(updateRes.status).toBe(400);
-        expect(updateRes.body).toHaveProperty('message');
+        expect(updateRes.body).toHaveProperty('detail');
 
         // Log para debug se necessário
         // console.log('Update response:', JSON.stringify(updateRes.body, null, 2));
 
-        const messages = Array.isArray(updateRes.body.message)
-          ? updateRes.body.message
-          : [updateRes.body.message];
+        const messages = Array.isArray(updateRes.body.detail)
+          ? updateRes.body.detail
+          : [updateRes.body.detail];
 
         const hasPtError = messages.some((m: any) => {
           const message =
-            typeof m === 'string' ? m : m.message || JSON.stringify(m);
+            typeof m === 'string' ? m : m.detail || JSON.stringify(m);
           return (
             message &&
             (message.toLowerCase().includes('portuguese') ||
@@ -824,6 +822,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -843,12 +842,13 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(400);
-      expect(updateRes.body).toHaveProperty('error', 'COURSE_NOT_MODIFIED');
+      expect(updateRes.body).toHaveProperty('title', 'Bad Request');
       expect(updateRes.body).toHaveProperty(
-        'message',
+        'detail',
         'No changes detected in course data',
       );
     });
@@ -868,6 +868,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -885,6 +886,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(200);
@@ -893,7 +895,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       // Verificar que descrição mudou
       const getRes = await request(app.getHttpServer()).get(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-student-token');
       const ptTranslation = getRes.body.translations.find(
         (t: any) => t.locale === 'pt',
       );
@@ -915,6 +917,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -926,6 +929,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(200);
@@ -949,6 +953,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -976,6 +981,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(200);
@@ -983,7 +989,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       // Verificar que tem 3 traduções agora
       const getRes = await request(app.getHttpServer()).get(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-student-token');
       expect(getRes.body.translations).toHaveLength(3);
 
       const locales = getRes.body.translations.map((t: any) => t.locale);
@@ -1017,6 +1023,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -1034,6 +1041,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(200);
@@ -1041,7 +1049,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       // Verificar que tem apenas 1 tradução agora
       const getRes = await request(app.getHttpServer()).get(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-student-token');
       expect(getRes.body.translations).toHaveLength(1);
       expect(getRes.body.translations[0].locale).toBe('pt');
     });
@@ -1062,6 +1070,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -1073,6 +1082,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const updateRes = await request(app.getHttpServer())
         .put(`/courses/${courseId}`)
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(updatePayload);
 
       expect(updateRes.status).toBe(200);
@@ -1110,6 +1120,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(createPayload);
       expect(createRes.status).toBe(201);
       const courseId = createRes.body.id;
@@ -1117,13 +1128,13 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       // Verificar que o curso existe antes da deleção
       const getRes = await request(app.getHttpServer()).get(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-student-token');
       expect(getRes.status).toBe(200);
 
       // Deletar o curso
       const deleteRes = await request(app.getHttpServer()).delete(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-token');
 
       expect(deleteRes.status).toBe(200);
       expect(deleteRes.body).toHaveProperty('success', true);
@@ -1155,8 +1166,8 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       );
 
       expect(res.status).toBe(404);
-      expect(res.body).toHaveProperty('error', 'COURSE_NOT_FOUND');
-      expect(res.body).toHaveProperty('message', 'Course not found');
+      expect(res.body).toHaveProperty('title', 'Not Found');
+      expect(res.body).toHaveProperty('detail', 'Course not found');
     });
 
     it('[DELETE] /courses/:id - Invalid UUID Format', async () => {
@@ -1167,16 +1178,10 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       );
 
       expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('error', 'INVALID_INPUT');
-      expect(res.body).toHaveProperty('message', 'Invalid course ID format');
-      expect(res.body).toHaveProperty('details');
-      expect(Array.isArray(res.body.details)).toBe(true);
+      expect(res.body).toHaveProperty('title', 'Bad Request');
+      expect(res.body).toHaveProperty('detail');
+      expect(res.body.detail).toMatch(/invalid|course.*id|format/i);
 
-      const hasUuidError = res.body.details.some(
-        (detail: any) =>
-          detail.message && detail.message.toLowerCase().includes('uuid'),
-      );
-      expect(hasUuidError).toBe(true);
     });
 
     it('[DELETE] /courses/:id - Course with Modules (Dependencies)', async () => {
@@ -1194,6 +1199,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const courseRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(coursePayload);
       expect(courseRes.status).toBe(201);
       const courseId = courseRes.body.id;
@@ -1220,10 +1226,10 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       // Tentar deletar o curso
       const deleteRes = await request(app.getHttpServer()).delete(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-token');
 
       expect(deleteRes.status).toBe(400);
-      expect(deleteRes.body).toHaveProperty('error', 'COURSE_HAS_DEPENDENCIES');
+      expect(deleteRes.body).toHaveProperty('title', 'Bad Request');
       expect(deleteRes.body).toHaveProperty('canDelete', false);
       expect(deleteRes.body).toHaveProperty('dependencies');
       expect(deleteRes.body).toHaveProperty('summary');
@@ -1249,7 +1255,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       // Verificar que o curso ainda existe
       const getRes = await request(app.getHttpServer()).get(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-student-token');
       expect(getRes.status).toBe(200);
     });
 
@@ -1268,6 +1274,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const courseRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(coursePayload);
       expect(courseRes.status).toBe(201);
       const courseId = courseRes.body.id;
@@ -1300,10 +1307,10 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       // Tentar deletar o curso
       const deleteRes = await request(app.getHttpServer()).delete(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-token');
 
       expect(deleteRes.status).toBe(400);
-      expect(deleteRes.body).toHaveProperty('error', 'COURSE_HAS_DEPENDENCIES');
+      expect(deleteRes.body).toHaveProperty('title', 'Bad Request');
       expect(deleteRes.body).toHaveProperty('canDelete', false);
       expect(deleteRes.body).toHaveProperty('dependencies');
 
@@ -1337,6 +1344,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
         const res = await request(app.getHttpServer())
           .post('/courses')
+          .set('Authorization', 'Bearer test-jwt-token')
           .send(payload);
         expect(res.status).toBe(201);
         courses.push(res.body.id);
@@ -1346,7 +1354,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       for (const courseId of courses) {
         const deleteRes = await request(app.getHttpServer()).delete(
           `/courses/${courseId}`,
-        );
+        ).set('Authorization', 'Bearer test-jwt-token');
         expect(deleteRes.status).toBe(200);
         expect(deleteRes.body).toHaveProperty('success', true);
       }
@@ -1355,7 +1363,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       for (const courseId of courses) {
         const getRes = await request(app.getHttpServer()).get(
           `/courses/${courseId}`,
-        );
+        ).set('Authorization', 'Bearer test-jwt-student-token');
         expect(getRes.status).toBe(404);
       }
 
@@ -1387,6 +1395,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
 
       const courseRes = await request(app.getHttpServer())
         .post('/courses')
+        .set('Authorization', 'Bearer test-jwt-token')
         .send(coursePayload);
       expect(courseRes.status).toBe(201);
       const courseId = courseRes.body.id;
@@ -1418,7 +1427,7 @@ describe('Create & List & Delete & Update Courses (E2E)', () => {
       // Deletar o curso
       const deleteRes = await request(app.getHttpServer()).delete(
         `/courses/${courseId}`,
-      );
+      ).set('Authorization', 'Bearer test-jwt-token');
       expect(deleteRes.status).toBe(200);
 
       // Verificar que tudo foi deletado

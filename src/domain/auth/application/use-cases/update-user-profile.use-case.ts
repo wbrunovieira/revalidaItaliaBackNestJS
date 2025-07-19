@@ -2,14 +2,14 @@
 
 import { Either, left, right } from '@/core/either';
 import { Injectable } from '@nestjs/common';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { IUserRepository } from '@/domain/auth/application/repositories/i-user-repository';
 import { User } from '@/domain/auth/enterprise/entities/user.entity';
 import { UpdateUserProfileRequest } from '../dtos/update-user-profile-request.dto';
 import { UpdateUserProfileResponse } from '../dtos/update-user-profile-response.dto';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { ResourceNotFoundError } from './errors/resource-not-found-error';
 import { DuplicateEmailError } from './errors/duplicate-email-error';
-import { DuplicateCPFError } from './errors/duplicate-cpf-error';
+import { DuplicateNationalIdError } from './errors/duplicate-national-id-error';
 import { RepositoryError } from './errors/repository-error';
 import { UnauthorizedError } from './errors/unauthorized-error';
 import { updateUserProfileSchema } from './validations/update-user-profile.schema';
@@ -19,7 +19,7 @@ type UpdateUserProfileUseCaseResponse = Either<
   | InvalidInputError
   | ResourceNotFoundError
   | DuplicateEmailError
-  | DuplicateCPFError
+  | DuplicateNationalIdError
   | UnauthorizedError
   | RepositoryError
   | Error,
@@ -28,7 +28,7 @@ type UpdateUserProfileUseCaseResponse = Either<
 
 @Injectable()
 export class UpdateUserProfileUseCase {
-  constructor(private readonly accountRepository: IAccountRepository) {}
+  constructor(private readonly userRepository: IUserRepository) {}
 
   async execute(
     request: UpdateUserProfileRequest,
@@ -36,12 +36,12 @@ export class UpdateUserProfileUseCase {
     try {
       // Validação com Zod
       const validatedData = updateUserProfileSchema.parse(request);
-      const { userId, name, email, cpf, phone, birthDate, profileImageUrl } = validatedData;
+      const { userId, name, email, nationalId, phone, birthDate, profileImageUrl } = validatedData;
 
       // Buscar usuário existente
       let existingUser: User | undefined;
       try {
-        const found = await this.accountRepository.findById(userId);
+        const found = await this.userRepository.findById(userId);
         if (found.isLeft()) {
           return left(found.value);
         }
@@ -57,8 +57,8 @@ export class UpdateUserProfileUseCase {
       // Verificar unicidade do email se estiver sendo alterado
       if (email && email !== existingUser.email) {
         try {
-          const byEmail = await this.accountRepository.findByEmail(email);
-          if (byEmail.isRight()) {
+          const byEmail = await this.userRepository.findByEmail(email);
+          if (byEmail.isRight() && byEmail.value) {
             return left(new DuplicateEmailError());
           }
         } catch (err: any) {
@@ -66,12 +66,12 @@ export class UpdateUserProfileUseCase {
         }
       }
 
-      // Verificar unicidade do CPF se estiver sendo alterado
-      if (cpf && cpf !== existingUser.cpf) {
+      // Verificar unicidade do nationalId se estiver sendo alterado
+      if (nationalId && nationalId !== existingUser.nationalId) {
         try {
-          const byCpf = await this.accountRepository.findByCpf(cpf);
-          if (byCpf.isRight()) {
-            return left(new DuplicateCPFError());
+          const byNationalId = await this.userRepository.findByNationalId(nationalId);
+          if (byNationalId.isRight() && byNationalId.value) {
+            return left(new DuplicateNationalIdError());
           }
         } catch (err: any) {
           return left(new RepositoryError(err.message));
@@ -82,7 +82,7 @@ export class UpdateUserProfileUseCase {
       existingUser.updateProfile({
         name,
         email,
-        cpf,
+        nationalId,
         phone,
         profileImageUrl,
         birthDate,
@@ -90,7 +90,7 @@ export class UpdateUserProfileUseCase {
 
       // Salvar as alterações
       try {
-        const saved = await this.accountRepository.save(existingUser);
+        const saved = await this.userRepository.save(existingUser);
         if (saved.isLeft()) {
           return left(new RepositoryError(saved.value.message));
         }

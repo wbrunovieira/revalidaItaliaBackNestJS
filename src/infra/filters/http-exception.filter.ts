@@ -1,3 +1,4 @@
+// src/infra/filters/http-exception.filter.ts
 import {
   ExceptionFilter,
   Catch,
@@ -7,14 +8,9 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+
 import { SimpleLogger } from '@/infra/logger/simple-logger';
-import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error';
-import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error';
-import { DuplicateCPFError } from '@/domain/auth/application/use-cases/errors/duplicate-cpf-error';
-import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
-import { RepositoryError } from '@/domain/auth/application/use-cases/errors/repository-error';
-import { AuthenticationError } from '@/domain/auth/application/use-cases/errors/authentication-error';
-import { UnauthorizedError } from '@/domain/auth/application/use-cases/errors/unauthorized-error';
+import { errorMappings } from './error-mappings';
 
 interface ErrorResponse {
   type: string;
@@ -26,6 +22,14 @@ interface ErrorResponse {
   timestamp: string;
   errors?: any;
 }
+
+/**
+ * HTTP Exception Filter
+ * 
+ * Global exception filter that maps domain errors to HTTP responses following
+ * RFC 7807 Problem Details format. Uses modular error mappings to handle
+ * domain-specific errors from all bounded contexts.
+ */
 
 @Injectable()
 @Catch()
@@ -61,7 +65,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     traceId: string
   ): ErrorResponse {
     const timestamp = new Date().toISOString();
-    const baseUrl = 'https://api.revalidaitalia.com/errors';
+    const baseUrl = 'https://api.portalrevalida.com/errors';
 
     // Handle HttpException (already formatted)
     if (exception instanceof HttpException) {
@@ -76,6 +80,26 @@ export class HttpExceptionFilter implements ExceptionFilter {
         } as ErrorResponse;
       }
 
+      // Handle validation errors from ValidationPipe (BadRequestException)
+      if (status === 400 && typeof exceptionResponse === 'object' && 'message' in exceptionResponse) {
+        const messages = Array.isArray(exceptionResponse.message) 
+          ? exceptionResponse.message 
+          : [exceptionResponse.message];
+        
+        // If we have detailed validation messages, include them in detail
+        if (messages.length > 0 && typeof messages[0] === 'string') {
+          return {
+            type: `${baseUrl}/http-error`,
+            title: this.getHttpTitle(status),
+            status,
+            detail: messages.join(', '),
+            instance,
+            traceId,
+            timestamp,
+          };
+        }
+      }
+
       return {
         type: `${baseUrl}/http-error`,
         title: this.getHttpTitle(status),
@@ -87,78 +111,32 @@ export class HttpExceptionFilter implements ExceptionFilter {
       };
     }
 
-    // Handle domain errors
-    if (exception instanceof InvalidInputError) {
-      return {
-        type: `${baseUrl}/validation-failed`,
-        title: 'Validation Failed',
-        status: HttpStatus.BAD_REQUEST,
-        detail: 'One or more fields failed validation',
-        instance,
-        traceId,
-        timestamp,
-        errors: { details: this.sanitizeValidationErrors(exception.details) },
-      };
-    }
-
-    if (exception instanceof DuplicateEmailError || exception instanceof DuplicateCPFError) {
-      return {
-        type: `${baseUrl}/resource-conflict`,
-        title: 'Resource Conflict',
-        status: HttpStatus.CONFLICT,
-        detail: 'Unable to create resource due to conflict',
+    // Handle domain errors using modular mappings
+    const errorName = exception.constructor.name;
+    const mapping = errorMappings[errorName];
+    
+    if (mapping) {
+      const detail = mapping.extractDetail 
+        ? mapping.extractDetail(exception)
+        : mapping.detail || exception.message;
+        
+      const response: ErrorResponse = {
+        type: `${baseUrl}/${mapping.type}`,
+        title: mapping.title,
+        status: mapping.status,
+        detail,
         instance,
         traceId,
         timestamp,
       };
-    }
-
-    if (exception instanceof ResourceNotFoundError) {
-      return {
-        type: `${baseUrl}/resource-not-found`,
-        title: 'Resource Not Found',
-        status: HttpStatus.NOT_FOUND,
-        detail: 'The requested resource was not found',
-        instance,
-        traceId,
-        timestamp,
-      };
-    }
-
-    if (exception instanceof AuthenticationError) {
-      return {
-        type: `${baseUrl}/authentication-failed`,
-        title: 'Authentication Failed',
-        status: HttpStatus.UNAUTHORIZED,
-        detail: 'Invalid credentials',
-        instance,
-        traceId,
-        timestamp,
-      };
-    }
-
-    if (exception instanceof UnauthorizedError) {
-      return {
-        type: `${baseUrl}/forbidden`,
-        title: 'Forbidden',
-        status: HttpStatus.FORBIDDEN,
-        detail: exception.message || 'You do not have permission to perform this action',
-        instance,
-        traceId,
-        timestamp,
-      };
-    }
-
-    if (exception instanceof RepositoryError) {
-      return {
-        type: `${baseUrl}/internal-error`,
-        title: 'Internal Server Error',
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        detail: 'An error occurred while processing your request',
-        instance,
-        traceId,
-        timestamp,
-      };
+      
+      // Add additional data if extractor is provided
+      if (mapping.extractAdditionalData) {
+        const additionalData = mapping.extractAdditionalData(exception);
+        Object.assign(response, additionalData);
+      }
+      
+      return response;
     }
 
     // Default error
@@ -173,20 +151,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
     };
   }
 
-  private sanitizeValidationErrors(details: any[]): any[] {
-    if (!details) return [];
-
-    return details.map((detail) => {
-      // Don't expose password validation details
-      if (detail.path?.includes('password')) {
-        return {
-          ...detail,
-          message: 'Invalid password',
-        };
-      }
-      return detail;
-    });
-  }
 
   private getHttpTitle(status: number): string {
     const titles: Record<number, string> = {

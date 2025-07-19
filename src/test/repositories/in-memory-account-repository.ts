@@ -2,13 +2,13 @@
 import { Either, left, right } from '@/core/either';
 import { PaginationParams } from '@/core/repositories/pagination-params';
 import {
-  IAccountRepository,
+  IUserRepository,
   SearchFilters,
-} from '@/domain/auth/application/repositories/i-account-repository';
+} from '@/domain/auth/application/repositories/i-user-repository';
 import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
 import { User } from '@/domain/auth/enterprise/entities/user.entity';
 
-export class InMemoryAccountRepository implements IAccountRepository {
+export class InMemoryUserRepository implements IUserRepository {
   public items: User[] = [];
 
   async findByVerificationToken(token: string): Promise<User | null> {

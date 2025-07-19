@@ -1,19 +1,16 @@
+// src/infra/database/database.module.ts
 import { Module } from '@nestjs/common';
 
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
-
 import { PrismaService } from '@/prisma/prisma.service';
-import { PrismaAccountRepository } from './prisma/repositories/prisma-account-repositories';
 
+/**
+ * Database Module
+ * 
+ * Provides database connection through PrismaService.
+ * Repository implementations should be provided by their respective domain modules.
+ */
 @Module({
-  providers: [
-    PrismaService,
-    PrismaAccountRepository,
-    {
-      provide: IAccountRepository,
-      useClass: PrismaAccountRepository,
-    },
-  ],
-  exports: [PrismaService, IAccountRepository, PrismaAccountRepository],
+  providers: [PrismaService],
+  exports: [PrismaService],
 })
 export class DatabaseModule {}

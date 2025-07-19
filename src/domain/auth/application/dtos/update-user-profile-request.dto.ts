@@ -4,7 +4,7 @@ export interface UpdateUserProfileRequest {
   userId: string; // ID do usuário autenticado
   name?: string;
   email?: string;
-  cpf?: string;
+  nationalId?: string;
   phone?: string;
   birthDate?: Date;
   profileImageUrl?: string;

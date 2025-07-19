@@ -13,7 +13,7 @@ export class FindUsersRequestDto {
 
   @IsOptional()
   @IsString()
-  cpf?: string;
+  nationalId?: string;
 
   @IsOptional()
   @Type(() => Number)

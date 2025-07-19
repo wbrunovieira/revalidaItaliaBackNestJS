@@ -109,7 +109,7 @@ vwIDAQAB
       .send({ password: testPassword });
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toContain('Required');
+    expect(res.body.detail).toBe('Invalid credentials');
   });
 
   it('⚠️ Falha: senha ausente retorna 401', async () => {
@@ -118,7 +118,7 @@ vwIDAQAB
       .send({ email: testEmail });
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toContain('Required');
+    expect(res.body.detail).toBe('Invalid credentials');
   });
 
   it('🔒 Falha: email não cadastrado retorna 401 e mensagem genérica', async () => {
@@ -127,7 +127,7 @@ vwIDAQAB
       .send({ email: 'noone@nowhere.com', password: 'Whatever1A' });
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe('Invalid credentials');
+    expect(res.body.detail).toBe('Invalid credentials');
   });
 
   it('🔒 Falha: senha inválida retorna 401 e mensagem genérica', async () => {
@@ -136,7 +136,7 @@ vwIDAQAB
       .send({ email: testEmail, password: 'WrongPass1A' });
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe('Invalid credentials');
+    expect(res.body.detail).toBe('Invalid credentials');
   });
 
   it('⚠️ Payload inválido: e-mail mal formado', async () => {
@@ -145,7 +145,7 @@ vwIDAQAB
       .send({ email: 'not-an-email', password: '123456A' });
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toContain('Invalid email address');
+    expect(res.body.detail).toBe('Invalid credentials');
   });
 
   it('⚠️ Payload inválido: senha muito curta', async () => {
@@ -154,9 +154,7 @@ vwIDAQAB
       .send({ email: testEmail, password: '123' });
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toContain(
-      'Password must be at least 6 characters',
-    );
+    expect(res.body.detail).toBe('Invalid credentials');
   });
 
   it('🔍 Ignora campos extras no payload e autentica', async () => {
@@ -174,7 +172,7 @@ vwIDAQAB
       .send({ email: "' OR 1=1;--", password: "' OR 1=1;--" });
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe('Invalid credentials');
+    expect(res.body.detail).toBe('Invalid credentials');
   });
 
   it('🔄 E-mail case-insensitive: autentica mesmo com uppercase', async () => {

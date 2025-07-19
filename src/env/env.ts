@@ -47,6 +47,24 @@ export const envSchema = z
     ALLOWED_FILE_TYPES: z
       .string()
       .default('pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv'),
+
+    // CORS Configuration
+    CORS_ORIGINS: z
+      .string()
+      .default('http://localhost:3000')
+      .transform((val) => val.split(',')),
+
+    // Swagger Configuration
+    SWAGGER_SERVERS: z
+      .string()
+      .default('http://localhost:3333,https://api.portalrevalida.com')
+      .transform((val) => val.split(',')),
+
+    // Rate Limiting Configuration
+    RATE_LIMIT_AUTH_MAX: z.coerce.number().default(5),
+    RATE_LIMIT_AUTH_WINDOW: z.coerce.number().default(60), // seconds
+    RATE_LIMIT_API_MAX: z.coerce.number().default(100),
+    RATE_LIMIT_API_WINDOW: z.coerce.number().default(60), // seconds
   })
   .superRefine((data, ctx) => {
     // Validate S3 configuration when STORAGE_TYPE is 's3'

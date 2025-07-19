@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ErrorResponseDto {
   @ApiProperty({
-    example: 'https://api.revalidaitalia.com/errors/validation-failed',
+    example: 'https://api.portalrevalida.com/errors/validation-failed',
     description: 'URI reference that identifies the problem type',
   })
   type: string;
@@ -59,7 +59,7 @@ export class ValidationErrorResponseDto extends ErrorResponseDto {
 
 export class ConflictErrorResponseDto extends ErrorResponseDto {
   @ApiProperty({
-    example: 'https://api.revalidaitalia.com/errors/resource-conflict',
+    example: 'https://api.portalrevalida.com/errors/resource-conflict',
     description: 'Conflict error type',
   })
   declare type: string;

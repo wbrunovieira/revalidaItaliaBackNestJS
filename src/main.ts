@@ -1,27 +1,49 @@
+// src/main.ts
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { SwaggerModule } from '@nestjs/swagger';
+
 import { PrismaClient } from '@prisma/client';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+import { AppModule } from './app.module';
 import { LoggingInterceptor } from '@/infra/interceptors/logging.interceptor';
 import { HttpExceptionFilter } from '@/infra/filters/http-exception.filter';
+import { createSwaggerConfig } from '@/infra/config/swagger.config';
 
+/**
+ * Bootstrap the NestJS application
+ * Configures middleware, global pipes, filters, and Swagger documentation
+ */
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Enable graceful shutdown
+  app.enableShutdownHooks();
+
+  // API Versioning
+  app.setGlobalPrefix('api/v1');
+
+  // CORS Configuration
+  const corsOrigins = process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'];
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://3.18.51.87:3000'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (corsOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type,Authorization',
   });
 
-  // Global interceptor for logging
+  // Global Middleware
   app.useGlobalInterceptors(new LoggingInterceptor());
-
-  // Global exception filter for standardized error handling
   app.useGlobalFilters(new HttpExceptionFilter());
-
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -34,61 +56,24 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger configuration
-  const config = new DocumentBuilder()
-    .setTitle('Revalida Italia API')
-    .setDescription(`
-      RESTful API for the Italian medical diploma revalidation system.
-      
-      ## Overview
-      This API provides endpoints for managing the revalidation process of medical diplomas in Italy,
-      including user authentication, course management, video lessons, and progress tracking.
-      
-      ## Authentication
-      Most endpoints require authentication via JWT Bearer token.
-      1. Obtain token via POST /auth/login
-      2. Include token in Authorization header: "Bearer {token}"
-      3. Tokens expire after 24 hours
-      
-      ## Rate Limiting
-      - Authentication endpoints: 5 requests per minute per IP
-      - Other endpoints: 100 requests per minute per token
-      
-      ## User Roles
-      - **student**: Can access courses, watch videos, track progress
-      - **instructor**: Can manage courses and content
-      - **admin**: Full system access
-      
-      ## Error Handling
-      All errors follow RFC 7807 (Problem Details for HTTP APIs)
-    `)
-    .setVersion('1.0.0')
-    .addBearerAuth({
-      type: 'http',
-      scheme: 'bearer',
-      bearerFormat: 'JWT',
-      description: 'Enter JWT token obtained from /auth/login'
-    })
-    .addTag('Authentication', 'User authentication and authorization')
-    .addTag('Users', 'User profile management')
-    .addTag('Courses', 'Course catalog and enrollment')
-    .addTag('Videos', 'Video content and progress tracking')
-    .setContact('API Support', 'https://revalidaitalia.com/support', 'api@revalidaitalia.com')
-    .setLicense('Proprietary', 'https://revalidaitalia.com/terms')
-    .addServer('http://localhost:3333', 'Local Development')
-    .addServer('https://api.revalidaitalia.com', 'Production')
-    .build();
-  
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  // Swagger Configuration (conditional for production)
+  if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SWAGGER === 'true') {
+    const swaggerConfig = createSwaggerConfig();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
+  // Development Seed
   if (process.env.NODE_ENV === 'development') {
     const prisma = new PrismaClient();
     await import('./seed');
     await prisma.$disconnect();
   }
 
-  await app.listen(process.env.PORT ?? 3333);
+  // Start Server
+  const port = process.env.PORT ?? 3333;
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
 }
 
 bootstrap();

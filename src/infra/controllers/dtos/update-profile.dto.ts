@@ -22,8 +22,7 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^\d{11}$/, { message: 'CPF must contain exactly 11 digits' })
-  cpf?: string;
+  nationalId?: string;
 
   @IsOptional()
   @IsString()

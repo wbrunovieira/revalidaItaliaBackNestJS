@@ -101,7 +101,7 @@ export class LoginSuccessResponseDto {
 
 export class AuthErrorDto {
   @ApiProperty({
-    example: 'https://api.revalidaitalia.com/errors/authentication-failed',
+    example: 'https://api.portalrevalida.com/errors/authentication-failed',
     description: 'URI reference that identifies the problem type',
   })
   type: string;

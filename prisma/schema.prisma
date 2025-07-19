@@ -9,6 +9,16 @@ datasource db {
 }
 
 // =====================================
+// = Enums
+// =====================================
+
+enum UserRole {
+  admin
+  tutor
+  student
+}
+
+// =====================================
 // = Entidades principais (agrupamentos)
 // =====================================
 
@@ -198,13 +208,13 @@ model User {
   name            String
   email           String    @unique
   password        String
-  cpf             String    @unique
+  nationalId      String
   phone           String?
   paymentToken    String?
   birthDate       DateTime?
   lastLogin       DateTime?
   profileImageUrl String?
-  role            String
+  role            UserRole  @default(student)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

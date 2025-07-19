@@ -3,7 +3,7 @@ export class UserResponseDto {
   id: string;
   name: string;
   email: string;
-  cpf: string;
+  nationalId: string;
   phone?: string;
   profileImageUrl?: string;
   role: 'admin' | 'tutor' | 'student';

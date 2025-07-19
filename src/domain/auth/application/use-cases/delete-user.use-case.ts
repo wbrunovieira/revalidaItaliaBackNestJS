@@ -1,7 +1,7 @@
 // src/domain/auth/application/use-cases/delete-user.use-case.ts
 import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
-import { IAccountRepository } from '../repositories/i-account-repository';
+import { IUserRepository } from '../repositories/i-user-repository';
 import { ResourceNotFoundError } from './errors/resource-not-found-error';
 import { RepositoryError } from './errors/repository-error';
 import { UnauthorizedError } from './errors/unauthorized-error';
@@ -22,8 +22,8 @@ export type DeleteUserUseCaseResponse = Either<
 @Injectable()
 export class DeleteUserUseCase {
   constructor(
-    @Inject(IAccountRepository)
-    private readonly accountRepo: IAccountRepository,
+    @Inject(IUserRepository)
+    private readonly userRepo: IUserRepository,
   ) {}
 
   async execute(
@@ -33,16 +33,20 @@ export class DeleteUserUseCase {
       const { id } = request;
 
       // Check if user exists
-      const userResult = await this.accountRepo.findById(id);
+      const userResult = await this.userRepo.findById(id);
 
       if (userResult.isLeft()) {
         return left(new ResourceNotFoundError('User not found'));
       }
 
       const user = userResult.value;
+      
+      if (!user) {
+        return left(new ResourceNotFoundError('User not found'));
+      }
 
       // Delete the user
-      const deleteResult = await this.accountRepo.delete(user);
+      const deleteResult = await this.userRepo.delete(user);
 
       if (deleteResult.isLeft()) {
         return left(new RepositoryError(deleteResult.value.message));

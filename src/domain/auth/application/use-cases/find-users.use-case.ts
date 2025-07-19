@@ -2,7 +2,7 @@
 import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
 import { RepositoryError } from './errors/repository-error';
-import { IAccountRepository } from '../repositories/i-account-repository';
+import { IUserRepository } from '../repositories/i-user-repository';
 import { PaginationParams } from '@/core/repositories/pagination-params';
 import { FindUsersRequestDto } from '../dtos/find-users-request.dto';
 import {
@@ -19,8 +19,8 @@ export type FindUsersUseCaseResponse = Either<
 @Injectable()
 export class FindUsersUseCase {
   constructor(
-    @Inject(IAccountRepository)
-    private readonly accountRepo: IAccountRepository,
+    @Inject(IUserRepository)
+    private readonly userRepo: IUserRepository,
   ) {}
 
   async execute(
@@ -44,7 +44,7 @@ export class FindUsersUseCase {
       const searchFilters = {
         name: request.name?.trim(),
         email: request.email?.trim(),
-        cpf: request.cpf?.trim(),
+        nationalId: request.nationalId?.trim(),
       };
 
       // Remover filtros vazios
@@ -54,7 +54,7 @@ export class FindUsersUseCase {
         ),
       );
 
-      const result = await this.accountRepo.findUsers(
+      const result = await this.userRepo.findUsers(
         activeFilters,
         paginationParams,
       );
@@ -68,7 +68,7 @@ export class FindUsersUseCase {
         id: user.id.toString(),
         name: user.name,
         email: user.email,
-        cpf: user.cpf,
+        nationalId: user.nationalId,
         phone: user.phone,
         profileImageUrl: user.profileImageUrl,
         role: user.role,

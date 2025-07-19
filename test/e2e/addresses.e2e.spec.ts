@@ -35,13 +35,16 @@ describe('Create Address (E2E)', () => {
   });
 
   it('[POST] /addresses – Success', async () => {
-    const userRes = await request(app.getHttpServer()).post('/students').send({
-      name: 'Addr User1',
-      email: testEmails[0],
-      password: 'Aa11@@aa',
-      cpf: '90090090090',
-      role: 'student',
-    });
+    const userRes = await request(app.getHttpServer())
+      .post('/students')
+      .set('Authorization', 'Bearer test-jwt-token')
+      .send({
+        name: 'Addr User1',
+        email: testEmails[0],
+        password: 'Aa11@@aa',
+        cpf: '90090090090',
+        role: 'student',
+      });
     expect(userRes.status).toBe(201);
     const userId = userRes.body.user.id;
 
@@ -67,13 +70,16 @@ describe('Create Address (E2E)', () => {
   });
 
   it('[POST] /addresses – Missing required field', async () => {
-    const userRes = await request(app.getHttpServer()).post('/students').send({
-      name: 'Addr User2',
-      email: testEmails[1],
-      password: 'Bb22##bb',
-      cpf: '80880880880',
-      role: 'student',
-    });
+    const userRes = await request(app.getHttpServer())
+      .post('/students')
+      .set('Authorization', 'Bearer test-jwt-token')
+      .send({
+        name: 'Addr User2',
+        email: testEmails[1],
+        password: 'Bb22##bb',
+        cpf: '80880880880',
+        role: 'student',
+      });
     expect(userRes.status).toBe(201);
     const userId = userRes.body.user.id;
 
@@ -88,8 +94,8 @@ describe('Create Address (E2E)', () => {
       })
       .expect(400);
 
-    expect(typeof res.body.message).toBe('string');
-    expect(res.body.message.toLowerCase()).toMatch(
+    expect(typeof res.body.detail).toBe('string');
+    expect(res.body.detail.toLowerCase()).toMatch(
       /street|number|district|city/,
     );
   });
@@ -110,12 +116,13 @@ describe('Create Address (E2E)', () => {
       })
       .expect(500); // Currently returns 500 due to FK constraint error
 
-    expect(res.body.message).toMatch(/database error|user not found/i);
+    expect(res.body.detail).toMatch(/database error|user not found/i);
   });
 
   it('[GET] /addresses?userId= – Success', async () => {
     const userRes = await request(app.getHttpServer())
       .post('/students')
+      .set('Authorization', 'Bearer test-jwt-token')
       .send({
         name: 'Get Addr User',
         email: 'get-addr@example.com',
@@ -156,12 +163,13 @@ describe('Create Address (E2E)', () => {
       .get('/addresses')
       .expect(400);
 
-    expect(res.body.message).toMatch(/userId/i);
+    expect(res.body.detail).toMatch(/userId/i);
   });
 
   it('[PATCH] /addresses/:id – Success', async () => {
     const userRes = await request(app.getHttpServer())
       .post('/students')
+      .set('Authorization', 'Bearer test-jwt-token')
       .send({
         name: 'Patch Addr User',
         email: 'patch-addr@example.com',
@@ -208,7 +216,7 @@ describe('Create Address (E2E)', () => {
       .send({})
       .expect(400);
 
-    expect(res.body.message).toMatch(/at least one field/i);
+    expect(res.body.detail).toMatch(/at least one field/i);
   });
 
   it('[PATCH] /addresses/:id – Not Found', async () => {
@@ -219,6 +227,6 @@ describe('Create Address (E2E)', () => {
       })
       .expect(404);
 
-    expect(res.body.message).toMatch(/not found/i);
+    expect(res.body.detail).toMatch(/not found/i);
   });
 });

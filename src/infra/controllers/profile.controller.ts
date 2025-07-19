@@ -17,7 +17,7 @@ import { JwtAuthGuard } from '@/infra/auth/guards/jwt-auth.guard';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error';
 import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error';
-import { DuplicateCPFError } from '@/domain/auth/application/use-cases/errors/duplicate-cpf-error';
+import { DuplicateNationalIdError } from '@/domain/auth/application/use-cases/errors/duplicate-national-id-error';
 import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
 
 @Controller('profile')
@@ -37,7 +37,7 @@ export class ProfileController {
       userId: user.sub,
       name: dto.name,
       email: dto.email,
-      cpf: dto.cpf,
+      nationalId: dto.nationalId,
       phone: dto.phone,
       birthDate: dto.birthDate,
       profileImageUrl: dto.profileImageUrl,
@@ -57,8 +57,8 @@ export class ProfileController {
         throw new ConflictException('Email already in use');
       }
 
-      if (error instanceof DuplicateCPFError) {
-        throw new ConflictException('CPF already in use');
+      if (error instanceof DuplicateNationalIdError) {
+        throw new ConflictException('National ID already in use');
       }
 
       if (error instanceof ResourceNotFoundError) {

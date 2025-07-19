@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { compare } from 'bcryptjs';
 
-import { IAccountRepository } from '../repositories/i-account-repository';
+import { IUserRepository } from '../repositories/i-user-repository';
 import { AuthenticationError } from './errors/authentication-error';
 import type { UserProps } from '@/domain/auth/enterprise/entities/user.entity';
 import { Either, left, right } from '@/core/either';
@@ -26,7 +26,7 @@ export type AuthenticateUserResponse = Either<
 
 @Injectable()
 export class AuthenticateUserUseCase {
-  constructor(private repo: IAccountRepository) {}
+  constructor(private repo: IUserRepository) {}
 
   async execute(
     req: AuthenticateUserRequest,
@@ -50,6 +50,10 @@ export class AuthenticateUserUseCase {
       return left(new AuthenticationError());
     }
     const user = found.value;
+    
+    if (!user) {
+      return left(new AuthenticationError());
+    }
 
     const match = await compare(password, (user as any).props.password);
     if (!match) {
