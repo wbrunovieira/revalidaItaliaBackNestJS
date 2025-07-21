@@ -1,7 +1,7 @@
 // src/domain/auth/application/dtos/create-address-request.dto.ts
 
 export interface CreateAddressRequest {
-  userId: string;
+  profileId: string;
   street: string;
   number: string;
   complement?: string;

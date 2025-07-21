@@ -99,4 +99,20 @@ export class NationalId {
   static create(value: string): NationalId {
     return new NationalId(value.trim());
   }
+
+  /**
+   * Create a NationalId instance from a trusted source (e.g., database)
+   * Skips validation for performance
+   * @param value The national ID string from a trusted source
+   * @returns NationalId instance
+   */
+  static createFromTrustedSource(value: string): NationalId {
+    const instance = Object.create(NationalId.prototype);
+    Object.defineProperty(instance, 'value', {
+      value: value,
+      writable: false,
+      configurable: false
+    });
+    return instance;
+  }
 }

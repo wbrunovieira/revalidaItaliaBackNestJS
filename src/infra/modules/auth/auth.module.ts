@@ -5,17 +5,15 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import * as fs from 'fs';
 
 import { DatabaseModule } from '@/infra/database/database.module';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
-import { PrismaAccountRepository } from '@/infra/database/prisma/repositories/prisma-account-repositories';
 import { IAddressRepository } from '@/domain/auth/application/repositories/i-address-repository';
 import { PrismaAddressRepository } from '@/infra/database/prisma/repositories/prisma-address-repository';
 
-import { AuthenticateUserUseCase } from '@/domain/auth/application/use-cases/authenticate-user.use-case';
+import { AuthenticateUserUseCase } from '@/domain/auth/application/use-cases/authentication/authenticate-user.use-case';
 import { CreateAddressUseCase } from '@/domain/auth/application/use-cases/create-address.use-case';
-import { FindAddressByUserUseCase } from '@/domain/auth/application/use-cases/find-address-by-user.use-case';
+import { FindAddressByProfileUseCase } from '@/domain/auth/application/use-cases/find-address-by-profile.use-case';
 import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update-address.use-case';
 import { DeleteAddressUseCase } from '@/domain/auth/application/use-cases/delete-address.use-case';
-import { UpdateUserProfileUseCase } from '@/domain/auth/application/use-cases/update-user-profile.use-case';
+import { UpdateUserProfileUseCase } from '@/domain/auth/application/use-cases/profile/update-user-profile.use-case';
 
 import { AuthController } from '@/infra/controllers/auth.controller';
 import { LocalStrategy } from '@/infra/auth/strategies/local.strategy';
@@ -84,13 +82,12 @@ import { SignInService } from '@/infra/auth/strategies/sign-in.service';
   controllers: [AuthController],
   providers: [
     // Repository bindings
-    { provide: IAccountRepository, useClass: PrismaAccountRepository },
     { provide: IAddressRepository, useClass: PrismaAddressRepository },
 
     // Domain use cases (auth-specific)
     AuthenticateUserUseCase,
     CreateAddressUseCase,
-    FindAddressByUserUseCase,
+    FindAddressByProfileUseCase,
     UpdateAddressUseCase,
     DeleteAddressUseCase,
     UpdateUserProfileUseCase,
@@ -113,7 +110,7 @@ import { SignInService } from '@/infra/auth/strategies/sign-in.service';
     // Use cases (auth-specific)
     AuthenticateUserUseCase,
     CreateAddressUseCase,
-    FindAddressByUserUseCase,
+    FindAddressByProfileUseCase,
     UpdateAddressUseCase,
     DeleteAddressUseCase,
     UpdateUserProfileUseCase,

@@ -75,7 +75,7 @@ export class AttemptController {
   ) {
     const request = {
       status: query.status,
-      userId: query.userId,
+      identityId: query.identityId,
       assessmentId: query.assessmentId,
       page: query.page,
       pageSize: query.pageSize,
@@ -184,7 +184,7 @@ export class AttemptController {
   @Post('start')
   async startAttempt(@Body() dto: StartAttemptDto) {
     const request = {
-      userId: dto.userId,
+      identityId: dto.identityId,
       assessmentId: dto.assessmentId,
     };
 

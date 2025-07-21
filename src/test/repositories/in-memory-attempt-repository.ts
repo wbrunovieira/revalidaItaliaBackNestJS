@@ -21,12 +21,12 @@ export class InMemoryAttemptRepository implements IAttemptRepository {
     return right(attempt);
   }
 
-  async findByUserAndAssessment(
-    userId: string,
+  async findByIdentityAndAssessment(
+    identityId: string,
     assessmentId: string,
   ): Promise<Either<Error, Attempt[]>> {
     const attempts = this.items.filter(
-      (item) => item.userId === userId && item.assessmentId === assessmentId,
+      (item) => item.identityId === identityId && item.assessmentId === assessmentId,
     );
 
     // Sort by createdAt descending to match Prisma repository behavior
@@ -35,13 +35,13 @@ export class InMemoryAttemptRepository implements IAttemptRepository {
     return right(attempts);
   }
 
-  async findActiveByUserAndAssessment(
-    userId: string,
+  async findActiveByIdentityAndAssessment(
+    identityId: string,
     assessmentId: string,
   ): Promise<Either<Error, Attempt>> {
     const attempt = this.items.find(
       (item) =>
-        item.userId === userId &&
+        item.identityId === identityId &&
         item.assessmentId === assessmentId &&
         item.status.isInProgress(),
     );
@@ -53,8 +53,8 @@ export class InMemoryAttemptRepository implements IAttemptRepository {
     return right(attempt);
   }
 
-  async findByUserId(userId: string): Promise<Either<Error, Attempt[]>> {
-    const attempts = this.items.filter((item) => item.userId === userId);
+  async findByIdentityId(identityId: string): Promise<Either<Error, Attempt[]>> {
+    const attempts = this.items.filter((item) => item.identityId === identityId);
 
     // Sort by createdAt descending to match Prisma repository behavior
     attempts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -99,12 +99,12 @@ export class InMemoryAttemptRepository implements IAttemptRepository {
     return right(undefined);
   }
 
-  async countByUserAndAssessment(
-    userId: string,
+  async countByIdentityAndAssessment(
+    identityId: string,
     assessmentId: string,
   ): Promise<Either<Error, number>> {
     const count = this.items.filter(
-      (item) => item.userId === userId && item.assessmentId === assessmentId,
+      (item) => item.identityId === identityId && item.assessmentId === assessmentId,
     ).length;
 
     return right(count);
@@ -123,9 +123,9 @@ export class InMemoryAttemptRepository implements IAttemptRepository {
       );
     }
 
-    if (filters.userId) {
+    if (filters.identityId) {
       filteredItems = filteredItems.filter(
-        (item) => item.userId === filters.userId,
+        (item) => item.identityId === filters.identityId,
       );
     }
 

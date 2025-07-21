@@ -15,7 +15,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { CreateAddressUseCase } from '@/domain/auth/application/use-cases/create-address.use-case';
-import { FindAddressByUserUseCase } from '@/domain/auth/application/use-cases/find-address-by-user.use-case';
+
 import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update-address.use-case';
 import { CreateAddressRequest } from '@/domain/auth/application/dtos/create-address-request.dto';
 import { UpdateAddressRequest } from '@/domain/auth/application/dtos/update-address-request.dto';
@@ -27,6 +27,7 @@ import {
   DeleteAddressRequest,
   DeleteAddressUseCase,
 } from '@/domain/auth/application/use-cases/delete-address.use-case';
+import { FindAddressByProfileUseCase as FindAddressByUserUseCase } from '@/domain/auth/application/use-cases/find-address-by-profile.use-case';
 
 @Controller('addresses')
 export class AddressController {
@@ -41,7 +42,7 @@ export class AddressController {
   @HttpCode(201)
   async create(@Body() dto: CreateAddressRequest) {
     const requiredFields = [
-      'userId',
+      'profileId',
       'street',
       'number',
       'city',
@@ -109,9 +110,9 @@ export class AddressController {
 
   @Get()
   @HttpCode(200)
-  async findByUser(@Query('userId') userId: string) {
+  async findByUser(@Query('profileId') profileId: string) {
     try {
-      const result = await this.findAddressByUserUseCase.execute({ userId });
+      const result = await this.findAddressByUserUseCase.execute({ profileId });
 
       if (result.isLeft()) {
         const err = result.value;

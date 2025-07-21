@@ -9,7 +9,7 @@ export interface SubmitAttemptResponse {
     submittedAt: Date;
     gradedAt?: Date;
     timeLimitExpiresAt?: Date;
-    userId: string;
+    identityId: string;
     assessmentId: string;
     createdAt: Date;
     updatedAt: Date;

@@ -96,7 +96,7 @@ export class GetAttemptResultsUseCase {
       const requester = requesterResult.value;
 
       // Check permissions: student can only view own attempts, tutors/admins can view any
-      if (requester.role === 'student' && attempt.userId !== requesterId) {
+      if (requester.role === 'student' && attempt.identityId !== requesterId) {
         return left(new InsufficientPermissionsError());
       }
 
@@ -182,7 +182,7 @@ export class GetAttemptResultsUseCase {
           submittedAt: attempt.submittedAt,
           gradedAt: attempt.gradedAt,
           timeLimitExpiresAt: attempt.timeLimitExpiresAt,
-          userId: attempt.userId,
+          identityId: attempt.identityId,
           assessmentId: attempt.assessmentId,
         },
         assessment: {

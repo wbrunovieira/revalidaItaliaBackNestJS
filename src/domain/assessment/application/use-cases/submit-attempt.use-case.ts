@@ -204,7 +204,7 @@ export class SubmitAttemptUseCase {
           submittedAt: attempt.submittedAt!,
           gradedAt: attempt.gradedAt,
           timeLimitExpiresAt: attempt.timeLimitExpiresAt,
-          userId: attempt.userId,
+          identityId: attempt.identityId,
           assessmentId: attempt.assessmentId,
           createdAt: attempt.createdAt,
           updatedAt: attempt.updatedAt,

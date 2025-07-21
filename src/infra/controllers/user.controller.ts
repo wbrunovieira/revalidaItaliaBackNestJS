@@ -19,34 +19,30 @@ import {
   CreateAccountBody,
   CreateAccountResponses,
 } from './docs';
-import { CreateUserUseCase } from '@/domain/auth/application/use-cases/create-user.use-case';
-import { UpdateUserUseCase } from '@/domain/auth/application/use-cases/update-user.use-case';
-import { ListUsersUseCase } from '@/domain/auth/application/use-cases/list-users.use-case';
-import { FindUsersUseCase } from '@/domain/auth/application/use-cases/find-users.use-case';
-import { GetUserByIdUseCase } from '@/domain/auth/application/use-cases/get-user-by-id.use-case'; // Adicionar
-import { CreateUserRequest } from '@/domain/auth/application/dtos/create-user-request.dto';
-import { CreateUserDto } from '@/domain/auth/application/dtos/create-user.dto';
-import {
-  CreateUserResponseDto,
-  UserResponseDto,
-} from '@/domain/auth/application/dtos/user-response.dto';
+// Use cases
+
+// Domain DTOs (interfaces/types)
+import { CreateUserRequest } from '@/domain/auth/application/use-cases/profile/create-user.use-case';
 import { UpdateUserRequest } from '@/domain/auth/application/dtos/update-user-request.dto';
+import { UpdateUserResponse } from '@/domain/auth/application/use-cases/profile/update-user.use-case';
 import { FindUsersRequestDto } from '@/domain/auth/application/dtos/find-users-request.dto';
-import { GetUserByIdRequestDto } from '@/domain/auth/application/dtos/get-user-by-id-request.dto'; // Adicionar
+import { ListUsersRequest } from '@/domain/auth/application/use-cases/profile/list-users.use-case';
 
-import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error';
-import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
-import { RepositoryError } from '@/domain/auth/application/use-cases/errors/repository-error';
-import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error';
-import { DuplicateNationalIdError } from '@/domain/auth/application/use-cases/errors/duplicate-national-id-error';
+// Infrastructure DTOs (classes with validation)
+import { CreateUserDto } from '@/infra/http/dtos/create-user.dto';
+import { UpdateUserDto } from '@/infra/http/dtos/update-user.dto';
+import { ListUsersDto } from '@/infra/http/dtos/list-users.dto';
 
-import { ListUsersDto } from '@/domain/auth/application/dtos/list-users.dto';
+// Guards and decorators
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UnauthorizedError } from '@/domain/auth/application/use-cases/errors/unauthorized-error';
-import { DeleteUserUseCase } from '@/domain/auth/application/use-cases/delete-user.use-case';
-import { DeleteUserRequestDto } from '@/domain/auth/application/dtos/delete-user-request.dto';
+import { CreateUserUseCase } from '@/domain/auth/application/use-cases/profile/create-user.use-case';
+import { UpdateUserUseCase } from '@/domain/auth/application/use-cases/profile/update-user.use-case';
+import { ListUsersUseCase } from '@/domain/auth/application/use-cases/profile/list-users.use-case';
+import { FindUsersUseCase } from '@/domain/auth/application/use-cases/profile/find-users.use-case';
+import { GetUserByIdUseCase } from '@/domain/auth/application/use-cases/profile/get-user-by-id.use-case';
+import { DeleteUserUseCase } from '@/domain/auth/application/use-cases/profile/delete-user.use-case';
 
 @ApiTags('Users')
 @Controller('users')
@@ -73,37 +69,30 @@ export class UserController {
   @Header('Cache-Control', 'no-cache, no-store, must-revalidate')
   @Header('Pragma', 'no-cache')
   @Header('Expires', '0')
-  async create(@Body() dto: CreateUserDto) {
-    const result = await this.createUser.execute({
-      ...dto,
-      source: 'admin',
-    });
+  async create(@Body() dto: CreateUserDto): Promise<any> {
+    // Convert infrastructure DTO to domain request
+    const request: CreateUserRequest = {
+      email: dto.email,
+      password: dto.password,
+      fullName: dto.name, // Map 'name' to 'fullName'
+      nationalId: dto.nationalId,
+      role: dto.role,
+    };
+
+    const result = await this.createUser.execute(request);
 
     if (result.isLeft()) {
       throw result.value;
     }
 
-    return { user: result.value.user };
+    return result.value;
   }
 
   @Patch(':id')
   @HttpCode(200)
-  async update(
-    @Param('id') id: string,
-    @Body() dto: Omit<UpdateUserRequest, 'id'>,
-  ) {
-    if (!dto || Object.keys(dto).length === 0) {
-      throw new InvalidInputError(
-        'At least one field to update must be provided',
-        [
-          {
-            path: [],
-            message: 'At least one field to update must be provided',
-          },
-        ],
-      );
-    }
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async update(@Param('id') id: string, @Body() dto: UpdateUserDto): Promise<UpdateUserResponse> {
     const request: UpdateUserRequest = { id, ...dto };
     const result = await this.updateUser.execute(request);
 
@@ -111,17 +100,17 @@ export class UserController {
       throw result.value;
     }
 
-    return { user: result.value.user };
+    return result.value;
   }
 
   @Get()
   @HttpCode(200)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async list(@Query() query: ListUsersDto) {
+  async list(@Query() query: ListUsersDto): Promise<any> {
     const result = await this.listUsers.execute({
       page: query.page,
-      pageSize: query.pageSize,
+      limit: query.pageSize, // Map pageSize to limit
     });
 
     if (result.isLeft()) {

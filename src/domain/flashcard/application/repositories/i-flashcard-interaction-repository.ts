@@ -11,7 +11,7 @@ export interface FlashcardInteractionStats {
 }
 
 export interface UserFlashcardStats {
-  userId: string;
+  identityId: string;
   argumentId: string;
   totalFlashcards: number;
   reviewedFlashcards: number;
@@ -23,28 +23,28 @@ export interface UserFlashcardStats {
 
 export abstract class IFlashcardInteractionRepository {
   abstract findByUserAndFlashcard(
-    userId: string,
+    identityId: string,
     flashcardId: string,
   ): Promise<Either<Error, FlashcardInteraction | null>>;
-  abstract findByUserId(userId: string): Promise<Either<Error, FlashcardInteraction[]>>;
+  abstract findByUserId(identityId: string): Promise<Either<Error, FlashcardInteraction[]>>;
   abstract findByUserIdAndDifficulty(
-    userId: string,
+    identityId: string,
     difficulty: FlashcardDifficultyLevelVO,
   ): Promise<Either<Error, FlashcardInteraction[]>>;
   abstract findByFlashcardId(flashcardId: string): Promise<Either<Error, FlashcardInteraction[]>>;
   abstract findByUserIdAndDateRange(
-    userId: string,
+    identityId: string,
     startDate: Date,
     endDate: Date,
   ): Promise<Either<Error, FlashcardInteraction[]>>;
   abstract findByUserIdAndArgumentId(
-    userId: string,
+    identityId: string,
     argumentId: string,
   ): Promise<Either<Error, FlashcardInteraction[]>>;
   abstract createOrUpdate(interaction: FlashcardInteraction): Promise<Either<Error, void>>;
-  abstract delete(userId: string, flashcardId: string): Promise<Either<Error, void>>;
+  abstract delete(identityId: string, flashcardId: string): Promise<Either<Error, void>>;
   abstract countByUserIdAndDifficulty(
-    userId: string,
+    identityId: string,
     difficulty: FlashcardDifficultyLevelVO,
   ): Promise<Either<Error, number>>;
   abstract countByFlashcardIdAndDifficulty(
@@ -57,10 +57,10 @@ export abstract class IFlashcardInteractionRepository {
   ): Promise<Either<Error, number>>;
   abstract getFlashcardStats(flashcardId: string): Promise<Either<Error, FlashcardInteractionStats>>;
   abstract getUserStatsGroupedByArgument(
-    userId: string,
+    identityId: string,
   ): Promise<Either<Error, UserFlashcardStats[]>>;
   abstract getUserStatsForArgument(
-    userId: string,
+    identityId: string,
     argumentId: string,
   ): Promise<Either<Error, UserFlashcardStats>>;
 }

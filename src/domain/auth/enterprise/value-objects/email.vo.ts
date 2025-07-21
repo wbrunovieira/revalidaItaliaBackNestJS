@@ -1,4 +1,6 @@
 // src/domain/auth/enterprise/value-objects/email.vo.ts
+import { z } from 'zod';
+import { InvalidEmailFormatException } from '@/domain/auth/domain/exceptions/invalid-email-format.exception';
 
 // =====================================
 // = Constants
@@ -107,6 +109,22 @@ export class Email {
    */
   static create(email: string): Email {
     return new Email(email);
+  }
+
+  /**
+   * Create an Email instance from a trusted source (e.g., database)
+   * Skips validation for performance
+   * @param email The email string from a trusted source
+   * @returns Email instance
+   */
+  static createFromTrustedSource(email: string): Email {
+    const instance = Object.create(Email.prototype);
+    Object.defineProperty(instance, 'value', {
+      value: email,
+      writable: false,
+      configurable: false
+    });
+    return instance;
   }
 
   // ===== Static Private Methods =====

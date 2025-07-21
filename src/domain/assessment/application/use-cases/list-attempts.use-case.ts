@@ -39,7 +39,7 @@ export class ListAttemptsUseCase {
       return left(new InvalidInputError(validation.error.message));
     }
 
-    const { status, userId, assessmentId, page, pageSize, requesterId } = validation.data;
+    const { status, identityId, assessmentId, page, pageSize, requesterId } = validation.data;
 
     try {
       // Verify requester exists and has permission
@@ -52,19 +52,19 @@ export class ListAttemptsUseCase {
 
       // Check permissions: students can only view own attempts, tutors/admins can view any
       if (requester.role === 'student') {
-        if (userId && userId !== requesterId) {
+        if (identityId && identityId !== requesterId) {
           return left(new InsufficientPermissionsError());
         }
-        // Force filter by student's own userId if not provided
-        if (!userId) {
-          request.userId = requesterId;
+        // Force filter by student's own identityId if not provided
+        if (!identityId) {
+          request.identityId = requesterId;
         }
       }
 
       // Build filters
       const filters = {
         status,
-        userId: request.userId || userId,
+        identityId: request.identityId || identityId,
         assessmentId,
       };
 
@@ -94,7 +94,7 @@ export class ListAttemptsUseCase {
         const assessment = assessmentResult.value;
 
         // Get student info
-        const studentResult = await this.accountRepository.findById(attempt.userId);
+        const studentResult = await this.accountRepository.findById(attempt.identityId);
         if (studentResult.isLeft()) {
           continue; // Skip attempts with missing students
         }
@@ -111,7 +111,7 @@ export class ListAttemptsUseCase {
           submittedAt: attempt.submittedAt,
           gradedAt: attempt.gradedAt,
           timeLimitExpiresAt: attempt.timeLimitExpiresAt,
-          userId: attempt.userId,
+          identityId: attempt.identityId,
           assessmentId: attempt.assessmentId,
           assessment: {
             id: assessment.id.toString(),

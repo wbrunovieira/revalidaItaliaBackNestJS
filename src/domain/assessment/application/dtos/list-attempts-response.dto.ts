@@ -8,7 +8,7 @@ export interface AttemptSummary {
   submittedAt?: Date;
   gradedAt?: Date;
   timeLimitExpiresAt?: Date;
-  userId: string;
+  identityId: string;
   assessmentId: string;
   assessment: {
     id: string;

@@ -1,8 +1,7 @@
 // src/domain/auth/application/use-cases/delete-address.use-case.ts
 import { Either, left, right } from '@/core/either';
-import { InvalidInputError } from './errors/invalid-input-error';
+import { InvalidInputError, ResourceNotFoundError, RepositoryError } from '@/domain/auth/domain/exceptions';
 import { IAddressRepository } from '../repositories/i-address-repository';
-import { NotFoundError } from 'rxjs/internal/util/NotFoundError';
 import { Inject, Injectable } from '@nestjs/common';
 
 export interface DeleteAddressRequest {
@@ -10,7 +9,7 @@ export interface DeleteAddressRequest {
 }
 
 type DeleteAddressUseCaseResponse = Either<
-  InvalidInputError | NotFoundError | Error,
+  InvalidInputError | ResourceNotFoundError | RepositoryError,
   void
 >;
 @Injectable()
@@ -26,31 +25,31 @@ export class DeleteAddressUseCase {
     const { id } = request;
 
     if (!id) {
-      return left(new InvalidInputError('Missing id', []));
+      return left(new InvalidInputError('Missing id', [{ field: 'id', message: 'Field is required' }]));
     }
 
     let foundAddr;
     try {
       const findResult = await this.addressRepo.findById(id);
       if (findResult.isLeft()) {
-        return left(findResult.value);
+        return left(new RepositoryError(findResult.value.message, 'findById', findResult.value));
       }
       foundAddr = findResult.value;
     } catch (err: any) {
-      return left(new Error(err.message));
+      return left(new RepositoryError(err.message, 'findById', err));
     }
 
     if (!foundAddr) {
-      return left(new NotFoundError('Address not found'));
+      return left(new ResourceNotFoundError('Address', { id }));
     }
 
     try {
       const deleteResult = await this.addressRepo.delete(id);
       if (deleteResult.isLeft()) {
-        return left(deleteResult.value);
+        return left(new RepositoryError(deleteResult.value.message, 'delete', deleteResult.value));
       }
     } catch (err: any) {
-      return left(new Error(err.message));
+      return left(new RepositoryError(err.message, 'delete', err));
     }
 
     return right(undefined);

@@ -5,29 +5,29 @@ import { Attempt } from '../../enterprise/entities/attempt.entity';
 
 export interface ListAttemptsFilters {
   status?: 'IN_PROGRESS' | 'SUBMITTED' | 'GRADING' | 'GRADED';
-  userId?: string;
+  identityId?: string;
   assessmentId?: string;
 }
 
 export abstract class IAttemptRepository {
   abstract create(attempt: Attempt): Promise<Either<Error, void>>;
   abstract findById(id: string): Promise<Either<Error, Attempt>>;
-  abstract findByUserAndAssessment(
-    userId: string,
+  abstract findByIdentityAndAssessment(
+    identityId: string,
     assessmentId: string,
   ): Promise<Either<Error, Attempt[]>>;
-  abstract findActiveByUserAndAssessment(
-    userId: string,
+  abstract findActiveByIdentityAndAssessment(
+    identityId: string,
     assessmentId: string,
   ): Promise<Either<Error, Attempt>>;
-  abstract findByUserId(userId: string): Promise<Either<Error, Attempt[]>>;
+  abstract findByIdentityId(identityId: string): Promise<Either<Error, Attempt[]>>;
   abstract findByAssessmentId(
     assessmentId: string,
   ): Promise<Either<Error, Attempt[]>>;
   abstract update(attempt: Attempt): Promise<Either<Error, void>>;
   abstract delete(id: string): Promise<Either<Error, void>>;
-  abstract countByUserAndAssessment(
-    userId: string,
+  abstract countByIdentityAndAssessment(
+    identityId: string,
     assessmentId: string,
   ): Promise<Either<Error, number>>;
   abstract findWithFilters(

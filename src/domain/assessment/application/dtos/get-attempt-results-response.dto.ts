@@ -40,7 +40,7 @@ export interface GetAttemptResultsResponse {
     submittedAt?: Date;
     gradedAt?: Date;
     timeLimitExpiresAt?: Date;
-    userId: string;
+    identityId: string;
     assessmentId: string;
   };
   assessment: {

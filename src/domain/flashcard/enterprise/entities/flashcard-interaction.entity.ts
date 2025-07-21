@@ -3,7 +3,7 @@ import { UniqueEntityID } from '@/core/unique-entity-id';
 import { FlashcardDifficultyLevelVO } from '../value-objects/flashcard-difficulty-level.vo';
 
 export interface FlashcardInteractionProps {
-  userId: UniqueEntityID;
+  identityId: UniqueEntityID;
   flashcardId: UniqueEntityID;
   difficultyLevel: FlashcardDifficultyLevelVO;
   reviewedAt: Date;
@@ -21,8 +21,8 @@ export class FlashcardInteraction extends Entity<FlashcardInteractionProps> {
     id?: UniqueEntityID,
   ): FlashcardInteraction {
     // Validações
-    if (!props.userId) {
-      throw new Error('UserId is required');
+    if (!props.identityId) {
+      throw new Error('IdentityId is required');
     }
 
     if (!props.flashcardId) {
@@ -50,8 +50,8 @@ export class FlashcardInteraction extends Entity<FlashcardInteractionProps> {
   }
 
   // Getters
-  public get userId(): UniqueEntityID {
-    return this.props.userId;
+  public get identityId(): UniqueEntityID {
+    return this.props.identityId;
   }
 
   public get flashcardId(): UniqueEntityID {
@@ -67,8 +67,8 @@ export class FlashcardInteraction extends Entity<FlashcardInteractionProps> {
   }
 
   // Business Logic Methods
-  public belongsToUser(userId: UniqueEntityID): boolean {
-    return this.props.userId.equals(userId);
+  public belongsToUser(identityId: UniqueEntityID): boolean {
+    return this.props.identityId.equals(identityId);
   }
 
   public belongsToFlashcard(flashcardId: UniqueEntityID): boolean {
@@ -148,14 +148,14 @@ export class FlashcardInteraction extends Entity<FlashcardInteractionProps> {
 
   public toResponseObject(): {
     id: string;
-    userId: string;
+    identityId: string;
     flashcardId: string;
     difficultyLevel: string;
     reviewedAt: Date;
   } {
     return {
       id: this.id.toString(),
-      userId: this.userId.toString(),
+      identityId: this.identityId.toString(),
       flashcardId: this.flashcardId.toString(),
       difficultyLevel: this.difficultyLevel.getValue(),
       reviewedAt: this.reviewedAt,

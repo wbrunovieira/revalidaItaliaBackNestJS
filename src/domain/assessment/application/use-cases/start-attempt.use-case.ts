@@ -54,7 +54,7 @@ export class StartAttemptUseCase {
 
     // 2. Check if user exists
     const userResult = await this.accountRepository.findById(
-      validatedData.userId,
+      validatedData.identityId,
     );
     if (userResult.isLeft()) {
       const error = userResult.value;
@@ -80,15 +80,15 @@ export class StartAttemptUseCase {
 
     // 4. Check if user already has an active attempt for this assessment
     const activeAttemptResult =
-      await this.attemptRepository.findActiveByUserAndAssessment(
-        validatedData.userId,
+      await this.attemptRepository.findActiveByIdentityAndAssessment(
+        validatedData.identityId,
         validatedData.assessmentId,
       );
 
     if (activeAttemptResult.isRight()) {
       // User already has an active attempt - return it instead of error
       const existingAttempt = activeAttemptResult.value;
-      
+
       // Get total questions count
       const questionsResult = await this.assessmentRepository.findById(
         validatedData.assessmentId,
@@ -109,7 +109,7 @@ export class StartAttemptUseCase {
           status: existingAttempt.status.getValue() as any,
           startedAt: existingAttempt.startedAt,
           timeLimitExpiresAt: existingAttempt.timeLimitExpiresAt,
-          userId: existingAttempt.userId,
+          identityId: existingAttempt.identityId,
           assessmentId: existingAttempt.assessmentId,
           createdAt: existingAttempt.createdAt,
           updatedAt: existingAttempt.updatedAt,
@@ -136,7 +136,7 @@ export class StartAttemptUseCase {
     const attempt = Attempt.create({
       status: attemptStatus,
       startedAt: now,
-      userId: validatedData.userId,
+      identityId: validatedData.identityId,
       assessmentId: validatedData.assessmentId,
       timeLimitExpiresAt,
     });
@@ -154,7 +154,7 @@ export class StartAttemptUseCase {
         status: attempt.status.getValue(),
         startedAt: attempt.startedAt,
         timeLimitExpiresAt: attempt.timeLimitExpiresAt,
-        userId: attempt.userId,
+        identityId: attempt.identityId,
         assessmentId: attempt.assessmentId,
         createdAt: attempt.createdAt,
         updatedAt: attempt.updatedAt,

@@ -7,6 +7,7 @@ import { envSchema } from '@/env/env';
 import { cryptoConfig } from '@/infra/config/crypto.config';
 
 import { HttpModule } from '@/infra/http.module';
+import { EventsModule } from '@/infra/events/events.module';
 
 /**
  * App Module
@@ -22,6 +23,7 @@ import { HttpModule } from '@/infra/http.module';
       validate: (config) => envSchema.parse(config),
     }),
     AxiosHttpModule,
+    EventsModule, // Global events infrastructure
     HttpModule,
   ],
   controllers: [],

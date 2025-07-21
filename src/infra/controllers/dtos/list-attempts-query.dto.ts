@@ -10,7 +10,7 @@ export class ListAttemptsQueryDto {
 
   @IsOptional()
   @IsUUID()
-  userId?: string;
+  identityId?: string;
 
   @IsOptional()
   @IsUUID()

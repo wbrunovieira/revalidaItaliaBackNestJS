@@ -1,8 +1,8 @@
 // src/infra/modules/stats/stats.module.ts
 import { Module } from '@nestjs/common';
-import { RedisModule } from '@nestjs-modules/ioredis';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 
+import { DatabaseModule } from '@/infra/database/database.module';
 import { StatsController } from './stats.controller';
 import { StatsService } from './stats.service';
 import { UserStatsSubscriber } from './subscribers/user-stats.subscriber';
@@ -11,19 +11,12 @@ import { UserStatsSubscriber } from './subscribers/user-stats.subscriber';
  * Stats Module
  * 
  * Collects and provides statistics about system usage.
- * Uses Redis for fast, persistent counters.
+ * Uses centralized Redis from DatabaseModule for fast, persistent counters.
  */
 @Module({
   imports: [
     ConfigModule,
-    RedisModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'single',
-        url: configService.get('REDIS_URL', 'redis://redis:6379'),
-      }),
-    }),
+    DatabaseModule, // Gets Redis from centralized module
   ],
   controllers: [StatsController],
   providers: [StatsService, UserStatsSubscriber],

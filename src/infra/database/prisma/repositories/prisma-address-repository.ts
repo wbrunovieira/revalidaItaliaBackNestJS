@@ -22,7 +22,7 @@ export class PrismaAddressRepository implements IAddressRepository {
 
       const address = Address.create(
         {
-          userId: new UniqueEntityID(row.userId),
+          profileId: new UniqueEntityID(row.profileId),
           street: row.street,
           number: row.number,
           complement: row.complement,
@@ -46,7 +46,7 @@ export class PrismaAddressRepository implements IAddressRepository {
       await this.prisma.address.create({
         data: {
           id: address.id.toString(),
-          userId: address.userId.toString(),
+          profileId: address.profileId.toString(),
           street: address.street,
           number: address.number,
           complement: address.complement,
@@ -63,16 +63,16 @@ export class PrismaAddressRepository implements IAddressRepository {
     }
   }
 
-  async findByUserId(userId: string): Promise<Either<Error, Address[]>> {
+  async findByProfileId(profileId: string): Promise<Either<Error, Address[]>> {
     try {
       const rows = await this.prisma.address.findMany({
-        where: { userId },
+        where: { profileId },
       });
 
       const addresses = rows.map((row) =>
         Address.create(
           {
-            userId: new UniqueEntityID(row.userId),
+            profileId: new UniqueEntityID(row.profileId),
             street: row.street,
             number: row.number,
             complement: row.complement,

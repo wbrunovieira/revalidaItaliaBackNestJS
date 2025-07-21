@@ -15,11 +15,13 @@ export class OnUserCreated {
   }
 
   private async handleUserCreated(event: UserCreatedEvent): Promise<void> {
-    const { user, source } = event;
+    const { identityId, email, fullName, role, source } = event;
 
     console.log(`[UserCreated] New user created:`, {
-      id: user.id.toString(),
-      email: user.email,
+      identityId,
+      email,
+      fullName,
+      role,
       source,
       occurredAt: event.occurredAt,
     });

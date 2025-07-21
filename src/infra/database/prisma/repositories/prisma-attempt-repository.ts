@@ -24,7 +24,7 @@ export class PrismaAttemptRepository implements IAttemptRepository {
           submittedAt: attempt.submittedAt,
           gradedAt: attempt.gradedAt,
           timeLimitExpiresAt: attempt.timeLimitExpiresAt,
-          userId: attempt.userId,
+          identityId: attempt.identityId,
           assessmentId: attempt.assessmentId,
           createdAt: attempt.createdAt,
           updatedAt: attempt.updatedAt,
@@ -53,14 +53,14 @@ export class PrismaAttemptRepository implements IAttemptRepository {
     }
   }
 
-  async findByUserAndAssessment(
-    userId: string,
+  async findByIdentityAndAssessment(
+    identityId: string,
     assessmentId: string,
   ): Promise<Either<Error, Attempt[]>> {
     try {
       const attempts = await this.prisma.attempt.findMany({
         where: {
-          userId,
+          identityId,
           assessmentId,
         },
         orderBy: {
@@ -74,14 +74,14 @@ export class PrismaAttemptRepository implements IAttemptRepository {
     }
   }
 
-  async findActiveByUserAndAssessment(
-    userId: string,
+  async findActiveByIdentityAndAssessment(
+    identityId: string,
     assessmentId: string,
   ): Promise<Either<Error, Attempt>> {
     try {
       const attempt = await this.prisma.attempt.findFirst({
         where: {
-          userId,
+          identityId,
           assessmentId,
           status: 'IN_PROGRESS',
         },
@@ -100,10 +100,10 @@ export class PrismaAttemptRepository implements IAttemptRepository {
     }
   }
 
-  async findByUserId(userId: string): Promise<Either<Error, Attempt[]>> {
+  async findByIdentityId(identityId: string): Promise<Either<Error, Attempt[]>> {
     try {
       const attempts = await this.prisma.attempt.findMany({
-        where: { userId },
+        where: { identityId },
         orderBy: {
           createdAt: 'desc',
         },
@@ -164,14 +164,14 @@ export class PrismaAttemptRepository implements IAttemptRepository {
     }
   }
 
-  async countByUserAndAssessment(
-    userId: string,
+  async countByIdentityAndAssessment(
+    identityId: string,
     assessmentId: string,
   ): Promise<Either<Error, number>> {
     try {
       const count = await this.prisma.attempt.count({
         where: {
-          userId,
+          identityId,
           assessmentId,
         },
       });
@@ -194,8 +194,8 @@ export class PrismaAttemptRepository implements IAttemptRepository {
         where.status = filters.status;
       }
 
-      if (filters.userId) {
-        where.userId = filters.userId;
+      if (filters.identityId) {
+        where.identityId = filters.identityId;
       }
 
       if (filters.assessmentId) {
@@ -226,7 +226,7 @@ export class PrismaAttemptRepository implements IAttemptRepository {
         submittedAt: raw.submittedAt,
         gradedAt: raw.gradedAt,
         timeLimitExpiresAt: raw.timeLimitExpiresAt,
-        userId: raw.userId,
+        identityId: raw.identityId,
         assessmentId: raw.assessmentId,
         createdAt: raw.createdAt,
         updatedAt: raw.updatedAt,

@@ -5,7 +5,7 @@ import { Optional } from '@/core/types/optional';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 
 export interface AddressProps {
-  userId: UniqueEntityID;
+  profileId: UniqueEntityID;
   street: string;
   number: string;
   complement?: string | null;
@@ -19,26 +19,26 @@ export interface AddressProps {
 }
 
 export class Address extends Entity<AddressProps> {
-  toResponseObjectPartial(): Partial<Omit<AddressProps, 'userId'>> & {
+  toResponseObjectPartial(): Partial<Omit<AddressProps, 'profileId'>> & {
     id: string;
   } {
-    const { userId, ...addr } = this.props;
+    const { profileId, ...addr } = this.props;
     return {
       id: this.id.toString(),
       ...addr,
     };
   }
 
-  toResponseObject(): Omit<AddressProps, 'userId'> & { id: string } {
-    const { userId, ...addr } = this.props;
+  toResponseObject(): Omit<AddressProps, 'profileId'> & { id: string } {
+    const { profileId, ...addr } = this.props;
     return {
       id: this.id.toString(),
       ...addr,
     };
   }
 
-  get userId(): UniqueEntityID {
-    return this.props.userId;
+  get profileId(): UniqueEntityID {
+    return this.props.profileId;
   }
   get street(): string {
     return this.props.street;

@@ -19,6 +19,171 @@ enum UserRole {
 }
 
 // =====================================
+// = UserIdentity Aggregate
+// = Responsável por autenticação
+// =====================================
+model UserIdentity {
+  id                     String    @id @default(uuid())
+  email                  String    @unique
+  password               String
+  emailVerified          Boolean   @default(false) @map("email_verified")
+  emailVerificationToken String?   @map("email_verification_token")
+  lastLogin              DateTime? @map("last_login")
+  failedLoginAttempts    Int       @default(0) @map("failed_login_attempts")
+  lockedUntil            DateTime? @map("locked_until")
+  passwordResetToken     String?   @map("password_reset_token")
+  passwordResetExpiry    DateTime? @map("password_reset_expiry")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+  
+  // Relações
+  profile       UserProfile?
+  authorization UserAuthorization?
+  integrations  UserIntegration[]
+  
+  // Relações com outros contextos
+  videosSeen                   VideoSeen[]
+  attempts                     Attempt[]
+  reviewedAnswers              AttemptAnswer[] @relation("ReviewedAnswers")
+  flashcardInteractions        FlashcardInteraction[]
+  flashcardInteractionContexts FlashcardInteractionContext[]
+  
+  @@index([email])
+  @@index([emailVerificationToken])
+  @@index([passwordResetToken])
+  @@map("user_identities")
+}
+
+// =====================================
+// = UserProfile Aggregate
+// = Responsável por dados pessoais
+// =====================================
+model UserProfile {
+  id                String    @id @default(uuid())
+  identityId        String    @unique @map("identity_id")
+  fullName          String    @map("full_name")
+  nationalId        String    @unique @map("national_id")
+  phone             String?
+  birthDate         DateTime? @map("birth_date")
+  profileImageUrl   String?   @map("profile_image_url")
+  bio               String?
+  profession        String?
+  specialization    String?
+  preferredLanguage String    @default("pt-BR") @map("preferred_language")
+  timezone          String    @default("America/Sao_Paulo")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  // Relações
+  identity  UserIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  addresses Address[]
+  settings  UserSettings?
+  
+  @@index([identityId])
+  @@index([nationalId])
+  @@map("user_profiles")
+}
+
+// =====================================
+// = UserAuthorization Aggregate
+// = Responsável por permissões
+// =====================================
+model UserAuthorization {
+  id                String    @id @default(uuid())
+  identityId        String    @unique @map("identity_id")
+  role              UserRole  @default(student)
+  customPermissions Json?     @default("[]") @map("custom_permissions")
+  restrictions      Json?     @default("[]") 
+  effectiveFrom     DateTime  @default(now()) @map("effective_from")
+  effectiveUntil    DateTime? @map("effective_until")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  // Relações
+  identity UserIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  
+  @@index([identityId])
+  @@index([role])
+  @@map("user_authorizations")
+}
+
+// =====================================
+// = UserSettings (Novo agregado)
+// = Responsável por preferências
+// =====================================
+model UserSettings {
+  id                 String   @id @default(uuid())
+  profileId          String   @unique @map("profile_id")
+  emailNotifications Boolean  @default(true) @map("email_notifications")
+  pushNotifications  Boolean  @default(true) @map("push_notifications")
+  marketingEmails    Boolean  @default(false) @map("marketing_emails")
+  dataSharing        Boolean  @default(false) @map("data_sharing")
+  theme              String   @default("light")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  
+  // Relações
+  profile UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@index([profileId])
+  @@map("user_settings")
+}
+
+// =====================================
+// = UserIntegration (Novo agregado)
+// = Responsável por integrações externas
+// =====================================
+model UserIntegration {
+  id           String    @id @default(uuid())
+  identityId   String    @map("identity_id")
+  provider     String
+  externalId   String    @map("external_id")
+  accessToken  String?   @map("access_token")
+  refreshToken String?   @map("refresh_token")
+  tokenExpiry  DateTime? @map("token_expiry")
+  metadata     Json?
+  isActive     Boolean   @default(true) @map("is_active")
+  lastSyncAt   DateTime? @map("last_sync_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  
+  // Relações
+  identity UserIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  
+  @@unique([identityId, provider])
+  @@index([identityId])
+  @@index([provider])
+  @@map("user_integrations")
+}
+
+// =====================================
+// = Address (Value Object que virou entidade)
+// =====================================
+model Address {
+  id          String   @id @default(uuid())
+  profileId   String   @map("profile_id")
+  street      String
+  number      String
+  complement  String?
+  district    String?
+  city        String
+  state       String?
+  country     String
+  postalCode  String   @map("postal_code")
+  label       String?
+  isPrimary   Boolean  @default(false) @map("is_primary")
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  profile UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@index([profileId])
+  @@map("addresses")
+}
+
+// =====================================
 // = Entidades principais (agrupamentos)
 // =====================================
 
@@ -194,53 +359,14 @@ model VideoSeen {
   id     String   @id @default(uuid())
   seenAt DateTime @default(now())
 
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  identity   UserIdentity @relation(fields: [identityId], references: [id])
+  identityId String       @map("identity_id")
 
   video   Video  @relation(fields: [videoId], references: [id])
   videoId String
 
-  @@unique([userId, videoId])
-}
-
-model User {
-  id              String    @id @default(uuid())
-  name            String
-  email           String    @unique
-  password        String
-  nationalId      String
-  phone           String?
-  paymentToken    String?
-  birthDate       DateTime?
-  lastLogin       DateTime?
-  profileImageUrl String?
-  role            UserRole  @default(student)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  Address                      Address[]
-  videosSeen                   VideoSeen[]
-  Attempt                      Attempt[]
-  reviewedAnswers              AttemptAnswer[] @relation("ReviewedAnswers")
-  flashcardInteractions        FlashcardInteraction[]
-  flashcardInteractionContexts FlashcardInteractionContext[]
-}
-
-model Address {
-  id         String   @id @default(uuid())
-  userId     String
-  street     String
-  number     String
-  complement String?
-  district   String?
-  city       String
-  state      String?
-  country    String
-  postalCode String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
+  @@unique([identityId, videoId])
+  @@index([identityId])
 }
 
 model Lesson {
@@ -452,15 +578,15 @@ model Attempt {
   updatedAt          DateTime  @updatedAt
 
   // Relações
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  identity   UserIdentity @relation(fields: [identityId], references: [id])
+  identityId String       @map("identity_id")
 
   assessment   Assessment @relation(fields: [assessmentId], references: [id])
   assessmentId String
 
   answers AttemptAnswer[]
 
-  @@index([userId, assessmentId])
+  @@index([identityId, assessmentId])
 }
 
 model AttemptAnswer {
@@ -488,7 +614,7 @@ model AttemptAnswer {
   question   Question @relation(fields: [questionId], references: [id])
   questionId String
 
-  reviewer User? @relation("ReviewedAnswers", fields: [reviewerId], references: [id])
+  reviewer UserIdentity? @relation("ReviewedAnswers", fields: [reviewerId], references: [id])
 
   // Índices para performance e busca de versões
   @@index([attemptId, questionId, isLatest])
@@ -559,18 +685,18 @@ model FlashcardInteraction {
   reviewedAt      DateTime                @default(now())
 
   // Relações
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  identity   UserIdentity @relation(fields: [identityId], references: [id])
+  identityId String       @map("identity_id")
 
   flashcard   Flashcard @relation(fields: [flashcardId], references: [id])
   flashcardId String
 
   // Controle de versioning para métricas
-  @@unique([userId, flashcardId])
-  @@index([userId, difficultyLevel])
+  @@unique([identityId, flashcardId])
+  @@index([identityId, difficultyLevel])
   @@index([flashcardId, difficultyLevel])
   @@index([reviewedAt])
-  @@index([userId, reviewedAt]) // Para stats de última revisão por usuário
+  @@index([identityId, reviewedAt]) // Para stats de última revisão por usuário
 }
 
 model LessonFlashcard {
@@ -598,8 +724,8 @@ model FlashcardInteractionContext {
   reviewedAt      DateTime                 @default(now())
 
   // Relações
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  identity   UserIdentity @relation(fields: [identityId], references: [id])
+  identityId String       @map("identity_id")
 
   flashcard   Flashcard @relation(fields: [flashcardId], references: [id])
   flashcardId String
@@ -608,8 +734,8 @@ model FlashcardInteractionContext {
   lessonId String? // Opcional - pode ser revisão livre
 
   // Métricas por contexto (lesson específica ou revisão livre)
-  @@unique([userId, flashcardId, lessonId])
-  @@index([userId, lessonId])
+  @@unique([identityId, flashcardId, lessonId])
+  @@index([identityId, lessonId])
   @@index([flashcardId, lessonId])
   @@index([reviewedAt])
 }

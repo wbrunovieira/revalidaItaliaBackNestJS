@@ -10,7 +10,7 @@ import {
   ConflictException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { UpdateUserProfileUseCase } from '@/domain/auth/application/use-cases/update-user-profile.use-case';
+import { UpdateOwnProfileUseCase } from '@/domain/auth/application/use-cases/profile/update-own-profile.use-case';
 import { CurrentUser } from '@/infra/auth/current-user-decorator';
 import { UserPayload } from '@/infra/auth/strategies/jwt.strategy';
 import { JwtAuthGuard } from '@/infra/auth/guards/jwt-auth.guard';
@@ -24,7 +24,7 @@ import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/error
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
   constructor(
-    private readonly updateUserProfileUseCase: UpdateUserProfileUseCase,
+    private readonly updateOwnProfileUseCase: UpdateOwnProfileUseCase,
   ) {}
 
   @Patch()
@@ -32,9 +32,9 @@ export class ProfileController {
   async updateProfile(
     @Body() dto: UpdateProfileDto,
     @CurrentUser() user: UserPayload,
-  ) {
-    const result = await this.updateUserProfileUseCase.execute({
-      userId: user.sub,
+  ): Promise<any> {
+    const result = await this.updateOwnProfileUseCase.execute({
+      identityId: user.sub,
       name: dto.name,
       email: dto.email,
       nationalId: dto.nationalId,
@@ -68,6 +68,6 @@ export class ProfileController {
       throw new InternalServerErrorException('Failed to update profile');
     }
 
-    return result.value.user;
+    return result.value;
   }
 }

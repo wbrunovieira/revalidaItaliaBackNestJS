@@ -11,8 +11,8 @@ export class InMemoryAddressRepository implements IAddressRepository {
     return right(undefined);
   }
 
-  async findByUserId(userId: string): Promise<Either<Error, Address[]>> {
-    return right(this.items.filter((a) => a.userId.toString() === userId));
+  async findByProfileId(profileId: string): Promise<Either<Error, Address[]>> {
+    return right(this.items.filter((a) => a.profileId.toString() === profileId));
   }
 
   async findById(id: string): Promise<Either<Error, Address | undefined>> {

@@ -1,15 +1,5 @@
 // src/domain/auth/application/dtos/find-users-response.dto.ts
-export class UserResponseDto {
-  id: string;
-  name: string;
-  email: string;
-  nationalId: string;
-  phone?: string;
-  profileImageUrl?: string;
-  role: 'admin' | 'tutor' | 'student';
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { UserResponseDto } from './user-response.dto';
 
 export class PaginationResponseDto {
   page: number;

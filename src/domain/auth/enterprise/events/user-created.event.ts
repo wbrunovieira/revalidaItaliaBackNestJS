@@ -1,21 +1,34 @@
 // src/domain/auth/enterprise/events/user-created.event.ts
 import { DomainEvent } from '@/core/domain/domain-event';
 import { UniqueEntityID } from '@/core/unique-entity-id';
-import { User } from '../entities/user.entity';
 
-export type UserCreationSource = 'admin' | 'hotmart' | 'api';
+export type UserCreationSource = 'admin' | 'hotmart' | 'api' | 'registration';
 
 export class UserCreatedEvent extends DomainEvent {
-  public readonly user: User;
+  public readonly identityId: string;
+  public readonly email: string;
+  public readonly fullName: string;
+  public readonly role: string;
   public readonly source: UserCreationSource;
 
-  constructor(user: User, source: UserCreationSource) {
+  constructor(
+    identityId: string,
+    email: string,
+    fullName: string,
+    role: string,
+    source: UserCreationSource,
+    occurredAt?: Date,
+  ) {
     super();
-    this.user = user;
+    this.identityId = identityId;
+    this.email = email;
+    this.fullName = fullName;
+    this.role = role;
     this.source = source;
+    this.occurredAt = occurredAt || new Date();
   }
 
   getAggregateId(): UniqueEntityID {
-    return this.user.id;
+    return new UniqueEntityID(this.identityId);
   }
 }

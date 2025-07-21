@@ -11,7 +11,7 @@ export interface AttemptProps {
   submittedAt?: Date;
   gradedAt?: Date;
   timeLimitExpiresAt?: Date;
-  userId: string;
+  identityId: string;
   assessmentId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -46,8 +46,8 @@ export class Attempt extends Entity<AttemptProps> {
     return this.props.timeLimitExpiresAt;
   }
 
-  public get userId(): string {
-    return this.props.userId;
+  public get identityId(): string {
+    return this.props.identityId;
   }
 
   public get assessmentId(): string {
@@ -150,7 +150,7 @@ export class Attempt extends Entity<AttemptProps> {
     submittedAt?: Date;
     gradedAt?: Date;
     timeLimitExpiresAt?: Date;
-    userId: string;
+    identityId: string;
     assessmentId: string;
     createdAt: Date;
     updatedAt: Date;
@@ -163,7 +163,7 @@ export class Attempt extends Entity<AttemptProps> {
       submittedAt: this.submittedAt,
       gradedAt: this.gradedAt,
       timeLimitExpiresAt: this.timeLimitExpiresAt,
-      userId: this.userId,
+      identityId: this.identityId,
       assessmentId: this.assessmentId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,

@@ -1,8 +1,11 @@
 // src/domain/auth/application/use-cases/update-address.use-case.ts
 
 import { Either, left, right } from '@/core/either';
-import { InvalidInputError } from './errors/invalid-input-error';
-import { ResourceNotFoundError } from './errors/resource-not-found-error';
+import {
+  InvalidInputError,
+  ResourceNotFoundError,
+  RepositoryError,
+} from '@/domain/auth/domain/exceptions';
 import { IAddressRepository } from '../repositories/i-address-repository';
 import { Address } from '../../enterprise/entities/address.entity';
 import { Inject } from '@nestjs/common';
@@ -20,7 +23,7 @@ export interface UpdateAddressRequest {
 }
 
 type UpdateAddressResponse = Either<
-  InvalidInputError | ResourceNotFoundError | Error,
+  InvalidInputError | ResourceNotFoundError | RepositoryError,
   Address
 >;
 
@@ -44,7 +47,7 @@ export class UpdateAddressUseCase {
     } = request;
 
     if (!id) {
-      return left(new InvalidInputError('Missing id', []));
+      return left(new InvalidInputError('Missing id', [{ field: 'id', message: 'Field is required' }]));
     }
 
     const hasAnyField =
@@ -71,16 +74,16 @@ export class UpdateAddressUseCase {
     try {
       const findResult = await this.addressRepo.findById(id);
       if (findResult.isLeft()) {
-        return left(findResult.value);
+        return left(new RepositoryError(findResult.value.message, 'findById', findResult.value));
       }
       foundAddr = findResult.value;
     } catch (err: any) {
-      return left(new Error(err.message));
+      return left(new RepositoryError(err.message, 'findById', err));
     }
 
     // 3) Se não encontrou, retorna ResourceNotFoundError
     if (!foundAddr) {
-      return left(new ResourceNotFoundError('Address not found'));
+      return left(new ResourceNotFoundError('Address', { id }));
     }
 
     if (street !== undefined) foundAddr.street = street;
@@ -95,12 +98,12 @@ export class UpdateAddressUseCase {
     try {
       const updateResult = await this.addressRepo.update(foundAddr);
       if (updateResult.isLeft()) {
-        return left(updateResult.value);
+        return left(new RepositoryError(updateResult.value.message, 'update', updateResult.value));
       }
 
       return right(foundAddr);
     } catch (err: any) {
-      return left(new Error(err.message));
+      return left(new RepositoryError(err.message, 'update', err));
     }
   }
 }

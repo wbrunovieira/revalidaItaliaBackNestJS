@@ -1,8 +1,9 @@
 // src/infra/controllers/auth.controller.ts
-import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, Req, Ip } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { AuthenticateUserUseCase } from '@/domain/auth/application/use-cases/authenticate-user.use-case';
-import { AuthenticateUserRequest } from '@/domain/auth/application/use-cases/authenticate-user.use-case';
+import { Request } from 'express';
+import { AuthenticateUserUseCase } from '@/domain/auth/application/use-cases/authentication/authenticate-user.use-case';
+import { AuthenticateUserRequest } from '@/domain/auth/application/use-cases/authentication/authenticate-user.use-case';
 import { AuthenticateUserDto } from '@/domain/auth/application/dtos/authenticate-user.dto';
 import { 
   AuthSuccessResponseDto, 
@@ -96,8 +97,19 @@ export class AuthController {
   })
   @Public()
   @Post('login')
-  async login(@Body() dto: AuthenticateUserRequest) {
-    const result = await this.authenticateUser.execute(dto);
+  async login(
+    @Body() dto: AuthenticateUserRequest,
+    @Ip() ipAddress: string,
+    @Req() request: Request,
+  ) {
+    // Get user agent from request headers
+    const userAgent = request.headers['user-agent'] || 'Unknown';
+
+    const result = await this.authenticateUser.execute({
+      ...dto,
+      ipAddress,
+      userAgent,
+    });
 
     if (result.isLeft()) {
       // Por segurança, sempre retornar mensagem genérica
@@ -107,7 +119,7 @@ export class AuthController {
     const { user } = result.value;
 
     const token = this.jwtService.sign({
-      sub: user.id,
+      sub: user.identityId,
       role: user.role,
     });
 

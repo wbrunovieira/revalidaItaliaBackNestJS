@@ -4,15 +4,15 @@ import { z } from 'zod';
 
 export const startAttemptSchema = z
   .object({
-    userId: z
+    identityId: z
       .string()
       .trim()
-      .min(1, 'User ID cannot be empty')
+      .min(1, 'Identity ID cannot be empty')
       .refine((val) => {
         const uuidRegex =
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         return uuidRegex.test(val);
-      }, 'User ID must be a valid UUID'),
+      }, 'Identity ID must be a valid UUID'),
 
     assessmentId: z
       .string()

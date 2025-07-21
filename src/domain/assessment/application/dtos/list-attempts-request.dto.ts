@@ -2,7 +2,7 @@
 
 export interface ListAttemptsRequest {
   status?: 'IN_PROGRESS' | 'SUBMITTED' | 'GRADING' | 'GRADED';
-  userId?: string;
+  identityId?: string;
   assessmentId?: string;
   page?: number;
   pageSize?: number;

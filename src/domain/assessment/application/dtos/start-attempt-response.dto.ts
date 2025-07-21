@@ -6,7 +6,7 @@ export interface StartAttemptResponse {
     status: 'IN_PROGRESS' | 'SUBMITTED' | 'GRADING' | 'GRADED';
     startedAt: Date;
     timeLimitExpiresAt?: Date;
-    userId: string;
+    identityId: string;
     assessmentId: string;
     createdAt: Date;
     updatedAt: Date;

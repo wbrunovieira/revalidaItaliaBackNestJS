@@ -1,3 +1,4 @@
+// src/infra/database/prisma/repositories/prisma-flashcard-interaction-repository.ts
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Either, left, right } from '@/core/either';
@@ -12,18 +13,20 @@ import { FlashcardInteraction } from '@/domain/flashcard/enterprise/entities/fla
 import { FlashcardDifficultyLevelVO } from '@/domain/flashcard/enterprise/value-objects/flashcard-difficulty-level.vo';
 
 @Injectable()
-export class PrismaFlashcardInteractionRepository implements IFlashcardInteractionRepository {
+export class PrismaFlashcardInteractionRepository
+  implements IFlashcardInteractionRepository
+{
   constructor(private readonly prisma: PrismaService) {}
 
   async findByUserAndFlashcard(
-    userId: string,
+    identityId: string,
     flashcardId: string,
   ): Promise<Either<Error, FlashcardInteraction | null>> {
     try {
       const interaction = await this.prisma.flashcardInteraction.findUnique({
         where: {
-          userId_flashcardId: {
-            userId,
+          identityId_flashcardId: {
+            identityId,
             flashcardId,
           },
         },
@@ -42,10 +45,12 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
     }
   }
 
-  async findByUserId(userId: string): Promise<Either<Error, FlashcardInteraction[]>> {
+  async findByUserId(
+    identityId: string,
+  ): Promise<Either<Error, FlashcardInteraction[]>> {
     try {
       const interactions = await this.prisma.flashcardInteraction.findMany({
-        where: { userId },
+        where: { identityId },
         orderBy: { reviewedAt: 'desc' },
       });
 
@@ -59,13 +64,13 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
   }
 
   async findByUserIdAndDifficulty(
-    userId: string,
+    identityId: string,
     difficulty: FlashcardDifficultyLevelVO,
   ): Promise<Either<Error, FlashcardInteraction[]>> {
     try {
       const interactions = await this.prisma.flashcardInteraction.findMany({
         where: {
-          userId,
+          identityId,
           difficultyLevel: difficulty.getValue(),
         },
         orderBy: { reviewedAt: 'desc' },
@@ -80,7 +85,9 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
     }
   }
 
-  async findByFlashcardId(flashcardId: string): Promise<Either<Error, FlashcardInteraction[]>> {
+  async findByFlashcardId(
+    flashcardId: string,
+  ): Promise<Either<Error, FlashcardInteraction[]>> {
     try {
       const interactions = await this.prisma.flashcardInteraction.findMany({
         where: { flashcardId },
@@ -97,14 +104,14 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
   }
 
   async findByUserIdAndDateRange(
-    userId: string,
+    identityId: string,
     startDate: Date,
     endDate: Date,
   ): Promise<Either<Error, FlashcardInteraction[]>> {
     try {
       const interactions = await this.prisma.flashcardInteraction.findMany({
         where: {
-          userId,
+          identityId,
           reviewedAt: {
             gte: startDate,
             lte: endDate,
@@ -123,13 +130,13 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
   }
 
   async findByUserIdAndArgumentId(
-    userId: string,
+    identityId: string,
     argumentId: string,
   ): Promise<Either<Error, FlashcardInteraction[]>> {
     try {
       const interactions = await this.prisma.flashcardInteraction.findMany({
         where: {
-          userId,
+          identityId,
           flashcard: {
             argumentId,
           },
@@ -146,12 +153,14 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
     }
   }
 
-  async createOrUpdate(interaction: FlashcardInteraction): Promise<Either<Error, void>> {
+  async createOrUpdate(
+    interaction: FlashcardInteraction,
+  ): Promise<Either<Error, void>> {
     try {
       await this.prisma.flashcardInteraction.upsert({
         where: {
-          userId_flashcardId: {
-            userId: interaction.userId.toString(),
+          identityId_flashcardId: {
+            identityId: interaction.identityId.toString(),
             flashcardId: interaction.flashcardId.toString(),
           },
         },
@@ -161,7 +170,7 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
         },
         create: {
           id: interaction.id.toString(),
-          userId: interaction.userId.toString(),
+          identityId: interaction.identityId.toString(),
           flashcardId: interaction.flashcardId.toString(),
           difficultyLevel: interaction.difficultyLevel.getValue(),
           reviewedAt: interaction.reviewedAt,
@@ -173,16 +182,21 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
       if (err instanceof Prisma.PrismaClientKnownRequestError) {
         return left(new Error(err.message));
       }
-      return left(new Error('Failed to create or update flashcard interaction'));
+      return left(
+        new Error('Failed to create or update flashcard interaction'),
+      );
     }
   }
 
-  async delete(userId: string, flashcardId: string): Promise<Either<Error, void>> {
+  async delete(
+    identityId: string,
+    flashcardId: string,
+  ): Promise<Either<Error, void>> {
     try {
       await this.prisma.flashcardInteraction.delete({
         where: {
-          userId_flashcardId: {
-            userId,
+          identityId_flashcardId: {
+            identityId,
             flashcardId,
           },
         },
@@ -198,13 +212,13 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
   }
 
   async countByUserIdAndDifficulty(
-    userId: string,
+    identityId: string,
     difficulty: FlashcardDifficultyLevelVO,
   ): Promise<Either<Error, number>> {
     try {
       const count = await this.prisma.flashcardInteraction.count({
         where: {
-          userId,
+          identityId,
           difficultyLevel: difficulty.getValue(),
         },
       });
@@ -262,7 +276,9 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
     }
   }
 
-  async getFlashcardStats(flashcardId: string): Promise<Either<Error, FlashcardInteractionStats>> {
+  async getFlashcardStats(
+    flashcardId: string,
+  ): Promise<Either<Error, FlashcardInteractionStats>> {
     try {
       const stats = await this.prisma.flashcardInteraction.groupBy({
         by: ['difficultyLevel'],
@@ -270,10 +286,19 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
         _count: { difficultyLevel: true },
       });
 
-      const totalInteractions = stats.reduce((sum, stat) => sum + stat._count.difficultyLevel, 0);
-      const easyCount = stats.find(s => s.difficultyLevel === 'EASY')?._count.difficultyLevel || 0;
-      const hardCount = stats.find(s => s.difficultyLevel === 'HARD')?._count.difficultyLevel || 0;
-      const neutralCount = stats.find(s => s.difficultyLevel === 'NEUTRAL')?._count.difficultyLevel || 0;
+      const totalInteractions = stats.reduce(
+        (sum, stat) => sum + stat._count.difficultyLevel,
+        0,
+      );
+      const easyCount =
+        stats.find((s) => s.difficultyLevel === 'EASY')?._count
+          .difficultyLevel || 0;
+      const hardCount =
+        stats.find((s) => s.difficultyLevel === 'HARD')?._count
+          .difficultyLevel || 0;
+      const neutralCount =
+        stats.find((s) => s.difficultyLevel === 'NEUTRAL')?._count
+          .difficultyLevel || 0;
 
       return right({
         flashcardId,
@@ -291,7 +316,7 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
   }
 
   async getUserStatsGroupedByArgument(
-    userId: string,
+    identityId: string,
   ): Promise<Either<Error, UserFlashcardStats[]>> {
     try {
       const rawStats = await this.prisma.$queryRaw<any[]>`
@@ -304,12 +329,12 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
           COUNT(CASE WHEN fi.difficulty_level = 'NEUTRAL' THEN 1 END) as "neutralCount",
           MAX(fi.reviewed_at) as "lastReviewedAt"
         FROM flashcard f
-        LEFT JOIN flashcard_interaction fi ON f.id = fi.flashcard_id AND fi.user_id = ${userId}
+        LEFT JOIN flashcard_interaction fi ON f.id = fi.flashcard_id AND fi.identity_id = ${identityId}
         GROUP BY f.argument_id
       `;
 
       const stats: UserFlashcardStats[] = rawStats.map((stat) => ({
-        userId,
+        identityId,
         argumentId: stat.argumentId,
         totalFlashcards: Number(stat.totalFlashcards),
         reviewedFlashcards: Number(stat.reviewedFlashcards),
@@ -329,7 +354,7 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
   }
 
   async getUserStatsForArgument(
-    userId: string,
+    identityId: string,
     argumentId: string,
   ): Promise<Either<Error, UserFlashcardStats>> {
     try {
@@ -343,7 +368,7 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
           COUNT(CASE WHEN fi.difficulty_level = 'NEUTRAL' THEN 1 END) as "neutralCount",
           MAX(fi.reviewed_at) as "lastReviewedAt"
         FROM flashcard f
-        LEFT JOIN flashcard_interaction fi ON f.id = fi.flashcard_id AND fi.user_id = ${userId}
+        LEFT JOIN flashcard_interaction fi ON f.id = fi.flashcard_id AND fi.identity_id = ${identityId}
         WHERE f.argument_id = ${argumentId}
         GROUP BY f.argument_id
       `;
@@ -354,7 +379,7 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
 
       const stat = rawStat[0];
       const userStats: UserFlashcardStats = {
-        userId,
+        identityId,
         argumentId: stat.argumentId,
         totalFlashcards: Number(stat.totalFlashcards),
         reviewedFlashcards: Number(stat.reviewedFlashcards),
@@ -376,9 +401,11 @@ export class PrismaFlashcardInteractionRepository implements IFlashcardInteracti
   private mapToEntity = (interaction: any): FlashcardInteraction => {
     return FlashcardInteraction.reconstruct(
       {
-        userId: new UniqueEntityID(interaction.userId),
+        identityId: new UniqueEntityID(interaction.identityId),
         flashcardId: new UniqueEntityID(interaction.flashcardId),
-        difficultyLevel: new FlashcardDifficultyLevelVO(interaction.difficultyLevel),
+        difficultyLevel: new FlashcardDifficultyLevelVO(
+          interaction.difficultyLevel,
+        ),
         reviewedAt: interaction.reviewedAt,
       },
       new UniqueEntityID(interaction.id),

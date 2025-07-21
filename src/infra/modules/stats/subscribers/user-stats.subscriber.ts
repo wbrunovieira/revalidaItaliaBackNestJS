@@ -1,23 +1,21 @@
 // src/infra/modules/stats/subscribers/user-stats.subscriber.ts
 import { Injectable } from '@nestjs/common';
-import { DomainEvents } from '@/core/domain/events/domain-events';
+import { OnEvent } from '@nestjs/event-emitter';
 import { UserCreatedEvent } from '@/domain/auth/enterprise/events/user-created.event';
 import { StatsService } from '../stats.service';
 
+/**
+ * User Stats Subscriber
+ * 
+ * Infrastructure handler for UserCreatedEvent.
+ * Updates statistics when users are created.
+ */
 @Injectable()
 export class UserStatsSubscriber {
-  constructor(private statsService: StatsService) {
-    this.setupSubscriptions();
-  }
+  constructor(private statsService: StatsService) {}
 
-  setupSubscriptions(): void {
-    DomainEvents.register(
-      UserCreatedEvent.name,
-      this.handleUserCreated.bind(this),
-    );
-  }
-
-  private async handleUserCreated(event: UserCreatedEvent): Promise<void> {
+  @OnEvent(UserCreatedEvent.name)
+  async handleUserCreated(event: UserCreatedEvent): Promise<void> {
     const { user, source } = event;
 
     try {

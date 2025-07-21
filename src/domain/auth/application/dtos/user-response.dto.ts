@@ -33,16 +33,44 @@ export class UserResponseDto {
   role: string;
 
   @ApiProperty({
+    example: '+393331234567',
+    description: 'User phone number',
+    required: false,
+  })
+  phone?: string;
+
+  @ApiProperty({
+    example: '1990-01-15',
+    description: 'User birth date',
+    required: false,
+  })
+  birthDate?: Date;
+
+  @ApiProperty({
+    example: 'https://example.com/profile.jpg',
+    description: 'Profile image URL',
+    required: false,
+  })
+  profileImageUrl?: string;
+
+  @ApiProperty({
+    example: '2024-01-15T10:00:00.000Z',
+    description: 'Last login timestamp',
+    required: false,
+  })
+  lastLogin?: Date;
+
+  @ApiProperty({
     example: '2024-01-15T10:00:00.000Z',
     description: 'Account creation timestamp',
   })
-  createdAt: string;
+  createdAt: Date;
 
   @ApiProperty({
     example: '2024-01-15T10:00:00.000Z',
     description: 'Last update timestamp',
   })
-  updatedAt: string;
+  updatedAt: Date;
 }
 
 export class CreateUserResponseDto {
@@ -51,4 +79,54 @@ export class CreateUserResponseDto {
     type: UserResponseDto,
   })
   user: UserResponseDto;
+}
+
+export class GetUserResponseDto {
+  @ApiProperty({
+    description: 'User information',
+    type: UserResponseDto,
+  })
+  user: UserResponseDto;
+}
+
+export class UpdateUserResponseDto {
+  @ApiProperty({
+    description: 'Updated user information',
+    type: UserResponseDto,
+  })
+  user: UserResponseDto;
+}
+
+export class AuthenticateUserResponseDto {
+  @ApiProperty({
+    description: 'Authenticated user information',
+    type: UserResponseDto,
+  })
+  user: UserResponseDto;
+}
+
+export class ListUsersResponseDto {
+  @ApiProperty({
+    description: 'List of users',
+    type: [UserResponseDto],
+  })
+  users: UserResponseDto[];
+  
+  @ApiProperty({
+    example: 100,
+    description: 'Total number of users',
+  })
+  total: number;
+  
+  @ApiProperty({
+    example: 1,
+    description: 'Current page number',
+  })
+  page: number;
+  
+  @ApiProperty({
+    example: 20,
+    description: 'Number of items per page',
+  })
+  pageSize: number;
 }

@@ -7,6 +7,9 @@ import {
 } from '@/domain/auth/application/repositories/i-user-repository';
 import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
 import { User } from '@/domain/auth/enterprise/entities/user.entity';
+import { Email } from '@/domain/auth/enterprise/value-objects/email.vo';
+import { NationalId } from '@/domain/auth/enterprise/value-objects/national-id.vo';
+import { UserCriteria } from '@/domain/auth/application/criteria/user-criteria';
 
 export class InMemoryUserRepository implements IUserRepository {
   public items: User[] = [];
@@ -15,25 +18,10 @@ export class InMemoryUserRepository implements IUserRepository {
     throw new Error('Method not implemented.');
   }
 
-  async updatePassword(
-    userId: string,
-    password: string,
-  ): Promise<Either<Error, void>> {
-    const index = this.items.findIndex((item) => item.id.toString() === userId);
-    if (index === -1) {
-      return left(new ResourceNotFoundError('User not found'));
-    }
-    // In a real implementation, you would update the password
-    // For now, we'll just return success
-    return right(undefined);
-  }
 
-  async findById(id: string): Promise<Either<Error, User>> {
+  async findById(id: string): Promise<Either<Error, User | null>> {
     const user = this.items.find((item) => item.id.toString() === id);
-    if (!user) {
-      return left(new ResourceNotFoundError('User not found'));
-    }
-    return right(user);
+    return right(user || null);
   }
 
   async create(user: User): Promise<Either<Error, void>> {
@@ -41,20 +29,14 @@ export class InMemoryUserRepository implements IUserRepository {
     return right(undefined);
   }
 
-  async findByEmail(email: string): Promise<Either<Error, User>> {
-    const user = this.items.find((item) => item.email === email);
-    if (!user) {
-      return left(new ResourceNotFoundError('User not found'));
-    }
-    return right(user);
+  async findByEmail(email: Email): Promise<Either<Error, User | null>> {
+    const user = this.items.find((item) => item.email.equals(email));
+    return right(user || null);
   }
 
-  async findByCpf(cpf: string): Promise<Either<Error, User>> {
-    const user = this.items.find((item) => item.cpf === cpf);
-    if (!user) {
-      return left(new ResourceNotFoundError('User not found'));
-    }
-    return right(user);
+  async findByNationalId(nationalId: NationalId): Promise<Either<Error, User | null>> {
+    const user = this.items.find((item) => item.nationalId.equals(nationalId));
+    return right(user || null);
   }
 
   async findAll(params: PaginationParams): Promise<Either<Error, User[]>> {
@@ -127,13 +109,13 @@ export class InMemoryUserRepository implements IUserRepository {
         // Apply email filter (case insensitive partial match)
         if (
           filters.email &&
-          user.email.toLowerCase().includes(filters.email.toLowerCase())
+          user.email.value.toLowerCase().includes(filters.email.toLowerCase())
         ) {
           matches = true;
         }
 
-        // Apply CPF filter (partial match)
-        if (filters.cpf && user.cpf?.includes(filters.cpf)) {
+        // Apply nationalId filter (partial match)
+        if (filters.nationalId && user.nationalId.value.includes(filters.nationalId)) {
           matches = true;
         }
 
@@ -172,5 +154,123 @@ export class InMemoryUserRepository implements IUserRepository {
       return right(undefined);
     }
     return left(new ResourceNotFoundError('User not found'));
+  }
+
+  async count(): Promise<Either<Error, number>> {
+    return right(this.items.length);
+  }
+
+  async findByCriteria(criteria: UserCriteria): Promise<Either<Error, User[]>> {
+    try {
+      // For in-memory implementation, we need to interpret the criteria
+      const query = criteria.build();
+      let result = [...this.items];
+
+      // Apply where conditions
+      if (query.where) {
+        result = result.filter(user => this.matchesConditions(user, query.where));
+      }
+
+      // Apply ordering
+      if (query.orderBy) {
+        const field = Object.keys(query.orderBy)[0];
+        const direction = query.orderBy[field];
+        result = this.sortUsers(result, field, direction);
+      }
+
+      // Apply pagination
+      if (query.skip !== undefined && query.take !== undefined) {
+        result = result.slice(query.skip, query.skip + query.take);
+      }
+
+      return right(result);
+    } catch (error) {
+      return left(new Error('Failed to find users by criteria'));
+    }
+  }
+
+  async countByCriteria(criteria: UserCriteria): Promise<Either<Error, number>> {
+    try {
+      const query = criteria.build();
+      let result = [...this.items];
+
+      // Apply where conditions only
+      if (query.where) {
+        result = result.filter(user => this.matchesConditions(user, query.where));
+      }
+
+      return right(result.length);
+    } catch (error) {
+      return left(new Error('Failed to count users by criteria'));
+    }
+  }
+
+  private matchesConditions(user: User, conditions: any): boolean {
+    // Handle AND conditions
+    if (conditions.AND) {
+      return conditions.AND.every((cond: any) => this.matchesConditions(user, cond));
+    }
+
+    // Handle OR conditions
+    if (conditions.OR) {
+      return conditions.OR.some((cond: any) => this.matchesConditions(user, cond));
+    }
+
+    // Handle individual conditions
+    for (const [field, value] of Object.entries(conditions)) {
+      if (!this.matchesFieldCondition(user, field, value)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private matchesFieldCondition(user: User, field: string, condition: any): boolean {
+    const userValue = this.getUserFieldValue(user, field);
+
+    // Handle different condition types
+    if (typeof condition === 'object' && condition !== null) {
+      if ('contains' in condition) {
+        const searchValue = condition.contains.toLowerCase();
+        const fieldValue = String(userValue).toLowerCase();
+        return fieldValue.includes(searchValue);
+      }
+      if ('in' in condition) {
+        return condition.in.includes(userValue);
+      }
+      if ('gte' in condition) {
+        return userValue >= condition.gte;
+      }
+      if ('lte' in condition) {
+        return userValue <= condition.lte;
+      }
+    }
+
+    // Direct equality
+    return userValue === condition;
+  }
+
+  private getUserFieldValue(user: User, field: string): any {
+    switch (field) {
+      case 'name': return user.name;
+      case 'email': return user.email.value;
+      case 'nationalId': return user.nationalId.value;
+      case 'role': return user.role;
+      case 'createdAt': return user.createdAt;
+      case 'lastLogin': return user.lastLogin;
+      default: return (user as any)[field];
+    }
+  }
+
+  private sortUsers(users: User[], field: string, direction: 'asc' | 'desc'): User[] {
+    return users.sort((a, b) => {
+      const aValue = this.getUserFieldValue(a, field);
+      const bValue = this.getUserFieldValue(b, field);
+      
+      if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
   }
 }
