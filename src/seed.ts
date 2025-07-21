@@ -1,5 +1,5 @@
 // src/seed.ts
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -14,38 +14,50 @@ async function main() {
     {
       email: 'jones@revalidaitalia.com.br',
       name: 'Jones',
-      cpf: '11111111111',
+      nationalId: '11111111111',
       password: 'Senha123!',
-      role: 'student',
+      role: UserRole.admin,
     },
     {
       email: 'gabriela@revalidaitalia.com.br',
       name: 'Gabriela',
-      cpf: '22222222222',
+      nationalId: '22222222222',
       password: 'Senha123!',
-      role: 'student',
+      role: UserRole.admin,
     },
     {
       email: 'bruno@wbdigitalsolutions.com',
       name: 'Bruno',
-      cpf: '33333333333',
+      nationalId: '33333333333',
       password: 'Senha123!',
-      role: 'student',
+      role: UserRole.admin,
     },
   ];
 
   for (const u of users) {
-    const exists = await prisma.user.findUnique({ where: { email: u.email } });
+    const exists = await prisma.userIdentity.findUnique({
+      where: { email: u.email },
+    });
     if (!exists) {
       const hashed = bcrypt.hashSync(u.password, 10);
       try {
-        await prisma.user.create({
+        // Create UserIdentity with related Profile and Authorization
+        await prisma.userIdentity.create({
           data: {
-            name: u.name,
             email: u.email,
-            cpf: u.cpf,
             password: hashed,
-            role: u.role,
+            emailVerified: true,
+            profile: {
+              create: {
+                fullName: u.name,
+                nationalId: u.nationalId,
+              },
+            },
+            authorization: {
+              create: {
+                role: u.role,
+              },
+            },
           },
         });
         console.log(`✔ Usuário criado: ${u.email}`);

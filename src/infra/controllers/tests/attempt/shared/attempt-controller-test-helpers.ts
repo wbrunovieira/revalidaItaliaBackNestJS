@@ -20,7 +20,7 @@ export class AttemptControllerTestHelpers {
     expect(typeof response.attempt.id).toBe('string');
     expect(['IN_PROGRESS', 'SUBMITTED', 'GRADING', 'GRADED']).toContain(response.attempt.status);
     expect(response.attempt.startedAt).toBeInstanceOf(Date);
-    expect(typeof response.attempt.userId).toBe('string');
+    expect(typeof response.attempt.identityId).toBe('string');
     expect(typeof response.attempt.assessmentId).toBe('string');
     expect(response.attempt.createdAt).toBeInstanceOf(Date);
     expect(response.attempt.updatedAt).toBeInstanceOf(Date);
@@ -28,7 +28,7 @@ export class AttemptControllerTestHelpers {
     // Verify UUID format for IDs
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     expect(response.attempt.id).toMatch(uuidRegex);
-    expect(response.attempt.userId).toMatch(uuidRegex);
+    expect(response.attempt.identityId).toMatch(uuidRegex);
     expect(response.attempt.assessmentId).toMatch(uuidRegex);
   }
 

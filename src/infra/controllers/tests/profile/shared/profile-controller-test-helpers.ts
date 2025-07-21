@@ -2,7 +2,7 @@
 import { right, left } from '@/core/either';
 import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error';
 import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error';
-import { DuplicateCPFError } from '@/domain/auth/application/use-cases/errors/duplicate-cpf-error';
+import { DuplicateNationalIdError } from '@/domain/auth/application/use-cases/errors/duplicate-national-id-error';
 import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
 
 export function createSuccessResponse(userData: any) {
@@ -30,8 +30,8 @@ export function createDuplicateEmailError() {
   return left(new DuplicateEmailError());
 }
 
-export function createDuplicateCPFError() {
-  return left(new DuplicateCPFError());
+export function createDuplicateNationalIdError() {
+  return left(new DuplicateNationalIdError());
 }
 
 export function createResourceNotFoundError(message = 'User not found') {

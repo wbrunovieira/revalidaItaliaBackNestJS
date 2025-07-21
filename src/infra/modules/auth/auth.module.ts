@@ -5,6 +5,7 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import * as fs from 'fs';
 
 import { DatabaseModule } from '@/infra/database/database.module';
+import { UserModule } from '@/infra/modules/user/user.module';
 import { IAddressRepository } from '@/domain/auth/application/repositories/i-address-repository';
 import { PrismaAddressRepository } from '@/infra/database/prisma/repositories/prisma-address-repository';
 
@@ -28,6 +29,8 @@ import { SignInService } from '@/infra/auth/strategies/sign-in.service';
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     // Database (Prisma) provider
     DatabaseModule,
+    // User module for user repositories
+    UserModule,
     // Passport for authentication
     PassportModule.register({ defaultStrategy: 'jwt' }),
     // JWT module configured asynchronously

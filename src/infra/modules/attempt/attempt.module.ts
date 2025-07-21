@@ -10,7 +10,8 @@ import { ListAttemptsUseCase } from '@/domain/assessment/application/use-cases/l
 import { ListPendingReviewsUseCase } from '@/domain/assessment/application/use-cases/list-pending-reviews.use-case';
 import { PrismaAttemptRepository } from '@/infra/database/prisma/repositories/prisma-attempt-repository';
 import { PrismaAssessmentRepository } from '@/infra/database/prisma/repositories/prisma-assessment-repository';
-import { PrismaAccountRepository } from '@/infra/database/prisma/repositories/prisma-account-repositories';
+import { UserModule } from '@/infra/modules/user/user.module';
+import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { PrismaQuestionRepository } from '@/infra/database/prisma/repositories/prisma-question-repository';
 import { PrismaAttemptAnswerRepository } from '@/infra/database/prisma/repositories/prisma-attempt-answer-repository';
 import { PrismaAnswerRepository } from '@/infra/database/prisma/repositories/prisma-answer-repository';
@@ -19,7 +20,7 @@ import { DatabaseModule } from '@/infra/database/database.module';
 import { AttemptController } from '@/infra/controllers/attempt.controller';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, UserModule],
   controllers: [AttemptController],
   providers: [
     StartAttemptUseCase,
@@ -37,10 +38,7 @@ import { AttemptController } from '@/infra/controllers/attempt.controller';
       provide: 'AssessmentRepository',
       useClass: PrismaAssessmentRepository,
     },
-    {
-      provide: 'AccountRepository',
-      useClass: PrismaAccountRepository,
-    },
+    // UserAggregatedViewRepository is provided by UserModule
     {
       provide: 'QuestionRepository',
       useClass: PrismaQuestionRepository,

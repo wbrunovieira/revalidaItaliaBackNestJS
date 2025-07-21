@@ -2,8 +2,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { ProfileController } from '@/infra/controllers/profile.controller';
-import { UpdateUserProfileUseCase } from '@/domain/auth/application/use-cases/update-user-profile.use-case';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { UpdateUserProfileUseCase } from '@/domain/auth/application/use-cases/profile/update-user-profile.use-case';
+import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { JwtAuthGuard } from '@/infra/auth/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { createUserPayload } from './profile-controller-test-data';
@@ -14,14 +14,13 @@ export async function createProfileControllerTestSetup() {
     execute: vi.fn(),
   };
 
-  const mockAccountRepository = {
-    findById: vi.fn(),
+  const mockUserAggregatedViewRepository = {
+    findByIdentityId: vi.fn(),
     findByEmail: vi.fn(),
-    findByCpf: vi.fn(),
-    save: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
+    findByNationalId: vi.fn(),
+    findByCriteria: vi.fn(),
+    countByCriteria: vi.fn(),
+    findForListing: vi.fn(),
   };
 
   const mockJwtService = {
@@ -37,8 +36,8 @@ export async function createProfileControllerTestSetup() {
         useValue: mockUpdateUserProfileUseCase,
       },
       {
-        provide: IAccountRepository,
-        useValue: mockAccountRepository,
+        provide: IUserAggregatedViewRepository,
+        useValue: mockUserAggregatedViewRepository,
       },
       {
         provide: JwtService,
@@ -69,6 +68,6 @@ export async function createProfileControllerTestSetup() {
     testingModule: module,
     controller,
     mockUpdateUserProfileUseCase,
-    mockAccountRepository,
+    mockUserAggregatedViewRepository,
   };
 }

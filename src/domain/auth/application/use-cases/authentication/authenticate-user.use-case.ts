@@ -11,6 +11,7 @@ import {
   EVENT_DISPATCHER,
 } from '@/core/domain/events/i-event-dispatcher';
 import { UserLoggedInEvent } from '@/domain/auth/enterprise/events/user-logged-in.event';
+import { EmailVerificationFactory } from '@/domain/auth/domain/services/email-verification.factory';
 
 export interface AuthenticateUserRequest {
   email: string;
@@ -84,8 +85,9 @@ export class AuthenticateUserUseCase {
       return left(AuthenticationError.invalidCredentials());
     }
 
-    // Check if email is verified (optional based on business rules)
-    if (!identity.emailVerified) {
+    // Use domain service to check email verification policy
+    const emailVerificationService = EmailVerificationFactory.create();
+    if (emailVerificationService.isVerificationRequiredForLogin() && !identity.emailVerified) {
       return left(AuthenticationError.emailNotVerified());
     }
 

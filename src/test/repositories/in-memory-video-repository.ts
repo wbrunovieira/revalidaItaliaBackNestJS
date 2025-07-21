@@ -17,8 +17,7 @@ interface StoredVideo {
 interface VideoDependencies {
   videosSeen?: Array<{
     id: string;
-    userId: string;
-    userName: string;
+    identityId: string;
     seenAt: Date;
   }>;
   translations?: Array<{ id: string; locale: string; title: string }>;
@@ -102,10 +101,9 @@ export class InMemoryVideoRepository implements IVideoRepository {
           dependencies.push({
             type: 'video_seen',
             id: seen.id,
-            name: `Viewed by ${seen.userName}`,
+            name: `Viewed by identity ${seen.identityId}`,
             relatedEntities: {
-              userId: seen.userId,
-              userName: seen.userName,
+              identityId: seen.identityId,
             },
           });
         });

@@ -7,10 +7,11 @@ import { InMemoryAssessmentRepository } from '@/test/repositories/in-memory-asse
 import { InMemoryAccountRepository } from '@/test/repositories/in-memory-account-repository';
 import { IAttemptRepository } from '../repositories/i-attempt.repository';
 import { IAssessmentRepository } from '../repositories/i-assessment-repository';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { Assessment } from '@/domain/assessment/enterprise/entities/assessment.entity';
 import { Attempt } from '@/domain/assessment/enterprise/entities/attempt.entity';
-import { User } from '@/domain/auth/enterprise/entities/user.entity';
+// TODO: Update tests to use new separated entities (UserIdentity, UserProfile, UserAuthorization)
+// import { User } from '@/domain/auth/enterprise/entities/user.entity';
 import { AttemptStatusVO } from '@/domain/assessment/enterprise/value-objects/attempt-status.vo';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { StartAttemptRequest } from '../dtos/start-attempt-request.dto';
@@ -397,12 +398,12 @@ describe('StartAttemptUseCase', () => {
           isRight: () => false,
           value: new Error('Database error'),
         }),
-      } as Partial<IAccountRepository>;
+      } as Partial<IUserAggregatedViewRepository>;
 
       const useCase = new StartAttemptUseCase(
         attemptRepository,
         assessmentRepository,
-        mockAccountRepository as IAccountRepository,
+        mockAccountRepository as IUserAggregatedViewRepository,
       );
 
       const request: StartAttemptRequest = {

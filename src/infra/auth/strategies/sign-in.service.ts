@@ -5,7 +5,7 @@ import { UserPayload } from '@/infra/auth/strategies/jwt.strategy';
 import {
   AuthenticateUserUseCase,
   AuthenticateUserRequest,
-} from '@/domain/auth/application/use-cases/authenticate-user.use-case';
+} from '@/domain/auth/application/use-cases/authentication/authenticate-user.use-case';
 
 @Injectable()
 export class SignInService {
@@ -24,7 +24,7 @@ export class SignInService {
 
     // 2) Gera o JWT
     const user = result.value.user;
-    const payload: UserPayload = { sub: user.id, role: user.role };
+    const payload: UserPayload = { sub: user.identityId, role: user.role };
     const token = this.jwtService.sign(payload);
 
     // 3) Retorna token e dados do user

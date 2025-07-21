@@ -18,7 +18,7 @@ interface StoredDocument {
 interface DocumentDependencies {
   downloads: Array<{
     id: string;
-    userId: string;
+    identityId: string;
     userName: string;
     downloadedAt: Date;
   }>;
@@ -141,7 +141,7 @@ export class InMemoryDocumentRepository implements IDocumentRepository {
         id: download.id,
         name: `Downloaded by ${download.userName}`,
         relatedEntities: {
-          userId: download.userId,
+          identityId: download.identityId,
           userName: download.userName,
           downloadedAt: download.downloadedAt,
         },

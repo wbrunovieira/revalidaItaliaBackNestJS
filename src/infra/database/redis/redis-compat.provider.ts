@@ -8,6 +8,6 @@ import { REDIS_CLIENT } from './redis.constants';
  * This allows modules using @InjectRedis() to work with our centralized Redis client
  */
 export const redisCompatProvider: Provider = {
-  provide: 'RedisModuleConnectionToken', // Token used by @nestjs-modules/ioredis
+  provide: 'default_IORedisModuleConnectionToken', // Token used by @nestjs-modules/ioredis
   useExisting: REDIS_CLIENT,
 };

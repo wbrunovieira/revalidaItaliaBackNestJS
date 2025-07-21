@@ -13,6 +13,7 @@ import { InvalidInputError, DuplicateEmailError, DuplicateNationalIdError } from
 import { IEventDispatcher, EVENT_DISPATCHER } from '@/core/domain/events/i-event-dispatcher';
 import { UserCreatedEvent } from '@/domain/auth/enterprise/events/user-created.event';
 import { UniqueEntityID } from '@/core/unique-entity-id';
+import { EmailVerificationFactory } from '@/domain/auth/domain/services/email-verification.factory';
 
 export interface CreateUserRequest {
   email: string;
@@ -20,6 +21,7 @@ export interface CreateUserRequest {
   fullName: string;
   nationalId: string;
   role?: UserRole;
+  source?: string; // 'admin', 'hotmart', 'api', etc.
   phone?: string;
   birthDate?: Date;
   profileImageUrl?: string;
@@ -83,19 +85,23 @@ export class CreateUserUseCase {
       return left(new DuplicateNationalIdError(req.nationalId));
     }
 
-    // Generate a shared ID for linking aggregates
-    const userId = new UniqueEntityID();
+    // Use domain service to determine email verification policy
+    const emailVerificationService = EmailVerificationFactory.create();
+    const emailVerified = emailVerificationService.shouldAutoVerifyEmail(req.source);
 
-    // Create UserIdentity aggregate
+    // Create UserIdentity aggregate first
     const identity = UserIdentity.create({
       email: emailVO,
       password: passwordVO,
-      emailVerified: false,
+      emailVerified,
     });
+
+    // Use the identity ID for related aggregates
+    const identityId = identity.id;
 
     // Create UserProfile aggregate
     const profile = UserProfile.create({
-      identityId: userId,
+      identityId: identityId,
       fullName: req.fullName,
       nationalId: nationalIdVO,
       phone: req.phone,
@@ -110,7 +116,7 @@ export class CreateUserUseCase {
 
     // Create UserAuthorization aggregate
     const authorization = UserAuthorization.create({
-      identityId: userId,
+      identityId: identityId,
       role: req.role || 'student',
     });
 

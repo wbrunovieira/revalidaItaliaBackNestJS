@@ -15,14 +15,15 @@ import { IAssessmentRepository } from '../repositories/i-assessment-repository';
 import { IQuestionRepository } from '../repositories/i-question-repository';
 import { IArgumentRepository } from '../repositories/i-argument-repository';
 import { IAnswerRepository } from '../repositories/i-answer.repository';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { Attempt } from '@/domain/assessment/enterprise/entities/attempt.entity';
 import { AttemptAnswer } from '@/domain/assessment/enterprise/entities/attempt-answer.entity';
 import { Assessment } from '@/domain/assessment/enterprise/entities/assessment.entity';
 import { Question } from '@/domain/assessment/enterprise/entities/question.entity';
 import { Argument } from '@/domain/assessment/enterprise/entities/argument.entity';
 import { Answer } from '@/domain/assessment/enterprise/entities/answer.entity';
-import { User } from '@/domain/auth/enterprise/entities/user.entity';
+// TODO: Update tests to use new separated entities (UserIdentity, UserProfile, UserAuthorization)
+// import { User } from '@/domain/auth/enterprise/entities/user.entity';
 import { AttemptStatusVO } from '@/domain/assessment/enterprise/value-objects/attempt-status.vo';
 import { QuestionTypeVO } from '@/domain/assessment/enterprise/value-objects/question-type.vo';
 import { ScoreVO } from '@/domain/assessment/enterprise/value-objects/score.vo';

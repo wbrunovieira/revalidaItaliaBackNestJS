@@ -15,33 +15,33 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
   public flashcards: Flashcard[] = [];
 
   async findByUserAndFlashcard(
-    userId: string,
+    identityId: string,
     flashcardId: string,
   ): Promise<Either<Error, FlashcardInteraction | null>> {
     const interaction = this.items.find(
       (item) => 
-        item.userId.toString() === userId && 
+        item.identityId.toString() === identityId && 
         item.flashcardId.toString() === flashcardId
     );
 
     return right(interaction || null);
   }
 
-  async findByUserId(userId: string): Promise<Either<Error, FlashcardInteraction[]>> {
+  async findByUserId(identityId: string): Promise<Either<Error, FlashcardInteraction[]>> {
     const interactions = this.items
-      .filter((item) => item.userId.toString() === userId)
+      .filter((item) => item.identityId.toString() === identityId)
       .sort((a, b) => b.reviewedAt.getTime() - a.reviewedAt.getTime());
 
     return right(interactions);
   }
 
   async findByUserIdAndDifficulty(
-    userId: string,
+    identityId: string,
     difficulty: FlashcardDifficultyLevelVO,
   ): Promise<Either<Error, FlashcardInteraction[]>> {
     const interactions = this.items
       .filter((item) => 
-        item.userId.toString() === userId && 
+        item.identityId.toString() === identityId && 
         item.difficultyLevel.equals(difficulty)
       )
       .sort((a, b) => b.reviewedAt.getTime() - a.reviewedAt.getTime());
@@ -58,13 +58,13 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
   }
 
   async findByUserIdAndDateRange(
-    userId: string,
+    identityId: string,
     startDate: Date,
     endDate: Date,
   ): Promise<Either<Error, FlashcardInteraction[]>> {
     const interactions = this.items
       .filter((item) => 
-        item.userId.toString() === userId &&
+        item.identityId.toString() === identityId &&
         item.reviewedAt >= startDate &&
         item.reviewedAt <= endDate
       )
@@ -74,12 +74,12 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
   }
 
   async findByUserIdAndArgumentId(
-    userId: string,
+    identityId: string,
     argumentId: string,
   ): Promise<Either<Error, FlashcardInteraction[]>> {
     const interactions = this.items
       .filter((item) => {
-        if (item.userId.toString() !== userId) return false;
+        if (item.identityId.toString() !== identityId) return false;
         
         const flashcard = this.flashcards.find(
           (f) => f.id.toString() === item.flashcardId.toString()
@@ -95,7 +95,7 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
   async createOrUpdate(interaction: FlashcardInteraction): Promise<Either<Error, void>> {
     const existingIndex = this.items.findIndex(
       (item) => 
-        item.userId.equals(interaction.userId) && 
+        item.identityId.equals(interaction.identityId) && 
         item.flashcardId.equals(interaction.flashcardId)
     );
 
@@ -110,10 +110,10 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
     return right(undefined);
   }
 
-  async delete(userId: string, flashcardId: string): Promise<Either<Error, void>> {
+  async delete(identityId: string, flashcardId: string): Promise<Either<Error, void>> {
     const index = this.items.findIndex(
       (item) => 
-        item.userId.toString() === userId && 
+        item.identityId.toString() === identityId && 
         item.flashcardId.toString() === flashcardId
     );
 
@@ -126,12 +126,12 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
   }
 
   async countByUserIdAndDifficulty(
-    userId: string,
+    identityId: string,
     difficulty: FlashcardDifficultyLevelVO,
   ): Promise<Either<Error, number>> {
     const count = this.items.filter(
       (item) => 
-        item.userId.toString() === userId && 
+        item.identityId.toString() === identityId && 
         item.difficultyLevel.equals(difficulty)
     ).length;
 
@@ -189,7 +189,7 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
   }
 
   async getUserStatsGroupedByArgument(
-    userId: string,
+    identityId: string,
   ): Promise<Either<Error, UserFlashcardStats[]>> {
     const argumentGroups = new Map<string, {
       totalFlashcards: number;
@@ -219,7 +219,7 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
 
     // Add interaction stats
     const userInteractions = this.items.filter(
-      (item) => item.userId.toString() === userId
+      (item) => item.identityId.toString() === identityId
     );
 
     for (const interaction of userInteractions) {
@@ -247,7 +247,7 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
 
     const stats: UserFlashcardStats[] = Array.from(argumentGroups.entries()).map(
       ([argumentId, group]) => ({
-        userId,
+        identityId,
         argumentId,
         totalFlashcards: group.totalFlashcards,
         reviewedFlashcards: group.reviewedFlashcards.size,
@@ -262,7 +262,7 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
   }
 
   async getUserStatsForArgument(
-    userId: string,
+    identityId: string,
     argumentId: string,
   ): Promise<Either<Error, UserFlashcardStats>> {
     const argumentFlashcards = this.flashcards.filter(
@@ -275,7 +275,7 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
 
     const userInteractions = this.items.filter(
       (item) => {
-        if (item.userId.toString() !== userId) return false;
+        if (item.identityId.toString() !== identityId) return false;
         
         return argumentFlashcards.some(
           (f) => f.id.toString() === item.flashcardId.toString()
@@ -299,7 +299,7 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
       : undefined;
 
     const stats: UserFlashcardStats = {
-      userId,
+      identityId,
       argumentId,
       totalFlashcards: argumentFlashcards.length,
       reviewedFlashcards: reviewedFlashcards.size,

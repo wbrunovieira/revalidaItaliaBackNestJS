@@ -16,14 +16,14 @@ export class UserStatsSubscriber {
 
   @OnEvent(UserCreatedEvent.name)
   async handleUserCreated(event: UserCreatedEvent): Promise<void> {
-    const { user, source } = event;
+    const { identityId, role, source } = event;
 
     try {
-      await this.statsService.incrementUserCount(user.role, source);
+      await this.statsService.incrementUserCount(role, source);
       
       console.log(`[Stats] User count incremented:`, {
-        userId: user.id.toString(),
-        role: user.role,
+        userId: identityId,
+        role: role,
         source,
       });
     } catch (error) {

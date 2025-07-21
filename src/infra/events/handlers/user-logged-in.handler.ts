@@ -11,7 +11,7 @@ export class UserLoggedInHandler {
     private readonly onlineTracker: IOnlineUserTracker,
   ) {}
 
-  @OnEvent('domain.UserLoggedInEvent')
+  @OnEvent('UserLoggedInEvent')
   async handle(event: UserLoggedInEvent): Promise<void> {
     try {
       // Add user to online tracking
@@ -20,8 +20,8 @@ export class UserLoggedInHandler {
         email: event.email,
         loginTime: event.timestamp,
         lastActivity: event.timestamp,
-        ipAddress: event.ipAddress,
-        userAgent: event.userAgent,
+        ipAddress: event.ipAddress || '',
+        userAgent: event.userAgent || '',
       });
 
       console.log(`User logged in: ${event.email} from ${event.ipAddress}`);

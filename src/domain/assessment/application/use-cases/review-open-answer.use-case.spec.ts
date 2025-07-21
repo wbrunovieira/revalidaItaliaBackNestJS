@@ -9,11 +9,12 @@ import { InMemoryAccountRepository } from '@/test/repositories/in-memory-account
 import { IAttemptAnswerRepository } from '../repositories/i-attempt-answer-repository';
 import { IAttemptRepository } from '../repositories/i-attempt.repository';
 import { IQuestionRepository } from '../repositories/i-question-repository';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { AttemptAnswer } from '@/domain/assessment/enterprise/entities/attempt-answer.entity';
 import { Attempt } from '@/domain/assessment/enterprise/entities/attempt.entity';
 import { Question } from '@/domain/assessment/enterprise/entities/question.entity';
-import { User } from '@/domain/auth/enterprise/entities/user.entity';
+// TODO: Update tests to use new separated entities (UserIdentity, UserProfile, UserAuthorization)
+// import { User } from '@/domain/auth/enterprise/entities/user.entity';
 import { AttemptStatusVO } from '@/domain/assessment/enterprise/value-objects/attempt-status.vo';
 import { QuestionTypeVO } from '@/domain/assessment/enterprise/value-objects/question-type.vo';
 import { UniqueEntityID } from '@/core/unique-entity-id';

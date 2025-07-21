@@ -16,7 +16,7 @@ export interface AttemptSummary {
     type: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA';
     passingScore?: number;
   };
-  student: {
+  student?: {
     id: string;
     name: string;
     email: string;

@@ -77,6 +77,7 @@ export class UserController {
       fullName: dto.name, // Map 'name' to 'fullName'
       nationalId: dto.nationalId,
       role: dto.role,
+      source: dto.source || 'admin', // Default to 'admin' when created via admin endpoint
     };
 
     const result = await this.createUser.execute(request);

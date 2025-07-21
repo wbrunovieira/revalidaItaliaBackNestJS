@@ -9,7 +9,7 @@ export interface PendingReviewAttempt {
     title: string;
     type: 'PROVA_ABERTA';
   };
-  student: {
+  student?: {
     id: string;
     name: string;
     email: string;

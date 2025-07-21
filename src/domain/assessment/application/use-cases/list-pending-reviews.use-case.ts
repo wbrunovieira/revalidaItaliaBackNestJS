@@ -6,7 +6,7 @@ import { IAttemptAnswerRepository } from '../repositories/i-attempt-answer-repos
 import { IAttemptRepository } from '../repositories/i-attempt.repository';
 import { IAssessmentRepository } from '../repositories/i-assessment-repository';
 import { IQuestionRepository } from '../repositories/i-question-repository';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { ListPendingReviewsRequest } from '../dtos/list-pending-reviews-request.dto';
 import { ListPendingReviewsResponse, PendingReviewAttempt } from '../dtos/list-pending-reviews-response.dto';
 import { listPendingReviewsSchema } from './validations/list-pending-reviews.schema';
@@ -34,8 +34,8 @@ export class ListPendingReviewsUseCase {
     private assessmentRepository: IAssessmentRepository,
     @Inject('QuestionRepository')
     private questionRepository: IQuestionRepository,
-    @Inject('AccountRepository')
-    private accountRepository: IAccountRepository,
+    @Inject('UserAggregatedViewRepository')
+    private userAggregatedViewRepository: IUserAggregatedViewRepository,
   ) {}
 
   async execute(request: ListPendingReviewsRequest): Promise<ListPendingReviewsUseCaseResponse> {
@@ -49,13 +49,13 @@ export class ListPendingReviewsUseCase {
 
     try {
       // Verify requester exists and has permission (only tutors and admins can review)
-      const requesterResult = await this.accountRepository.findById(requesterId);
+      const requesterResult = await this.userAggregatedViewRepository.findByIdentityId(requesterId);
       if (requesterResult.isLeft()) {
         return left(new UserNotFoundError());
       }
 
       const requester = requesterResult.value;
-      if (requester.role !== 'tutor' && requester.role !== 'admin') {
+      if (requester && requester.role !== 'tutor' && requester.role !== 'admin') {
         return left(new InsufficientPermissionsError());
       }
 
@@ -106,7 +106,7 @@ export class ListPendingReviewsUseCase {
         }
 
         // Get student info
-        const studentResult = await this.accountRepository.findById(attempt.userId);
+        const studentResult = await this.userAggregatedViewRepository.findByIdentityId(attempt.identityId);
         if (studentResult.isLeft()) {
           continue; // Skip attempts with missing students
         }
@@ -129,11 +129,11 @@ export class ListPendingReviewsUseCase {
             title: assessment.title,
             type: 'PROVA_ABERTA',
           },
-          student: {
-            id: student.id.toString(),
-            name: student.name,
+          student: student ? {
+            id: student.identityId,
+            name: student.fullName,
             email: student.email,
-          },
+          } : undefined,
           pendingAnswers: answers.length,
           totalOpenQuestions,
           createdAt: attempt.createdAt,

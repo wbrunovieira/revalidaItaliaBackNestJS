@@ -13,6 +13,7 @@ export interface VideoDependencyInfo {
     name: string;
     relatedEntities?: {
       userId?: string;
+      identityId?: string;
       userName?: string;
       locale?: string;
     };

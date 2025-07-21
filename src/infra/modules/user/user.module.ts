@@ -66,12 +66,18 @@ import { IUserAuthorizationRepository } from '@/domain/auth/application/reposito
       provide: IUserAggregatedViewRepository,
       useClass: PrismaUserAggregatedViewRepository,
     },
+    // Also provide with string token for @Inject('UserAggregatedViewRepository')
+    {
+      provide: 'UserAggregatedViewRepository',
+      useClass: PrismaUserAggregatedViewRepository,
+    },
   ],
   exports: [
     IUserIdentityRepository,
     IUserProfileRepository,
     IUserAuthorizationRepository,
     IUserAggregatedViewRepository,
+    'UserAggregatedViewRepository', // Export string token too
 
     CreateUserUseCase,
     UpdateUserUseCase,

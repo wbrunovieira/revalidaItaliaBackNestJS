@@ -8,7 +8,7 @@ export class UserPasswordChangedEvent extends DomainEvent {
   constructor(identityId: string, occurredAt?: Date) {
     super();
     this.identityId = identityId;
-    this.occurredAt = occurredAt || new Date();
+    // occurredAt is set in parent constructor
   }
 
   getAggregateId(): UniqueEntityID {

@@ -4,7 +4,7 @@ import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
 import { IAttemptRepository } from '../repositories/i-attempt.repository';
 import { IAssessmentRepository } from '../repositories/i-assessment-repository';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { ListAttemptsRequest } from '../dtos/list-attempts-request.dto';
 import { ListAttemptsResponse, AttemptSummary } from '../dtos/list-attempts-response.dto';
 import { listAttemptsSchema } from './validations/list-attempts.schema';
@@ -28,8 +28,8 @@ export class ListAttemptsUseCase {
     private attemptRepository: IAttemptRepository,
     @Inject('AssessmentRepository')
     private assessmentRepository: IAssessmentRepository,
-    @Inject('AccountRepository')
-    private accountRepository: IAccountRepository,
+    @Inject('UserAggregatedViewRepository')
+    private userAggregatedViewRepository: IUserAggregatedViewRepository,
   ) {}
 
   async execute(request: ListAttemptsRequest): Promise<ListAttemptsUseCaseResponse> {
@@ -43,7 +43,7 @@ export class ListAttemptsUseCase {
 
     try {
       // Verify requester exists and has permission
-      const requesterResult = await this.accountRepository.findById(requesterId);
+      const requesterResult = await this.userAggregatedViewRepository.findByIdentityId(requesterId);
       if (requesterResult.isLeft()) {
         return left(new UserNotFoundError());
       }
@@ -51,7 +51,7 @@ export class ListAttemptsUseCase {
       const requester = requesterResult.value;
 
       // Check permissions: students can only view own attempts, tutors/admins can view any
-      if (requester.role === 'student') {
+      if (requester && requester.role === 'student') {
         if (identityId && identityId !== requesterId) {
           return left(new InsufficientPermissionsError());
         }
@@ -94,7 +94,7 @@ export class ListAttemptsUseCase {
         const assessment = assessmentResult.value;
 
         // Get student info
-        const studentResult = await this.accountRepository.findById(attempt.identityId);
+        const studentResult = await this.userAggregatedViewRepository.findByIdentityId(attempt.identityId);
         if (studentResult.isLeft()) {
           continue; // Skip attempts with missing students
         }
@@ -119,11 +119,11 @@ export class ListAttemptsUseCase {
             type: assessment.type as 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
             passingScore: assessment.passingScore,
           },
-          student: {
-            id: student.id.toString(),
-            name: student.name,
+          student: student ? {
+            id: student.identityId,
+            name: student.fullName,
             email: student.email,
-          },
+          } : undefined,
           pendingAnswers,
           createdAt: attempt.createdAt,
           updatedAt: attempt.updatedAt,

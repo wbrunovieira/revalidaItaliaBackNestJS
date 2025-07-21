@@ -11,7 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { GetDocumentUseCase } from '@/domain/course-catalog/application/use-cases/get-document.use-case';
 import { DeleteDocumentUseCase } from '@/domain/course-catalog/application/use-cases/delete-document.use-case';
 import { UpdateDocumentUseCase } from '@/domain/course-catalog/application/use-cases/update-document.use-case';
-import { ModuleModule } from '../module/module.module';
+import { ModuleModule } from '../../module/module.module';
 import { DocumentController } from '@/infra/controllers/document.controller';
 
 @Module({

@@ -1,8 +1,11 @@
 // src/domain/auth/application/use-cases/get-user-by-id.use-case.spec.ts
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GetUserByIdUseCase } from './get-user-by-id.use-case';
-import { IAccountRepository } from '../repositories/i-account-repository';
-import { User } from '../../enterprise/entities/user.entity';
+import { IUserIdentityRepository } from '../../repositories/i-user-identity-repository';
+import { IUserProfileRepository } from '../../repositories/i-user-profile-repository';
+import { IUserAuthorizationRepository } from '../../repositories/i-user-authorization-repository';
+// TODO: Update tests to use new separated entities (UserIdentity, UserProfile, UserAuthorization)
+// import { User } from '../../enterprise/entities/user.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { ResourceNotFoundError } from './errors/resource-not-found-error';
@@ -11,7 +14,9 @@ import { left, right } from '@/core/either';
 
 describe('GetUserByIdUseCase', () => {
   let useCase: GetUserByIdUseCase;
-  let mockAccountRepo: IAccountRepository;
+  let mockIdentityRepo: IUserIdentityRepository;
+  let mockProfileRepo: IUserProfileRepository;
+  let mockAuthRepo: IUserAuthorizationRepository;
 
   // Use UUIDs válidos
   const validUserId = '550e8400-e29b-41d4-a716-446655440000';

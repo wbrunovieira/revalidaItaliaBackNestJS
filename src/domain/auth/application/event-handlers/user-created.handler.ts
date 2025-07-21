@@ -14,12 +14,13 @@ import { UserCreatedEvent } from '@/domain/auth/enterprise/events/user-created.e
 export class UserCreatedHandler {
   @OnEvent(UserCreatedEvent.name)
   async handle(event: UserCreatedEvent): Promise<void> {
-    const { user, source } = event;
+    const { identityId, email, fullName, role, source } = event;
     
     console.log(`[Domain] User created:`, {
-      userId: user.id.toString(),
-      email: user.email.value,
-      role: user.role.value,
+      userId: identityId,
+      email: email,
+      fullName: fullName,
+      role: role,
       source,
       occurredAt: event.occurredAt,
     });

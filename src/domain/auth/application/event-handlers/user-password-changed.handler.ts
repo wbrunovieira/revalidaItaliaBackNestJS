@@ -12,11 +12,10 @@ import { UserPasswordChangedEvent } from '@/domain/auth/enterprise/events/user-p
 export class UserPasswordChangedHandler {
   @OnEvent(UserPasswordChangedEvent.name)
   async handle(event: UserPasswordChangedEvent): Promise<void> {
-    const { user } = event;
+    const { identityId } = event;
     
     console.log(`[Domain] User password changed:`, {
-      userId: user.id.toString(),
-      email: user.email.value,
+      userId: identityId,
       occurredAt: event.occurredAt,
     });
     

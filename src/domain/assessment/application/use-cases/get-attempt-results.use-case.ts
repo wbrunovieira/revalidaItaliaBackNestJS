@@ -8,7 +8,7 @@ import { IAttemptAnswerRepository } from '../repositories/i-attempt-answer-repos
 import { IQuestionRepository } from '../repositories/i-question-repository';
 import { IArgumentRepository } from '../repositories/i-argument-repository';
 import { IAnswerRepository } from '../repositories/i-answer.repository';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { GetAttemptResultsRequest } from '../dtos/get-attempt-results-request.dto';
 import {
   GetAttemptResultsResponse,
@@ -57,8 +57,8 @@ export class GetAttemptResultsUseCase {
     private argumentRepository: IArgumentRepository,
     @Inject('AnswerRepository')
     private answerRepository: IAnswerRepository,
-    @Inject('AccountRepository')
-    private accountRepository: IAccountRepository,
+    @Inject('UserAggregatedViewRepository')
+    private userAggregatedViewRepository: IUserAggregatedViewRepository,
   ) {}
 
   async execute(
@@ -88,7 +88,7 @@ export class GetAttemptResultsUseCase {
 
       // Verify requester exists and has permission
       const requesterResult =
-        await this.accountRepository.findById(requesterId);
+        await this.userAggregatedViewRepository.findByIdentityId(requesterId);
       if (requesterResult.isLeft()) {
         return left(new UserNotFoundError());
       }
@@ -96,7 +96,7 @@ export class GetAttemptResultsUseCase {
       const requester = requesterResult.value;
 
       // Check permissions: student can only view own attempts, tutors/admins can view any
-      if (requester.role === 'student' && attempt.identityId !== requesterId) {
+      if (requester && requester.role === 'student' && attempt.identityId !== requesterId) {
         return left(new InsufficientPermissionsError());
       }
 

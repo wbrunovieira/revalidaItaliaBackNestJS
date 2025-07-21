@@ -4,7 +4,7 @@ import { IAddressRepository } from '@/domain/auth/application/repositories/i-add
 import { PrismaAddressRepository } from '@/infra/database/prisma/repositories/prisma-address-repository';
 
 import { CreateAddressUseCase } from '@/domain/auth/application/use-cases/create-address.use-case';
-import { FindAddressByUserUseCase } from '@/domain/auth/application/use-cases/find-address-by-user.use-case';
+import { FindAddressByProfileUseCase } from '@/domain/auth/application/use-cases/find-address-by-profile.use-case';
 import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update-address.use-case';
 import { DeleteAddressUseCase } from '@/domain/auth/application/use-cases/delete-address.use-case';
 
@@ -19,7 +19,7 @@ import { AddressController } from '@/infra/controllers/address.controller';
 
     // Domain use cases
     CreateAddressUseCase,
-    FindAddressByUserUseCase,
+    FindAddressByProfileUseCase,
     UpdateAddressUseCase,
     DeleteAddressUseCase,
   ],
@@ -27,7 +27,7 @@ import { AddressController } from '@/infra/controllers/address.controller';
     // Export repository and use cases if needed by other modules
     IAddressRepository,
     CreateAddressUseCase,
-    FindAddressByUserUseCase,
+    FindAddressByProfileUseCase,
     UpdateAddressUseCase,
     DeleteAddressUseCase,
   ],

@@ -7,7 +7,7 @@ import { Attempt } from '@/domain/assessment/enterprise/entities/attempt.entity'
 import { AttemptStatusVO } from '@/domain/assessment/enterprise/value-objects/attempt-status.vo';
 import { IAttemptRepository } from '../repositories/i-attempt.repository';
 import { IAssessmentRepository } from '../repositories/i-assessment-repository';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { StartAttemptRequest } from '../dtos/start-attempt-request.dto';
 import { StartAttemptResponse } from '../dtos/start-attempt-response.dto';
 import { InvalidInputError } from './errors/invalid-input-error';
@@ -37,8 +37,8 @@ export class StartAttemptUseCase {
     private readonly attemptRepository: IAttemptRepository,
     @Inject('AssessmentRepository')
     private readonly assessmentRepository: IAssessmentRepository,
-    @Inject('AccountRepository')
-    private readonly accountRepository: IAccountRepository,
+    @Inject('UserAggregatedViewRepository')
+    private readonly userAggregatedViewRepository: IUserAggregatedViewRepository,
   ) {}
 
   async execute(
@@ -53,7 +53,7 @@ export class StartAttemptUseCase {
     const validatedData: StartAttemptSchema = validationResult.data;
 
     // 2. Check if user exists
-    const userResult = await this.accountRepository.findById(
+    const userResult = await this.userAggregatedViewRepository.findByIdentityId(
       validatedData.identityId,
     );
     if (userResult.isLeft()) {

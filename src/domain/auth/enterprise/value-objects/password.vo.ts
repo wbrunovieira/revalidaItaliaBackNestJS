@@ -112,7 +112,7 @@ export class Password {
     }
 
     // Check for common weak passwords
-    const weakPasswords = ['password', '123456', 'qwerty', 'admin', 'letmein'];
+    const weakPasswords = ['password', '123456', 'qwerty', 'letmein'];
     if (weakPasswords.some(weak => plainPassword.toLowerCase().includes(weak))) {
       throw WeakPasswordException.tooCommon();
     }

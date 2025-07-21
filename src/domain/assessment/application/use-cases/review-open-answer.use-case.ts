@@ -5,7 +5,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { IAttemptAnswerRepository } from '../repositories/i-attempt-answer-repository';
 import { IAttemptRepository } from '../repositories/i-attempt.repository';
 import { IQuestionRepository } from '../repositories/i-question-repository';
-import { IAccountRepository } from '@/domain/auth/application/repositories/i-account-repository';
+import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { ReviewOpenAnswerRequest } from '../dtos/review-open-answer-request.dto';
 import { ReviewOpenAnswerResponse } from '../dtos/review-open-answer-response.dto';
 import { ScoreVO } from '../../enterprise/value-objects/score.vo';
@@ -40,8 +40,8 @@ export class ReviewOpenAnswerUseCase {
     private attemptRepository: IAttemptRepository,
     @Inject('QuestionRepository')
     private questionRepository: IQuestionRepository,
-    @Inject('AccountRepository')
-    private accountRepository: IAccountRepository,
+    @Inject('UserAggregatedViewRepository')
+    private userAggregatedViewRepository: IUserAggregatedViewRepository,
   ) {}
 
   async execute(request: ReviewOpenAnswerRequest): Promise<ReviewOpenAnswerUseCaseResponse> {
@@ -63,13 +63,13 @@ export class ReviewOpenAnswerUseCase {
       const attemptAnswer = attemptAnswerResult.value;
 
       // Verify reviewer exists and has permission
-      const reviewerResult = await this.accountRepository.findById(reviewerId);
+      const reviewerResult = await this.userAggregatedViewRepository.findByIdentityId(reviewerId);
       if (reviewerResult.isLeft()) {
         return left(new UserNotFoundError());
       }
 
       const reviewer = reviewerResult.value;
-      if (reviewer.role !== 'tutor' && reviewer.role !== 'admin') {
+      if (reviewer && reviewer.role !== 'tutor' && reviewer.role !== 'admin') {
         return left(new InsufficientPermissionsError());
       }
 

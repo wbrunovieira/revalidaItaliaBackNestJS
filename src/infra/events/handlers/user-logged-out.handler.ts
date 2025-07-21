@@ -11,7 +11,7 @@ export class UserLoggedOutHandler {
     private readonly onlineTracker: IOnlineUserTracker,
   ) {}
 
-  @OnEvent('domain.UserLoggedOutEvent')
+  @OnEvent('UserLoggedOutEvent')
   async handle(event: UserLoggedOutEvent): Promise<void> {
     try {
       // Remove user from online tracking

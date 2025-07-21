@@ -25,7 +25,7 @@ export class UserCreatedEvent extends DomainEvent {
     this.fullName = fullName;
     this.role = role;
     this.source = source;
-    this.occurredAt = occurredAt || new Date();
+    // occurredAt is set in parent constructor
   }
 
   getAggregateId(): UniqueEntityID {

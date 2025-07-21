@@ -195,8 +195,14 @@ export class PrismaVideoRepository implements IVideoRepository {
       const videosSeen = await this.prisma.videoSeen.findMany({
         where: { videoId: id },
         include: {
-          user: {
-            select: { id: true, name: true },
+          identity: {
+            select: { 
+              id: true, 
+              email: true,
+              profile: {
+                select: { fullName: true }
+              }
+            },
           },
         },
       });
@@ -210,10 +216,10 @@ export class PrismaVideoRepository implements IVideoRepository {
         (seen) => ({
           type: 'video_seen',
           id: seen.id,
-          name: `Viewed by ${seen.user.name}`,
+          name: `Viewed by ${seen.identity.profile?.fullName || seen.identity.email}`,
           relatedEntities: {
-            userId: seen.userId,
-            userName: seen.user.name,
+            identityId: seen.identityId,
+            userName: seen.identity.profile?.fullName || seen.identity.email,
           },
         }),
       );

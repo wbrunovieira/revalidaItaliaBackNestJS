@@ -10,56 +10,56 @@ import { ReviewOpenAnswerResponse } from '@/domain/assessment/application/dtos/r
 
 export class AttemptControllerTestData {
   static readonly validStartAttemptDto = (): StartAttemptDto => ({
-    userId: '550e8400-e29b-41d4-a716-446655440001',
+    identityId: '550e8400-e29b-41d4-a716-446655440001',
     assessmentId: '550e8400-e29b-41d4-a716-446655440002',
   });
 
   static readonly validStartAttemptDtoForQuiz = (): StartAttemptDto => ({
-    userId: '550e8400-e29b-41d4-a716-446655440003',
+    identityId: '550e8400-e29b-41d4-a716-446655440003',
     assessmentId: '550e8400-e29b-41d4-a716-446655440004', // Quiz assessment
   });
 
   static readonly validStartAttemptDtoForSimulado = (): StartAttemptDto => ({
-    userId: '550e8400-e29b-41d4-a716-446655440005',
+    identityId: '550e8400-e29b-41d4-a716-446655440005',
     assessmentId: '550e8400-e29b-41d4-a716-446655440006', // Simulado assessment with time limit
   });
 
   static readonly invalidStartAttemptDto = {
-    invalidUserId: (): any => ({
-      userId: 'invalid-uuid',
+    invalidIdentityId: (): any => ({
+      identityId: 'invalid-uuid',
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
     
     invalidAssessmentId: (): any => ({
-      userId: '550e8400-e29b-41d4-a716-446655440001',
+      identityId: '550e8400-e29b-41d4-a716-446655440001',
       assessmentId: 'invalid-uuid',
     }),
 
-    missingUserId: (): any => ({
+    missingIdentityId: (): any => ({
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
     missingAssessmentId: (): any => ({
-      userId: '550e8400-e29b-41d4-a716-446655440001',
+      identityId: '550e8400-e29b-41d4-a716-446655440001',
     }),
 
-    emptyUserId: (): any => ({
-      userId: '',
+    emptyIdentityId: (): any => ({
+      identityId: '',
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
     emptyAssessmentId: (): any => ({
-      userId: '550e8400-e29b-41d4-a716-446655440001',
+      identityId: '550e8400-e29b-41d4-a716-446655440001',
       assessmentId: '',
     }),
 
-    nullUserId: (): any => ({
-      userId: null,
+    nullIdentityId: (): any => ({
+      identityId: null,
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
     nullAssessmentId: (): any => ({
-      userId: '550e8400-e29b-41d4-a716-446655440001',
+      identityId: '550e8400-e29b-41d4-a716-446655440001',
       assessmentId: null,
     }),
   };
@@ -69,7 +69,7 @@ export class AttemptControllerTestData {
       id: '550e8400-e29b-41d4-a716-446655440010',
       status: 'IN_PROGRESS',
       startedAt: new Date('2023-01-01T10:00:00Z'),
-      userId: '550e8400-e29b-41d4-a716-446655440001',
+      identityId: '550e8400-e29b-41d4-a716-446655440001',
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
       createdAt: new Date('2023-01-01T10:00:00Z'),
       updatedAt: new Date('2023-01-01T10:00:00Z'),
@@ -82,7 +82,7 @@ export class AttemptControllerTestData {
       id: '550e8400-e29b-41d4-a716-446655440011',
       status: 'IN_PROGRESS',
       startedAt: new Date('2023-01-01T10:00:00Z'),
-      userId: '550e8400-e29b-41d4-a716-446655440003',
+      identityId: '550e8400-e29b-41d4-a716-446655440003',
       assessmentId: '550e8400-e29b-41d4-a716-446655440004',
       createdAt: new Date('2023-01-01T10:00:00Z'),
       updatedAt: new Date('2023-01-01T10:00:00Z'),
@@ -96,7 +96,7 @@ export class AttemptControllerTestData {
       status: 'IN_PROGRESS',
       startedAt: new Date('2023-01-01T10:00:00Z'),
       timeLimitExpiresAt: new Date('2023-01-01T12:00:00Z'), // 2 hours later
-      userId: '550e8400-e29b-41d4-a716-446655440005',
+      identityId: '550e8400-e29b-41d4-a716-446655440005',
       assessmentId: '550e8400-e29b-41d4-a716-446655440006',
       createdAt: new Date('2023-01-01T10:00:00Z'),
       updatedAt: new Date('2023-01-01T10:00:00Z'),
@@ -234,7 +234,7 @@ export class AttemptControllerTestData {
         startedAt: new Date('2023-01-01T10:00:00Z'),
         submittedAt: new Date('2023-01-01T10:15:00Z'),
         gradedAt: new Date('2023-01-01T10:15:00Z'),
-        userId: '550e8400-e29b-41d4-a716-446655440001',
+        identityId: '550e8400-e29b-41d4-a716-446655440001',
         assessmentId: '550e8400-e29b-41d4-a716-446655440002',
         createdAt: new Date('2023-01-01T10:00:00Z'),
         updatedAt: new Date('2023-01-01T10:15:00Z'),
@@ -253,7 +253,7 @@ export class AttemptControllerTestData {
         status: 'SUBMITTED',
         startedAt: new Date('2023-01-01T10:00:00Z'),
         submittedAt: new Date('2023-01-01T10:20:00Z'),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
+        identityId: '550e8400-e29b-41d4-a716-446655440003',
         assessmentId: '550e8400-e29b-41d4-a716-446655440004',
         createdAt: new Date('2023-01-01T10:00:00Z'),
         updatedAt: new Date('2023-01-01T10:20:00Z'),
@@ -274,7 +274,7 @@ export class AttemptControllerTestData {
         startedAt: new Date('2023-01-01T10:00:00Z'),
         submittedAt: new Date('2023-01-01T10:10:00Z'),
         gradedAt: new Date('2023-01-01T10:10:00Z'),
-        userId: '550e8400-e29b-41d4-a716-446655440005',
+        identityId: '550e8400-e29b-41d4-a716-446655440005',
         assessmentId: '550e8400-e29b-41d4-a716-446655440006',
         createdAt: new Date('2023-01-01T10:00:00Z'),
         updatedAt: new Date('2023-01-01T10:10:00Z'),
@@ -305,7 +305,7 @@ export class AttemptControllerTestData {
         submittedAt: new Date('2023-01-01T10:15:00Z'),
         gradedAt: assessmentType === 'PROVA_ABERTA' && hasPendingReview ? undefined : new Date('2023-01-01T10:15:00Z'),
         timeLimitExpiresAt: assessmentType === 'SIMULADO' ? new Date('2023-01-01T12:00:00Z') : undefined,
-        userId: '550e8400-e29b-41d4-a716-446655440001',
+        identityId: '550e8400-e29b-41d4-a716-446655440001',
         assessmentId: '550e8400-e29b-41d4-a716-446655440002',
       },
       assessment: {

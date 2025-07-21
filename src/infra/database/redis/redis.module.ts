@@ -17,7 +17,7 @@ import { REDIS_CLIENT } from './redis.constants';
 @Module({
   imports: [ConfigModule],
   providers: [...redisProviders, redisCompatProvider],
-  exports: [REDIS_CLIENT, 'RedisModuleConnectionToken'],
+  exports: [REDIS_CLIENT, 'default_IORedisModuleConnectionToken'],
 })
 export class RedisModule implements OnModuleDestroy {
   constructor(private moduleRef: ModuleRef) {}

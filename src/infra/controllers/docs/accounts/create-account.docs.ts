@@ -1,6 +1,6 @@
 import { ApiOperationOptions, ApiResponseOptions, ApiBodyOptions } from '@nestjs/swagger';
-import { CreateAccountDto } from '@/domain/auth/application/dtos/create-student.dto';
-import { CreateAccountResponseDto } from '@/domain/auth/application/dtos/student-response.dto';
+import { CreateAccountDto } from '@/domain/auth/application/dtos/create-account.dto';
+import { UserResponseDto } from '@/domain/auth/application/dtos/user-response.dto';
 import { 
   BaseValidationErrorDoc, 
   BaseConflictErrorDoc,
@@ -55,7 +55,7 @@ export const CreateAccountBody: ApiBodyOptions = {
 export const CreateAccountSuccessResponse: ApiResponseOptions = {
   status: 201,
   description: 'User account created successfully',
-  type: CreateAccountResponseDto,
+  type: UserResponseDto,
 };
 
 // Specific validation errors for create student
