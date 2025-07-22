@@ -23,6 +23,7 @@ interface LessonWithOptionalVideo {
   id: UniqueEntityID;
   moduleId: string;
   videoId?: string;
+  imageUrl?: string;
   order: number;
   translations: Array<{
     locale: 'pt' | 'it' | 'es';
@@ -98,6 +99,7 @@ export class ListLessonsUseCase {
         id: lesson.id,
         moduleId: lesson.moduleId,
         videoId: lesson.video?.id,
+        imageUrl: lesson.imageUrl,
         order: lesson.order,
         translations: lesson.translations,
         createdAt: lesson.createdAt,
@@ -112,6 +114,7 @@ export class ListLessonsUseCase {
           id: lesson.id,
           moduleId: lesson.moduleId,
           videoId: lesson.video?.id,
+          imageUrl: lesson.imageUrl,
           order: lesson.order,
           translations: lesson.translations,
           createdAt: lesson.createdAt,
@@ -142,6 +145,7 @@ export class ListLessonsUseCase {
           id: lesson.id.toString(),
           moduleId: lesson.moduleId,
           videoId: lesson.videoId,
+          imageUrl: lesson.imageUrl,
           order: lesson.order,
           translations: lesson.translations,
           createdAt: lesson.createdAt,

@@ -4,8 +4,12 @@ import { UniqueEntityID } from '@/core/unique-entity-id';
 
 export class UserAuthorizationMapper {
   static toDomain(raw: PrismaUserAuthorization): UserAuthorization {
-    const customPermissions = (raw.customPermissions as any[]) || [];
-    const restrictions = (raw.restrictions as any[]) || [];
+    const customPermissions = typeof raw.customPermissions === 'string' 
+      ? JSON.parse(raw.customPermissions) 
+      : (raw.customPermissions as any[]) || [];
+    const restrictions = typeof raw.restrictions === 'string' 
+      ? JSON.parse(raw.restrictions) 
+      : (raw.restrictions as any[]) || [];
 
     return UserAuthorization.create(
       {
