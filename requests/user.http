@@ -37,7 +37,7 @@ Authorization: Bearer {{adminToken}}
 
 ###
 # @name login
-POST {{BASE_URL}}/auth/login
+POST {{BASE_URL}}/api/v1/auth/login
 Content-Type: application/json
 
 {
@@ -66,13 +66,13 @@ Content-Type: application/json
 
 ###
 # @name update-account
-PATCH {{BASE_URL}}/users/45348fe3-9683-4101-aaf2-e4483ffabcf5
+PATCH {{BASE_URL}}/api/v1/users/45348fe3-9683-4101-aaf2-e4483ffabcf5
 Content-Type: application/json
 
 {
   "name": "Walter Bruno P. Vieira (Atualizado)",
   "email": "wbrunovieira53_atualizado@yahoo.com.br",
-  "cpf": "12745678901",
+  "nationalId": "12745678901",
   "role": "student"
 }
 ###
@@ -90,14 +90,14 @@ Authorization: Bearer {{adminToken}}
 
 ### 7. List Users with Pagination
 # @name listUsersPaginated
-GET {{BASE_URL}}/users?page=1&pageSize=2
+GET {{BASE_URL}}/api/v1/users?page=1&pageSize=2
 Authorization: Bearer {{adminToken}}
 
 
 
 ### 8. List Users - Page 2 esta
 # @name listUsersPage2
-GET {{BASE_URL}}/users?page=2&pageSize=2
+GET {{BASE_URL}}/api/v1/users?page=2&pageSize=2
 Authorization: Bearer {{adminToken}}
 
 
@@ -107,7 +107,7 @@ Authorization: Bearer {{adminToken}}
 
 ### 6. Admin Delete User - Success
 # @name adminDeleteUser
-DELETE {{BASE_URL}}/users/c7e0851f-b53a-4794-a182-b8f600b934ba
+DELETE {{BASE_URL}}/api/v1/users/c7e0851f-b53a-4794-a182-b8f600b934ba
 Authorization: Bearer {{adminToken}}
 
 
@@ -117,83 +117,83 @@ Authorization: Bearer {{adminToken}}
 
 ### 9. Find Users - No filters (returns all)
 # @name findUsersAll
-GET {{BASE_URL}}/users/search
+GET {{BASE_URL}}/api/v1/users/search
 Authorization: Bearer {{adminToken}}
 
 ###
 
 ### 10. Find Users - By Name
 # @name findUsersByName
-GET {{BASE_URL}}/users/search?name=Bruno
+GET {{BASE_URL}}/api/v1/users/search?name=Bruno
 Authorization: Bearer {{adminToken}}
 
 ###
 
 ### 11. Find Users - By Email
 # @name findUsersByEmail
-GET {{BASE_URL}}/users/search?email=bruno@wbdigitalsolutions.com
+GET {{BASE_URL}}/api/v1/users/search?email=bruno@wbdigitalsolutions.com
 Authorization: Bearer {{adminToken}}
 
 ###
 
-### 12. Find Users - By CPF
-# @name findUsersByCpf
-GET {{BASE_URL}}/users/search?cpf=98765432100
+### 12. Find Users - By NationalId
+# @name findUsersByNationalId
+GET {{BASE_URL}}/api/v1/users/search?nationalId=98765432100
 Authorization: Bearer {{adminToken}}
 
 ###
 
 ### 13. Find Users - Multiple Filters (Name + Email)
 # @name findUsersMultipleFilters
-GET {{BASE_URL}}/users/search?name=Walter&email=bruno@wbdigitalsolutions.com
+GET {{BASE_URL}}/api/v1/users/search?name=Walter&email=bruno@wbdigitalsolutions.com
 Authorization: Bearer {{adminToken}}
 
 ###
 
 ### 14. Find Users - With Pagination
 # @name findUsersWithPagination
-GET {{BASE_URL}}/users/search?page=1&pageSize=5
+GET {{BASE_URL}}/api/v1/users/search?page=1&pageSize=5
 Authorization: Bearer {{adminToken}}
 
 ###
 
 ### 15. Find Users - Name with Pagination
 # @name findUsersByNamePaginated
-GET {{BASE_URL}}/users/search?name=User&page=1&pageSize=2
+GET {{BASE_URL}}/api/v1/users/search?name=User&page=1&pageSize=2
 Authorization: Bearer {{adminToken}}
 
 ###
 
 ### 16. Find Users - No Results (non-existent name)
 # @name findUsersNoResults
-GET {{BASE_URL}}/users/search?name=NonExistentUser123456
+GET {{BASE_URL}}/api/v1/users/search?name=NonExistentUser123456
 Authorization: Bearer {{adminToken}}
 
 ###
 
 ### 17. Find Users - Partial Name Match
 # @name findUsersPartialName
-GET {{BASE_URL}}/users/search?name=Walt
+GET {{BASE_URL}}/api/v1/users/search?name=Walt
 Authorization: Bearer {{adminToken}}
 
 ###
 
 ### 18. Find Users - All Filters Combined
 # @name findUsersAllFilters
-GET {{BASE_URL}}/users/search?name=Walter&email=bruno@wbdigitalsolutions.com&cpf=12145678900&page=1&pageSize=10
+GET {{BASE_URL}}/api/v1/users/search?name=Walter&email=bruno@wbdigitalsolutions.com&nationalId=12145678900&page=1&pageSize=10
 Authorization: Bearer {{adminToken}}
 
 ###
 
 ### 19. Find Users - Without Authorization (should fail)
 # @name findUsersUnauthorized
-GET {{BASE_URL}}/users/search?name=Bruno
+GET {{BASE_URL}}/api/v1/users/search?name=Bruno
 
 ###
 
 ### 20. Find Users - With Student Token (should fail - admin only)
 # @name findUsersAsStudent
-GET {{BASE_URL}}/users/search?name=Bruno
+GET {{BASE_URL}}/api/v1/users/search?name=Bruno
 Authorization: Bearer {{token}}
 
 ###
@@ -204,7 +204,7 @@ Authorization: Bearer {{token}}
 
 ### 30. Create Test User for ID Testing (Requires admin auth)
 # @name createTestUser
-POST {{BASE_URL}}/users
+POST {{BASE_URL}}/api/v1/users
 Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
@@ -213,28 +213,28 @@ Authorization: Bearer {{adminToken}}
   "email": "testuser@example.com",
   "password": "Test123!",
   "role": "student",
-  "cpf": "98765432100"
+  "nationalId": "98765432100"
 }
 
 ###
 
 ### 31. Get Test User By ID (using dynamic ID)
 # @name getTestUserById
-GET {{BASE_URL}}/users/{{createTestUser.response.body.user.id}}
+GET {{BASE_URL}}/api/v1/users/{{createTestUser.response.body.identityId}}
 Authorization: Bearer {{adminToken}}
 
 ###
 
 ### 31. Get Test User By ID 
 # @name getTestUserById
-GET {{BASE_URL}}/users/9ba7732-4624-445d-99ed-c8d94493f87a
+GET {{BASE_URL}}/api/v1/users/9ba7732-4624-445d-99ed-c8d94493f87a
 Authorization: Bearer {{adminToken}}
 
 
 
 ### 32. Delete Test User (cleanup)
 # @name deleteTestUser
-DELETE {{BASE_URL}}/users/{{createTestUser.response.body.user.id}}
+DELETE {{BASE_URL}}/api/v1/users/{{createTestUser.response.body.identityId}}
 Authorization: Bearer {{adminToken}}
 
 ###
