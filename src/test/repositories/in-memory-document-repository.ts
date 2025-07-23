@@ -123,7 +123,7 @@ export class InMemoryDocumentRepository implements IDocumentRepository {
     if (!found) {
       return left(new Error('Document not found'));
     }
-    found.document.incrementDownloadCount();
+    // Download count increment removed as field no longer exists
     return right(undefined);
   }
 

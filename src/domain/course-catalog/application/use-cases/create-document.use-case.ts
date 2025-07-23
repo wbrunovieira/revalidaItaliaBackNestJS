@@ -25,11 +25,6 @@ export type CreateDocumentUseCaseResponse = Either<
     document: {
       id: string;
       filename: string;
-      fileSize: number;
-      fileSizeInMB: number;
-      mimeType: string;
-      isDownloadable: boolean;
-      downloadCount: number;
       createdAt: Date;
       updatedAt: Date;
     };
@@ -85,17 +80,9 @@ export class CreateDocumentUseCase {
       return left(new RepositoryError(existingOrErr.value.message));
     }
 
-    // 4) valida tamanho de arquivo (caso extra)
-    if (data.fileSize > 50 * 1024 * 1024) {
-      return left(new InvalidFileError('File size exceeds 50MB limit'));
-    }
-
-    // 5) cria entidade de domínio incluindo traduções com URL
+    // 4) cria entidade de domínio incluindo traduções com URL
     const documentEntity = Document.create({
       filename: data.filename,
-      fileSize: data.fileSize,
-      mimeType: data.mimeType,
-      isDownloadable: data.isDownloadable,
       translations: data.translations,
     });
 
@@ -115,11 +102,6 @@ export class CreateDocumentUseCase {
       document: {
         id: resp.id,
         filename: resp.filename,
-        fileSize: resp.fileSize,
-        fileSizeInMB: resp.fileSizeInMB,
-        mimeType: resp.mimeType,
-        isDownloadable: resp.isDownloadable,
-        downloadCount: resp.downloadCount,
         createdAt: resp.createdAt,
         updatedAt: resp.updatedAt,
       },

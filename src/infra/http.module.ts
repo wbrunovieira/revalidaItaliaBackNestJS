@@ -31,6 +31,7 @@ import { TrackModule } from './modules/track/track.module';
 import { HealthModule } from './modules/health/health.module';
 import { StatsModule } from './modules/stats/stats.module';
 import { DocumentModule } from './modules/flashcard/document/document.module';
+import { LessonProgressModule } from './modules/lesson-progress.module';
 
 /**
  * HTTP Module
@@ -59,6 +60,7 @@ import { DocumentModule } from './modules/flashcard/document/document.module';
     LessonModule,
     VideoModule,
     DocumentModule,
+    LessonProgressModule,
 
     // Assessment domain
     AssessmentModule,

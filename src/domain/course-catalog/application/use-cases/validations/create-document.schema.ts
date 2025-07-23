@@ -28,18 +28,6 @@ const translationSchema = z.object({
     ),
 });
 
-const allowedMimeTypes = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.ms-powerpoint',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'text/plain',
-  'text/csv',
-] as const;
-
 export const createDocumentSchema = z
   .object({
     lessonId: z.string().uuid('Lesson ID must be a valid UUID'),
@@ -51,20 +39,6 @@ export const createDocumentSchema = z
         /^[a-zA-Z0-9._-]+\.[a-zA-Z0-9]+$/,
         'Invalid filename format (must include extension)',
       ),
-
-    fileSize: z
-      .number()
-      .positive('File size must be positive')
-      .max(50 * 1024 * 1024, 'File size cannot exceed 50MB'),
-
-    mimeType: z
-      .enum(allowedMimeTypes as any)
-      .refine(
-        (type) => allowedMimeTypes.includes(type),
-        'Unsupported file type',
-      ),
-
-    isDownloadable: z.boolean().default(true),
 
     translations: z
       .array(translationSchema)
@@ -89,33 +63,6 @@ export const createDocumentSchema = z
         }
       }),
   })
-  .strict()
-  .superRefine((data, ctx) => {
-    // Valida extensão do filename bate com mimeType
-    const extension = data.filename.toLowerCase().split('.').pop();
-    const mimeExtMap: Record<string, string[]> = {
-      'application/pdf': ['pdf'],
-      'application/msword': ['doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-        ['docx'],
-      'application/vnd.ms-excel': ['xls'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [
-        'xlsx',
-      ],
-      'application/vnd.ms-powerpoint': ['ppt'],
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation':
-        ['pptx'],
-      'text/plain': ['txt'],
-      'text/csv': ['csv'],
-    };
-    const allowedExts = mimeExtMap[data.mimeType] || [];
-    if (extension && !allowedExts.includes(extension)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `File extension .${extension} does not match MIME type ${data.mimeType}`,
-        path: ['filename'],
-      });
-    }
-  });
+  .strict();
 
 export type CreateDocumentSchema = z.infer<typeof createDocumentSchema>;

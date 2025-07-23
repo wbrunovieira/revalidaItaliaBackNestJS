@@ -22,11 +22,6 @@ export type GetDocumentUseCaseResponse = Either<
     document: {
       id: string;
       filename: string;
-      fileSize: number;
-      fileSizeInMB: number;
-      mimeType: string;
-      isDownloadable: boolean;
-      downloadCount: number;
       createdAt: Date;
       updatedAt: Date;
       translations: Array<{
@@ -100,11 +95,6 @@ export class GetDocumentUseCase {
       document: {
         id: resp.id,
         filename: resp.filename,
-        fileSize: resp.fileSize,
-        fileSizeInMB: resp.fileSizeInMB,
-        mimeType: resp.mimeType,
-        isDownloadable: resp.isDownloadable,
-        downloadCount: resp.downloadCount,
         createdAt: resp.createdAt,
         updatedAt: resp.updatedAt,
         translations: resp.translations,

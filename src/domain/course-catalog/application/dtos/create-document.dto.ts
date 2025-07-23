@@ -29,14 +29,14 @@ export class DocumentTranslationDto {
   @IsString()
   @MinLength(5)
   description!: string;
+
+  @IsUrl({}, { message: 'Invalid URL format' })
+  url!: string;
 }
 
 export class CreateDocumentDto {
   @IsUUID(4, { message: 'Lesson ID must be a valid UUID' })
   lessonId!: string;
-
-  @IsUrl({}, { message: 'Invalid URL format' })
-  url!: string;
 
   @IsString()
   @MinLength(1, { message: 'Filename is required' })
@@ -44,32 +44,6 @@ export class CreateDocumentDto {
     message: 'Invalid filename format (must include extension)',
   })
   filename!: string;
-
-  @IsNumber()
-  @IsPositive({ message: 'File size must be positive' })
-  @Max(50 * 1024 * 1024, { message: 'File size cannot exceed 50MB' })
-  fileSize!: number;
-
-  @IsString()
-  @IsEnum(
-    [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-powerpoint',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'text/plain',
-      'text/csv',
-    ],
-    { message: 'Unsupported file type' },
-  )
-  mimeType!: string;
-
-  @IsBoolean()
-  @IsOptional()
-  isDownloadable?: boolean;
 
   @IsArray()
   @ArrayMinSize(3, {

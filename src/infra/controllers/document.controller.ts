@@ -212,19 +212,10 @@ export class DocumentController {
     // Format according to DocumentResponseDto structure
     // Note: The DTO expects 'url' and 'title' at document level, but these are per-translation
     // We'll use the first translation's data as defaults
-    const firstTranslation = translations[0];
-
     return {
       document: {
         id: responseObj.id,
-        url: firstTranslation?.url || '', // URL is per translation
         filename: responseObj.filename,
-        title: firstTranslation?.title || responseObj.filename, // Title is per translation
-        fileSize: responseObj.fileSize,
-        fileSizeInMB: responseObj.fileSizeInMB,
-        mimeType: responseObj.mimeType,
-        isDownloadable: responseObj.isDownloadable,
-        downloadCount: responseObj.downloadCount,
         createdAt: responseObj.createdAt,
         updatedAt: responseObj.updatedAt,
       },
@@ -232,6 +223,7 @@ export class DocumentController {
         locale: t.locale,
         title: t.title,
         description: t.description,
+        url: t.url,
       })),
     };
   }

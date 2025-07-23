@@ -35,10 +35,6 @@ export class PrismaDocumentRepository implements IDocumentRepository {
       // Reconstrói entidade contendo todas as traduções
       const props = {
         filename: row.filename ?? '',
-        fileSize: 0, // TODO: adicionar fileSize no schema Prisma
-        mimeType: '', // TODO: adicionar mimeType no schema Prisma
-        isDownloadable: true, // TODO: adicionar isDownloadable no schema Prisma
-        downloadCount: 0, // TODO: adicionar downloadCount no schema Prisma
         createdAt: row.createdAt,
         updatedAt: row.createdAt,
         translations: translationsData,
@@ -182,10 +178,6 @@ export class PrismaDocumentRepository implements IDocumentRepository {
 
         const props = {
           filename: row.filename ?? '',
-          fileSize: 0,
-          mimeType: '',
-          isDownloadable: true,
-          downloadCount: 0,
           createdAt: row.createdAt,
           updatedAt: row.createdAt,
           translations: translationsData,

@@ -67,17 +67,9 @@ export class UpdateDocumentUseCase {
         documentResult.value;
 
       // Atualizar os campos do documento se fornecidos
-      if (
-        data.filename !== undefined ||
-        data.fileSize !== undefined ||
-        data.mimeType !== undefined ||
-        data.isDownloadable !== undefined
-      ) {
+      if (data.filename !== undefined) {
         existingDocument.updateDetails({
           filename: data.filename,
-          fileSize: data.fileSize,
-          mimeType: data.mimeType,
-          isDownloadable: data.isDownloadable,
         });
       }
 

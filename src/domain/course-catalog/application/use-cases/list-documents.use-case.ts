@@ -18,17 +18,13 @@ export type ListDocumentsUseCaseResponse = Either<
     documents: Array<{
       id: string;
       filename: string;
-      fileSize: number;
-      fileSizeInMB: number;
-      mimeType: string;
-      isDownloadable: boolean;
-      downloadCount: number;
       createdAt: Date;
       updatedAt: Date;
       translations: Array<{
         locale: 'pt' | 'it' | 'es';
         title: string;
         description: string;
+        url: string;
       }>;
     }>;
   }
