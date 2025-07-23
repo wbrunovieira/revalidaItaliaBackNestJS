@@ -1,3 +1,4 @@
+// src/domain/course-catalog/application/use-cases/get-continue-learning.use-case.spec.ts
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GetContinueLearningUseCase } from './get-continue-learning.use-case';
 import {
