@@ -1,7 +1,6 @@
 // src/infra/controllers/auth.controller.ts
-import { Controller, Post, Body, UnauthorizedException, Req, Ip } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, Req, Ip, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { Request } from 'express';
 import { AuthenticateUserUseCase } from '@/domain/auth/application/use-cases/authentication/authenticate-user.use-case';
 import { AuthenticateUserRequest } from '@/domain/auth/application/use-cases/authentication/authenticate-user.use-case';
 import { AuthenticateUserDto } from '@/domain/auth/application/dtos/authenticate-user.dto';

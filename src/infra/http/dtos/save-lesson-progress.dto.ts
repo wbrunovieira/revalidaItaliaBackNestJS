@@ -48,7 +48,7 @@ export class SaveLessonProgressDto {
     description: 'Lesson ID',
     example: 'd50f6fb6-c282-402e-b8e1-00fd902dc0da',
   })
-  @IsUUID()
+  @IsUUID('all')
   @IsNotEmpty()
   lessonId: string;
 
@@ -64,7 +64,7 @@ export class SaveLessonProgressDto {
     description: 'Course ID',
     example: 'a50f6fb6-c282-402e-b8e1-00fd902dc0da',
   })
-  @IsUUID()
+  @IsUUID('all')
   @IsNotEmpty()
   courseId: string;
 
@@ -88,7 +88,7 @@ export class SaveLessonProgressDto {
     description: 'Module ID',
     example: 'b50f6fb6-c282-402e-b8e1-00fd902dc0da',
   })
-  @IsUUID()
+  @IsUUID('all')
   @IsNotEmpty()
   moduleId: string;
 
@@ -112,7 +112,7 @@ export class SaveLessonProgressDto {
     description: 'Lesson image URL',
     example: '/images/lesson-anatomy.jpg',
   })
-  @IsUrl()
+  @IsString()
   @IsNotEmpty()
   lessonImageUrl: string;
 
