@@ -49,9 +49,14 @@ export class ListAttemptsUseCase {
       }
 
       const requester = requesterResult.value;
+      
+      // Check if requester exists
+      if (!requester) {
+        return left(new UserNotFoundError());
+      }
 
       // Check permissions: students can only view own attempts, tutors/admins can view any
-      if (requester && requester.role === 'student') {
+      if (requester.role === 'student') {
         if (identityId && identityId !== requesterId) {
           return left(new InsufficientPermissionsError());
         }

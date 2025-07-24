@@ -581,14 +581,13 @@ describe('GetAttemptResultsUseCase', () => {
 
       // Create assessment first
       const assessment = Assessment.create({
+        slug: 'test-assessment',
         title: 'Test Assessment',
         description: 'Test Description',
         type: 'QUIZ',
-        moduleId: '550e8400-e29b-41d4-a716-446655440010',
-        isActive: true,
         timeLimitInMinutes: 60,
         passingScore: 70,
-        createdBy: '550e8400-e29b-41d4-a716-446655440011',
+        lessonId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440010'),
       }, assessmentId);
       
       await assessmentRepository.create(assessment);
