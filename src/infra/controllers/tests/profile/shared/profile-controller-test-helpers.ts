@@ -11,7 +11,7 @@ export function createSuccessResponse(userData: any) {
       id: userData.id || 'test-user-id',
       name: userData.name,
       email: userData.email,
-      cpf: userData.cpf,
+      cpf: userData.cpf || userData.nationalId,
       phone: userData.phone,
       birthDate: userData.birthDate,
       profileImageUrl: userData.profileImageUrl,

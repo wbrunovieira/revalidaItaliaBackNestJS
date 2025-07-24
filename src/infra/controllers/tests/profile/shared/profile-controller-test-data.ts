@@ -3,9 +3,9 @@ export function createValidUpdateProfileData() {
   return {
     name: 'John Updated',
     email: 'john.updated@example.com',
-    cpf: '12345678901',
+    nationalId: '12345678901',
     phone: '+5511999999999',
-    birthDate: new Date('1990-01-01'),
+    birthDate: '1990-01-01',
     profileImageUrl: 'https://example.com/profile.jpg',
   };
 }
@@ -25,7 +25,7 @@ export function createInvalidEmailData() {
 
 export function createInvalidCPFData() {
   return {
-    cpf: '123', // Too short
+    nationalId: '12', // Too short - less than 3 characters
   };
 }
 

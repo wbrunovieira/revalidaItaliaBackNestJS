@@ -22,6 +22,7 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsString()
+  @MinLength(3, { message: 'nationalId must be at least 3 characters long' })
   nationalId?: string;
 
   @IsOptional()
@@ -33,7 +34,9 @@ export class UpdateProfileDto {
   birthDate?: Date;
 
   @IsOptional()
-  @ValidateIf((o) => o.profileImageUrl !== null && o.profileImageUrl !== undefined)
+  @ValidateIf(
+    (o) => o.profileImageUrl !== null && o.profileImageUrl !== undefined,
+  )
   @IsString()
   @Matches(/^(https?:\/\/|\/[\w-]*)/, {
     message: 'Profile image URL must be a valid URL or start with /',

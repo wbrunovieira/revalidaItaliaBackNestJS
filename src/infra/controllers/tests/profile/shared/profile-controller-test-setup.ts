@@ -2,7 +2,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { ProfileController } from '@/infra/controllers/profile.controller';
-import { UpdateUserProfileUseCase } from '@/domain/auth/application/use-cases/profile/update-user-profile.use-case';
+import { UpdateOwnProfileUseCase } from '@/domain/auth/application/use-cases/profile/update-own-profile.use-case';
 import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { JwtAuthGuard } from '@/infra/auth/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
@@ -10,7 +10,7 @@ import { createUserPayload } from './profile-controller-test-data';
 import { vi } from 'vitest';
 
 export async function createProfileControllerTestSetup() {
-  const mockUpdateUserProfileUseCase = {
+  const mockUpdateOwnProfileUseCase = {
     execute: vi.fn(),
   };
 
@@ -32,8 +32,8 @@ export async function createProfileControllerTestSetup() {
     controllers: [ProfileController],
     providers: [
       {
-        provide: UpdateUserProfileUseCase,
-        useValue: mockUpdateUserProfileUseCase,
+        provide: UpdateOwnProfileUseCase,
+        useValue: mockUpdateOwnProfileUseCase,
       },
       {
         provide: IUserAggregatedViewRepository,
@@ -50,11 +50,11 @@ export async function createProfileControllerTestSetup() {
       canActivate: (context: any) => {
         const request = context.switchToHttp().getRequest();
         const authHeader = request.headers.authorization;
-        
+
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
           throw new UnauthorizedException('Unauthorized');
         }
-        
+
         // Mock user for testing
         request.user = createUserPayload();
         return true;
@@ -67,7 +67,7 @@ export async function createProfileControllerTestSetup() {
   return {
     testingModule: module,
     controller,
-    mockUpdateUserProfileUseCase,
+    mockUpdateUserProfileUseCase: mockUpdateOwnProfileUseCase,
     mockUserAggregatedViewRepository,
   };
 }

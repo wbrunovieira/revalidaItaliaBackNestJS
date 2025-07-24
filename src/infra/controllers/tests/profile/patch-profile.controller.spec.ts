@@ -21,7 +21,7 @@ import {
   createSuccessResponse,
   createInvalidInputError,
   createDuplicateEmailError,
-  createDuplicateCPFError,
+  createDuplicateNationalIdError,
   createResourceNotFoundError,
   createGenericError,
 } from './shared/profile-controller-test-helpers';
@@ -68,23 +68,23 @@ describe('PATCH ProfileController', () => {
       .send(validData)
       .expect(200);
 
-    expect(response.body).toMatchObject({
+    expect(response.body.user).toMatchObject({
       id: 'test-user-id',
       name: validData.name,
       email: validData.email,
-      cpf: validData.cpf,
+      cpf: validData.nationalId,
       phone: validData.phone,
       profileImageUrl: validData.profileImageUrl,
       role: 'student',
     });
 
     expect(mockUpdateUserProfileUseCase.execute).toHaveBeenCalledWith({
-      userId: 'test-user-id',
+      identityId: 'test-user-id',
       name: validData.name,
       email: validData.email,
-      cpf: validData.cpf,
+      nationalId: validData.nationalId,
       phone: validData.phone,
-      birthDate: validData.birthDate.toISOString(),
+      birthDate: validData.birthDate,
       profileImageUrl: validData.profileImageUrl,
     });
   });
@@ -114,8 +114,8 @@ describe('PATCH ProfileController', () => {
       .send(partialData)
       .expect(200);
 
-    expect(response.body.name).toBe(partialData.name);
-    expect(response.body.phone).toBe(partialData.phone);
+    expect(response.body.user.name).toBe(partialData.name);
+    expect(response.body.user.phone).toBe(partialData.phone);
   });
 
   it('should return 400 when email format is invalid', async () => {
@@ -143,9 +143,7 @@ describe('PATCH ProfileController', () => {
       .send(invalidData)
       .expect(400);
 
-    expect(response.body.message).toContain(
-      'CPF must contain exactly 11 digits',
-    );
+    expect(response.body.message).toContain('nationalId must be at least 3 characters long');
   });
 
   it('should return 400 when name is too short', async () => {
@@ -221,7 +219,7 @@ describe('PATCH ProfileController', () => {
     // Arrange
     const validData = createValidUpdateProfileData();
     mockUpdateUserProfileUseCase.execute.mockResolvedValue(
-      createDuplicateCPFError(),
+      createDuplicateNationalIdError(),
     );
 
     // Act & Assert
@@ -231,7 +229,7 @@ describe('PATCH ProfileController', () => {
       .send(validData)
       .expect(409);
 
-    expect(response.body.message).toBe('CPF already in use');
+    expect(response.body.message).toBe('National ID already in use');
   });
 
   it('should return 400 when user is not found', async () => {
@@ -312,7 +310,7 @@ describe('PATCH ProfileController', () => {
         .send(data)
         .expect(200);
 
-      expect(response.body.profileImageUrl).toBe(profileImageUrl);
+      expect(response.body.user.profileImageUrl).toBe(profileImageUrl);
     }
   });
 
