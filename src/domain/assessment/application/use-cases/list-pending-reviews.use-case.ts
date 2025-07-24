@@ -8,7 +8,10 @@ import { IAssessmentRepository } from '../repositories/i-assessment-repository';
 import { IQuestionRepository } from '../repositories/i-question-repository';
 import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { ListPendingReviewsRequest } from '../dtos/list-pending-reviews-request.dto';
-import { ListPendingReviewsResponse, PendingReviewAttempt } from '../dtos/list-pending-reviews-response.dto';
+import {
+  ListPendingReviewsResponse,
+  PendingReviewAttempt,
+} from '../dtos/list-pending-reviews-response.dto';
 import { listPendingReviewsSchema } from './validations/list-pending-reviews.schema';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { UserNotFoundError } from './errors/user-not-found-error';
@@ -38,7 +41,9 @@ export class ListPendingReviewsUseCase {
     private userAggregatedViewRepository: IUserAggregatedViewRepository,
   ) {}
 
-  async execute(request: ListPendingReviewsRequest): Promise<ListPendingReviewsUseCaseResponse> {
+  async execute(
+    request: ListPendingReviewsRequest,
+  ): Promise<ListPendingReviewsUseCaseResponse> {
     // Validate input
     const validation = listPendingReviewsSchema.safeParse(request);
     if (!validation.success) {
@@ -49,18 +54,29 @@ export class ListPendingReviewsUseCase {
 
     try {
       // Verify requester exists and has permission (only tutors and admins can review)
-      const requesterResult = await this.userAggregatedViewRepository.findByIdentityId(requesterId);
+      const requesterResult =
+        await this.userAggregatedViewRepository.findByIdentityId(requesterId);
       if (requesterResult.isLeft()) {
         return left(new UserNotFoundError());
       }
 
       const requester = requesterResult.value;
-      if (requester && requester.role !== 'tutor' && requester.role !== 'admin') {
+
+      // Check if requester exists
+      if (!requester) {
+        return left(new UserNotFoundError());
+      }
+
+      // Check permissions
+      if (requester.role !== 'tutor' && requester.role !== 'admin') {
         return left(new InsufficientPermissionsError());
       }
 
       // Get pending answers (SUBMITTED status)
-      const pendingAnswersResult = await this.attemptAnswerRepository.findPendingReviewsByStatus('SUBMITTED');
+      const pendingAnswersResult =
+        await this.attemptAnswerRepository.findPendingReviewsByStatus(
+          'SUBMITTED',
+        );
       if (pendingAnswersResult.isLeft()) {
         return left(new RepositoryError('Failed to fetch pending answers'));
       }
@@ -88,13 +104,15 @@ export class ListPendingReviewsUseCase {
         }
         const attempt = attemptResult.value;
 
-        // Only include SUBMITTED attempts (not IN_PROGRESS or GRADED)
-        if (!attempt.isSubmitted()) {
+        // Only include SUBMITTED or GRADING attempts (not IN_PROGRESS or GRADED)
+        if (!attempt.isSubmitted() && !attempt.status.isGrading()) {
           continue;
         }
 
         // Get assessment info
-        const assessmentResult = await this.assessmentRepository.findById(attempt.assessmentId);
+        const assessmentResult = await this.assessmentRepository.findById(
+          attempt.assessmentId,
+        );
         if (assessmentResult.isLeft()) {
           continue; // Skip attempts with missing assessments
         }
@@ -106,19 +124,32 @@ export class ListPendingReviewsUseCase {
         }
 
         // Get student info
-        const studentResult = await this.userAggregatedViewRepository.findByIdentityId(attempt.identityId);
+        const studentResult =
+          await this.userAggregatedViewRepository.findByIdentityId(
+            attempt.identityId,
+          );
         if (studentResult.isLeft()) {
           continue; // Skip attempts with missing students
         }
         const student = studentResult.value;
 
+        // Skip if student not found
+        if (!student) {
+          continue;
+        }
+
         // Count total open questions for this assessment
-        const questionsResult = await this.questionRepository.findByAssessmentId(assessment.id.toString());
+        const questionsResult =
+          await this.questionRepository.findByAssessmentId(
+            assessment.id.toString(),
+          );
         if (questionsResult.isLeft()) {
           continue; // Skip if can't get questions
         }
         const questions = questionsResult.value;
-        const totalOpenQuestions = questions.filter(q => q.type.isOpen()).length;
+        const totalOpenQuestions = questions.filter((q) =>
+          q.type.isOpen(),
+        ).length;
 
         pendingReviewAttempts.push({
           id: attempt.id.toString(),
@@ -129,11 +160,11 @@ export class ListPendingReviewsUseCase {
             title: assessment.title,
             type: 'PROVA_ABERTA',
           },
-          student: student ? {
+          student: {
             id: student.identityId,
             name: student.fullName,
             email: student.email,
-          } : undefined,
+          },
           pendingAnswers: answers.length,
           totalOpenQuestions,
           createdAt: attempt.createdAt,
@@ -142,12 +173,17 @@ export class ListPendingReviewsUseCase {
       }
 
       // Sort by submittedAt (oldest first for review priority)
-      pendingReviewAttempts.sort((a, b) => a.submittedAt.getTime() - b.submittedAt.getTime());
+      pendingReviewAttempts.sort(
+        (a, b) => a.submittedAt.getTime() - b.submittedAt.getTime(),
+      );
 
       // Apply pagination
       const startIndex = (page - 1) * pageSize;
       const endIndex = startIndex + pageSize;
-      const paginatedAttempts = pendingReviewAttempts.slice(startIndex, endIndex);
+      const paginatedAttempts = pendingReviewAttempts.slice(
+        startIndex,
+        endIndex,
+      );
 
       // Calculate pagination info
       const total = pendingReviewAttempts.length;
