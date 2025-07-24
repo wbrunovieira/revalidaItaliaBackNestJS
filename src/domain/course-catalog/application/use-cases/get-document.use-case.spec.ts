@@ -5,7 +5,10 @@ import { GetDocumentUseCase } from './get-document.use-case';
 import { InMemoryLessonRepository } from '@/test/repositories/in-memory-lesson-repository';
 import { InMemoryDocumentRepository } from '@/test/repositories/in-memory-document-repository';
 import { Lesson } from '@/domain/course-catalog/enterprise/entities/lesson.entity';
-import { Document, DocumentTranslationProps } from '@/domain/course-catalog/enterprise/entities/document.entity';
+import {
+  Document,
+  DocumentTranslationProps,
+} from '@/domain/course-catalog/enterprise/entities/document.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { LessonNotFoundError } from './errors/lesson-not-found-error';
@@ -16,7 +19,9 @@ import { GetDocumentRequest } from '../dtos/get-document-request.dto';
 import { GetDocumentUseCaseResponse } from './get-document.use-case';
 
 // Helper function to create a valid request
-function createValidRequest(overrides?: Partial<GetDocumentRequest>): GetDocumentRequest {
+function createValidRequest(
+  overrides?: Partial<GetDocumentRequest>,
+): GetDocumentRequest {
   return {
     lessonId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
     documentId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
@@ -25,7 +30,9 @@ function createValidRequest(overrides?: Partial<GetDocumentRequest>): GetDocumen
 }
 
 // Helper function to create a test lesson
-function createTestLesson(id: string = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'): Lesson {
+function createTestLesson(
+  id: string = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+): Lesson {
   return Lesson.create(
     {
       slug: 'lesson-test',
@@ -41,7 +48,9 @@ function createTestLesson(id: string = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'): 
 }
 
 // Helper function to create document translations
-function createDocumentTranslations(prefix: string = 'Doc'): DocumentTranslationProps[] {
+function createDocumentTranslations(
+  prefix: string = 'Doc',
+): DocumentTranslationProps[] {
   return [
     {
       locale: 'pt',
@@ -198,7 +207,9 @@ describe('GetDocumentUseCase', () => {
       expect(result.value).toBeInstanceOf(InvalidInputError);
       if (result.isLeft() && result.value instanceof InvalidInputError) {
         expect(result.value.details).toEqual(
-          expect.arrayContaining([expect.objectContaining({ path: ['lessonId'] })]),
+          expect.arrayContaining([
+            expect.objectContaining({ path: ['lessonId'] }),
+          ]),
         );
       }
     });
@@ -215,7 +226,9 @@ describe('GetDocumentUseCase', () => {
       expect(result.value).toBeInstanceOf(InvalidInputError);
       if (result.isLeft() && result.value instanceof InvalidInputError) {
         expect(result.value.details).toEqual(
-          expect.arrayContaining([expect.objectContaining({ path: ['documentId'] })]),
+          expect.arrayContaining([
+            expect.objectContaining({ path: ['documentId'] }),
+          ]),
         );
       }
     });
@@ -443,7 +456,7 @@ describe('GetDocumentUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        result.value.document.translations.forEach(trans => {
+        result.value.document.translations.forEach((trans) => {
           expect(trans.url).toMatch(/^\/[a-z]+\/[a-z]+\/[a-z]+\.pdf$/);
         });
       }
@@ -511,7 +524,11 @@ describe('GetDocumentUseCase', () => {
         },
         new UniqueEntityID('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
       );
-      await documentRepo.create(lesson.id.toString(), targetDocument, targetTranslations);
+      await documentRepo.create(
+        lesson.id.toString(),
+        targetDocument,
+        targetTranslations,
+      );
 
       const request = createValidRequest();
       const start = Date.now();

@@ -3,19 +3,15 @@ import { BusinessRuleException } from '@/core/domain/exceptions';
 
 /**
  * Exception thrown when authentication fails
- * 
+ *
  * Used when credentials are invalid or authentication process fails
  */
 export class AuthenticationError extends BusinessRuleException {
   constructor(message: string = 'Invalid credentials') {
-    super(
-      message,
-      'AUTH.AUTHENTICATION_FAILED',
-      { 
-        reason: 'Invalid credentials provided',
-        suggestion: 'Please check your email and password'
-      }
-    );
+    super(message, 'AUTH.AUTHENTICATION_FAILED', {
+      reason: 'Invalid credentials provided',
+      suggestion: 'Please check your email and password',
+    });
   }
 
   static invalidCredentials(): AuthenticationError {

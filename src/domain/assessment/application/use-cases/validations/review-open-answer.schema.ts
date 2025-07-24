@@ -1,7 +1,8 @@
 // src/domain/assessment/application/use-cases/validations/review-open-answer.schema.ts
 import { z } from 'zod';
 
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const uuidRegex =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export const reviewOpenAnswerSchema = z.object({
   attemptAnswerId: z
@@ -11,7 +12,7 @@ export const reviewOpenAnswerSchema = z.object({
     })
     .min(1, 'Attempt answer ID cannot be empty')
     .regex(uuidRegex, 'Attempt answer ID must be a valid UUID'),
-  
+
   reviewerId: z
     .string({
       required_error: 'Reviewer ID is required',
@@ -19,13 +20,12 @@ export const reviewOpenAnswerSchema = z.object({
     })
     .min(1, 'Reviewer ID cannot be empty')
     .regex(uuidRegex, 'Reviewer ID must be a valid UUID'),
-  
-  isCorrect: z
-    .boolean({
-      required_error: 'isCorrect is required',
-      invalid_type_error: 'isCorrect must be a boolean',
-    }),
-  
+
+  isCorrect: z.boolean({
+    required_error: 'isCorrect is required',
+    invalid_type_error: 'isCorrect must be a boolean',
+  }),
+
   teacherComment: z
     .string()
     .trim()

@@ -1,6 +1,10 @@
 // test/e2e/test-helpers/e2e-test-module.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe, UnauthorizedException } from '@nestjs/common';
+import {
+  INestApplication,
+  ValidationPipe,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../../../src/infra/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../src/infra/auth/guards/roles.guard';
@@ -66,19 +70,19 @@ vwIDAQAB
         canActivate: (context: any) => {
           const request = context.switchToHttp().getRequest();
           const authHeader = request.headers.authorization;
-          
+
           // No auth header = 401 Unauthorized
           if (!authHeader || !authHeader.startsWith('Bearer ')) {
             throw new UnauthorizedException('Unauthorized');
           }
-          
+
           const token = authHeader.substring(7);
           // Invalid tokens = 401 Unauthorized
           const invalidTokens = ['invalid-token', 'invalid-token-here'];
           if (invalidTokens.includes(token) || token.length <= 5) {
             throw new UnauthorizedException('Unauthorized');
           }
-          
+
           // Decode token and set user on request (like Passport would do)
           try {
             // Handle special test tokens with predefined roles
@@ -86,35 +90,37 @@ vwIDAQAB
               // Default test token is admin role for backward compatibility
               request.user = {
                 sub: 'test-admin-user-id',
-                role: 'admin'
+                role: 'admin',
               };
             } else if (token === 'test-jwt-student-token') {
               request.user = {
                 sub: 'test-student-user-id',
-                role: 'student'
+                role: 'student',
               };
             } else {
               // Try to decode as proper JWT
               const parts = token.split('.');
               if (parts.length === 3) {
-                const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+                const payload = JSON.parse(
+                  Buffer.from(parts[1], 'base64url').toString(),
+                );
                 request.user = {
                   sub: payload.sub || 'test-user-id',
                   role: payload.role || 'student',
-                  ...payload
+                  ...payload,
                 };
               } else {
                 // Fallback for non-JWT tokens
                 request.user = {
                   sub: 'test-user-id',
-                  role: 'student'
+                  role: 'student',
                 };
               }
             }
           } catch (error) {
             throw new UnauthorizedException('Unauthorized');
           }
-          
+
           return true;
         },
       })
@@ -123,39 +129,39 @@ vwIDAQAB
         canActivate: (context: any) => {
           const request = context.switchToHttp().getRequest();
           const user = request.user;
-          
+
           // If no user, return false (403 Forbidden)
           if (!user) {
             return false;
           }
-          
+
           // For testing, determine if this is an admin-only endpoint
           // Based on the request URL and method
           const url = request.url;
           const method = request.method;
-          
+
           // Admin-only endpoints (based on the @Roles('admin') decorator in controllers)
           const adminOnlyEndpoints = [
             'GET /students',
             'GET /students/search',
-            'DELETE /students/',  // includes any DELETE with ID
+            'DELETE /students/', // includes any DELETE with ID
           ];
-          
-          const currentEndpoint = `${method} ${url.split('?')[0]}`;  // Remove query params
-          const isAdminOnly = adminOnlyEndpoints.some(endpoint => {
+
+          const currentEndpoint = `${method} ${url.split('?')[0]}`; // Remove query params
+          const isAdminOnly = adminOnlyEndpoints.some((endpoint) => {
             if (endpoint.endsWith('/')) {
               // For endpoints like 'DELETE /students/', check if URL starts with it
               return currentEndpoint.startsWith(endpoint);
             }
             return currentEndpoint === endpoint;
           });
-          
+
           // If admin-only endpoint, check if user is admin
           if (isAdminOnly) {
             const userRole = user.role || 'student';
             return userRole === 'admin';
           }
-          
+
           // For non-admin endpoints, allow any authenticated user
           return true;
         },
@@ -165,14 +171,19 @@ vwIDAQAB
         getMetadata: async (videoId: string) => ({
           durationInSeconds: 123,
         }),
-        getEmbedUrl: (videoId: string) => `https://example.com/embed/${videoId}`,
+        getEmbedUrl: (videoId: string) =>
+          `https://example.com/embed/${videoId}`,
       })
       .overrideProvider(JwtService)
       .useValue({
         sign: (payload: any) => {
           // Generate a fake JWT token for testing
-          const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
-          const payloadEncoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
+          const header = Buffer.from(
+            JSON.stringify({ alg: 'RS256', typ: 'JWT' }),
+          ).toString('base64url');
+          const payloadEncoded = Buffer.from(JSON.stringify(payload)).toString(
+            'base64url',
+          );
           return `${header}.${payloadEncoded}.fake-signature`;
         },
         verify: (token: string) => {
@@ -185,21 +196,21 @@ vwIDAQAB
       .compile();
 
     const app = moduleRef.createNestApplication();
-    
+
     // Register global interceptors
     app.useGlobalInterceptors(new LoggingInterceptor());
-    
+
     // Register global filters
     app.useGlobalFilters(new HttpExceptionFilter());
-    
+
     app.useGlobalPipes(
-      new ValidationPipe({ 
-        whitelist: true, 
+      new ValidationPipe({
+        whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
       }),
     );
-    
+
     await app.init();
 
     return { app, moduleRef };

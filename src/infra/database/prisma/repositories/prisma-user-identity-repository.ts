@@ -116,7 +116,7 @@ export class PrismaUserIdentityRepository implements IUserIdentityRepository {
         failedLoginAttempts: data.failedLoginAttempts,
         updatedAt: data.updatedAt,
       };
-      
+
       // Add optional fields only if they're not null
       if (data.emailVerificationToken !== null) {
         updateData.emailVerificationToken = data.emailVerificationToken;
@@ -144,9 +144,12 @@ export class PrismaUserIdentityRepository implements IUserIdentityRepository {
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
-      
+
       // Add optional fields only if they're not null/undefined
-      if (data.emailVerificationToken !== null && data.emailVerificationToken !== undefined) {
+      if (
+        data.emailVerificationToken !== null &&
+        data.emailVerificationToken !== undefined
+      ) {
         createData.emailVerificationToken = data.emailVerificationToken;
       }
       if (data.lastLogin !== null && data.lastLogin !== undefined) {
@@ -155,10 +158,16 @@ export class PrismaUserIdentityRepository implements IUserIdentityRepository {
       if (data.lockedUntil !== null && data.lockedUntil !== undefined) {
         createData.lockedUntil = data.lockedUntil;
       }
-      if (data.passwordResetToken !== null && data.passwordResetToken !== undefined) {
+      if (
+        data.passwordResetToken !== null &&
+        data.passwordResetToken !== undefined
+      ) {
         createData.passwordResetToken = data.passwordResetToken;
       }
-      if (data.passwordResetExpiry !== null && data.passwordResetExpiry !== undefined) {
+      if (
+        data.passwordResetExpiry !== null &&
+        data.passwordResetExpiry !== undefined
+      ) {
         createData.passwordResetExpiry = data.passwordResetExpiry;
       }
 

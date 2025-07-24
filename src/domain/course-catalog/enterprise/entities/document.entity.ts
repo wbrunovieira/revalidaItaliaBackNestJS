@@ -28,7 +28,6 @@ export class Document extends Entity<DocumentProps> {
     return this.props.filename;
   }
 
-
   public get createdAt(): Date {
     return this.props.createdAt;
   }
@@ -43,9 +42,7 @@ export class Document extends Entity<DocumentProps> {
   }
 
   // Atualiza detalhes básicos (sem tocar traduções)
-  public updateDetails(updates: {
-    filename?: string;
-  }) {
+  public updateDetails(updates: { filename?: string }) {
     if (updates.filename) {
       this.props.filename = updates.filename;
       this.touch();

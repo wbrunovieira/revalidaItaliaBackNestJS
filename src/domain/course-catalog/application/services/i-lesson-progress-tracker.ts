@@ -19,6 +19,11 @@ export interface LessonProgressData {
 }
 
 export abstract class ILessonProgressTracker {
-  abstract saveProgress(userId: string, data: LessonProgressData): Promise<void>;
-  abstract getContinueLearning(userId: string): Promise<LessonProgressData | null>;
+  abstract saveProgress(
+    userId: string,
+    data: LessonProgressData,
+  ): Promise<void>;
+  abstract getContinueLearning(
+    userId: string,
+  ): Promise<LessonProgressData | null>;
 }

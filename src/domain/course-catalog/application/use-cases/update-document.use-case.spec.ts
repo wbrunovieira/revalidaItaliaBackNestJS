@@ -4,7 +4,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UpdateDocumentUseCase } from '@/domain/course-catalog/application/use-cases/update-document.use-case';
 import { InMemoryDocumentRepository } from '@/test/repositories/in-memory-document-repository';
 import { UpdateDocumentRequest } from '@/domain/course-catalog/application/dtos/update-document-request.dto';
-import { Document, DocumentTranslationProps } from '@/domain/course-catalog/enterprise/entities/document.entity';
+import {
+  Document,
+  DocumentTranslationProps,
+} from '@/domain/course-catalog/enterprise/entities/document.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { left, right, Either } from '@/core/either';
 import { DocumentNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/document-not-found-error';
@@ -32,7 +35,9 @@ function createValidDocument(id?: string): Document {
 }
 
 // Helper function to create a valid update request
-function createValidUpdateRequest(overrides?: Partial<UpdateDocumentRequest>): UpdateDocumentRequest {
+function createValidUpdateRequest(
+  overrides?: Partial<UpdateDocumentRequest>,
+): UpdateDocumentRequest {
   return {
     id: new UniqueEntityID().toString(),
     filename: 'updated-document.pdf',
@@ -119,7 +124,9 @@ describe('UpdateDocumentUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.document.filename).toBe('only-filename-updated.pdf');
+        expect(result.value.document.filename).toBe(
+          'only-filename-updated.pdf',
+        );
         expect(result.value.translations).toEqual(initialTranslations);
       }
     });
@@ -159,7 +166,9 @@ describe('UpdateDocumentUseCase', () => {
       if (result.isRight()) {
         expect(result.value.document.filename).toBe(originalFilename);
         expect(result.value.translations).toHaveLength(1);
-        expect(result.value.translations[0].title).toBe('Apenas Traduções Atualizadas');
+        expect(result.value.translations[0].title).toBe(
+          'Apenas Traduções Atualizadas',
+        );
       }
     });
 
@@ -195,7 +204,9 @@ describe('UpdateDocumentUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.translations[0].url).toBe('/documents/local-file.pdf');
+        expect(result.value.translations[0].url).toBe(
+          '/documents/local-file.pdf',
+        );
       }
     });
   });
@@ -245,7 +256,6 @@ describe('UpdateDocumentUseCase', () => {
         );
       }
     });
-
 
     it('should return InvalidInputError for invalid locale in translations', async () => {
       // Arrange
@@ -632,19 +642,21 @@ describe('UpdateDocumentUseCase', () => {
     it('should handle multiple concurrent document updates efficiently', async () => {
       // Arrange
       const lessonId = new UniqueEntityID().toString();
-      const promises: Promise<Either<
-        InvalidInputError | DocumentNotFoundError | RepositoryError | Error,
-        {
-          document: Document;
-          translations: Array<{
-            locale: 'pt' | 'it' | 'es';
-            title: string;
-            description: string;
-            url: string;
-          }>;
-        }
-      >>[] = [];
-      
+      const promises: Promise<
+        Either<
+          InvalidInputError | DocumentNotFoundError | RepositoryError | Error,
+          {
+            document: Document;
+            translations: Array<{
+              locale: 'pt' | 'it' | 'es';
+              title: string;
+              description: string;
+              url: string;
+            }>;
+          }
+        >
+      >[] = [];
+
       // Create multiple documents
       for (let i = 0; i < 10; i++) {
         const document = createValidDocument();
@@ -657,22 +669,22 @@ describe('UpdateDocumentUseCase', () => {
           },
         ];
         await repo.create(lessonId, document, translations);
-        
-        const request = createValidUpdateRequest({ 
+
+        const request = createValidUpdateRequest({
           id: document.id.toString(),
-          filename: `updated-${i}.pdf` 
+          filename: `updated-${i}.pdf`,
         });
         promises.push(sut.execute(request));
       }
 
       const start = Date.now();
-      
+
       // Act
       const results = await Promise.all(promises);
       const duration = Date.now() - start;
 
       // Assert
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.isRight()).toBe(true);
       });
       expect(duration).toBeLessThan(1000); // Should complete within 1 second
@@ -694,7 +706,7 @@ describe('UpdateDocumentUseCase', () => {
         },
       ];
       await repo.create(lessonId, document, initialTranslations);
-      
+
       const documentId = document.id.toString();
       const request = createValidUpdateRequest({
         id: documentId,

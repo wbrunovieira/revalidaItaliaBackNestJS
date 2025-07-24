@@ -3,7 +3,9 @@ import { Either, left, right } from '@/core/either';
 import { AttemptAnswer } from '@/domain/assessment/enterprise/entities/attempt-answer.entity';
 import { IAttemptAnswerRepository } from '@/domain/assessment/application/repositories/i-attempt-answer-repository';
 
-export class InMemoryAttemptAnswerRepository implements IAttemptAnswerRepository {
+export class InMemoryAttemptAnswerRepository
+  implements IAttemptAnswerRepository
+{
   public items: AttemptAnswer[] = [];
 
   async create(attemptAnswer: AttemptAnswer): Promise<Either<Error, void>> {
@@ -20,13 +22,17 @@ export class InMemoryAttemptAnswerRepository implements IAttemptAnswerRepository
     return right(attemptAnswer);
   }
 
-  async findByAttemptId(attemptId: string): Promise<Either<Error, AttemptAnswer[]>> {
+  async findByAttemptId(
+    attemptId: string,
+  ): Promise<Either<Error, AttemptAnswer[]>> {
     const attemptAnswers = this.items.filter(
       (item) => item.attemptId === attemptId,
     );
 
     // Sort by createdAt descending to match Prisma repository behavior
-    attemptAnswers.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    attemptAnswers.sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
 
     return right(attemptAnswers);
   }
@@ -46,13 +52,17 @@ export class InMemoryAttemptAnswerRepository implements IAttemptAnswerRepository
     return right(attemptAnswer);
   }
 
-  async findByQuestionId(questionId: string): Promise<Either<Error, AttemptAnswer[]>> {
+  async findByQuestionId(
+    questionId: string,
+  ): Promise<Either<Error, AttemptAnswer[]>> {
     const attemptAnswers = this.items.filter(
       (item) => item.questionId === questionId,
     );
 
     // Sort by createdAt descending to match Prisma repository behavior
-    attemptAnswers.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    attemptAnswers.sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
 
     return right(attemptAnswers);
   }
@@ -87,28 +97,38 @@ export class InMemoryAttemptAnswerRepository implements IAttemptAnswerRepository
   }
 
   async countByAttemptId(attemptId: string): Promise<Either<Error, number>> {
-    const count = this.items.filter((item) => item.attemptId === attemptId).length;
+    const count = this.items.filter(
+      (item) => item.attemptId === attemptId,
+    ).length;
     return right(count);
   }
 
-  async findByReviewerId(reviewerId: string): Promise<Either<Error, AttemptAnswer[]>> {
+  async findByReviewerId(
+    reviewerId: string,
+  ): Promise<Either<Error, AttemptAnswer[]>> {
     const attemptAnswers = this.items.filter(
       (item) => item.reviewerId === reviewerId,
     );
 
     // Sort by createdAt descending
-    attemptAnswers.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    attemptAnswers.sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
 
     return right(attemptAnswers);
   }
 
-  async findPendingReviewsByStatus(status: string = 'SUBMITTED'): Promise<Either<Error, AttemptAnswer[]>> {
+  async findPendingReviewsByStatus(
+    status: string = 'SUBMITTED',
+  ): Promise<Either<Error, AttemptAnswer[]>> {
     const attemptAnswers = this.items.filter(
       (item) => item.status.getValue() === status && !item.reviewerId,
     );
 
     // Sort by createdAt ascending (oldest first for review queue)
-    attemptAnswers.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    attemptAnswers.sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+    );
 
     return right(attemptAnswers);
   }

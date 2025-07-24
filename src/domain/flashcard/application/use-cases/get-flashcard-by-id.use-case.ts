@@ -5,7 +5,10 @@ import { ZodError } from 'zod';
 import { IFlashcardRepository } from '../repositories/i-flashcard-repository';
 import { IFlashcardTagRepository } from '../repositories/i-flashcard-tag-repository';
 import { GetFlashcardByIdRequestDto } from '../dtos/get-flashcard-by-id-request.dto';
-import { GetFlashcardByIdResponseDto, FlashcardTagDto } from '../dtos/get-flashcard-by-id-response.dto';
+import {
+  GetFlashcardByIdResponseDto,
+  FlashcardTagDto,
+} from '../dtos/get-flashcard-by-id-response.dto';
 import { getFlashcardByIdSchema } from './validations/get-flashcard-by-id.schema';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { FlashcardNotFoundError } from './errors/flashcard-not-found-error';
@@ -39,8 +42,10 @@ export class GetFlashcardByIdUseCase {
       }
 
       // Find flashcard by ID
-      const flashcardResult = await this.flashcardRepository.findById(request.id);
-      
+      const flashcardResult = await this.flashcardRepository.findById(
+        request.id,
+      );
+
       if (flashcardResult.isLeft()) {
         if (flashcardResult.value.message === 'Flashcard not found') {
           return left(new FlashcardNotFoundError(request.id));
@@ -55,9 +60,9 @@ export class GetFlashcardByIdUseCase {
 
       // Include tags if requested
       if (request.filters?.includeTags && flashcard.tagIds.length > 0) {
-        const tagIds = flashcard.tagIds.map(id => id.toString());
+        const tagIds = flashcard.tagIds.map((id) => id.toString());
         const tagsResult = await this.flashcardTagRepository.findByIds(tagIds);
-        
+
         if (tagsResult.isRight()) {
           response.flashcard.tags = tagsResult.value.map(this.mapTagToDto);
         }
@@ -65,7 +70,9 @@ export class GetFlashcardByIdUseCase {
 
       return right(response);
     } catch (error: any) {
-      return left(new RepositoryError(error.message || 'Failed to get flashcard'));
+      return left(
+        new RepositoryError(error.message || 'Failed to get flashcard'),
+      );
     }
   }
 

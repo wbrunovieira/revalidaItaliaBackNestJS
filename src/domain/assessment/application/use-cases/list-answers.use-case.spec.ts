@@ -30,8 +30,12 @@ describe('ListAnswersUseCase', () => {
   describe('Success Cases', () => {
     it('should successfully list all answers with default pagination', async () => {
       // Arrange
-      const questionId1 = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId2 = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const questionId1 = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId2 = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
       // Create answers with distinct timestamps by adding delays
       const answer1 = Answer.create({
@@ -41,7 +45,7 @@ describe('ListAnswersUseCase', () => {
       });
 
       await answerRepository.create(answer1);
-      await new Promise(resolve => setTimeout(resolve, 1)); // 1ms delay
+      await new Promise((resolve) => setTimeout(resolve, 1)); // 1ms delay
 
       const answer2 = Answer.create({
         explanation: 'Second answer explanation',
@@ -50,10 +54,12 @@ describe('ListAnswersUseCase', () => {
       });
 
       await answerRepository.create(answer2);
-      await new Promise(resolve => setTimeout(resolve, 1)); // 1ms delay
+      await new Promise((resolve) => setTimeout(resolve, 1)); // 1ms delay
 
       const answer3 = Answer.create({
-        correctOptionId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440003'),
+        correctOptionId: new UniqueEntityID(
+          '550e8400-e29b-41d4-a716-446655440003',
+        ),
         explanation: 'Third answer explanation',
         questionId: questionId1,
         translations: [],
@@ -68,18 +74,18 @@ describe('ListAnswersUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.answers).toHaveLength(3);
-        
+
         // Verify all answers are present (order may vary due to same timestamp)
-        const explanations = response.answers.map(a => a.explanation);
+        const explanations = response.answers.map((a) => a.explanation);
         expect(explanations).toContain('First answer explanation');
         expect(explanations).toContain('Second answer explanation');
         expect(explanations).toContain('Third answer explanation');
-        
+
         expect(response.pagination.page).toBe(1);
         expect(response.pagination.limit).toBe(10);
         expect(response.pagination.total).toBe(3);
@@ -91,7 +97,9 @@ describe('ListAnswersUseCase', () => {
 
     it('should successfully list answers with custom pagination', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
       // Create 15 answers
       for (let i = 1; i <= 15; i++) {
@@ -113,10 +121,10 @@ describe('ListAnswersUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.answers).toHaveLength(5);
         expect(response.pagination.page).toBe(2);
         expect(response.pagination.limit).toBe(5);
@@ -129,21 +137,33 @@ describe('ListAnswersUseCase', () => {
 
     it('should successfully list answers filtered by questionId', async () => {
       // Arrange
-      const questionId1 = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId2 = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440003');
+      const questionId1 = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId2 = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440003',
+      );
 
-      const question1 = Question.create({
-        text: 'Question 1',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-        assessmentId: assessmentId,
-      }, questionId1);
+      const question1 = Question.create(
+        {
+          text: 'Question 1',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId: assessmentId,
+        },
+        questionId1,
+      );
 
-      const question2 = Question.create({
-        text: 'Question 2',
-        type: new QuestionTypeVO('OPEN'),
-        assessmentId: assessmentId,
-      }, questionId2);
+      const question2 = Question.create(
+        {
+          text: 'Question 2',
+          type: new QuestionTypeVO('OPEN'),
+          assessmentId: assessmentId,
+        },
+        questionId2,
+      );
 
       const answer1 = Answer.create({
         explanation: 'Answer for question 1',
@@ -178,22 +198,34 @@ describe('ListAnswersUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.answers).toHaveLength(2);
-        expect(response.answers.every(answer => answer.questionId === questionId1.toString())).toBe(true);
+        expect(
+          response.answers.every(
+            (answer) => answer.questionId === questionId1.toString(),
+          ),
+        ).toBe(true);
         expect(response.pagination.total).toBe(2);
       }
     });
 
     it('should successfully list answers with translations', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
-      const ptTranslation = new AnswerTranslationVO('pt', 'Explicação em português');
-      const itTranslation = new AnswerTranslationVO('it', 'Spiegazione in italiano');
+      const ptTranslation = new AnswerTranslationVO(
+        'pt',
+        'Explicação em português',
+      );
+      const itTranslation = new AnswerTranslationVO(
+        'it',
+        'Spiegazione in italiano',
+      );
 
       const answer = Answer.create({
         explanation: 'English explanation',
@@ -210,14 +242,20 @@ describe('ListAnswersUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.answers).toHaveLength(1);
         expect(response.answers[0].translations).toHaveLength(2);
-        expect(response.answers[0].translations.find(t => t.locale === 'pt')?.explanation).toBe('Explicação em português');
-        expect(response.answers[0].translations.find(t => t.locale === 'it')?.explanation).toBe('Spiegazione in italiano');
+        expect(
+          response.answers[0].translations.find((t) => t.locale === 'pt')
+            ?.explanation,
+        ).toBe('Explicação em português');
+        expect(
+          response.answers[0].translations.find((t) => t.locale === 'it')
+            ?.explanation,
+        ).toBe('Spiegazione in italiano');
       }
     });
 
@@ -230,10 +268,10 @@ describe('ListAnswersUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.answers).toHaveLength(0);
         expect(response.pagination.page).toBe(1);
         expect(response.pagination.limit).toBe(10);
@@ -246,14 +284,21 @@ describe('ListAnswersUseCase', () => {
 
     it('should return empty list when filtering by questionId with no answers', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
-      const question = Question.create({
-        text: 'Question without answers',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-        assessmentId: assessmentId,
-      }, questionId);
+      const question = Question.create(
+        {
+          text: 'Question without answers',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId: assessmentId,
+        },
+        questionId,
+      );
 
       await questionRepository.create(question);
 
@@ -266,10 +311,10 @@ describe('ListAnswersUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.answers).toHaveLength(0);
         expect(response.pagination.total).toBe(0);
       }
@@ -444,7 +489,9 @@ describe('ListAnswersUseCase', () => {
       };
 
       // Mock repository to fail
-      vi.spyOn(questionRepository, 'findById').mockRejectedValue(new Error('Database error'));
+      vi.spyOn(questionRepository, 'findById').mockRejectedValue(
+        new Error('Database error'),
+      );
 
       // Act
       const result = await useCase.execute(request);
@@ -459,7 +506,9 @@ describe('ListAnswersUseCase', () => {
       const request: ListAnswersRequest = {};
 
       // Mock repository to fail
-      vi.spyOn(answerRepository, 'findAllPaginated').mockRejectedValue(new Error('Database error'));
+      vi.spyOn(answerRepository, 'findAllPaginated').mockRejectedValue(
+        new Error('Database error'),
+      );
 
       // Act
       const result = await useCase.execute(request);
@@ -492,7 +541,9 @@ describe('ListAnswersUseCase', () => {
   describe('Edge Cases', () => {
     it('should handle single answer correctly', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
       const answer = Answer.create({
         explanation: 'Single answer',
@@ -509,10 +560,10 @@ describe('ListAnswersUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.answers).toHaveLength(1);
         expect(response.pagination.totalPages).toBe(1);
         expect(response.pagination.hasNext).toBe(false);
@@ -522,7 +573,9 @@ describe('ListAnswersUseCase', () => {
 
     it('should handle exactly limit number of answers', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
       // Create exactly 10 answers (default limit)
       for (let i = 1; i <= 10; i++) {
@@ -541,10 +594,10 @@ describe('ListAnswersUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.answers).toHaveLength(10);
         expect(response.pagination.totalPages).toBe(1);
         expect(response.pagination.hasNext).toBe(false);
@@ -553,7 +606,9 @@ describe('ListAnswersUseCase', () => {
 
     it('should handle maximum limit value', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
       // Create 150 answers
       for (let i = 1; i <= 150; i++) {
@@ -574,10 +629,10 @@ describe('ListAnswersUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.answers).toHaveLength(100);
         expect(response.pagination.total).toBe(150);
         expect(response.pagination.totalPages).toBe(2);
@@ -587,7 +642,9 @@ describe('ListAnswersUseCase', () => {
 
     it('should handle very large page number', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
       const answer = Answer.create({
         explanation: 'Single answer',
@@ -606,10 +663,10 @@ describe('ListAnswersUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.answers).toHaveLength(0);
         expect(response.pagination.page).toBe(999999);
         expect(response.pagination.total).toBe(1);
@@ -620,7 +677,9 @@ describe('ListAnswersUseCase', () => {
 
     it('should handle answers with very long explanations', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
       const longExplanation = 'A'.repeat(5000); // Very long explanation
 
       const answer = Answer.create({
@@ -638,10 +697,10 @@ describe('ListAnswersUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.answers).toHaveLength(1);
         expect(response.answers[0].explanation).toHaveLength(5000);
         expect(response.answers[0].explanation).toBe(longExplanation);

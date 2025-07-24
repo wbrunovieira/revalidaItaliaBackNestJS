@@ -2,7 +2,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ListUsersUseCase } from './list-users.use-case';
 import { InMemoryUserAggregatedViewRepository } from '@/test/repositories/in-memory-user-aggregated-view-repository';
-import { InvalidInputError, RepositoryError } from '@/domain/auth/domain/exceptions';
+import {
+  InvalidInputError,
+  RepositoryError,
+} from '@/domain/auth/domain/exceptions';
 import { UserAggregatedView } from '../../repositories/i-user-aggregated-view-repository';
 import { left, right } from '@/core/either';
 
@@ -121,7 +124,7 @@ describe('ListUsersUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.items).toHaveLength(2);
-        expect(result.value.items.every(u => u.role === 'admin')).toBe(true);
+        expect(result.value.items.every((u) => u.role === 'admin')).toBe(true);
       }
     });
 
@@ -144,7 +147,9 @@ describe('ListUsersUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.items).toHaveLength(2);
-        expect(result.value.items.every(u => u.profession === 'Doctor')).toBe(true);
+        expect(result.value.items.every((u) => u.profession === 'Doctor')).toBe(
+          true,
+        );
       }
     });
 
@@ -160,7 +165,10 @@ describe('ListUsersUseCase', () => {
       }
 
       // Act
-      const result = await useCase.execute({ orderBy: 'fullName', order: 'asc' });
+      const result = await useCase.execute({
+        orderBy: 'fullName',
+        order: 'asc',
+      });
 
       // Assert
       expect(result.isRight()).toBe(true);
@@ -210,20 +218,32 @@ describe('ListUsersUseCase', () => {
     it('should combine multiple filters', async () => {
       // Arrange
       const users = [
-        { ...createMockUser('id1', 'john@example.com', 'John Doe', 'admin'), profession: 'Doctor' },
-        { ...createMockUser('id2', 'jane@example.com', 'Jane Doe', 'admin'), profession: 'Engineer' },
-        { ...createMockUser('id3', 'jack@example.com', 'Jack Doe', 'student'), profession: 'Doctor' },
-        { ...createMockUser('id4', 'jill@example.com', 'Jill Smith', 'admin'), profession: 'Doctor' },
+        {
+          ...createMockUser('id1', 'john@example.com', 'John Doe', 'admin'),
+          profession: 'Doctor',
+        },
+        {
+          ...createMockUser('id2', 'jane@example.com', 'Jane Doe', 'admin'),
+          profession: 'Engineer',
+        },
+        {
+          ...createMockUser('id3', 'jack@example.com', 'Jack Doe', 'student'),
+          profession: 'Doctor',
+        },
+        {
+          ...createMockUser('id4', 'jill@example.com', 'Jill Smith', 'admin'),
+          profession: 'Doctor',
+        },
       ];
       for (const user of users) {
         await viewRepo.create(user);
       }
 
       // Act
-      const result = await useCase.execute({ 
+      const result = await useCase.execute({
         search: 'doe',
         role: 'admin',
-        profession: 'Doctor' 
+        profession: 'Doctor',
       });
 
       // Assert
@@ -411,7 +431,9 @@ describe('ListUsersUseCase', () => {
 
     it('should handle unexpected errors gracefully', async () => {
       // Arrange
-      vi.spyOn(viewRepo, 'findForListing').mockRejectedValueOnce(new Error('Unexpected error'));
+      vi.spyOn(viewRepo, 'findForListing').mockRejectedValueOnce(
+        new Error('Unexpected error'),
+      );
 
       // Act
       const result = await useCase.execute({});
@@ -428,7 +450,9 @@ describe('ListUsersUseCase', () => {
 
     it('should handle non-Error exceptions', async () => {
       // Arrange
-      vi.spyOn(viewRepo, 'findForListing').mockRejectedValueOnce('String error');
+      vi.spyOn(viewRepo, 'findForListing').mockRejectedValueOnce(
+        'String error',
+      );
 
       // Act
       const result = await useCase.execute({});
@@ -438,7 +462,9 @@ describe('ListUsersUseCase', () => {
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(RepositoryError);
         if (result.value instanceof RepositoryError) {
-          expect(result.value.message).toBe('Repository operation failed: listUsers');
+          expect(result.value.message).toBe(
+            'Repository operation failed: listUsers',
+          );
         }
       }
     });
@@ -603,7 +629,7 @@ describe('ListUsersUseCase', () => {
         ];
         expect(allItems).toHaveLength(25);
         // Check no duplicates
-        const ids = allItems.map(item => item.identityId);
+        const ids = allItems.map((item) => item.identityId);
         expect(new Set(ids).size).toBe(25);
       }
     });
@@ -628,16 +654,30 @@ describe('ListUsersUseCase', () => {
 
     it('should maintain consistent ordering across pages', async () => {
       // Arrange
-      const users = Array.from({ length: 20 }, (_, i) => 
-        createMockUser(`id${i}`, `user${i}@example.com`, `User ${String(i).padStart(2, '0')}`)
+      const users = Array.from({ length: 20 }, (_, i) =>
+        createMockUser(
+          `id${i}`,
+          `user${i}@example.com`,
+          `User ${String(i).padStart(2, '0')}`,
+        ),
       );
       for (const user of users) {
         await viewRepo.create(user);
       }
 
       // Act
-      const page1 = await useCase.execute({ page: 1, limit: 10, orderBy: 'fullName', order: 'asc' });
-      const page2 = await useCase.execute({ page: 2, limit: 10, orderBy: 'fullName', order: 'asc' });
+      const page1 = await useCase.execute({
+        page: 1,
+        limit: 10,
+        orderBy: 'fullName',
+        order: 'asc',
+      });
+      const page2 = await useCase.execute({
+        page: 2,
+        limit: 10,
+        orderBy: 'fullName',
+        order: 'asc',
+      });
 
       // Assert
       expect(page1.isRight() && page2.isRight()).toBe(true);
@@ -675,9 +715,9 @@ describe('ListUsersUseCase', () => {
   describe('Type coercion', () => {
     it('should reject string numbers that fail validation', async () => {
       // Act
-      const result = await useCase.execute({ 
+      const result = await useCase.execute({
         page: '2' as any,
-        limit: '5' as any
+        limit: '5' as any,
       });
 
       // Assert
@@ -691,14 +731,14 @@ describe('ListUsersUseCase', () => {
               expect.objectContaining({
                 code: 'isInt',
                 message: 'page must be an integer number',
-                path: ['page']
+                path: ['page'],
               }),
               expect.objectContaining({
                 code: 'isInt',
                 message: 'limit must be an integer number',
-                path: ['limit']
-              })
-            ])
+                path: ['limit'],
+              }),
+            ]),
           );
         }
       }
@@ -706,9 +746,9 @@ describe('ListUsersUseCase', () => {
 
     it('should reject non-numeric string values', async () => {
       // Act
-      const result = await useCase.execute({ 
+      const result = await useCase.execute({
         page: 'abc' as any,
-        limit: 'xyz' as any
+        limit: 'xyz' as any,
       });
 
       // Assert
@@ -726,7 +766,7 @@ function createMockUser(
   id: string,
   email: string = `user${id}@example.com`,
   fullName: string = `User ${id}`,
-  role: string = 'student'
+  role: string = 'student',
 ): UserAggregatedView {
   return {
     identityId: id,
@@ -754,7 +794,5 @@ function createMockUser(
 }
 
 function createMockUsers(count: number): UserAggregatedView[] {
-  return Array.from({ length: count }, (_, i) => 
-    createMockUser(`id${i + 1}`)
-  );
+  return Array.from({ length: count }, (_, i) => createMockUser(`id${i + 1}`));
 }

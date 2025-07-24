@@ -13,7 +13,7 @@ export class InMemoryAuthUnitOfWork implements IAuthUnitOfWork {
   private _identityRepository: InMemoryUserIdentityRepository;
   private _profileRepository: InMemoryUserProfileRepository;
   private _authorizationRepository: InMemoryUserAuthorizationRepository;
-  
+
   private transaction: {
     identities: UserIdentity[];
     profiles: UserProfile[];
@@ -23,7 +23,7 @@ export class InMemoryAuthUnitOfWork implements IAuthUnitOfWork {
   constructor(
     identityRepo: InMemoryUserIdentityRepository,
     profileRepo: InMemoryUserProfileRepository,
-    authRepo: InMemoryUserAuthorizationRepository
+    authRepo: InMemoryUserAuthorizationRepository,
   ) {
     this._identityRepository = identityRepo;
     this._profileRepository = profileRepo;
@@ -61,14 +61,16 @@ export class InMemoryAuthUnitOfWork implements IAuthUnitOfWork {
     if (this.transaction) {
       this._identityRepository.items = [...this.transaction.identities];
       this._profileRepository.items = [...this.transaction.profiles];
-      this._authorizationRepository.items = [...this.transaction.authorizations];
+      this._authorizationRepository.items = [
+        ...this.transaction.authorizations,
+      ];
       this.transaction = null;
     }
   }
 
   async execute<T>(work: () => Promise<T>): Promise<T> {
     await this.start();
-    
+
     try {
       const result = await work();
       await this.commit();

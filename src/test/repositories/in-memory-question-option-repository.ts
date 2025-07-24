@@ -4,17 +4,21 @@ import { Either, left, right } from '@/core/either';
 import { QuestionOption } from '@/domain/assessment/enterprise/entities/question-option.entity';
 import { IQuestionOptionRepository } from '@/domain/assessment/application/repositories/i-question-option-repository';
 
-export class InMemoryQuestionOptionRepository implements IQuestionOptionRepository {
+export class InMemoryQuestionOptionRepository
+  implements IQuestionOptionRepository
+{
   public items: QuestionOption[] = [];
 
-  async create(questionOption: QuestionOption): Promise<Either<Error, QuestionOption>> {
+  async create(
+    questionOption: QuestionOption,
+  ): Promise<Either<Error, QuestionOption>> {
     this.items.push(questionOption);
     return right(questionOption);
   }
 
   async findById(id: string): Promise<Either<Error, QuestionOption>> {
-    const questionOption = this.items.find(item => item.id.toString() === id);
-    
+    const questionOption = this.items.find((item) => item.id.toString() === id);
+
     if (!questionOption) {
       return left(new Error('Question option not found'));
     }
@@ -22,25 +26,31 @@ export class InMemoryQuestionOptionRepository implements IQuestionOptionReposito
     return right(questionOption);
   }
 
-  async findByQuestionId(questionId: string): Promise<Either<Error, QuestionOption[]>> {
+  async findByQuestionId(
+    questionId: string,
+  ): Promise<Either<Error, QuestionOption[]>> {
     const questionOptions = this.items.filter(
-      item => item.questionId.toString() === questionId
+      (item) => item.questionId.toString() === questionId,
     );
 
     return right(questionOptions);
   }
 
-  async findByQuestionIds(questionIds: string[]): Promise<Either<Error, QuestionOption[]>> {
-    const questionOptions = this.items.filter(
-      item => questionIds.includes(item.questionId.toString())
+  async findByQuestionIds(
+    questionIds: string[],
+  ): Promise<Either<Error, QuestionOption[]>> {
+    const questionOptions = this.items.filter((item) =>
+      questionIds.includes(item.questionId.toString()),
     );
 
     return right(questionOptions);
   }
 
-  async update(questionOption: QuestionOption): Promise<Either<Error, QuestionOption>> {
+  async update(
+    questionOption: QuestionOption,
+  ): Promise<Either<Error, QuestionOption>> {
     const itemIndex = this.items.findIndex(
-      item => item.id.toString() === questionOption.id.toString()
+      (item) => item.id.toString() === questionOption.id.toString(),
     );
 
     if (itemIndex === -1) {
@@ -52,7 +62,7 @@ export class InMemoryQuestionOptionRepository implements IQuestionOptionReposito
   }
 
   async delete(id: string): Promise<Either<Error, void>> {
-    const itemIndex = this.items.findIndex(item => item.id.toString() === id);
+    const itemIndex = this.items.findIndex((item) => item.id.toString() === id);
 
     if (itemIndex === -1) {
       return left(new Error('Question option not found'));

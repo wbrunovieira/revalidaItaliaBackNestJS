@@ -576,25 +576,37 @@ describe('ListQuestionsByAssessmentUseCase', () => {
   describe('Assessment Type Specific Tests', () => {
     it('should handle QUIZ assessment with multiple choice questions', async () => {
       // Arrange
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
-      const assessment = Assessment.create({
-        slug: 'quiz-assessment',
-        title: 'Quiz Assessment',
-        type: 'QUIZ',
-        quizPosition: 'BEFORE_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
-
-      const question = Question.create({
-        text: 'Quiz question',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-assessment',
+          title: 'Quiz Assessment',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
         assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002'),
-      }, questionId);
+      );
+
+      const question = Question.create(
+        {
+          text: 'Quiz question',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440002',
+          ),
+        },
+        questionId,
+      );
 
       const option1 = QuestionOption.create({
         text: 'Correct answer',
@@ -624,32 +636,46 @@ describe('ListQuestionsByAssessmentUseCase', () => {
         expect(result.value.questions).toHaveLength(1);
         expect(result.value.questions[0].type).toBe('MULTIPLE_CHOICE');
         expect(result.value.questions[0].options).toHaveLength(2);
-        expect(result.value.questions[0].options[0].text).toBe('Correct answer');
+        expect(result.value.questions[0].options[0].text).toBe(
+          'Correct answer',
+        );
         expect(result.value.questions[0].options[1].text).toBe('Wrong answer');
       }
     });
 
     it('should handle SIMULADO assessment with multiple choice questions', async () => {
       // Arrange
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
-      const assessment = Assessment.create({
-        slug: 'simulado-assessment',
-        title: 'Simulado Assessment',
-        type: 'SIMULADO',
-        passingScore: 70,
-        timeLimitInMinutes: 60,
-        randomizeQuestions: true,
-        randomizeOptions: true,
-      }, assessmentId);
-
-      const question = Question.create({
-        text: 'Simulado question',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+      const assessment = Assessment.create(
+        {
+          slug: 'simulado-assessment',
+          title: 'Simulado Assessment',
+          type: 'SIMULADO',
+          passingScore: 70,
+          timeLimitInMinutes: 60,
+          randomizeQuestions: true,
+          randomizeOptions: true,
+        },
         assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002'),
-      }, questionId);
+      );
+
+      const question = Question.create(
+        {
+          text: 'Simulado question',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440002',
+          ),
+        },
+        questionId,
+      );
 
       const option1 = QuestionOption.create({
         text: 'Option A',
@@ -685,38 +711,61 @@ describe('ListQuestionsByAssessmentUseCase', () => {
         expect(result.value.questions).toHaveLength(1);
         expect(result.value.questions[0].type).toBe('MULTIPLE_CHOICE');
         expect(result.value.questions[0].options).toHaveLength(3);
-        expect(result.value.questions[0].options.map(o => o.text)).toEqual(['Option A', 'Option B', 'Option C']);
+        expect(result.value.questions[0].options.map((o) => o.text)).toEqual([
+          'Option A',
+          'Option B',
+          'Option C',
+        ]);
       }
     });
 
     it('should handle PROVA_ABERTA assessment with open questions', async () => {
       // Arrange
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const question1Id = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const question2Id = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const question1Id = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const question2Id = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
-      const assessment = Assessment.create({
-        slug: 'prova-aberta-assessment',
-        title: 'Prova Aberta Assessment',
-        type: 'PROVA_ABERTA',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
-
-      const question1 = Question.create({
-        text: 'Explique o conceito de fotossíntese',
-        type: new QuestionTypeVO('OPEN'),
+      const assessment = Assessment.create(
+        {
+          slug: 'prova-aberta-assessment',
+          title: 'Prova Aberta Assessment',
+          type: 'PROVA_ABERTA',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
         assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440003'),
-      }, question1Id);
+      );
 
-      const question2 = Question.create({
-        text: 'Descreva o processo de respiração celular',
-        type: new QuestionTypeVO('OPEN'),
-        assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-      }, question2Id);
+      const question1 = Question.create(
+        {
+          text: 'Explique o conceito de fotossíntese',
+          type: new QuestionTypeVO('OPEN'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440003',
+          ),
+        },
+        question1Id,
+      );
+
+      const question2 = Question.create(
+        {
+          text: 'Descreva o processo de respiração celular',
+          type: new QuestionTypeVO('OPEN'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+        },
+        question2Id,
+      );
 
       await assessmentRepository.create(assessment);
       await questionRepository.create(question1);
@@ -733,13 +782,13 @@ describe('ListQuestionsByAssessmentUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.questions).toHaveLength(2);
-        
-        result.value.questions.forEach(question => {
+
+        result.value.questions.forEach((question) => {
           expect(question.type).toBe('OPEN');
           expect(question.options).toHaveLength(0);
         });
-        
-        const texts = result.value.questions.map(q => q.text);
+
+        const texts = result.value.questions.map((q) => q.text);
         expect(texts).toContain('Explique o conceito de fotossíntese');
         expect(texts).toContain('Descreva o processo de respiração celular');
       }

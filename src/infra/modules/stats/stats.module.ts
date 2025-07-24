@@ -9,7 +9,7 @@ import { UserStatsSubscriber } from './subscribers/user-stats.subscriber';
 
 /**
  * Stats Module
- * 
+ *
  * Collects and provides statistics about system usage.
  * Uses centralized Redis from DatabaseModule for fast, persistent counters.
  */

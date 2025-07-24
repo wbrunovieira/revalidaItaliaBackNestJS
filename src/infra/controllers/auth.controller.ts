@@ -1,13 +1,21 @@
 // src/infra/controllers/auth.controller.ts
-import { Controller, Post, Body, UnauthorizedException, Req, Ip, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UnauthorizedException,
+  Req,
+  Ip,
+  Request,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthenticateUserUseCase } from '@/domain/auth/application/use-cases/authentication/authenticate-user.use-case';
 import { AuthenticateUserRequestDto } from '@/domain/auth/application/dtos/authenticate-user-request.dto';
 import { AuthenticateUserDto } from '@/domain/auth/application/dtos/authenticate-user.dto';
-import { 
-  AuthSuccessResponseDto, 
+import {
+  AuthSuccessResponseDto,
   AuthErrorResponseDto,
-  ValidationErrorResponseDto 
+  ValidationErrorResponseDto,
 } from '@/domain/auth/application/dtos/auth-response.dto';
 import {
   IS_PUBLIC_KEY,
@@ -23,7 +31,7 @@ export class AuthController {
     private readonly jwtService: JwtService,
   ) {}
 
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Authenticate user',
     description: `
       Authenticates a user with email and password credentials.
@@ -45,9 +53,9 @@ export class AuthController {
       - GET /users/profile - Get user profile details
       - GET /courses - List available courses
       - GET /enrollments - Check user enrollments
-    `
+    `,
   })
-  @ApiBody({ 
+  @ApiBody({
     type: AuthenticateUserDto,
     description: 'Login credentials',
     examples: {
@@ -55,44 +63,45 @@ export class AuthController {
         summary: 'Student login - Medical student accessing course content',
         value: {
           email: 'mario.rossi@medicina.it',
-          password: 'SecurePass123!'
-        }
+          password: 'SecurePass123!',
+        },
       },
       admin: {
         summary: 'Admin login - System administrator',
         value: {
           email: 'admin@revalidaitalia.com',
-          password: 'AdminSecure456!'
-        }
+          password: 'AdminSecure456!',
+        },
       },
       testAccount: {
         summary: 'Test account (dev environment only)',
         value: {
           email: 'test.student@example.com',
-          password: 'TestPassword123'
-        }
-      }
-    }
+          password: 'TestPassword123',
+        },
+      },
+    },
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Login successful - returns JWT token and user info',
     type: AuthSuccessResponseDto,
   })
-  @ApiResponse({ 
-    status: 401, 
+  @ApiResponse({
+    status: 401,
     description: 'Authentication failed - returns generic message for security',
     type: AuthErrorResponseDto,
     examples: {
       invalidCredentials: {
-        summary: 'Any authentication failure (email invalid, password too short, user not found, wrong password)',
+        summary:
+          'Any authentication failure (email invalid, password too short, user not found, wrong password)',
         value: {
           statusCode: 401,
           message: 'Invalid credentials',
-          error: 'Unauthorized'
-        }
-      }
-    }
+          error: 'Unauthorized',
+        },
+      },
+    },
   })
   @Public()
   @Post('login')

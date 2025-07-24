@@ -1,6 +1,13 @@
 // src/domain/assessment/application/dtos/create-answer.dto.ts
 
-import { IsString, IsUUID, IsOptional, IsArray, ValidateNested, IsIn } from 'class-validator';
+import {
+  IsString,
+  IsUUID,
+  IsOptional,
+  IsArray,
+  ValidateNested,
+  IsIn,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class CreateAnswerTranslationDto {

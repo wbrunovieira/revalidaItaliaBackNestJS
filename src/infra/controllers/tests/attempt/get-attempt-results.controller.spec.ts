@@ -1,7 +1,12 @@
 // src/infra/controllers/tests/attempt/get-attempt-results.controller.spec.ts
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { BadRequestException, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { left, right } from '@/core/either';
 import { AttemptControllerTestSetup } from './shared/attempt-controller-test-setup';
 import { AttemptControllerTestHelpers } from './shared/attempt-controller-test-helpers';
@@ -25,11 +30,11 @@ describe('AttemptController - GET /attempts/:id/results', () => {
     helpers = new AttemptControllerTestHelpers();
     data = new AttemptControllerTestData();
     setup.resetMocks();
-    
+
     // Mock user from JWT
     mockUser = {
       sub: '550e8400-e29b-41d4-a716-446655440001',
-      role: 'admin'
+      role: 'admin',
     };
   });
 
@@ -38,8 +43,10 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const mockResponse = data.createGetAttemptResultsResponse('QUIZ');
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -56,8 +63,10 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const mockResponse = data.createGetAttemptResultsResponse('SIMULADO');
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -71,9 +80,14 @@ describe('AttemptController - GET /attempts/:id/results', () => {
     it('should return attempt results successfully for PROVA_ABERTA assessment with pending review', async () => {
       // Arrange
       const params = { id: data.validAttemptId };
-      const mockResponse = data.createGetAttemptResultsResponse('PROVA_ABERTA', true);
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+      const mockResponse = data.createGetAttemptResultsResponse(
+        'PROVA_ABERTA',
+        true,
+      );
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -88,9 +102,14 @@ describe('AttemptController - GET /attempts/:id/results', () => {
     it('should return attempt results for PROVA_ABERTA assessment fully graded', async () => {
       // Arrange
       const params = { id: data.validAttemptId };
-      const mockResponse = data.createGetAttemptResultsResponse('PROVA_ABERTA', false);
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+      const mockResponse = data.createGetAttemptResultsResponse(
+        'PROVA_ABERTA',
+        false,
+      );
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -108,16 +127,16 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const error = new InvalidInputError('Invalid UUID format');
-      
+
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
-        BadRequestException
-      );
+      await expect(
+        setup.controller.getAttemptResults(params, mockUser),
+      ).rejects.toThrow(BadRequestException);
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params, mockUser)
+        setup.controller.getAttemptResults(params, mockUser),
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -131,16 +150,16 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.nonExistentAttemptId };
       const error = new AttemptNotFoundError();
-      
+
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
-        NotFoundException
-      );
+      await expect(
+        setup.controller.getAttemptResults(params, mockUser),
+      ).rejects.toThrow(NotFoundException);
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params, mockUser)
+        setup.controller.getAttemptResults(params, mockUser),
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -153,16 +172,16 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const error = new AttemptNotFinalizedError();
-      
+
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
-        BadRequestException
-      );
+      await expect(
+        setup.controller.getAttemptResults(params, mockUser),
+      ).rejects.toThrow(BadRequestException);
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params, mockUser)
+        setup.controller.getAttemptResults(params, mockUser),
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -175,16 +194,16 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const error = new UserNotFoundError();
-      
+
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
-        NotFoundException
-      );
+      await expect(
+        setup.controller.getAttemptResults(params, mockUser),
+      ).rejects.toThrow(NotFoundException);
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params, mockUser)
+        setup.controller.getAttemptResults(params, mockUser),
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -197,16 +216,16 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const error = new InsufficientPermissionsError();
-      
+
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
-        ForbiddenException
-      );
+      await expect(
+        setup.controller.getAttemptResults(params, mockUser),
+      ).rejects.toThrow(ForbiddenException);
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params, mockUser)
+        setup.controller.getAttemptResults(params, mockUser),
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -219,16 +238,16 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const error = new AssessmentNotFoundError();
-      
+
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
-        NotFoundException
-      );
+      await expect(
+        setup.controller.getAttemptResults(params, mockUser),
+      ).rejects.toThrow(NotFoundException);
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params, mockUser)
+        setup.controller.getAttemptResults(params, mockUser),
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -241,16 +260,16 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const error = new RepositoryError('Database connection failed');
-      
+
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
-        InternalServerErrorException
-      );
+      await expect(
+        setup.controller.getAttemptResults(params, mockUser),
+      ).rejects.toThrow(InternalServerErrorException);
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params, mockUser)
+        setup.controller.getAttemptResults(params, mockUser),
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -263,16 +282,16 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const error = new Error('Unexpected error');
-      
+
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
-        InternalServerErrorException
-      );
+      await expect(
+        setup.controller.getAttemptResults(params, mockUser),
+      ).rejects.toThrow(InternalServerErrorException);
 
       const thrownError = await helpers.captureException(() =>
-        setup.controller.getAttemptResults(params, mockUser)
+        setup.controller.getAttemptResults(params, mockUser),
       );
 
       expect(thrownError.getResponse()).toEqual({
@@ -287,8 +306,10 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const mockResponse = data.createGetAttemptResultsResponse('QUIZ');
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
       await setup.controller.getAttemptResults(params, mockUser);
@@ -305,13 +326,13 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: '' };
       const error = new InvalidInputError('Invalid UUID format');
-      
+
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(setup.controller.getAttemptResults(params, mockUser)).rejects.toThrow(
-        BadRequestException
-      );
+      await expect(
+        setup.controller.getAttemptResults(params, mockUser),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -320,8 +341,10 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const mockResponse = data.createGetAttemptResultsResponse('QUIZ');
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -353,8 +376,10 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const mockResponse = data.createGetAttemptResultsResponse('SIMULADO');
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -362,8 +387,11 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Assert
       expect(result.results).toHaveProperty('argumentResults');
       expect(Array.isArray(result.results.argumentResults)).toBe(true);
-      
-      if (result.results.argumentResults && result.results.argumentResults.length > 0) {
+
+      if (
+        result.results.argumentResults &&
+        result.results.argumentResults.length > 0
+      ) {
         const argResult = result.results.argumentResults[0];
         expect(argResult).toHaveProperty('argumentId');
         expect(argResult).toHaveProperty('argumentTitle');
@@ -376,9 +404,14 @@ describe('AttemptController - GET /attempts/:id/results', () => {
     it('should return response with pending review fields for PROVA_ABERTA', async () => {
       // Arrange
       const params = { id: data.validAttemptId };
-      const mockResponse = data.createGetAttemptResultsResponse('PROVA_ABERTA', true);
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+      const mockResponse = data.createGetAttemptResultsResponse(
+        'PROVA_ABERTA',
+        true,
+      );
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -394,8 +427,10 @@ describe('AttemptController - GET /attempts/:id/results', () => {
     it('should handle malformed attempt ID', async () => {
       // Arrange
       const params = { id: 'invalid-uuid' };
-      const error = new InvalidInputError('Invalid UUID format', ['attemptId must be a valid UUID']);
-      
+      const error = new InvalidInputError('Invalid UUID format', [
+        'attemptId must be a valid UUID',
+      ]);
+
       setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
@@ -413,15 +448,20 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange - Student user accessing own attempt
       const studentUser = {
         sub: '550e8400-e29b-41d4-a716-446655440001',
-        role: 'student'
+        role: 'student',
       };
       const params = { id: data.validAttemptId };
       const mockResponse = data.createGetAttemptResultsResponse('QUIZ');
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
-      const result = await setup.controller.getAttemptResults(params, studentUser);
+      const result = await setup.controller.getAttemptResults(
+        params,
+        studentUser,
+      );
 
       // Assert
       expect(result).toEqual(mockResponse);
@@ -435,15 +475,23 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange - Tutor user accessing student attempt
       const tutorUser = {
         sub: '550e8400-e29b-41d4-a716-446655440002',
-        role: 'tutor'
+        role: 'tutor',
       };
       const params = { id: data.validAttemptId };
-      const mockResponse = data.createGetAttemptResultsResponse('PROVA_ABERTA', false);
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+      const mockResponse = data.createGetAttemptResultsResponse(
+        'PROVA_ABERTA',
+        false,
+      );
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
-      const result = await setup.controller.getAttemptResults(params, tutorUser);
+      const result = await setup.controller.getAttemptResults(
+        params,
+        tutorUser,
+      );
 
       // Assert
       expect(result).toEqual(mockResponse);
@@ -459,14 +507,18 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       const partialResponse = data.createGetAttemptResultsResponse('QUIZ');
       partialResponse.results.answeredQuestions = 7;
       partialResponse.results.totalQuestions = 10;
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(partialResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(partialResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
 
       // Assert
-      expect(result.results.answeredQuestions).toBeLessThan(result.results.totalQuestions);
+      expect(result.results.answeredQuestions).toBeLessThan(
+        result.results.totalQuestions,
+      );
       expect(result.results.answeredQuestions).toBe(7);
       expect(result.results.totalQuestions).toBe(10);
     });
@@ -479,8 +531,10 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       zeroScoreResponse.results.correctAnswers = 0;
       zeroScoreResponse.results.scorePercentage = 0;
       zeroScoreResponse.results.passed = false;
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(zeroScoreResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(zeroScoreResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -495,13 +549,17 @@ describe('AttemptController - GET /attempts/:id/results', () => {
     it('should handle attempt with perfect score', async () => {
       // Arrange
       const params = { id: data.validAttemptId };
-      const perfectScoreResponse = data.createGetAttemptResultsResponse('SIMULADO');
+      const perfectScoreResponse =
+        data.createGetAttemptResultsResponse('SIMULADO');
       perfectScoreResponse.attempt.score = 100;
-      perfectScoreResponse.results.correctAnswers = perfectScoreResponse.results.totalQuestions;
+      perfectScoreResponse.results.correctAnswers =
+        perfectScoreResponse.results.totalQuestions;
       perfectScoreResponse.results.scorePercentage = 100;
       perfectScoreResponse.results.passed = true;
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(perfectScoreResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(perfectScoreResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -517,10 +575,14 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const timedResponse = data.createGetAttemptResultsResponse('SIMULADO');
-      timedResponse.attempt.timeLimitExpiresAt = new Date('2023-01-01T12:00:00Z');
+      timedResponse.attempt.timeLimitExpiresAt = new Date(
+        '2023-01-01T12:00:00Z',
+      );
       timedResponse.results.timeSpent = 90; // minutes, less than 120 limit
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(timedResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(timedResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -536,8 +598,10 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       const params = { id: data.validAttemptId };
       const noAnswersResponse = data.createGetAttemptResultsResponse('QUIZ');
       noAnswersResponse.answers = [];
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(noAnswersResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(noAnswersResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -553,8 +617,10 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const mockResponse = data.createGetAttemptResultsResponse('QUIZ');
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -567,12 +633,12 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       expect(result.attempt.startedAt).toBeInstanceOf(Date);
       expect(result.attempt.submittedAt).toBeInstanceOf(Date);
       expect(result.attempt.gradedAt).toBeInstanceOf(Date);
-      
+
       expect(typeof result.assessment.id).toBe('string');
       expect(typeof result.assessment.title).toBe('string');
       expect(typeof result.assessment.type).toBe('string');
       expect(typeof result.assessment.passingScore).toBe('number');
-      
+
       expect(typeof result.results.totalQuestions).toBe('number');
       expect(typeof result.results.answeredQuestions).toBe('number');
       expect(typeof result.results.correctAnswers).toBe('number');
@@ -584,8 +650,10 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const mockResponse = data.createGetAttemptResultsResponse('SIMULADO');
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
@@ -593,17 +661,21 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Assert
       expect(result.results.argumentResults).toBeDefined();
       expect(Array.isArray(result.results.argumentResults)).toBe(true);
-      
-      if (result.results.argumentResults && result.results.argumentResults.length > 0) {
-        result.results.argumentResults.forEach(argResult => {
+
+      if (
+        result.results.argumentResults &&
+        result.results.argumentResults.length > 0
+      ) {
+        result.results.argumentResults.forEach((argResult) => {
           expect(typeof argResult.argumentId).toBe('string');
           expect(typeof argResult.argumentTitle).toBe('string');
           expect(typeof argResult.totalQuestions).toBe('number');
           expect(typeof argResult.correctAnswers).toBe('number');
           expect(typeof argResult.scorePercentage).toBe('number');
-          
+
           // UUID validation
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          const uuidRegex =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           expect(argResult.argumentId).toMatch(uuidRegex);
         });
       }
@@ -613,26 +685,31 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       // Arrange
       const params = { id: data.validAttemptId };
       const mockResponse = data.createGetAttemptResultsResponse('QUIZ');
-      
-      setup.getAttemptResultsUseCase.execute.mockResolvedValue(right(mockResponse));
+
+      setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+        right(mockResponse),
+      );
 
       // Act
       const result = await setup.controller.getAttemptResults(params, mockUser);
 
       // Assert
       expect(Array.isArray(result.answers)).toBe(true);
-      
+
       if (result.answers.length > 0) {
-        result.answers.forEach(answer => {
+        result.answers.forEach((answer) => {
           expect(typeof answer.id).toBe('string');
           expect(typeof answer.questionId).toBe('string');
           expect(typeof answer.questionText).toBe('string');
           expect(['MULTIPLE_CHOICE', 'OPEN']).toContain(answer.questionType);
           expect(typeof answer.isCorrect).toBe('boolean');
-          expect(['IN_PROGRESS', 'SUBMITTED', 'GRADED']).toContain(answer.status);
-          
+          expect(['IN_PROGRESS', 'SUBMITTED', 'GRADED']).toContain(
+            answer.status,
+          );
+
           // UUID validation
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          const uuidRegex =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           expect(answer.id).toMatch(uuidRegex);
           expect(answer.questionId).toMatch(uuidRegex);
         });
@@ -643,7 +720,7 @@ describe('AttemptController - GET /attempts/:id/results', () => {
   describe('Error Response Consistency', () => {
     it('should return consistent error format for all error types', async () => {
       const params = { id: data.validAttemptId };
-      
+
       const errorTestCases = [
         {
           error: new InvalidInputError('Invalid data'),
@@ -678,7 +755,9 @@ describe('AttemptController - GET /attempts/:id/results', () => {
       ];
 
       for (const testCase of errorTestCases) {
-        setup.getAttemptResultsUseCase.execute.mockResolvedValue(left(testCase.error));
+        setup.getAttemptResultsUseCase.execute.mockResolvedValue(
+          left(testCase.error),
+        );
 
         try {
           await setup.controller.getAttemptResults(params, mockUser);

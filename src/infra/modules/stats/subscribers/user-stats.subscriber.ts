@@ -6,7 +6,7 @@ import { StatsService } from '../stats.service';
 
 /**
  * User Stats Subscriber
- * 
+ *
  * Infrastructure handler for UserCreatedEvent.
  * Updates statistics when users are created.
  */
@@ -20,7 +20,7 @@ export class UserStatsSubscriber {
 
     try {
       await this.statsService.incrementUserCount(role, source);
-      
+
       console.log(`[Stats] User count incremented:`, {
         userId: identityId,
         role: role,

@@ -8,7 +8,7 @@ export class InvalidFileError extends DomainException {
   constructor(reason: string, filename?: string) {
     const message = `Invalid file${filename ? ` '${filename}'` : ''}: ${reason}`;
     const code = 'DOCUMENT.INVALID_FILE';
-    
+
     super(message, code, { reason, filename });
   }
 
@@ -17,7 +17,10 @@ export class InvalidFileError extends DomainException {
   }
 
   static exceedsMaxSize(filename: string, maxSize: string): InvalidFileError {
-    return new InvalidFileError(`File exceeds maximum size of ${maxSize}`, filename);
+    return new InvalidFileError(
+      `File exceeds maximum size of ${maxSize}`,
+      filename,
+    );
   }
 
   static corrupted(filename: string): InvalidFileError {

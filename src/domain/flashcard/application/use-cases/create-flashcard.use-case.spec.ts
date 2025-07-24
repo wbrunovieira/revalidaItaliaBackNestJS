@@ -333,7 +333,9 @@ describe('CreateFlashcardUseCase', () => {
       if (result.value instanceof InvalidInputError) {
         expect(result.value.details).toHaveProperty('question');
         expect(Array.isArray(result.value.details.question)).toBe(true);
-        expect(result.value.details.question[0]).toContain('Content type must be either TEXT or IMAGE');
+        expect(result.value.details.question[0]).toContain(
+          'Content type must be either TEXT or IMAGE',
+        );
       }
     });
 

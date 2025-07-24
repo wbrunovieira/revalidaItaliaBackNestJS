@@ -21,7 +21,7 @@ const VALID_ROLES: UserRoleType[] = ['admin', 'tutor', 'student'];
  *
  * Centralizes all permission rules for different roles.
  * Used by Guards to enforce access control.
- * 
+ *
  * @example
  * const role = UserRole.create('admin');
  * console.log(role.canCreateUsers());     // true

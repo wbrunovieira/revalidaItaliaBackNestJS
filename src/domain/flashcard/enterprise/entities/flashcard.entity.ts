@@ -26,16 +26,16 @@ export class Flashcard extends Entity<FlashcardProps> {
     id?: UniqueEntityID,
   ): Flashcard {
     const now = new Date();
-    
+
     // Validações
     if (!props.question) {
       throw new Error('Question is required');
     }
-    
+
     if (!props.answer) {
       throw new Error('Answer is required');
     }
-    
+
     if (!props.argumentId) {
       throw new Error('ArgumentId is required');
     }
@@ -193,11 +193,13 @@ export class Flashcard extends Entity<FlashcardProps> {
     this.touch();
   }
 
-  public update(props: Partial<{
-    question: FlashcardContentVO;
-    answer: FlashcardContentVO;
-    slug: string;
-  }>): void {
+  public update(
+    props: Partial<{
+      question: FlashcardContentVO;
+      answer: FlashcardContentVO;
+      slug: string;
+    }>,
+  ): void {
     if (props.question) {
       this.updateQuestion(props.question);
     }

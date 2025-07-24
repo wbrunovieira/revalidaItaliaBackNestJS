@@ -23,7 +23,9 @@ export class UpdateAddressUseCase {
     private readonly addressRepo: IAddressRepository,
   ) {}
 
-  async execute(request: UpdateAddressRequestDto): Promise<UpdateAddressUseCaseResponse> {
+  async execute(
+    request: UpdateAddressRequestDto,
+  ): Promise<UpdateAddressUseCaseResponse> {
     const {
       id,
       street,

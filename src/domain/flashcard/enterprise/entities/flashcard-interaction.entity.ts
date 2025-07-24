@@ -98,7 +98,7 @@ export class FlashcardInteraction extends Entity<FlashcardInteractionProps> {
   public wasReviewedToday(): boolean {
     const today = new Date();
     const reviewDate = this.props.reviewedAt;
-    
+
     return (
       reviewDate.getDate() === today.getDate() &&
       reviewDate.getMonth() === today.getMonth() &&
@@ -113,7 +113,9 @@ export class FlashcardInteraction extends Entity<FlashcardInteractionProps> {
   }
 
   // Update Methods
-  public updateDifficultyLevel(difficultyLevel: FlashcardDifficultyLevelVO): void {
+  public updateDifficultyLevel(
+    difficultyLevel: FlashcardDifficultyLevelVO,
+  ): void {
     if (!difficultyLevel) {
       throw new Error('DifficultyLevel cannot be empty');
     }

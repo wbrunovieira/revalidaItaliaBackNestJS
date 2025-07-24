@@ -451,13 +451,13 @@ export class PrismaFlashcardRepository implements IFlashcardRepository {
   private mapToEntity = (flashcard: any): Flashcard => {
     const question =
       flashcard.questionType === 'TEXT'
-        ? FlashcardContentVO.createText(flashcard.questionText!)
-        : FlashcardContentVO.createImage(flashcard.questionImageUrl!);
+        ? FlashcardContentVO.createText(flashcard.questionText)
+        : FlashcardContentVO.createImage(flashcard.questionImageUrl);
 
     const answer =
       flashcard.answerType === 'TEXT'
-        ? FlashcardContentVO.createText(flashcard.answerText!)
-        : FlashcardContentVO.createImage(flashcard.answerImageUrl!);
+        ? FlashcardContentVO.createText(flashcard.answerText)
+        : FlashcardContentVO.createImage(flashcard.answerImageUrl);
 
     return Flashcard.reconstruct(
       {

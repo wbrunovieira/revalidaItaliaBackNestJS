@@ -20,7 +20,7 @@ export class FlashcardTag extends Entity<FlashcardTagProps> {
     id?: UniqueEntityID,
   ): FlashcardTag {
     const now = new Date();
-    
+
     // Validações
     if (!props.name || props.name.trim().length === 0) {
       throw new Error('Tag name cannot be empty');
@@ -121,17 +121,21 @@ export class FlashcardTag extends Entity<FlashcardTagProps> {
 
     // Validar formato do slug
     if (!/^[a-z0-9-]+$/.test(slug)) {
-      throw new Error('Slug must contain only lowercase letters, numbers, and hyphens');
+      throw new Error(
+        'Slug must contain only lowercase letters, numbers, and hyphens',
+      );
     }
 
     this.props.slug = slug.trim();
     this.touch();
   }
 
-  public update(props: Partial<{
-    name: string;
-    slug: string;
-  }>): void {
+  public update(
+    props: Partial<{
+      name: string;
+      slug: string;
+    }>,
+  ): void {
     if (props.name) {
       this.updateName(props.name);
     }

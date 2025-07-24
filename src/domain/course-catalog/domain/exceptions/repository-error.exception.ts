@@ -5,11 +5,7 @@ import { InfrastructureException } from '@/core/domain/exceptions/infrastructure
  * Exception thrown when a repository operation fails
  */
 export class RepositoryError extends InfrastructureException {
-  constructor(
-    message: string,
-    operation?: string,
-    entityName?: string
-  ) {
+  constructor(message: string, operation?: string, entityName?: string) {
     const code = 'REPOSITORY.OPERATION_FAILED';
     super(message, code, { operation, entityName });
   }
@@ -18,7 +14,7 @@ export class RepositoryError extends InfrastructureException {
     return new RepositoryError(
       error?.message || `Failed to create ${entityName}`,
       'create',
-      entityName
+      entityName,
     );
   }
 
@@ -26,7 +22,7 @@ export class RepositoryError extends InfrastructureException {
     return new RepositoryError(
       error?.message || `Failed to update ${entityName}`,
       'update',
-      entityName
+      entityName,
     );
   }
 
@@ -34,7 +30,7 @@ export class RepositoryError extends InfrastructureException {
     return new RepositoryError(
       error?.message || `Failed to find ${entityName}`,
       'find',
-      entityName
+      entityName,
     );
   }
 
@@ -42,7 +38,7 @@ export class RepositoryError extends InfrastructureException {
     return new RepositoryError(
       error?.message || `Failed to delete ${entityName}`,
       'delete',
-      entityName
+      entityName,
     );
   }
 }

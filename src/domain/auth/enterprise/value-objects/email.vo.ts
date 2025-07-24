@@ -19,7 +19,7 @@ const FREE_EMAIL_PROVIDERS = [
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_LOCAL_PART_LENGTH = 64; // RFC 5321
-const MAX_DOMAIN_LENGTH = 255;    // RFC 5321
+const MAX_DOMAIN_LENGTH = 255; // RFC 5321
 
 // =====================================
 // = Value Object
@@ -27,10 +27,10 @@ const MAX_DOMAIN_LENGTH = 255;    // RFC 5321
 
 /**
  * Email Value Object
- * 
+ *
  * Encapsulates email validation and behavior.
  * Ensures all emails in the system are valid and normalized.
- * 
+ *
  * @example
  * const email = Email.create('John.Doe@Company.com');
  * console.log(email.value);      // 'john.doe@company.com'
@@ -46,16 +46,16 @@ export class Email {
 
   private validate(): void {
     const normalizedEmail = this.value.trim().toLowerCase();
-    
+
     if (!Email.isValidFormat(normalizedEmail)) {
       throw new Error('Invalid email format');
     }
-    
+
     // Update the value to normalized version
     Object.defineProperty(this, 'value', {
       value: normalizedEmail,
       writable: false,
-      configurable: false
+      configurable: false,
     });
   }
 
@@ -122,7 +122,7 @@ export class Email {
     Object.defineProperty(instance, 'value', {
       value: email,
       writable: false,
-      configurable: false
+      configurable: false,
     });
     return instance;
   }
@@ -140,7 +140,7 @@ export class Email {
 
     // Split and validate parts
     const [localPart, domain] = email.split('@');
-    
+
     // Check local part length (max 64 chars per RFC)
     if (localPart.length > MAX_LOCAL_PART_LENGTH) {
       return false;

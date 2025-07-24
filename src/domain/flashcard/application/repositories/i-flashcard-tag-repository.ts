@@ -11,9 +11,13 @@ export abstract class IFlashcardTagRepository {
   abstract findById(id: string): Promise<Either<Error, FlashcardTag>>;
   abstract findBySlug(slug: string): Promise<Either<Error, FlashcardTag>>;
   abstract findByName(name: string): Promise<Either<Error, FlashcardTag>>;
-  abstract findByNameContaining(keyword: string): Promise<Either<Error, FlashcardTag[]>>;
+  abstract findByNameContaining(
+    keyword: string,
+  ): Promise<Either<Error, FlashcardTag[]>>;
   abstract findByIds(ids: string[]): Promise<Either<Error, FlashcardTag[]>>;
-  abstract findAll(params?: PaginationParams): Promise<Either<Error, FlashcardTag[]>>;
+  abstract findAll(
+    params?: PaginationParams,
+  ): Promise<Either<Error, FlashcardTag[]>>;
   abstract findAllPaginated(
     limit: number,
     offset: number,

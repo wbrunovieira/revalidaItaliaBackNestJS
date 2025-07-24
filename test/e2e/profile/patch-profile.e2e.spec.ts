@@ -58,12 +58,18 @@ describe('PATCH /profile - E2E', () => {
     // Generate real JWT tokens that will be properly decoded by E2ETestModule
     const validUserPayload = { sub: mainUser.id, role: mainUser.role };
     const otherUserPayload = { sub: otherUser.id, role: otherUser.role };
-    
+
     // Create properly formatted JWT tokens
-    const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
-    const validPayloadEncoded = Buffer.from(JSON.stringify(validUserPayload)).toString('base64url');
-    const otherPayloadEncoded = Buffer.from(JSON.stringify(otherUserPayload)).toString('base64url');
-    
+    const header = Buffer.from(
+      JSON.stringify({ alg: 'RS256', typ: 'JWT' }),
+    ).toString('base64url');
+    const validPayloadEncoded = Buffer.from(
+      JSON.stringify(validUserPayload),
+    ).toString('base64url');
+    const otherPayloadEncoded = Buffer.from(
+      JSON.stringify(otherUserPayload),
+    ).toString('base64url');
+
     validUserToken = `${header}.${validPayloadEncoded}.fake-signature`;
     otherUserToken = `${header}.${otherPayloadEncoded}.fake-signature`;
   });
@@ -86,13 +92,13 @@ describe('PATCH /profile - E2E', () => {
         .patch('/profile')
         .set('Authorization', `Bearer ${validUserToken}`)
         .send(updateData);
-      
+
       // Debug response
       if (response.status !== 200) {
         console.log('Response status:', response.status);
         console.log('Response body:', response.body);
       }
-      
+
       expect(response.status).toBe(200);
 
       // Assert
@@ -179,7 +185,9 @@ describe('PATCH /profile - E2E', () => {
 
       // Assert
       expectValidationError(response.body);
-      expect(response.body.message).toContain('CPF must contain exactly 11 digits');
+      expect(response.body.message).toContain(
+        'CPF must contain exactly 11 digits',
+      );
     });
 
     it('should return 400 when name is too short', async () => {
@@ -195,7 +203,9 @@ describe('PATCH /profile - E2E', () => {
 
       // Assert
       expectValidationError(response.body);
-      expect(response.body.message).toContain('Name must be at least 3 characters long');
+      expect(response.body.message).toContain(
+        'Name must be at least 3 characters long',
+      );
     });
 
     it('should return 400 when profile image URL is invalid', async () => {
@@ -227,7 +237,9 @@ describe('PATCH /profile - E2E', () => {
         .expect(400);
 
       // Assert
-      expect(response.body.message).toBe('Pelo menos um campo deve ser fornecido para atualização');
+      expect(response.body.message).toBe(
+        'Pelo menos um campo deve ser fornecido para atualização',
+      );
       expect(response.body.errors).toBeDefined();
     });
   });
@@ -332,7 +344,7 @@ describe('PATCH /profile - E2E', () => {
     it('should allow user to keep their own email when updating other fields', async () => {
       // Arrange
       const currentUser = await prisma.user.findUnique({
-        where: { id: testUserIds.mainUser }
+        where: { id: testUserIds.mainUser },
       });
       const updateData = {
         email: currentUser?.email, // Same email
@@ -354,7 +366,7 @@ describe('PATCH /profile - E2E', () => {
     it('should allow user to keep their own CPF when updating other fields', async () => {
       // Arrange
       const currentUser = await prisma.user.findUnique({
-        where: { id: testUserIds.mainUser }
+        where: { id: testUserIds.mainUser },
       });
       const updateData = {
         cpf: currentUser?.cpf, // Same CPF

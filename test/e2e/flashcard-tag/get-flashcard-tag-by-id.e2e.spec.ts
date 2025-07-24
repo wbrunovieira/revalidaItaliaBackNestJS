@@ -11,7 +11,7 @@ describe('GET /flashcard-tags/:id E2E Tests', () => {
   beforeEach(async () => {
     testSetup = new FlashcardTagGetTestSetup();
     testHelpers = new FlashcardTagTestHelpers(testSetup);
-    
+
     await testSetup.initialize();
     await testSetup.setupTestData();
   });
@@ -82,10 +82,12 @@ describe('GET /flashcard-tags/:id E2E Tests', () => {
       );
 
       const { createdAt, updatedAt } = response.body.flashcardTag;
-      
+
       expect(new Date(createdAt)).toBeInstanceOf(Date);
       expect(new Date(updatedAt)).toBeInstanceOf(Date);
-      expect(new Date(createdAt).getTime()).toBeLessThanOrEqual(new Date(updatedAt).getTime());
+      expect(new Date(createdAt).getTime()).toBeLessThanOrEqual(
+        new Date(updatedAt).getTime(),
+      );
     });
   });
 
@@ -152,7 +154,7 @@ describe('GET /flashcard-tags/:id E2E Tests', () => {
     });
 
     it('should return 400 for empty ID', async () => {
-      // Note: Empty ID in this controller returns 200 because /flashcard-tags/ 
+      // Note: Empty ID in this controller returns 200 because /flashcard-tags/
       // is interpreted as /flashcard-tags (list all route)
       const response = await testHelpers.getFlashcardTagById(
         FlashcardTagTestData.TEST_UUIDS.EMPTY,
@@ -199,7 +201,7 @@ describe('GET /flashcard-tags/:id E2E Tests', () => {
     it('should handle case sensitivity in UUID', async () => {
       // Test uppercase UUID (should be case insensitive)
       const uppercaseUUID = testSetup.flashcardTagId1.toUpperCase();
-      
+
       const response = await testHelpers.getFlashcardTagExpectFailure(
         uppercaseUUID,
         404, // Typically case sensitive in most systems
@@ -211,7 +213,7 @@ describe('GET /flashcard-tags/:id E2E Tests', () => {
     it('should handle concurrent requests', async () => {
       // Test concurrent access to same resource
       const promises = Array.from({ length: 5 }, () =>
-        testHelpers.getFlashcardTagExpectSuccess(testSetup.flashcardTagId1)
+        testHelpers.getFlashcardTagExpectSuccess(testSetup.flashcardTagId1),
       );
 
       const responses = await Promise.all(promises);
@@ -276,8 +278,12 @@ describe('GET /flashcard-tags/:id E2E Tests', () => {
       const { createdAt, updatedAt } = response.body.flashcardTag;
 
       // Verify ISO format
-      expect(createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-      expect(updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+      expect(createdAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+      );
+      expect(updatedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+      );
 
       // Verify parseable dates
       expect(new Date(createdAt)).toBeInstanceOf(Date);

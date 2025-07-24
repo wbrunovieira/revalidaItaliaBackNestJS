@@ -8,9 +8,11 @@ import { FlashcardInteraction } from '@/domain/flashcard/enterprise/entities/fla
 import { FlashcardDifficultyLevelVO } from '@/domain/flashcard/enterprise/value-objects/flashcard-difficulty-level.vo';
 import { Flashcard } from '@/domain/flashcard/enterprise/entities/flashcard.entity';
 
-export class InMemoryFlashcardInteractionRepository implements IFlashcardInteractionRepository {
+export class InMemoryFlashcardInteractionRepository
+  implements IFlashcardInteractionRepository
+{
   public items: FlashcardInteraction[] = [];
-  
+
   // Para simular joins em queries complexas
   public flashcards: Flashcard[] = [];
 
@@ -19,15 +21,17 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
     flashcardId: string,
   ): Promise<Either<Error, FlashcardInteraction | null>> {
     const interaction = this.items.find(
-      (item) => 
-        item.identityId.toString() === identityId && 
-        item.flashcardId.toString() === flashcardId
+      (item) =>
+        item.identityId.toString() === identityId &&
+        item.flashcardId.toString() === flashcardId,
     );
 
     return right(interaction || null);
   }
 
-  async findByUserId(identityId: string): Promise<Either<Error, FlashcardInteraction[]>> {
+  async findByUserId(
+    identityId: string,
+  ): Promise<Either<Error, FlashcardInteraction[]>> {
     const interactions = this.items
       .filter((item) => item.identityId.toString() === identityId)
       .sort((a, b) => b.reviewedAt.getTime() - a.reviewedAt.getTime());
@@ -40,16 +44,19 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
     difficulty: FlashcardDifficultyLevelVO,
   ): Promise<Either<Error, FlashcardInteraction[]>> {
     const interactions = this.items
-      .filter((item) => 
-        item.identityId.toString() === identityId && 
-        item.difficultyLevel.equals(difficulty)
+      .filter(
+        (item) =>
+          item.identityId.toString() === identityId &&
+          item.difficultyLevel.equals(difficulty),
       )
       .sort((a, b) => b.reviewedAt.getTime() - a.reviewedAt.getTime());
 
     return right(interactions);
   }
 
-  async findByFlashcardId(flashcardId: string): Promise<Either<Error, FlashcardInteraction[]>> {
+  async findByFlashcardId(
+    flashcardId: string,
+  ): Promise<Either<Error, FlashcardInteraction[]>> {
     const interactions = this.items
       .filter((item) => item.flashcardId.toString() === flashcardId)
       .sort((a, b) => b.reviewedAt.getTime() - a.reviewedAt.getTime());
@@ -63,10 +70,11 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
     endDate: Date,
   ): Promise<Either<Error, FlashcardInteraction[]>> {
     const interactions = this.items
-      .filter((item) => 
-        item.identityId.toString() === identityId &&
-        item.reviewedAt >= startDate &&
-        item.reviewedAt <= endDate
+      .filter(
+        (item) =>
+          item.identityId.toString() === identityId &&
+          item.reviewedAt >= startDate &&
+          item.reviewedAt <= endDate,
       )
       .sort((a, b) => b.reviewedAt.getTime() - a.reviewedAt.getTime());
 
@@ -80,11 +88,11 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
     const interactions = this.items
       .filter((item) => {
         if (item.identityId.toString() !== identityId) return false;
-        
+
         const flashcard = this.flashcards.find(
-          (f) => f.id.toString() === item.flashcardId.toString()
+          (f) => f.id.toString() === item.flashcardId.toString(),
         );
-        
+
         return flashcard?.argumentId.toString() === argumentId;
       })
       .sort((a, b) => b.reviewedAt.getTime() - a.reviewedAt.getTime());
@@ -92,11 +100,13 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
     return right(interactions);
   }
 
-  async createOrUpdate(interaction: FlashcardInteraction): Promise<Either<Error, void>> {
+  async createOrUpdate(
+    interaction: FlashcardInteraction,
+  ): Promise<Either<Error, void>> {
     const existingIndex = this.items.findIndex(
-      (item) => 
-        item.identityId.equals(interaction.identityId) && 
-        item.flashcardId.equals(interaction.flashcardId)
+      (item) =>
+        item.identityId.equals(interaction.identityId) &&
+        item.flashcardId.equals(interaction.flashcardId),
     );
 
     if (existingIndex >= 0) {
@@ -110,11 +120,14 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
     return right(undefined);
   }
 
-  async delete(identityId: string, flashcardId: string): Promise<Either<Error, void>> {
+  async delete(
+    identityId: string,
+    flashcardId: string,
+  ): Promise<Either<Error, void>> {
     const index = this.items.findIndex(
-      (item) => 
-        item.identityId.toString() === identityId && 
-        item.flashcardId.toString() === flashcardId
+      (item) =>
+        item.identityId.toString() === identityId &&
+        item.flashcardId.toString() === flashcardId,
     );
 
     if (index < 0) {
@@ -130,9 +143,9 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
     difficulty: FlashcardDifficultyLevelVO,
   ): Promise<Either<Error, number>> {
     const count = this.items.filter(
-      (item) => 
-        item.identityId.toString() === identityId && 
-        item.difficultyLevel.equals(difficulty)
+      (item) =>
+        item.identityId.toString() === identityId &&
+        item.difficultyLevel.equals(difficulty),
     ).length;
 
     return right(count);
@@ -143,9 +156,9 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
     difficulty: FlashcardDifficultyLevelVO,
   ): Promise<Either<Error, number>> {
     const count = this.items.filter(
-      (item) => 
-        item.flashcardId.toString() === flashcardId && 
-        item.difficultyLevel.equals(difficulty)
+      (item) =>
+        item.flashcardId.toString() === flashcardId &&
+        item.difficultyLevel.equals(difficulty),
     ).length;
 
     return right(count);
@@ -157,9 +170,9 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
   ): Promise<Either<Error, number>> {
     const count = this.items.filter((item) => {
       const flashcard = this.flashcards.find(
-        (f) => f.id.toString() === item.flashcardId.toString()
+        (f) => f.id.toString() === item.flashcardId.toString(),
       );
-      
+
       return (
         flashcard?.argumentId.toString() === argumentId &&
         item.difficultyLevel.equals(difficulty)
@@ -169,15 +182,23 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
     return right(count);
   }
 
-  async getFlashcardStats(flashcardId: string): Promise<Either<Error, FlashcardInteractionStats>> {
+  async getFlashcardStats(
+    flashcardId: string,
+  ): Promise<Either<Error, FlashcardInteractionStats>> {
     const interactions = this.items.filter(
-      (item) => item.flashcardId.toString() === flashcardId
+      (item) => item.flashcardId.toString() === flashcardId,
     );
 
     const totalInteractions = interactions.length;
-    const easyCount = interactions.filter((item) => item.difficultyLevel.isEasy()).length;
-    const hardCount = interactions.filter((item) => item.difficultyLevel.isHard()).length;
-    const neutralCount = interactions.filter((item) => item.difficultyLevel.isNeutral()).length;
+    const easyCount = interactions.filter((item) =>
+      item.difficultyLevel.isEasy(),
+    ).length;
+    const hardCount = interactions.filter((item) =>
+      item.difficultyLevel.isHard(),
+    ).length;
+    const neutralCount = interactions.filter((item) =>
+      item.difficultyLevel.isNeutral(),
+    ).length;
 
     return right({
       flashcardId,
@@ -191,14 +212,17 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
   async getUserStatsGroupedByArgument(
     identityId: string,
   ): Promise<Either<Error, UserFlashcardStats[]>> {
-    const argumentGroups = new Map<string, {
-      totalFlashcards: number;
-      reviewedFlashcards: Set<string>;
-      easyCount: number;
-      hardCount: number;
-      neutralCount: number;
-      lastReviewedAt?: Date;
-    }>();
+    const argumentGroups = new Map<
+      string,
+      {
+        totalFlashcards: number;
+        reviewedFlashcards: Set<string>;
+        easyCount: number;
+        hardCount: number;
+        neutralCount: number;
+        lastReviewedAt?: Date;
+      }
+    >();
 
     // Group flashcards by argument
     for (const flashcard of this.flashcards) {
@@ -212,51 +236,54 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
           neutralCount: 0,
         });
       }
-      
+
       const group = argumentGroups.get(argumentId)!;
       group.totalFlashcards++;
     }
 
     // Add interaction stats
     const userInteractions = this.items.filter(
-      (item) => item.identityId.toString() === identityId
+      (item) => item.identityId.toString() === identityId,
     );
 
     for (const interaction of userInteractions) {
       const flashcard = this.flashcards.find(
-        (f) => f.id.toString() === interaction.flashcardId.toString()
+        (f) => f.id.toString() === interaction.flashcardId.toString(),
       );
-      
+
       if (!flashcard) continue;
-      
+
       const argumentId = flashcard.argumentId.toString();
       const group = argumentGroups.get(argumentId);
-      
+
       if (!group) continue;
-      
+
       group.reviewedFlashcards.add(interaction.flashcardId.toString());
-      
+
       if (interaction.difficultyLevel.isEasy()) group.easyCount++;
       else if (interaction.difficultyLevel.isHard()) group.hardCount++;
       else if (interaction.difficultyLevel.isNeutral()) group.neutralCount++;
-      
-      if (!group.lastReviewedAt || interaction.reviewedAt > group.lastReviewedAt) {
+
+      if (
+        !group.lastReviewedAt ||
+        interaction.reviewedAt > group.lastReviewedAt
+      ) {
         group.lastReviewedAt = interaction.reviewedAt;
       }
     }
 
-    const stats: UserFlashcardStats[] = Array.from(argumentGroups.entries()).map(
-      ([argumentId, group]) => ({
-        identityId,
-        argumentId,
-        totalFlashcards: group.totalFlashcards,
-        reviewedFlashcards: group.reviewedFlashcards.size,
-        easyCount: group.easyCount,
-        hardCount: group.hardCount,
-        neutralCount: group.neutralCount,
-        lastReviewedAt: group.lastReviewedAt,
-      })
-    );
+    const stats: UserFlashcardStats[] = Array.from(
+      argumentGroups.entries(),
+    ).map(([argumentId, group]) => ({
+      identityId,
+      argumentId,
+      totalFlashcards: group.totalFlashcards,
+      reviewedFlashcards: group.reviewedFlashcards.size,
+      easyCount: group.easyCount,
+      hardCount: group.hardCount,
+      neutralCount: group.neutralCount,
+      lastReviewedAt: group.lastReviewedAt,
+    }));
 
     return right(stats);
   }
@@ -266,37 +293,43 @@ export class InMemoryFlashcardInteractionRepository implements IFlashcardInterac
     argumentId: string,
   ): Promise<Either<Error, UserFlashcardStats>> {
     const argumentFlashcards = this.flashcards.filter(
-      (f) => f.argumentId.toString() === argumentId
+      (f) => f.argumentId.toString() === argumentId,
     );
 
     if (argumentFlashcards.length === 0) {
       return left(new Error('Argument not found or has no flashcards'));
     }
 
-    const userInteractions = this.items.filter(
-      (item) => {
-        if (item.identityId.toString() !== identityId) return false;
-        
-        return argumentFlashcards.some(
-          (f) => f.id.toString() === item.flashcardId.toString()
-        );
-      }
-    );
+    const userInteractions = this.items.filter((item) => {
+      if (item.identityId.toString() !== identityId) return false;
+
+      return argumentFlashcards.some(
+        (f) => f.id.toString() === item.flashcardId.toString(),
+      );
+    });
 
     const reviewedFlashcards = new Set(
-      userInteractions.map((i) => i.flashcardId.toString())
+      userInteractions.map((i) => i.flashcardId.toString()),
     );
 
-    const easyCount = userInteractions.filter((i) => i.difficultyLevel.isEasy()).length;
-    const hardCount = userInteractions.filter((i) => i.difficultyLevel.isHard()).length;
-    const neutralCount = userInteractions.filter((i) => i.difficultyLevel.isNeutral()).length;
+    const easyCount = userInteractions.filter((i) =>
+      i.difficultyLevel.isEasy(),
+    ).length;
+    const hardCount = userInteractions.filter((i) =>
+      i.difficultyLevel.isHard(),
+    ).length;
+    const neutralCount = userInteractions.filter((i) =>
+      i.difficultyLevel.isNeutral(),
+    ).length;
 
-    const lastReviewedAt = userInteractions.length > 0
-      ? userInteractions.reduce((latest, interaction) => 
-          interaction.reviewedAt > latest ? interaction.reviewedAt : latest,
-          userInteractions[0].reviewedAt
-        )
-      : undefined;
+    const lastReviewedAt =
+      userInteractions.length > 0
+        ? userInteractions.reduce(
+            (latest, interaction) =>
+              interaction.reviewedAt > latest ? interaction.reviewedAt : latest,
+            userInteractions[0].reviewedAt,
+          )
+        : undefined;
 
     const stats: UserFlashcardStats = {
       identityId,

@@ -42,7 +42,9 @@ describe('AnswerController - create', () => {
         },
       };
 
-      testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(right(mockResponse));
+      testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(
+        right(mockResponse),
+      );
 
       const result = await testSetup.controller.create(dto);
 
@@ -75,7 +77,9 @@ describe('AnswerController - create', () => {
         },
       };
 
-      testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(right(mockResponse));
+      testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(
+        right(mockResponse),
+      );
 
       const result = await testSetup.controller.create(dto);
 
@@ -107,7 +111,9 @@ describe('AnswerController - create', () => {
         },
       };
 
-      testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(right(mockResponse));
+      testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(
+        right(mockResponse),
+      );
 
       const result = await testSetup.controller.create(dto);
 
@@ -124,10 +130,14 @@ describe('AnswerController - create', () => {
         questionId: '550e8400-e29b-41d4-a716-446655440022',
       };
 
-      const error = new InvalidInputError('Invalid data', ['Explanation too short']);
+      const error = new InvalidInputError('Invalid data', [
+        'Explanation too short',
+      ]);
       testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(left(error));
 
-      await expect(testSetup.controller.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(testSetup.controller.create(dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw ConflictException for answer already exists', async () => {
@@ -139,7 +149,9 @@ describe('AnswerController - create', () => {
       const error = new AnswerAlreadyExistsError();
       testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(left(error));
 
-      await expect(testSetup.controller.create(dto)).rejects.toThrow(ConflictException);
+      await expect(testSetup.controller.create(dto)).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should throw NotFoundException for question not found', async () => {
@@ -151,7 +163,9 @@ describe('AnswerController - create', () => {
       const error = new QuestionNotFoundError();
       testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(left(error));
 
-      await expect(testSetup.controller.create(dto)).rejects.toThrow(NotFoundException);
+      await expect(testSetup.controller.create(dto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException for assessment not found', async () => {
@@ -163,7 +177,9 @@ describe('AnswerController - create', () => {
       const error = new AssessmentNotFoundError();
       testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(left(error));
 
-      await expect(testSetup.controller.create(dto)).rejects.toThrow(NotFoundException);
+      await expect(testSetup.controller.create(dto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException for invalid answer type', async () => {
@@ -172,10 +188,14 @@ describe('AnswerController - create', () => {
         questionId: '550e8400-e29b-41d4-a716-446655440022',
       };
 
-      const error = new InvalidAnswerTypeError('QUIZ assessments can only have MULTIPLE_CHOICE questions');
+      const error = new InvalidAnswerTypeError(
+        'QUIZ assessments can only have MULTIPLE_CHOICE questions',
+      );
       testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(left(error));
 
-      await expect(testSetup.controller.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(testSetup.controller.create(dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw InternalServerErrorException for repository error', async () => {
@@ -187,7 +207,9 @@ describe('AnswerController - create', () => {
       const error = new RepositoryError('Database connection failed');
       testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(left(error));
 
-      await expect(testSetup.controller.create(dto)).rejects.toThrow(InternalServerErrorException);
+      await expect(testSetup.controller.create(dto)).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
 
     it('should throw InternalServerErrorException for unknown error', async () => {
@@ -199,7 +221,9 @@ describe('AnswerController - create', () => {
       const error = new Error('Unknown error');
       testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(left(error));
 
-      await expect(testSetup.controller.create(dto)).rejects.toThrow(InternalServerErrorException);
+      await expect(testSetup.controller.create(dto)).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 
@@ -228,7 +252,9 @@ describe('AnswerController - create', () => {
         },
       };
 
-      testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(right(mockResponse));
+      testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(
+        right(mockResponse),
+      );
 
       const result = await testSetup.controller.create(dto);
 
@@ -268,7 +294,9 @@ describe('AnswerController - create', () => {
         },
       };
 
-      testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(right(mockResponse));
+      testSetup.createAnswerUseCase.execute.mockResolvedValueOnce(
+        right(mockResponse),
+      );
 
       const result = await testSetup.controller.create(dto);
 

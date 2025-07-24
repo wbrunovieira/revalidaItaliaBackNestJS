@@ -9,7 +9,7 @@ import { REDIS_CLIENT } from './redis.constants';
 
 /**
  * Global Redis Module
- * 
+ *
  * Provides a centralized Redis client for the entire application.
  * Used by stats, online tracking, caching, and other features.
  */
@@ -26,7 +26,9 @@ export class RedisModule implements OnModuleDestroy {
    * Clean up Redis connection on module destroy
    */
   async onModuleDestroy() {
-    const redisClient = this.moduleRef.get<Redis>(REDIS_CLIENT, { strict: false });
+    const redisClient = this.moduleRef.get<Redis>(REDIS_CLIENT, {
+      strict: false,
+    });
     if (redisClient) {
       await redisClient.quit();
     }

@@ -159,7 +159,11 @@ describe('GET /assessments/:id/questions (E2E)', () => {
           create: [
             { locale: 'pt', title: 'Aula de Teste', description: 'Desc PT' },
             { locale: 'it', title: 'Lezione di Test', description: 'Desc IT' },
-            { locale: 'es', title: 'Lección de Prueba', description: 'Desc ES' },
+            {
+              locale: 'es',
+              title: 'Lección de Prueba',
+              description: 'Desc ES',
+            },
           ],
         },
       },
@@ -258,23 +262,27 @@ describe('GET /assessments/:id/questions (E2E)', () => {
         .expect(200);
 
       expect(response.body.questions).toHaveLength(2);
-      
+
       // Check first question
-      const firstQuestion = response.body.questions.find((q: any) => q.text === 'What is 2 + 2?');
+      const firstQuestion = response.body.questions.find(
+        (q: any) => q.text === 'What is 2 + 2?',
+      );
       expect(firstQuestion).toBeDefined();
       expect(firstQuestion.type).toBe('MULTIPLE_CHOICE');
       expect(firstQuestion.options).toHaveLength(3);
       expect(firstQuestion.options.map((o: any) => o.text)).toEqual(
-        expect.arrayContaining(['3', '4', '5'])
+        expect.arrayContaining(['3', '4', '5']),
       );
 
       // Check second question
-      const secondQuestion = response.body.questions.find((q: any) => q.text === 'What is the capital of Brazil?');
+      const secondQuestion = response.body.questions.find(
+        (q: any) => q.text === 'What is the capital of Brazil?',
+      );
       expect(secondQuestion).toBeDefined();
       expect(secondQuestion.type).toBe('MULTIPLE_CHOICE');
       expect(secondQuestion.options).toHaveLength(3);
       expect(secondQuestion.options.map((o: any) => o.text)).toEqual(
-        expect.arrayContaining(['São Paulo', 'Rio de Janeiro', 'Brasília'])
+        expect.arrayContaining(['São Paulo', 'Rio de Janeiro', 'Brasília']),
       );
     });
 
@@ -303,7 +311,7 @@ describe('GET /assessments/:id/questions (E2E)', () => {
         .expect(200);
 
       expect(response.body.questions).toHaveLength(2);
-      
+
       response.body.questions.forEach((question: any) => {
         expect(question.type).toBe('OPEN');
         expect(question.options).toHaveLength(0);
@@ -344,13 +352,20 @@ describe('GET /assessments/:id/questions (E2E)', () => {
         .expect(200);
 
       expect(response.body.questions).toHaveLength(2);
-      
-      const mcQuestionResult = response.body.questions.find((q: any) => q.type === 'MULTIPLE_CHOICE');
-      const openQuestionResult = response.body.questions.find((q: any) => q.type === 'OPEN');
+
+      const mcQuestionResult = response.body.questions.find(
+        (q: any) => q.type === 'MULTIPLE_CHOICE',
+      );
+      const openQuestionResult = response.body.questions.find(
+        (q: any) => q.type === 'OPEN',
+      );
 
       expect(mcQuestionResult).toBeDefined();
       expect(mcQuestionResult.options).toHaveLength(2);
-      expect(mcQuestionResult.options.map((o: any) => o.text)).toEqual(['Option A', 'Option B']);
+      expect(mcQuestionResult.options.map((o: any) => o.text)).toEqual([
+        'Option A',
+        'Option B',
+      ]);
 
       expect(openQuestionResult).toBeDefined();
       expect(openQuestionResult.options).toHaveLength(0);
@@ -407,7 +422,7 @@ describe('GET /assessments/:id/questions (E2E)', () => {
         .expect(200);
 
       expect(response.body.questions).toHaveLength(1);
-      
+
       const questionResult = response.body.questions[0];
       expect(questionResult).toHaveProperty('id');
       expect(typeof questionResult.id).toBe('string');
@@ -455,7 +470,7 @@ describe('GET /assessments/:id/questions (E2E)', () => {
   describe('🔍 Business Logic Errors', () => {
     it('should return 404 when assessment is not found', async () => {
       const nonExistentId = '00000000-0000-4000-8000-000000000000';
-      
+
       const response = await request(app.getHttpServer())
         .get(`/assessments/${nonExistentId}/questions`)
         .expect(404);
@@ -468,7 +483,7 @@ describe('GET /assessments/:id/questions (E2E)', () => {
   describe('🔍 Edge Cases', () => {
     it('should handle assessment with many questions and options', async () => {
       // Create 10 questions with 4 options each
-      const questionPromises = Array.from({ length: 10 }, (_, i) => 
+      const questionPromises = Array.from({ length: 10 }, (_, i) =>
         prisma.question.create({
           data: {
             text: `Question ${i + 1}`,
@@ -476,7 +491,7 @@ describe('GET /assessments/:id/questions (E2E)', () => {
             assessmentId: quizAssessmentId,
             argumentId,
           },
-        })
+        }),
       );
 
       const questions = await Promise.all(questionPromises);
@@ -496,10 +511,12 @@ describe('GET /assessments/:id/questions (E2E)', () => {
         .expect(200);
 
       expect(response.body.questions).toHaveLength(10);
-      
+
       // Check that all questions are present (order may vary)
       for (let i = 1; i <= 10; i++) {
-        const question = response.body.questions.find((q: any) => q.text === `Question ${i}`);
+        const question = response.body.questions.find(
+          (q: any) => q.text === `Question ${i}`,
+        );
         expect(question).toBeDefined();
         expect(question.options).toHaveLength(4);
         question.options.forEach((option: any) => {
@@ -520,7 +537,7 @@ describe('GET /assessments/:id/questions (E2E)', () => {
       });
 
       // Wait a bit to ensure different timestamps
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const question2 = await prisma.question.create({
         data: {
@@ -543,10 +560,14 @@ describe('GET /assessments/:id/questions (E2E)', () => {
         .expect(200);
 
       expect(response.body.questions).toHaveLength(2);
-      
+
       // Find questions by text since order may vary
-      const firstQuestion = response.body.questions.find((q: any) => q.text === 'First question');
-      const secondQuestion = response.body.questions.find((q: any) => q.text === 'Second question');
+      const firstQuestion = response.body.questions.find(
+        (q: any) => q.text === 'First question',
+      );
+      const secondQuestion = response.body.questions.find(
+        (q: any) => q.text === 'Second question',
+      );
 
       expect(firstQuestion).toBeDefined();
       expect(firstQuestion.type).toBe('MULTIPLE_CHOICE');
@@ -580,8 +601,12 @@ describe('GET /assessments/:id/questions (E2E)', () => {
       });
 
       const [quizResponse, simuladoResponse] = await Promise.all([
-        request(app.getHttpServer()).get(`/assessments/${quizAssessmentId}/questions`),
-        request(app.getHttpServer()).get(`/assessments/${simuladoAssessmentId}/questions`),
+        request(app.getHttpServer()).get(
+          `/assessments/${quizAssessmentId}/questions`,
+        ),
+        request(app.getHttpServer()).get(
+          `/assessments/${simuladoAssessmentId}/questions`,
+        ),
       ]);
 
       expect(quizResponse.status).toBe(200);
@@ -623,11 +648,18 @@ describe('GET /assessments/:id/questions (E2E)', () => {
       });
 
       // Test all three assessment types
-      const [quizResponse, simuladoResponse, provaAbertaResponse] = await Promise.all([
-        request(app.getHttpServer()).get(`/assessments/${quizAssessmentId}/questions`),
-        request(app.getHttpServer()).get(`/assessments/${simuladoAssessmentId}/questions`),
-        request(app.getHttpServer()).get(`/assessments/${provaAbertaAssessmentId}/questions`),
-      ]);
+      const [quizResponse, simuladoResponse, provaAbertaResponse] =
+        await Promise.all([
+          request(app.getHttpServer()).get(
+            `/assessments/${quizAssessmentId}/questions`,
+          ),
+          request(app.getHttpServer()).get(
+            `/assessments/${simuladoAssessmentId}/questions`,
+          ),
+          request(app.getHttpServer()).get(
+            `/assessments/${provaAbertaAssessmentId}/questions`,
+          ),
+        ]);
 
       expect(quizResponse.status).toBe(200);
       expect(quizResponse.body.questions).toHaveLength(1);
@@ -657,8 +689,12 @@ describe('GET /assessments/:id/questions (E2E)', () => {
       });
 
       const [response1, response2] = await Promise.all([
-        request(app.getHttpServer()).get(`/assessments/${quizAssessmentId}/questions`),
-        request(app.getHttpServer()).get(`/assessments/${quizAssessmentId}/questions`),
+        request(app.getHttpServer()).get(
+          `/assessments/${quizAssessmentId}/questions`,
+        ),
+        request(app.getHttpServer()).get(
+          `/assessments/${quizAssessmentId}/questions`,
+        ),
       ]);
 
       expect(response1.status).toBe(200);

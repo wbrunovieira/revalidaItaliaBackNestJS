@@ -528,16 +528,22 @@ export class AnswerTestSetup {
 
     for (let i = 0; i < count; i++) {
       // Alternate between different question types for variety
-      const questionId = i % 2 === 0 ? this.multipleChoiceQuestionId : this.openQuestionId;
+      const questionId =
+        i % 2 === 0 ? this.multipleChoiceQuestionId : this.openQuestionId;
       const isMultipleChoice = i % 2 === 0;
 
       // Create unique question for each answer to avoid conflicts
-      const { questionId: uniqueQuestionId, optionIds } = await this.createTestQuestionWithOptions({
-        text: `Test question ${i + 1} for multiple answers`,
-        type: isMultipleChoice ? 'MULTIPLE_CHOICE' : 'OPEN',
-        assessmentId: isMultipleChoice ? this.quizAssessmentId : this.provaAbertaAssessmentId,
-        options: isMultipleChoice ? [`Option A ${i}`, `Option B ${i}`, `Option C ${i}`] : undefined,
-      });
+      const { questionId: uniqueQuestionId, optionIds } =
+        await this.createTestQuestionWithOptions({
+          text: `Test question ${i + 1} for multiple answers`,
+          type: isMultipleChoice ? 'MULTIPLE_CHOICE' : 'OPEN',
+          assessmentId: isMultipleChoice
+            ? this.quizAssessmentId
+            : this.provaAbertaAssessmentId,
+          options: isMultipleChoice
+            ? [`Option A ${i}`, `Option B ${i}`, `Option C ${i}`]
+            : undefined,
+        });
 
       const answerData = {
         explanation: `Test answer ${i + 1} for pagination testing`,

@@ -38,14 +38,17 @@ export class SubmitAnswerUseCase {
     private attemptAnswerRepository: IAttemptAnswerRepository,
   ) {}
 
-  async execute(request: SubmitAnswerRequest): Promise<SubmitAnswerUseCaseResponse> {
+  async execute(
+    request: SubmitAnswerRequest,
+  ): Promise<SubmitAnswerUseCaseResponse> {
     // Validate input
     const validation = submitAnswerSchema.safeParse(request);
     if (!validation.success) {
       return left(new InvalidInputError(validation.error.message));
     }
 
-    const { attemptId, questionId, selectedOptionId, textAnswer } = validation.data;
+    const { attemptId, questionId, selectedOptionId, textAnswer } =
+      validation.data;
 
     try {
       // Verify attempt exists and is active
@@ -86,15 +89,18 @@ export class SubmitAnswerUseCase {
       }
 
       // Check if answer already exists for this attempt and question
-      const existingAnswerResult = await this.attemptAnswerRepository
-        .findByAttemptIdAndQuestionId(attemptId, questionId);
+      const existingAnswerResult =
+        await this.attemptAnswerRepository.findByAttemptIdAndQuestionId(
+          attemptId,
+          questionId,
+        );
 
       let attemptAnswer: AttemptAnswer;
 
       if (existingAnswerResult.isRight()) {
         // Update existing answer
         attemptAnswer = existingAnswerResult.value;
-        
+
         // For PROVA_ABERTA: prevent updating answers that are approved (isCorrect=true)
         if (question.type.isOpen() && attemptAnswer.isCorrect === true) {
           return left(
@@ -103,33 +109,40 @@ export class SubmitAnswerUseCase {
             ),
           );
         }
-        
+
         // For PROVA_ABERTA: prevent updating if not rejected by teacher
-        if (question.type.isOpen() && attemptAnswer.status.isGraded() && attemptAnswer.isCorrect !== false) {
+        if (
+          question.type.isOpen() &&
+          attemptAnswer.status.isGraded() &&
+          attemptAnswer.isCorrect !== false
+        ) {
           return left(
             new InvalidAnswerTypeError(
               'Can only resubmit answers that were rejected by teacher',
             ),
           );
         }
-        
+
         if (isMultipleChoice) {
           attemptAnswer.selectOption(selectedOptionId);
         } else {
           attemptAnswer.answerText(textAnswer!);
         }
 
-        const updateResult = await this.attemptAnswerRepository.update(attemptAnswer);
+        const updateResult =
+          await this.attemptAnswerRepository.update(attemptAnswer);
         if (updateResult.isLeft()) {
           return left(new RepositoryError('Failed to update answer'));
         }
       } else {
         // For PROVA_ABERTA: Check if any previous answer exists and was approved
         if (question.type.isOpen()) {
-          const allAnswersResult = await this.attemptAnswerRepository.findByAttemptId(attemptId);
+          const allAnswersResult =
+            await this.attemptAnswerRepository.findByAttemptId(attemptId);
           if (allAnswersResult.isRight()) {
             const existingApprovedAnswer = allAnswersResult.value.find(
-              answer => answer.questionId === questionId && answer.isCorrect === true
+              (answer) =>
+                answer.questionId === questionId && answer.isCorrect === true,
             );
             if (existingApprovedAnswer) {
               return left(
@@ -140,7 +153,7 @@ export class SubmitAnswerUseCase {
             }
           }
         }
-        
+
         // Create new answer
         attemptAnswer = AttemptAnswer.create({
           selectedOptionId,
@@ -150,7 +163,8 @@ export class SubmitAnswerUseCase {
           questionId,
         });
 
-        const createResult = await this.attemptAnswerRepository.create(attemptAnswer);
+        const createResult =
+          await this.attemptAnswerRepository.create(attemptAnswer);
         if (createResult.isLeft()) {
           return left(new RepositoryError('Failed to create answer'));
         }
@@ -161,7 +175,11 @@ export class SubmitAnswerUseCase {
           id: attemptAnswer.id.toString(),
           selectedOptionId: attemptAnswer.selectedOptionId,
           textAnswer: attemptAnswer.textAnswer,
-          status: attemptAnswer.status.getValue() as 'IN_PROGRESS' | 'SUBMITTED' | 'GRADING' | 'GRADED',
+          status: attemptAnswer.status.getValue() as
+            | 'IN_PROGRESS'
+            | 'SUBMITTED'
+            | 'GRADING'
+            | 'GRADED',
           isCorrect: attemptAnswer.isCorrect,
           attemptId: attemptAnswer.attemptId,
           questionId: attemptAnswer.questionId,

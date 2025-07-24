@@ -235,7 +235,10 @@ export class AttemptController {
   }
 
   @Post(':id/answers')
-  async submitAnswer(@Param('id') attemptId: string, @Body() dto: SubmitAnswerDto) {
+  async submitAnswer(
+    @Param('id') attemptId: string,
+    @Body() dto: SubmitAnswerDto,
+  ) {
     const request = {
       attemptId,
       questionId: dto.questionId,

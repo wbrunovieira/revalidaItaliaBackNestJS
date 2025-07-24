@@ -81,14 +81,16 @@ export const createAssessmentSchema = z
       if (data.randomizeQuestions === undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'randomizeQuestions is required for QUIZ and SIMULADO assessments',
+          message:
+            'randomizeQuestions is required for QUIZ and SIMULADO assessments',
           path: ['randomizeQuestions'],
         });
       }
       if (data.randomizeOptions === undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'randomizeOptions is required for QUIZ and SIMULADO assessments',
+          message:
+            'randomizeOptions is required for QUIZ and SIMULADO assessments',
           path: ['randomizeOptions'],
         });
       }

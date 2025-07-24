@@ -330,7 +330,8 @@ export class FlashcardControllerTestData {
         },
         answer: {
           type: 'TEXT',
-          content: 'DDD is an approach to software development that centers the development on programming a domain model',
+          content:
+            'DDD is an approach to software development that centers the development on programming a domain model',
         },
         argumentId: FlashcardControllerTestData.ARGUMENT_ID,
         createdAt: new Date('2024-01-01T00:00:00Z'),
@@ -348,7 +349,8 @@ export class FlashcardControllerTestData {
         },
         answer: {
           type: 'TEXT',
-          content: 'DDD is an approach to software development that centers the development on programming a domain model',
+          content:
+            'DDD is an approach to software development that centers the development on programming a domain model',
         },
         argumentId: FlashcardControllerTestData.ARGUMENT_ID,
         createdAt: new Date('2024-01-01T00:00:00Z'),

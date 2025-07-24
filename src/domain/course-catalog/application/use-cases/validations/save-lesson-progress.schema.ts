@@ -14,6 +14,9 @@ export const saveLessonProgressSchema = z.object({
   videoProgress: z.object({
     currentTime: z.number().min(0, 'Current time must be non-negative'),
     duration: z.number().positive('Duration must be positive'),
-    percentage: z.number().min(0).max(100, 'Percentage must be between 0 and 100'),
+    percentage: z
+      .number()
+      .min(0)
+      .max(100, 'Percentage must be between 0 and 100'),
   }),
 });

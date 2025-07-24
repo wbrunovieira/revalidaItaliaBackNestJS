@@ -87,10 +87,11 @@ export class UpdateVideoUseCase {
       ) {
         const updates: any = {};
         if (slug) updates.slug = slug;
-        if (imageUrl !== undefined) updates.imageUrl = imageUrl === null ? undefined : imageUrl;
+        if (imageUrl !== undefined)
+          updates.imageUrl = imageUrl === null ? undefined : imageUrl;
         if (providerVideoId) updates.providerVideoId = providerVideoId;
         if (durationInSeconds) updates.durationInSeconds = durationInSeconds;
-        
+
         video.updateDetails(updates);
       }
 
@@ -113,10 +114,12 @@ export class UpdateVideoUseCase {
       });
     } catch (err: any) {
       // Preserve specific error types
-      if (err instanceof VideoNotFoundError || 
-          err instanceof DuplicateVideoError || 
-          err instanceof LessonNotFoundError ||
-          err instanceof InvalidInputError) {
+      if (
+        err instanceof VideoNotFoundError ||
+        err instanceof DuplicateVideoError ||
+        err instanceof LessonNotFoundError ||
+        err instanceof InvalidInputError
+      ) {
         return left(err);
       }
       return left(new RepositoryError(err.message));

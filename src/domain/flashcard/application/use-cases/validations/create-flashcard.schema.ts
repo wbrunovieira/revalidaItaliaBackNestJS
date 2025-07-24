@@ -64,9 +64,7 @@ export const createFlashcardSchema = z
       .uuid('Argument ID must be a valid UUID')
       .min(1, 'Argument ID is required'),
     tagIds: z
-      .array(
-        z.string().uuid('Each tag ID must be a valid UUID'),
-      )
+      .array(z.string().uuid('Each tag ID must be a valid UUID'))
       .optional()
       .default([])
       .refine(

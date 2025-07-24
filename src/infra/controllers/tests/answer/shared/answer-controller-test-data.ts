@@ -277,16 +277,19 @@ export class AnswerControllerTestData {
     standard: {
       id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
       correctOptionId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-      explanation: 'This is the correct answer because it follows the medical guidelines.',
+      explanation:
+        'This is the correct answer because it follows the medical guidelines.',
       questionId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
       translations: [
         {
           locale: 'pt',
-          explanation: 'Esta é a resposta correta porque segue as diretrizes médicas.',
+          explanation:
+            'Esta é a resposta correta porque segue as diretrizes médicas.',
         },
         {
           locale: 'it',
-          explanation: 'Questa è la risposta corretta perché segue le linee guida mediche.',
+          explanation:
+            'Questa è la risposta corretta perché segue le linee guida mediche.',
         },
       ],
       createdAt: new Date('2023-01-01T00:00:00.000Z'),
@@ -296,16 +299,19 @@ export class AnswerControllerTestData {
     multipleChoiceQuiz: {
       id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
       correctOptionId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-      explanation: 'This is the correct answer because it follows the medical guidelines.',
+      explanation:
+        'This is the correct answer because it follows the medical guidelines.',
       questionId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
       translations: [
         {
           locale: 'pt',
-          explanation: 'Esta é a resposta correta porque segue as diretrizes médicas.',
+          explanation:
+            'Esta é a resposta correta porque segue as diretrizes médicas.',
         },
         {
           locale: 'it',
-          explanation: 'Questa è la risposta corretta perché segue le linee guida mediche.',
+          explanation:
+            'Questa è la risposta corretta perché segue le linee guida mediche.',
         },
       ],
       createdAt: new Date('2023-01-01T00:00:00.000Z'),
@@ -315,12 +321,14 @@ export class AnswerControllerTestData {
     openQuestionAnswer: {
       id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
       correctOptionId: undefined,
-      explanation: 'A comprehensive answer should include patient history, physical examination, differential diagnosis, and treatment plan.',
+      explanation:
+        'A comprehensive answer should include patient history, physical examination, differential diagnosis, and treatment plan.',
       questionId: 'b1b2c3d4-e5f6-7890-abcd-ef1234567890',
       translations: [
         {
           locale: 'pt',
-          explanation: 'Uma resposta abrangente deve incluir história do paciente, exame físico, diagnóstico diferencial e plano de tratamento.',
+          explanation:
+            'Uma resposta abrangente deve incluir história do paciente, exame físico, diagnóstico diferencial e plano de tratamento.',
         },
       ],
       createdAt: new Date('2023-01-02T00:00:00.000Z'),
@@ -330,20 +338,24 @@ export class AnswerControllerTestData {
     medicalContent: {
       id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
       correctOptionId: 'c1b2c3d4-e5f6-7890-abcd-ef1234567890',
-      explanation: 'Hypertension is diagnosed when systolic BP ≥140 mmHg or diastolic BP ≥90 mmHg on two separate occasions.',
+      explanation:
+        'Hypertension is diagnosed when systolic BP ≥140 mmHg or diastolic BP ≥90 mmHg on two separate occasions.',
       questionId: 'c1b2c3d4-e5f6-7890-abcd-ef1234567890',
       translations: [
         {
           locale: 'pt',
-          explanation: 'A hipertensão é diagnosticada quando a PA sistólica ≥140 mmHg ou PA diastólica ≥90 mmHg em duas ocasiões separadas.',
+          explanation:
+            'A hipertensão é diagnosticada quando a PA sistólica ≥140 mmHg ou PA diastólica ≥90 mmHg em duas ocasiões separadas.',
         },
         {
           locale: 'it',
-          explanation: 'L\'ipertensione è diagnosticata quando la PA sistolica ≥140 mmHg o la PA diastolica ≥90 mmHg in due occasioni separate.',
+          explanation:
+            "L'ipertensione è diagnosticata quando la PA sistolica ≥140 mmHg o la PA diastolica ≥90 mmHg in due occasioni separate.",
         },
         {
           locale: 'es',
-          explanation: 'La hipertensión se diagnostica cuando la PA sistólica ≥140 mmHg o la PA diastólica ≥90 mmHg en dos ocasiones separadas.',
+          explanation:
+            'La hipertensión se diagnostica cuando la PA sistólica ≥140 mmHg o la PA diastólica ≥90 mmHg en dos ocasiones separadas.',
         },
       ],
       createdAt: new Date('2023-01-03T00:00:00.000Z'),
@@ -353,12 +365,14 @@ export class AnswerControllerTestData {
     withSpecialChars: {
       id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
       correctOptionId: undefined,
-      explanation: 'Answer with special characters: @#$%^&*()! and symbols: ±≤≥≠≈',
+      explanation:
+        'Answer with special characters: @#$%^&*()! and symbols: ±≤≥≠≈',
       questionId: 'd1b2c3d4-e5f6-7890-abcd-ef1234567890',
       translations: [
         {
           locale: 'pt',
-          explanation: 'Resposta com caracteres especiais: @#$%^&*()! e símbolos: ±≤≥≠≈',
+          explanation:
+            'Resposta com caracteres especiais: @#$%^&*()! e símbolos: ±≤≥≠≈',
         },
       ],
       createdAt: new Date('2023-01-04T00:00:00.000Z'),
@@ -368,12 +382,14 @@ export class AnswerControllerTestData {
     withUnicode: {
       id: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
       correctOptionId: undefined,
-      explanation: 'Answer in multiple languages: português 中文 العربية русский with emojis 🎯🚀',
+      explanation:
+        'Answer in multiple languages: português 中文 العربية русский with emojis 🎯🚀',
       questionId: 'e1b2c3d4-e5f6-7890-abcd-ef1234567890',
       translations: [
         {
           locale: 'pt',
-          explanation: 'Resposta em múltiplas línguas: português 中文 العربية русский com emojis 🎯🚀',
+          explanation:
+            'Resposta em múltiplas línguas: português 中文 العربية русский com emojis 🎯🚀',
         },
       ],
       createdAt: new Date('2023-01-05T00:00:00.000Z'),
@@ -533,7 +549,10 @@ export class AnswerControllerTestData {
     }),
 
     singlePage: () => ({
-      answers: [this.sampleAnswers.standard, this.sampleAnswers.multipleChoiceQuiz],
+      answers: [
+        this.sampleAnswers.standard,
+        this.sampleAnswers.multipleChoiceQuiz,
+      ],
       pagination: {
         page: 1,
         limit: 10,
@@ -545,10 +564,12 @@ export class AnswerControllerTestData {
     }),
 
     multiplePages: () => ({
-      answers: Array(10).fill(null).map((_, i) => ({
-        ...this.sampleAnswers.standard,
-        id: `${i.toString().padStart(8, '0')}-aaaa-bbbb-cccc-dddddddddddd`,
-      })),
+      answers: Array(10)
+        .fill(null)
+        .map((_, i) => ({
+          ...this.sampleAnswers.standard,
+          id: `${i.toString().padStart(8, '0')}-aaaa-bbbb-cccc-dddddddddddd`,
+        })),
       pagination: {
         page: 1,
         limit: 10,
@@ -560,10 +581,12 @@ export class AnswerControllerTestData {
     }),
 
     middlePage: () => ({
-      answers: Array(5).fill(null).map((_, i) => ({
-        ...this.sampleAnswers.standard,
-        id: `${(i + 10).toString().padStart(8, '0')}-aaaa-bbbb-cccc-dddddddddddd`,
-      })),
+      answers: Array(5)
+        .fill(null)
+        .map((_, i) => ({
+          ...this.sampleAnswers.standard,
+          id: `${(i + 10).toString().padStart(8, '0')}-aaaa-bbbb-cccc-dddddddddddd`,
+        })),
       pagination: {
         page: 2,
         limit: 5,
@@ -575,10 +598,12 @@ export class AnswerControllerTestData {
     }),
 
     lastPage: () => ({
-      answers: Array(2).fill(null).map((_, i) => ({
-        ...this.sampleAnswers.standard,
-        id: `${(i + 20).toString().padStart(8, '0')}-aaaa-bbbb-cccc-dddddddddddd`,
-      })),
+      answers: Array(2)
+        .fill(null)
+        .map((_, i) => ({
+          ...this.sampleAnswers.standard,
+          id: `${(i + 20).toString().padStart(8, '0')}-aaaa-bbbb-cccc-dddddddddddd`,
+        })),
       pagination: {
         page: 3,
         limit: 10,

@@ -11,9 +11,7 @@ import { AnswerNotFoundError } from './errors/answer-not-found-error';
 import { RepositoryError } from './errors/repository-error';
 
 type GetAnswerUseCaseResponse = Either<
-  | InvalidInputError
-  | AnswerNotFoundError
-  | RepositoryError,
+  InvalidInputError | AnswerNotFoundError | RepositoryError,
   GetAnswerResponse
 >;
 

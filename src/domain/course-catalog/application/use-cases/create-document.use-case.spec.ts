@@ -18,7 +18,9 @@ import { CreateDocumentRequest } from '../dtos/create-document-request.dto';
 import { CreateDocumentUseCaseResponse } from './create-document.use-case';
 
 // Helper function to create a valid request
-function createValidRequest(overrides?: Partial<CreateDocumentRequest>): CreateDocumentRequest {
+function createValidRequest(
+  overrides?: Partial<CreateDocumentRequest>,
+): CreateDocumentRequest {
   const translations: DocumentTranslationProps[] = [
     {
       locale: 'pt',
@@ -48,7 +50,9 @@ function createValidRequest(overrides?: Partial<CreateDocumentRequest>): CreateD
 }
 
 // Helper function to create a test lesson
-function createTestLesson(id: string = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'): Lesson {
+function createTestLesson(
+  id: string = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+): Lesson {
   return Lesson.create(
     {
       slug: 'lesson-test',
@@ -71,7 +75,10 @@ describe('CreateDocumentUseCase', () => {
   beforeEach(() => {
     lessonRepository = new InMemoryLessonRepository();
     documentRepository = new InMemoryDocumentRepository();
-    sut = new CreateDocumentUseCase(lessonRepository as any, documentRepository as any);
+    sut = new CreateDocumentUseCase(
+      lessonRepository as any,
+      documentRepository as any,
+    );
   });
 
   // Success Cases
@@ -96,23 +103,23 @@ describe('CreateDocumentUseCase', () => {
         expect(result.value.translations).toHaveLength(3);
         expect(result.value.translations).toEqual(
           expect.arrayContaining([
-            expect.objectContaining({ 
-              locale: 'pt', 
+            expect.objectContaining({
+              locale: 'pt',
               title: 'Material do Curso',
               description: 'Desc PT',
-              url: '/mat-pt.pdf' 
+              url: '/mat-pt.pdf',
             }),
-            expect.objectContaining({ 
-              locale: 'it', 
+            expect.objectContaining({
+              locale: 'it',
               title: 'Materiale del Corso',
               description: 'Desc IT',
-              url: '/mat-it.pdf' 
+              url: '/mat-it.pdf',
             }),
-            expect.objectContaining({ 
-              locale: 'es', 
+            expect.objectContaining({
+              locale: 'es',
               title: 'Material del Curso',
               description: 'Desc ES',
-              url: '/mat-es.pdf' 
+              url: '/mat-es.pdf',
             }),
           ]),
         );
@@ -178,7 +185,9 @@ describe('CreateDocumentUseCase', () => {
     it('should return InvalidInputError for missing Portuguese translation', async () => {
       // Arrange
       const request = createValidRequest();
-      request.translations = request.translations.filter((t) => t.locale !== 'pt');
+      request.translations = request.translations.filter(
+        (t) => t.locale !== 'pt',
+      );
 
       // Act
       const result = await sut.execute(request);
@@ -188,7 +197,9 @@ describe('CreateDocumentUseCase', () => {
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
         const error = result.value as InvalidInputError;
-        expect(error.details?.[0]?.message).toMatch(/exactly three translations required/i);
+        expect(error.details?.[0]?.message).toMatch(
+          /exactly three translations required/i,
+        );
       }
     });
 
@@ -209,7 +220,9 @@ describe('CreateDocumentUseCase', () => {
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
         const error = result.value as InvalidInputError;
-        const hasDuplicateLocale = error.details?.some((d) => /duplicate locale/i.test(d.message));
+        const hasDuplicateLocale = error.details?.some((d) =>
+          /duplicate locale/i.test(d.message),
+        );
         expect(hasDuplicateLocale).toBe(true);
       }
     });
@@ -266,12 +279,12 @@ describe('CreateDocumentUseCase', () => {
       // Arrange
       const lesson = createTestLesson();
       await lessonRepository.create(lesson);
-      
+
       // Mock to simulate existing document
       vi.spyOn(documentRepository, 'findByFilename').mockResolvedValueOnce(
-        right(lesson as any)
+        right(lesson as any),
       );
-      
+
       const request = createValidRequest();
 
       // Act
@@ -292,11 +305,11 @@ describe('CreateDocumentUseCase', () => {
       // Arrange
       const lesson = createTestLesson();
       await lessonRepository.create(lesson);
-      
+
       vi.spyOn(documentRepository, 'create').mockResolvedValueOnce(
-        left(new Error('Database connection failed'))
+        left(new Error('Database connection failed')),
       );
-      
+
       const request = createValidRequest();
 
       // Act
@@ -313,9 +326,9 @@ describe('CreateDocumentUseCase', () => {
     it('should return RepositoryError when lesson repository fails', async () => {
       // Arrange
       vi.spyOn(lessonRepository, 'findById').mockResolvedValueOnce(
-        left(new Error('Database timeout'))
+        left(new Error('Database timeout')),
       );
-      
+
       const request = createValidRequest();
 
       // Act
@@ -332,11 +345,11 @@ describe('CreateDocumentUseCase', () => {
       // Arrange
       const lesson = createTestLesson();
       await lessonRepository.create(lesson);
-      
+
       vi.spyOn(documentRepository, 'findByFilename').mockResolvedValueOnce(
-        left(new Error('Unexpected database error'))
+        left(new Error('Unexpected database error')),
       );
-      
+
       const request = createValidRequest();
 
       // Act
@@ -354,11 +367,11 @@ describe('CreateDocumentUseCase', () => {
       // Arrange
       const lesson = createTestLesson();
       await lessonRepository.create(lesson);
-      
+
       vi.spyOn(documentRepository, 'create').mockRejectedValueOnce(
-        new Error('Unexpected error')
+        new Error('Unexpected error'),
       );
-      
+
       const request = createValidRequest();
 
       // Act & Assert
@@ -372,7 +385,7 @@ describe('CreateDocumentUseCase', () => {
       // Arrange
       const lesson = createTestLesson();
       await lessonRepository.create(lesson);
-      
+
       const request = createValidRequest();
       request.translations[0].description = 'Short desc';
       request.translations[1].description = 'Another desc';
@@ -391,7 +404,7 @@ describe('CreateDocumentUseCase', () => {
       // Arrange
       const lesson = createTestLesson();
       await lessonRepository.create(lesson);
-      
+
       const longText = 'a'.repeat(1000);
       const request = createValidRequest();
       request.translations[0].title = longText;
@@ -412,9 +425,9 @@ describe('CreateDocumentUseCase', () => {
       // Arrange
       const lesson = createTestLesson();
       await lessonRepository.create(lesson);
-      
-      const request = createValidRequest({ 
-        filename: 'documento-especial_2024.pdf' 
+
+      const request = createValidRequest({
+        filename: 'documento-especial_2024.pdf',
       });
 
       // Act
@@ -423,7 +436,9 @@ describe('CreateDocumentUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.document.filename).toBe('documento-especial_2024.pdf');
+        expect(result.value.document.filename).toBe(
+          'documento-especial_2024.pdf',
+        );
       }
     });
   });
@@ -434,23 +449,23 @@ describe('CreateDocumentUseCase', () => {
       // Arrange
       const lesson = createTestLesson();
       await lessonRepository.create(lesson);
-      
+
       const promises: Promise<CreateDocumentUseCaseResponse>[] = [];
       for (let i = 0; i < 10; i++) {
-        const request = createValidRequest({ 
-          filename: `document-${i}.pdf` 
+        const request = createValidRequest({
+          filename: `document-${i}.pdf`,
         });
         promises.push(sut.execute(request));
       }
 
       const start = Date.now();
-      
+
       // Act
       const results = await Promise.all(promises);
       const duration = Date.now() - start;
 
       // Assert
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.isRight()).toBe(true);
       });
       expect(duration).toBeLessThan(1000); // Should complete within 1 second
@@ -463,7 +478,7 @@ describe('CreateDocumentUseCase', () => {
       // Arrange
       const lesson = createTestLesson();
       await lessonRepository.create(lesson);
-      
+
       const request = createValidRequest();
       // Remove one translation
       request.translations = request.translations.slice(0, 2);
@@ -481,9 +496,9 @@ describe('CreateDocumentUseCase', () => {
     it('should not allow document creation without lesson verification', async () => {
       // Arrange
       vi.spyOn(lessonRepository, 'findById').mockResolvedValueOnce(
-        left(new Error('Not found'))
+        left(new Error('Not found')),
       );
-      
+
       const request = createValidRequest();
 
       // Act
@@ -500,17 +515,17 @@ describe('CreateDocumentUseCase', () => {
       // Arrange
       const lesson = createTestLesson();
       await lessonRepository.create(lesson);
-      
+
       // First document creation
       const request1 = createValidRequest();
       const result1 = await sut.execute(request1);
       expect(result1.isRight()).toBe(true);
-      
+
       // Mock to simulate existing document
       vi.spyOn(documentRepository, 'findByFilename').mockResolvedValueOnce(
-        right({ filename: 'material-curso.pdf' } as any)
+        right({ filename: 'material-curso.pdf' } as any),
       );
-      
+
       // Second document with same filename
       const request2 = createValidRequest();
       const result2 = await sut.execute(request2);

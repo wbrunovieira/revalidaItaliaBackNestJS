@@ -2,7 +2,7 @@
 
 /**
  * Domain Service: Email Verification Policy
- * 
+ *
  * Encapsulates business rules about when email verification is required.
  * This is a domain concern, not infrastructure.
  */

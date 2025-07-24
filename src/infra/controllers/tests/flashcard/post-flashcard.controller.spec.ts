@@ -27,8 +27,10 @@ describe('POST /flashcards', () => {
 
   describe('Success scenarios', () => {
     it('should create a flashcard with text content', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
-      const expectedResponse = FlashcardControllerTestData.successResponses.textOnly();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.textOnly();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 
@@ -43,8 +45,10 @@ describe('POST /flashcards', () => {
     });
 
     it('should create a flashcard with image content', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.imageOnly();
-      const expectedResponse = FlashcardControllerTestData.successResponses.textOnly();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.imageOnly();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.textOnly();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 
@@ -52,8 +56,10 @@ describe('POST /flashcards', () => {
     });
 
     it('should create a flashcard with mixed content (IMAGE/TEXT)', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.mixedImageText();
-      const expectedResponse = FlashcardControllerTestData.successResponses.textOnly();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.mixedImageText();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.textOnly();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 
@@ -61,8 +67,10 @@ describe('POST /flashcards', () => {
     });
 
     it('should create a flashcard with mixed content (TEXT/IMAGE)', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.mixedTextImage();
-      const expectedResponse = FlashcardControllerTestData.successResponses.textOnly();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.mixedTextImage();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.textOnly();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 
@@ -70,8 +78,10 @@ describe('POST /flashcards', () => {
     });
 
     it('should create a flashcard with tags', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.withTags();
-      const expectedResponse = FlashcardControllerTestData.successResponses.withTags();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.withTags();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.withTags();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 
@@ -86,8 +96,10 @@ describe('POST /flashcards', () => {
     });
 
     it('should create a flashcard with custom slug', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.withCustomSlug();
-      const expectedResponse = FlashcardControllerTestData.successResponses.textOnly();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.withCustomSlug();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.textOnly();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 
@@ -102,8 +114,10 @@ describe('POST /flashcards', () => {
     });
 
     it('should create a flashcard with import batch ID', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.withImportBatchId();
-      const expectedResponse = FlashcardControllerTestData.successResponses.textOnly();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.withImportBatchId();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.textOnly();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 
@@ -118,8 +132,10 @@ describe('POST /flashcards', () => {
     });
 
     it('should create a flashcard with all optional fields', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.complete();
-      const expectedResponse = FlashcardControllerTestData.successResponses.complete();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.complete();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.complete();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 
@@ -136,9 +152,10 @@ describe('POST /flashcards', () => {
 
   describe('Error scenarios - InvalidInputError', () => {
     it('should return 400 when use case returns InvalidInputError', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
       const errorDetails = { 'question.type': ['Invalid type'] };
-      
+
       testSetup.mockCreateFlashcardError(
         new InvalidInputError('Invalid input data', errorDetails),
       );
@@ -149,9 +166,10 @@ describe('POST /flashcards', () => {
 
   describe('Error scenarios - ArgumentNotFoundError', () => {
     it('should return 404 when argument is not found', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
       const errorMessage = `Argument with ID "${dto.argumentId}" not found`;
-      
+
       testSetup.mockCreateFlashcardError(
         new ArgumentNotFoundError(dto.argumentId),
       );
@@ -166,10 +184,11 @@ describe('POST /flashcards', () => {
 
   describe('Error scenarios - FlashcardTagsNotFoundError', () => {
     it('should return 404 when tags are not found', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.withTags();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.withTags();
       const missingTagIds = dto.tagIds || [];
       const errorMessage = `Flashcard tags with IDs "${missingTagIds.join(', ')}" not found`;
-      
+
       testSetup.mockCreateFlashcardError(
         new FlashcardTagsNotFoundError(missingTagIds),
       );
@@ -184,9 +203,10 @@ describe('POST /flashcards', () => {
 
   describe('Error scenarios - DuplicateFlashcardError', () => {
     it('should return 409 when slug already exists', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.withCustomSlug();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.withCustomSlug();
       const errorMessage = `Flashcard with slug "${dto.slug}" already exists`;
-      
+
       testSetup.mockCreateFlashcardError(
         new DuplicateFlashcardError(dto.slug!),
       );
@@ -197,12 +217,11 @@ describe('POST /flashcards', () => {
 
   describe('Error scenarios - RepositoryError', () => {
     it('should return 500 when repository fails', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
       const errorMessage = 'Database connection failed';
-      
-      testSetup.mockCreateFlashcardError(
-        new RepositoryError(errorMessage),
-      );
+
+      testSetup.mockCreateFlashcardError(new RepositoryError(errorMessage));
 
       await helpers.createFlashcardExpectingInternalError(dto, errorMessage);
     });
@@ -210,18 +229,23 @@ describe('POST /flashcards', () => {
 
   describe('Error scenarios - Unexpected errors', () => {
     it('should return 500 for unexpected errors', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
-      
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
+
       testSetup.mockCreateFlashcardError(
         new Error('Some unexpected error') as any,
       );
 
-      await helpers.createFlashcardExpectingInternalError(dto, 'Unexpected error occurred');
+      await helpers.createFlashcardExpectingInternalError(
+        dto,
+        'Unexpected error occurred',
+      );
     });
 
     it('should return 500 when use case throws', async () => {
-      const dto = FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
-      
+      const dto =
+        FlashcardControllerTestData.validCreateFlashcardDtos.textOnly();
+
       testSetup.mockCreateFlashcardThrows(new Error('Async error'));
 
       await helpers.createFlashcardExpectingInternalError(dto);
@@ -234,7 +258,8 @@ describe('POST /flashcards', () => {
         ...FlashcardControllerTestData.validCreateFlashcardDtos.textOnly(),
         tagIds: [],
       };
-      const expectedResponse = FlashcardControllerTestData.successResponses.textOnly();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.textOnly();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 
@@ -256,7 +281,8 @@ describe('POST /flashcards', () => {
           content: 'a'.repeat(1000), // Maximum allowed length
         },
       };
-      const expectedResponse = FlashcardControllerTestData.successResponses.textOnly();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.textOnly();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 
@@ -268,7 +294,8 @@ describe('POST /flashcards', () => {
         ...FlashcardControllerTestData.validCreateFlashcardDtos.textOnly(),
         slug: 'valid-slug-123',
       };
-      const expectedResponse = FlashcardControllerTestData.successResponses.textOnly();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.textOnly();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 
@@ -291,7 +318,8 @@ describe('POST /flashcards', () => {
           '550e8400-e29b-41d4-a716-446655440003',
         ],
       };
-      const expectedResponse = FlashcardControllerTestData.successResponses.textOnly();
+      const expectedResponse =
+        FlashcardControllerTestData.successResponses.textOnly();
 
       await helpers.createFlashcardExpectingSuccess(dto, expectedResponse);
 

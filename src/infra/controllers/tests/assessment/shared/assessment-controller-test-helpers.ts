@@ -4,7 +4,11 @@ import { right, left } from '@/core/either';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
-import { BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
 export class AssessmentControllerTestHelpers {
   static async expectInvalidInputError(
@@ -12,7 +16,7 @@ export class AssessmentControllerTestHelpers {
     expectedDetails?: string[],
   ): Promise<void> {
     await expect(executeMethod()).rejects.toThrow(BadRequestException);
-    
+
     try {
       await executeMethod();
     } catch (error) {
@@ -31,7 +35,7 @@ export class AssessmentControllerTestHelpers {
     executeMethod: () => Promise<any>,
   ): Promise<void> {
     await expect(executeMethod()).rejects.toThrow(NotFoundException);
-    
+
     try {
       await executeMethod();
     } catch (error) {
@@ -48,7 +52,7 @@ export class AssessmentControllerTestHelpers {
     expectedMessage?: string,
   ): Promise<void> {
     await expect(executeMethod()).rejects.toThrow(InternalServerErrorException);
-    
+
     try {
       await executeMethod();
     } catch (error) {

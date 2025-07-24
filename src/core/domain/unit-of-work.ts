@@ -28,7 +28,7 @@ export abstract class UnitOfWork implements IUnitOfWork {
 
   async execute<T>(work: () => Promise<T>): Promise<T> {
     await this.start();
-    
+
     try {
       const result = await work();
       await this.commit();

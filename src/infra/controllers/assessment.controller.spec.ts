@@ -2408,7 +2408,9 @@ describe('AssessmentController', () => {
 
     describe('✅ Success Cases', () => {
       it('should return questions with options for multiple choice questions', async () => {
-        listQuestionsUseCase.execute.mockResolvedValue(right(mockQuestionsResponse));
+        listQuestionsUseCase.execute.mockResolvedValue(
+          right(mockQuestionsResponse),
+        );
 
         const result = await controller.getQuestions(assessmentId);
 
@@ -2432,7 +2434,9 @@ describe('AssessmentController', () => {
           ],
         };
 
-        listQuestionsUseCase.execute.mockResolvedValue(right(openQuestionsResponse));
+        listQuestionsUseCase.execute.mockResolvedValue(
+          right(openQuestionsResponse),
+        );
 
         const result = await controller.getQuestions(assessmentId);
 
@@ -2481,7 +2485,9 @@ describe('AssessmentController', () => {
       });
 
       it('should call listQuestionsByAssessmentUseCase.execute exactly once', async () => {
-        listQuestionsUseCase.execute.mockResolvedValue(right(mockQuestionsResponse));
+        listQuestionsUseCase.execute.mockResolvedValue(
+          right(mockQuestionsResponse),
+        );
 
         await controller.getQuestions(assessmentId);
 
@@ -2491,7 +2497,9 @@ describe('AssessmentController', () => {
 
     describe('⚠️ Validation Errors (400)', () => {
       it('should throw BadRequestException on InvalidInputError with validation details', async () => {
-        const validationDetails = ['assessmentId: Assessment ID must be a valid UUID'];
+        const validationDetails = [
+          'assessmentId: Assessment ID must be a valid UUID',
+        ];
         listQuestionsUseCase.execute.mockResolvedValue(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -2509,7 +2517,9 @@ describe('AssessmentController', () => {
       });
 
       it('should throw BadRequestException on empty assessmentId', async () => {
-        const validationDetails = ['assessmentId: Assessment ID cannot be empty'];
+        const validationDetails = [
+          'assessmentId: Assessment ID cannot be empty',
+        ];
         listQuestionsUseCase.execute.mockResolvedValue(
           left(new InvalidInputError('Validation failed', validationDetails)),
         );
@@ -2593,7 +2603,9 @@ describe('AssessmentController', () => {
           })),
         };
 
-        listQuestionsUseCase.execute.mockResolvedValue(right(manyQuestionsResponse));
+        listQuestionsUseCase.execute.mockResolvedValue(
+          right(manyQuestionsResponse),
+        );
 
         const result = await controller.getQuestions(assessmentId);
 
@@ -2618,7 +2630,9 @@ describe('AssessmentController', () => {
           ],
         };
 
-        listQuestionsUseCase.execute.mockResolvedValue(right(noOptionsResponse));
+        listQuestionsUseCase.execute.mockResolvedValue(
+          right(noOptionsResponse),
+        );
 
         const result = await controller.getQuestions(assessmentId);
 
@@ -2662,7 +2676,9 @@ describe('AssessmentController', () => {
 
     describe('🔄 Behavior Testing', () => {
       it('should pass correct request object to use case', async () => {
-        listQuestionsUseCase.execute.mockResolvedValue(right(mockQuestionsResponse));
+        listQuestionsUseCase.execute.mockResolvedValue(
+          right(mockQuestionsResponse),
+        );
 
         await controller.getQuestions(assessmentId);
 
@@ -2698,7 +2714,20 @@ describe('AssessmentController', () => {
 
         listQuestionsUseCase.execute.mockImplementation(({ assessmentId }) => {
           if (assessmentId === id1) {
-            return Promise.resolve(right({ questions: [{ id: 'q1', text: 'Question 1', type: 'OPEN', options: [], createdAt: new Date(), updatedAt: new Date() }] }));
+            return Promise.resolve(
+              right({
+                questions: [
+                  {
+                    id: 'q1',
+                    text: 'Question 1',
+                    type: 'OPEN',
+                    options: [],
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                  },
+                ],
+              }),
+            );
           }
           if (assessmentId === id2) {
             return Promise.resolve(left(new AssessmentNotFoundError()));

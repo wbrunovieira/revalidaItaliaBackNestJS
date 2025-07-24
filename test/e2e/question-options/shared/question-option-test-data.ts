@@ -3,9 +3,9 @@
 export class QuestionOptionTestData {
   static readonly MAX_EXECUTION_TIME = 2000; // 2 seconds max per operation
   static readonly TIMEOUTS = {
-    SHORT: 10000,   // 10 seconds
-    MEDIUM: 30000,  // 30 seconds
-    LONG: 60000,    // 60 seconds
+    SHORT: 10000, // 10 seconds
+    MEDIUM: 30000, // 30 seconds
+    LONG: 60000, // 60 seconds
   };
 
   static readonly validQuestionOptions = {
@@ -193,7 +193,7 @@ export class QuestionOptionTestData {
         ],
       }),
       multipleOptions: (questionId: string, optionTexts: string[]) => ({
-        options: optionTexts.map(text => ({
+        options: optionTexts.map((text) => ({
           id: expect.any(String),
           text: text,
           questionId: questionId,
@@ -224,13 +224,7 @@ export class QuestionOptionTestData {
           'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
           'ffffffff-ffff-ffff-ffff-ffffffffffff',
         ],
-        invalid: [
-          'invalid-uuid',
-          '123',
-          '',
-          null,
-          undefined,
-        ],
+        invalid: ['invalid-uuid', '123', '', null, undefined],
       },
     },
   };
@@ -252,21 +246,26 @@ export class QuestionOptionTestData {
   /**
    * Generate test data for load testing
    */
-  static generateLoadTestData(questionCount: number, optionsPerQuestion: number): Array<{ text: string; options: string[] }> {
+  static generateLoadTestData(
+    questionCount: number,
+    optionsPerQuestion: number,
+  ): Array<{ text: string; options: string[] }> {
     const questions: Array<{ text: string; options: string[] }> = [];
-    
+
     for (let i = 0; i < questionCount; i++) {
       const options: string[] = [];
       for (let j = 0; j < optionsPerQuestion; j++) {
-        options.push(`Question ${i + 1} - Option ${String.fromCharCode(65 + j)}`);
+        options.push(
+          `Question ${i + 1} - Option ${String.fromCharCode(65 + j)}`,
+        );
       }
-      
+
       questions.push({
         text: `Load test question ${i + 1} with ${optionsPerQuestion} options`,
         options,
       });
     }
-    
+
     return questions;
   }
 
@@ -285,7 +284,7 @@ export class QuestionOptionTestData {
         ],
       },
       italian: {
-        question: 'Qual è l\'obiettivo principale della medicina legale?',
+        question: "Qual è l'obiettivo principale della medicina legale?",
         options: [
           'Applicare le conoscenze mediche al diritto',
           'Eseguire procedure chirurgiche',

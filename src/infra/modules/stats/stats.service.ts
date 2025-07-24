@@ -10,28 +10,25 @@ export class StatsService {
   /**
    * Increment user counters
    */
-  async incrementUserCount(
-    role: string,
-    source: string,
-  ): Promise<void> {
+  async incrementUserCount(role: string, source: string): Promise<void> {
     const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    
+
     // Use Redis pipeline for atomic operations
     const pipeline = this.redis.pipeline();
-    
+
     // Increment total users
     pipeline.incr('stats:users:total');
-    
+
     // Increment by role
     pipeline.incr(`stats:users:role:${role}`);
-    
+
     // Increment by source
     pipeline.incr(`stats:users:source:${source}`);
-    
+
     // Increment daily count
     pipeline.incr(`stats:users:daily:${date}`);
     pipeline.expire(`stats:users:daily:${date}`, 90 * 24 * 60 * 60); // Keep for 90 days
-    
+
     await pipeline.exec();
   }
 

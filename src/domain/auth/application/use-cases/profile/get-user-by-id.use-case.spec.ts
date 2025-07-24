@@ -880,8 +880,7 @@ describe('GetUserByIdUseCase', () => {
         const profile = UserProfile.create({
           identityId,
           fullName: `User ${i}`,
-          nationalId: NationalId.create(`${i}`.padStart(11, '0'))
-            ,
+          nationalId: NationalId.create(`${i}`.padStart(11, '0')),
           preferredLanguage: 'pt-BR',
           timezone: 'America/Sao_Paulo',
         });
@@ -924,8 +923,7 @@ describe('GetUserByIdUseCase', () => {
       const identity = UserIdentity.create(
         {
           email: Email.create('security@example.com'),
-          password: Password.createFromPlain('SuperSecretStrongP@ssw0rd2024')
-            ,
+          password: Password.createFromPlain('SuperSecretStrongP@ssw0rd2024'),
           emailVerified: true,
           createdAt: now,
         },

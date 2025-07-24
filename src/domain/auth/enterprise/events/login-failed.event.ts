@@ -2,7 +2,10 @@
 import { DomainEvent } from '@/core/domain/domain-event';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 
-export type LoginFailureReason = 'invalid_credentials' | 'account_locked' | 'email_not_verified';
+export type LoginFailureReason =
+  | 'invalid_credentials'
+  | 'account_locked'
+  | 'email_not_verified';
 
 export class LoginFailedEvent extends DomainEvent {
   public readonly email: string;
@@ -16,7 +19,7 @@ export class LoginFailedEvent extends DomainEvent {
     reason: LoginFailureReason,
     ipAddress: string,
     attemptNumber: number,
-    timestamp?: Date
+    timestamp?: Date,
   ) {
     super();
     this.email = email;

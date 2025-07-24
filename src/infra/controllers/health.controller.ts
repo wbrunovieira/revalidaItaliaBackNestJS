@@ -7,8 +7,8 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 export class HealthController {
   @Get()
   @ApiOperation({ summary: 'Health check endpoint' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Service is healthy',
     schema: {
       type: 'object',
@@ -31,8 +31,8 @@ export class HealthController {
 
   @Get('ready')
   @ApiOperation({ summary: 'Readiness check endpoint' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Service is ready to accept requests',
     schema: {
       type: 'object',
@@ -48,8 +48,8 @@ export class HealthController {
       },
     },
   })
-  @ApiResponse({ 
-    status: 503, 
+  @ApiResponse({
+    status: 503,
     description: 'Service is not ready',
   })
   async readiness() {

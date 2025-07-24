@@ -3,7 +3,7 @@ import { BusinessRuleException } from '@/core/domain/exceptions';
 
 /**
  * Exception thrown when user lacks authorization
- * 
+ *
  * Used for permission/role-based access violations
  */
 export class UnauthorizedError extends BusinessRuleException {
@@ -11,15 +11,18 @@ export class UnauthorizedError extends BusinessRuleException {
     super(
       message || 'You do not have permission to perform this action',
       'AUTH.UNAUTHORIZED',
-      { 
-        reason: 'Insufficient permissions'
-      }
+      {
+        reason: 'Insufficient permissions',
+      },
     );
   }
 
-  static insufficientRole(requiredRole: string, currentRole?: string): UnauthorizedError {
+  static insufficientRole(
+    requiredRole: string,
+    currentRole?: string,
+  ): UnauthorizedError {
     const error = new UnauthorizedError(
-      `This action requires ${requiredRole} role`
+      `This action requires ${requiredRole} role`,
     );
     error.context.requiredRole = requiredRole;
     if (currentRole) {
@@ -28,10 +31,11 @@ export class UnauthorizedError extends BusinessRuleException {
     return error;
   }
 
-  static resourceAccessDenied(resourceType: string, resourceId?: string): UnauthorizedError {
-    const error = new UnauthorizedError(
-      `Access denied to ${resourceType}`
-    );
+  static resourceAccessDenied(
+    resourceType: string,
+    resourceId?: string,
+  ): UnauthorizedError {
+    const error = new UnauthorizedError(`Access denied to ${resourceType}`);
     error.context.resourceType = resourceType;
     if (resourceId) {
       error.context.resourceId = resourceId;

@@ -29,10 +29,11 @@ describe(
     describe('Success scenarios', () => {
       it('should create basic question option successfully', async () => {
         const optionText = 'Basic option text';
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          optionText,
-        );
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            optionText,
+          );
 
         // Verify response format
         helpers.verifyCreateQuestionOptionSuccessResponseFormat(
@@ -43,7 +44,7 @@ describe(
 
         // Verify option was created in database
         const dbOption = await testSetup.prisma.questionOption.findUnique({
-          where: { id: (response.body as any).questionOption.id },
+          where: { id: response.body.questionOption.id },
         });
         expect(dbOption).toBeDefined();
         expect(dbOption!.text).toBe(optionText);
@@ -51,109 +52,123 @@ describe(
       });
 
       it('should create medical question option successfully', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.validPayloads.medical(
-          testSetup.multipleChoiceQuestionId,
-        );
-        
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          payload.text,
-        );
+        const payload =
+          QuestionOptionTestData.createQuestionOption.validPayloads.medical(
+            testSetup.multipleChoiceQuestionId,
+          );
+
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            payload.text,
+          );
 
         // Verify medical terminology is preserved
-        expect((response.body as any).questionOption.text).toContain('Hypertension');
-        expect((response.body as any).questionOption.text).toContain('diabetes');
-        expect((response.body as any).questionOption.text).toContain('complications');
+        expect(response.body.questionOption.text).toContain('Hypertension');
+        expect(response.body.questionOption.text).toContain('diabetes');
+        expect(response.body.questionOption.text).toContain('complications');
       });
 
       it('should create question option with special characters', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.validPayloads.specialChars(
-          testSetup.multipleChoiceQuestionId,
-        );
-        
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          payload.text,
-        );
+        const payload =
+          QuestionOptionTestData.createQuestionOption.validPayloads.specialChars(
+            testSetup.multipleChoiceQuestionId,
+          );
+
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            payload.text,
+          );
 
         // Verify special characters are preserved
-        expect((response.body as any).questionOption.text).toContain('@#$%^&*()');
+        expect(response.body.questionOption.text).toContain('@#$%^&*()');
       });
 
       it('should create question option with unicode characters', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.validPayloads.unicode(
-          testSetup.multipleChoiceQuestionId,
-        );
-        
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          payload.text,
-        );
+        const payload =
+          QuestionOptionTestData.createQuestionOption.validPayloads.unicode(
+            testSetup.multipleChoiceQuestionId,
+          );
+
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            payload.text,
+          );
 
         // Verify unicode is preserved
-        expect((response.body as any).questionOption.text).toContain('português');
-        expect((response.body as any).questionOption.text).toContain('中文');
-        expect((response.body as any).questionOption.text).toContain('العربية');
-        expect((response.body as any).questionOption.text).toContain('русский');
-        expect((response.body as any).questionOption.text).toContain('🎯🚀');
+        expect(response.body.questionOption.text).toContain('português');
+        expect(response.body.questionOption.text).toContain('中文');
+        expect(response.body.questionOption.text).toContain('العربية');
+        expect(response.body.questionOption.text).toContain('русский');
+        expect(response.body.questionOption.text).toContain('🎯🚀');
       });
 
       it('should create question option with newlines and tabs', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.validPayloads.withNewlines(
-          testSetup.multipleChoiceQuestionId,
-        );
-        
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          payload.text,
-        );
+        const payload =
+          QuestionOptionTestData.createQuestionOption.validPayloads.withNewlines(
+            testSetup.multipleChoiceQuestionId,
+          );
+
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            payload.text,
+          );
 
         // Verify formatting is preserved
-        expect((response.body as any).questionOption.text).toContain('\n');
-        expect((response.body as any).questionOption.text).toContain('\t');
+        expect(response.body.questionOption.text).toContain('\n');
+        expect(response.body.questionOption.text).toContain('\t');
       });
 
       it('should create question option with minimum length text', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.validPayloads.minLength(
-          testSetup.multipleChoiceQuestionId,
-        );
-        
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          payload.text,
-        );
+        const payload =
+          QuestionOptionTestData.createQuestionOption.validPayloads.minLength(
+            testSetup.multipleChoiceQuestionId,
+          );
 
-        expect((response.body as any).questionOption.text).toHaveLength(9);
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            payload.text,
+          );
+
+        expect(response.body.questionOption.text).toHaveLength(9);
       });
 
       it('should create question option with maximum length text', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.validPayloads.maxLength(
-          testSetup.multipleChoiceQuestionId,
-        );
-        
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          payload.text,
-        );
+        const payload =
+          QuestionOptionTestData.createQuestionOption.validPayloads.maxLength(
+            testSetup.multipleChoiceQuestionId,
+          );
 
-        expect((response.body as any).questionOption.text).toHaveLength(500);
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            payload.text,
+          );
+
+        expect(response.body.questionOption.text).toHaveLength(500);
       });
 
       it('should create clinical case question option', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.validPayloads.clinicalCase(
-          testSetup.multipleChoiceQuestionId,
-        );
-        
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          payload.text,
-        );
+        const payload =
+          QuestionOptionTestData.createQuestionOption.validPayloads.clinicalCase(
+            testSetup.multipleChoiceQuestionId,
+          );
+
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            payload.text,
+          );
 
         // Verify clinical terminology
-        expect((response.body as any).questionOption.text).toContain('Patient presents');
-        expect((response.body as any).questionOption.text).toContain('acute chest pain');
-        expect((response.body as any).questionOption.text).toContain('ST-elevation');
-        expect((response.body as any).questionOption.text).toContain('ECG');
+        expect(response.body.questionOption.text).toContain('Patient presents');
+        expect(response.body.questionOption.text).toContain('acute chest pain');
+        expect(response.body.questionOption.text).toContain('ST-elevation');
+        expect(response.body.questionOption.text).toContain('ECG');
       });
 
       it('should create multiple options for same question', async () => {
@@ -161,18 +176,19 @@ describe(
         const responses: Response[] = [];
 
         for (const optionText of options) {
-          const response: Response = await helpers.createQuestionOptionExpectSuccess(
-            testSetup.multipleChoiceQuestionId,
-            optionText,
-          );
+          const response: Response =
+            await helpers.createQuestionOptionExpectSuccess(
+              testSetup.multipleChoiceQuestionId,
+              optionText,
+            );
           responses.push(response);
         }
 
         // Verify all options were created
         expect(responses).toHaveLength(4);
-        
+
         // Verify each option has unique ID
-        const ids = responses.map(r => (r.body as any).questionOption.id);
+        const ids = responses.map((r) => r.body.questionOption.id);
         expect(new Set(ids)).toHaveLength(4);
 
         // Verify database has all options
@@ -184,38 +200,47 @@ describe(
 
       it('should create options in different languages', async () => {
         const payloads = [
-          QuestionOptionTestData.createQuestionOption.validPayloads.portuguese(testSetup.multipleChoiceQuestionId),
-          QuestionOptionTestData.createQuestionOption.validPayloads.italian(testSetup.multipleChoiceQuestionId),
-          QuestionOptionTestData.createQuestionOption.validPayloads.spanish(testSetup.multipleChoiceQuestionId),
+          QuestionOptionTestData.createQuestionOption.validPayloads.portuguese(
+            testSetup.multipleChoiceQuestionId,
+          ),
+          QuestionOptionTestData.createQuestionOption.validPayloads.italian(
+            testSetup.multipleChoiceQuestionId,
+          ),
+          QuestionOptionTestData.createQuestionOption.validPayloads.spanish(
+            testSetup.multipleChoiceQuestionId,
+          ),
         ];
 
         for (const payload of payloads) {
-          const response: Response = await helpers.createQuestionOptionExpectSuccess(
-            testSetup.multipleChoiceQuestionId,
-            payload.text,
-          );
+          const response: Response =
+            await helpers.createQuestionOptionExpectSuccess(
+              testSetup.multipleChoiceQuestionId,
+              payload.text,
+            );
 
           // Verify language-specific content is preserved
-          expect((response.body as any).questionOption.text).toBe(payload.text);
+          expect(response.body.questionOption.text).toBe(payload.text);
         }
       });
 
       it('should create and verify option appears in list', async () => {
         const optionText = 'Option for list verification';
-        
+
         // Create option
-        const createResponse: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          optionText,
-        );
+        const createResponse: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            optionText,
+          );
 
         // Verify it appears in list
-        const listResponse: Response = await helpers.listQuestionOptionsExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-        );
+        const listResponse: Response =
+          await helpers.listQuestionOptionsExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+          );
 
-        const createdOption = (listResponse.body as any).options.find(
-          (opt: any) => opt.id === (createResponse.body as any).questionOption.id
+        const createdOption = listResponse.body.options.find(
+          (opt: any) => opt.id === createResponse.body.questionOption.id,
         );
         expect(createdOption).toBeDefined();
         expect(createdOption.text).toBe(optionText);
@@ -224,7 +249,8 @@ describe(
 
     describe('Validation and Invalid Input scenarios', () => {
       it('should reject empty text', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.emptyText();
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.emptyText();
         const response = await helpers.createQuestionOptionWithPayload(
           testSetup.multipleChoiceQuestionId,
           payload,
@@ -233,7 +259,8 @@ describe(
       });
 
       it('should reject null text', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.nullText();
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.nullText();
         await helpers.createQuestionOptionExpectValidationError(
           testSetup.multipleChoiceQuestionId,
           payload,
@@ -241,7 +268,8 @@ describe(
       });
 
       it('should reject undefined text', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.undefinedText();
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.undefinedText();
         await helpers.createQuestionOptionExpectValidationError(
           testSetup.multipleChoiceQuestionId,
           payload,
@@ -249,7 +277,8 @@ describe(
       });
 
       it('should reject number as text', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.numberText();
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.numberText();
         await helpers.createQuestionOptionExpectValidationError(
           testSetup.multipleChoiceQuestionId,
           payload,
@@ -257,7 +286,8 @@ describe(
       });
 
       it('should reject boolean as text', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.booleanText();
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.booleanText();
         await helpers.createQuestionOptionExpectValidationError(
           testSetup.multipleChoiceQuestionId,
           payload,
@@ -265,7 +295,8 @@ describe(
       });
 
       it('should reject object as text', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.objectText();
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.objectText();
         await helpers.createQuestionOptionExpectValidationError(
           testSetup.multipleChoiceQuestionId,
           payload,
@@ -273,7 +304,8 @@ describe(
       });
 
       it('should reject array as text', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.arrayText();
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.arrayText();
         await helpers.createQuestionOptionExpectValidationError(
           testSetup.multipleChoiceQuestionId,
           payload,
@@ -281,7 +313,8 @@ describe(
       });
 
       it('should reject text exceeding maximum length', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.tooLongText();
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.tooLongText();
         await helpers.createQuestionOptionExpectValidationError(
           testSetup.multipleChoiceQuestionId,
           payload,
@@ -289,7 +322,8 @@ describe(
       });
 
       it('should reject only whitespace text', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.onlyWhitespace();
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.onlyWhitespace();
         const response = await helpers.createQuestionOptionWithPayload(
           testSetup.multipleChoiceQuestionId,
           payload,
@@ -298,7 +332,8 @@ describe(
       });
 
       it('should reject missing text field', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.missingText();
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.missingText();
         await helpers.createQuestionOptionExpectValidationError(
           testSetup.multipleChoiceQuestionId,
           payload,
@@ -306,42 +341,48 @@ describe(
       });
 
       it('should reject extra fields in payload', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.extraFields(
-          testSetup.multipleChoiceQuestionId,
-        );
-        const response: Response = await helpers.createQuestionOptionWithPayload(
-          testSetup.multipleChoiceQuestionId,
-          payload,
-        );
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.extraFields(
+            testSetup.multipleChoiceQuestionId,
+          );
+        const response: Response =
+          await helpers.createQuestionOptionWithPayload(
+            testSetup.multipleChoiceQuestionId,
+            payload,
+          );
         expect([400, 201]).toContain(response.status); // May be filtered or rejected
       });
 
       it('should handle SQL injection attempt safely', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.sqlInjection();
-        
-        // This should be treated as regular text, not executed
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          payload.text,
-        );
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.sqlInjection();
 
-        expect((response.body as any).questionOption.text).toBe(payload.text);
-        
+        // This should be treated as regular text, not executed
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            payload.text,
+          );
+
+        expect(response.body.questionOption.text).toBe(payload.text);
+
         // Verify database integrity
         const dbCount = await testSetup.prisma.questionOption.count();
         expect(dbCount).toBeGreaterThan(0);
       });
 
       it('should handle XSS attempt safely', async () => {
-        const payload = QuestionOptionTestData.createQuestionOption.invalidPayloads.xssAttempt();
-        
-        // This should be treated as regular text, not executed
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          payload.text,
-        );
+        const payload =
+          QuestionOptionTestData.createQuestionOption.invalidPayloads.xssAttempt();
 
-        expect((response.body as any).questionOption.text).toBe(payload.text);
+        // This should be treated as regular text, not executed
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            payload.text,
+          );
+
+        expect(response.body.questionOption.text).toBe(payload.text);
       });
 
       it('should reject invalid question ID formats', async () => {
@@ -372,12 +413,13 @@ describe(
         });
 
         // Create option immediately
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          questionId,
-          'Immediate option',
-        );
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            questionId,
+            'Immediate option',
+          );
 
-        expect((response.body as any).questionOption.questionId).toBe(questionId);
+        expect(response.body.questionOption.questionId).toBe(questionId);
       });
 
       it('should handle boundary text lengths correctly', async () => {
@@ -386,7 +428,7 @@ describe(
           testSetup.multipleChoiceQuestionId,
           'A',
         );
-        expect((minResponse.body as any).questionOption.text).toHaveLength(1);
+        expect(minResponse.body.questionOption.text).toHaveLength(1);
 
         // Test near maximum (499 characters)
         const nearMaxText = 'A'.repeat(499);
@@ -394,7 +436,7 @@ describe(
           testSetup.multipleChoiceQuestionId,
           nearMaxText,
         );
-        expect((nearMaxResponse.body as any).questionOption.text).toHaveLength(499);
+        expect(nearMaxResponse.body.questionOption.text).toHaveLength(499);
 
         // Test exact maximum (500 characters)
         const maxText = 'A'.repeat(500);
@@ -402,24 +444,33 @@ describe(
           testSetup.multipleChoiceQuestionId,
           maxText,
         );
-        expect((maxResponse.body as any).questionOption.text).toHaveLength(500);
+        expect(maxResponse.body.questionOption.text).toHaveLength(500);
       });
 
       it('should handle concurrent option creation', async () => {
-        const optionTexts = ['Concurrent A', 'Concurrent B', 'Concurrent C', 'Concurrent D', 'Concurrent E'];
-        
+        const optionTexts = [
+          'Concurrent A',
+          'Concurrent B',
+          'Concurrent C',
+          'Concurrent D',
+          'Concurrent E',
+        ];
+
         // Create options concurrently
-        const promises = optionTexts.map(text =>
-          helpers.createQuestionOptionExpectSuccess(testSetup.multipleChoiceQuestionId, text)
+        const promises = optionTexts.map((text) =>
+          helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            text,
+          ),
         );
-        
+
         const responses = await Promise.all(promises);
 
         // Verify all succeeded
         expect(responses).toHaveLength(5);
         responses.forEach((response, index) => {
           expect(response.status).toBe(201);
-          expect((response.body as any).questionOption.text).toBe(optionTexts[index]);
+          expect(response.body.questionOption.text).toBe(optionTexts[index]);
         });
 
         // Verify all are in database
@@ -445,35 +496,37 @@ describe(
         ];
 
         for (const text of edgeCaseTexts) {
-          const response: Response = await helpers.createQuestionOptionExpectSuccess(
-            testSetup.multipleChoiceQuestionId,
-            text,
-          );
-          
+          const response: Response =
+            await helpers.createQuestionOptionExpectSuccess(
+              testSetup.multipleChoiceQuestionId,
+              text,
+            );
+
           // Verify exact preservation
-          expect((response.body as any).questionOption.text).toBe(text);
-          expect((response.body as any).questionOption.text.length).toBe(text.length);
+          expect(response.body.questionOption.text).toBe(text);
+          expect(response.body.questionOption.text.length).toBe(text.length);
         }
       });
 
       it('should handle timestamp precision correctly', async () => {
         const before = new Date();
-        
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          'Timestamp test option',
-        );
-        
+
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            'Timestamp test option',
+          );
+
         const after = new Date();
-        const createdAt = new Date((response.body as any).questionOption.createdAt);
-        const updatedAt = new Date((response.body as any).questionOption.updatedAt);
+        const createdAt = new Date(response.body.questionOption.createdAt);
+        const updatedAt = new Date(response.body.questionOption.updatedAt);
 
         // Verify timestamps are within expected range
         expect(createdAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
         expect(createdAt.getTime()).toBeLessThanOrEqual(after.getTime());
         expect(updatedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
         expect(updatedAt.getTime()).toBeLessThanOrEqual(after.getTime());
-        
+
         // For new records, createdAt should equal updatedAt
         expect(createdAt.getTime()).toBe(updatedAt.getTime());
       });
@@ -482,20 +535,22 @@ describe(
     describe('Error scenarios', () => {
       it('should return 404 when question does not exist', async () => {
         const nonExistentId = '00000000-0000-0000-0000-000000000000';
-        await helpers.createQuestionOptionExpectNotFound(nonExistentId, 'Valid option text');
+        await helpers.createQuestionOptionExpectNotFound(
+          nonExistentId,
+          'Valid option text',
+        );
       });
 
       it('should return 404 for deleted question', async () => {
         const deletedId = '99999999-9999-9999-9999-999999999999';
-        await helpers.createQuestionOptionExpectNotFound(deletedId, 'Valid option text');
+        await helpers.createQuestionOptionExpectNotFound(
+          deletedId,
+          'Valid option text',
+        );
       });
 
       it('should handle malformed request body', async () => {
-        const malformedPayloads = [
-          'string instead of object',
-          null,
-          [],
-        ];
+        const malformedPayloads = ['string instead of object', null, []];
 
         for (const payload of malformedPayloads) {
           const res = await helpers.createQuestionOptionWithPayload(
@@ -520,7 +575,7 @@ describe(
           .post(`/questions/${testSetup.multipleChoiceQuestionId}/options`)
           .set('Content-Type', 'text/plain')
           .send('Plain text instead of JSON');
-        
+
         expect([400, 415]).toContain(response.status);
       });
     });
@@ -529,26 +584,31 @@ describe(
       it('should create question option within acceptable time', async () => {
         await helpers.testCreateQuestionOptionPerformance(
           'Single create question option',
-          async () => await helpers.createQuestionOptionExpectSuccess(
-            testSetup.multipleChoiceQuestionId,
-            'Performance test option',
-          ),
+          async () =>
+            await helpers.createQuestionOptionExpectSuccess(
+              testSetup.multipleChoiceQuestionId,
+              'Performance test option',
+            ),
           QuestionOptionTestData.MAX_EXECUTION_TIME,
         );
       });
 
       it('should handle multiple sequential creations efficiently', async () => {
-        const options = Array.from({ length: 10 }, (_, i) => `Sequential Option ${i + 1}`);
-        
+        const options = Array.from(
+          { length: 10 },
+          (_, i) => `Sequential Option ${i + 1}`,
+        );
+
         await helpers.testCreateQuestionOptionPerformance(
           'Sequential question option creation',
           async () => {
             const responses: Response[] = [];
             for (const optionText of options) {
-              const response: Response = await helpers.createQuestionOptionExpectSuccess(
-                testSetup.multipleChoiceQuestionId,
-                optionText,
-              );
+              const response: Response =
+                await helpers.createQuestionOptionExpectSuccess(
+                  testSetup.multipleChoiceQuestionId,
+                  optionText,
+                );
               responses.push(response);
             }
             return responses;
@@ -558,16 +618,19 @@ describe(
       });
 
       it('should handle concurrent creations efficiently', async () => {
-        const options = Array.from({ length: 5 }, (_, i) => `Concurrent Option ${i + 1}`);
-        
+        const options = Array.from(
+          { length: 5 },
+          (_, i) => `Concurrent Option ${i + 1}`,
+        );
+
         await helpers.testCreateQuestionOptionPerformance(
           'Concurrent question option creation',
           async () => {
-            const promises = options.map(optionText =>
+            const promises = options.map((optionText) =>
               helpers.createQuestionOptionExpectSuccess(
                 testSetup.multipleChoiceQuestionId,
                 optionText,
-              )
+              ),
             );
             return await Promise.all(promises);
           },
@@ -577,13 +640,14 @@ describe(
 
       it('should handle large text options efficiently', async () => {
         const largeText = 'A'.repeat(500);
-        
+
         await helpers.testCreateQuestionOptionPerformance(
           'Large text option creation',
-          async () => await helpers.createQuestionOptionExpectSuccess(
-            testSetup.multipleChoiceQuestionId,
-            largeText,
-          ),
+          async () =>
+            await helpers.createQuestionOptionExpectSuccess(
+              testSetup.multipleChoiceQuestionId,
+              largeText,
+            ),
           QuestionOptionTestData.MAX_EXECUTION_TIME,
         );
       });
@@ -593,25 +657,29 @@ describe(
       it('should maintain data integrity between create and list operations', async () => {
         const testCases = [
           { name: 'Basic text', text: 'Basic option text' },
-          { name: 'Medical terms', text: 'Acute myocardial infarction with ST-elevation' },
+          {
+            name: 'Medical terms',
+            text: 'Acute myocardial infarction with ST-elevation',
+          },
           { name: 'Special chars', text: 'Option with @#$%^&*() characters' },
           { name: 'Unicode', text: 'Opção com 中文 العربية русский 🎯' },
           { name: 'Formatting', text: 'Text with\nnewlines and\ttabs' },
         ];
 
         for (const testCase of testCases) {
-          const { createResponse, listResponse } = await helpers.createAndVerifyQuestionOption(
-            testSetup.multipleChoiceQuestionId,
-            testCase.text,
-          );
+          const { createResponse, listResponse } =
+            await helpers.createAndVerifyQuestionOption(
+              testSetup.multipleChoiceQuestionId,
+              testCase.text,
+            );
 
           // Verify data integrity
           const createdOption = listResponse.body.options.find(
-            (opt: any) => opt.id === createResponse.body.questionOption.id
+            (opt: any) => opt.id === createResponse.body.questionOption.id,
           );
           expect(createdOption).toBeDefined();
           expect(createdOption.text).toBe(testCase.text);
-          
+
           // Verify with database
           await helpers.verifyQuestionOptionDataIntegrity(
             testSetup.multipleChoiceQuestionId,
@@ -622,27 +690,32 @@ describe(
 
       it('should handle different question types correctly', async () => {
         const questionTypes = [
-          { type: 'MULTIPLE_CHOICE', questionId: testSetup.multipleChoiceQuestionId },
+          {
+            type: 'MULTIPLE_CHOICE',
+            questionId: testSetup.multipleChoiceQuestionId,
+          },
           { type: 'OPEN', questionId: testSetup.openQuestionId },
         ];
 
         for (const { type, questionId } of questionTypes) {
-          const response: Response = await helpers.createQuestionOptionExpectSuccess(
-            questionId,
-            `Option for ${type} question`,
-          );
+          const response: Response =
+            await helpers.createQuestionOptionExpectSuccess(
+              questionId,
+              `Option for ${type} question`,
+            );
 
-          expect((response.body as any).questionOption.questionId).toBe(questionId);
+          expect(response.body.questionOption.questionId).toBe(questionId);
         }
       });
 
       it('should preserve all option attributes correctly', async () => {
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          'Attribute test option',
-        );
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            'Attribute test option',
+          );
 
-        const option = (response.body as any).questionOption;
+        const option = response.body.questionOption;
 
         // Verify all required fields
         expect(option.id).toBeDefined();
@@ -670,10 +743,11 @@ describe(
       it('should maintain consistent response format', async () => {
         const responses: Response[] = [];
         for (let i = 0; i < 3; i++) {
-          const response: Response = await helpers.createQuestionOptionExpectSuccess(
-            testSetup.multipleChoiceQuestionId,
-            `Consistency test option ${i + 1}`,
-          );
+          const response: Response =
+            await helpers.createQuestionOptionExpectSuccess(
+              testSetup.multipleChoiceQuestionId,
+              `Consistency test option ${i + 1}`,
+            );
           responses.push(response);
         }
 
@@ -694,11 +768,12 @@ describe(
         const createdIds: string[] = [];
 
         for (const optionText of optionsToCreate) {
-          const response: Response = await helpers.createQuestionOptionExpectSuccess(
-            testSetup.multipleChoiceQuestionId,
-            optionText,
-          );
-          createdIds.push((response.body as any).questionOption.id);
+          const response: Response =
+            await helpers.createQuestionOptionExpectSuccess(
+              testSetup.multipleChoiceQuestionId,
+              optionText,
+            );
+          createdIds.push(response.body.questionOption.id);
         }
 
         // Verify all options exist in database
@@ -726,33 +801,40 @@ describe(
         );
 
         // Verify relationships
-        expect((quizResponse.body as any).questionOption.questionId).toBe(testSetup.multipleChoiceQuestionId);
-        expect((openResponse.body as any).questionOption.questionId).toBe(testSetup.openQuestionId);
+        expect(quizResponse.body.questionOption.questionId).toBe(
+          testSetup.multipleChoiceQuestionId,
+        );
+        expect(openResponse.body.questionOption.questionId).toBe(
+          testSetup.openQuestionId,
+        );
 
         // Verify in database
         const quizDbOption = await testSetup.prisma.questionOption.findUnique({
-          where: { id: (quizResponse.body as any).questionOption.id },
-          include: { question: true },
-        });
-        
-        const openDbOption = await testSetup.prisma.questionOption.findUnique({
-          where: { id: (openResponse.body as any).questionOption.id },
+          where: { id: quizResponse.body.questionOption.id },
           include: { question: true },
         });
 
-        expect(quizDbOption!.question.id).toBe(testSetup.multipleChoiceQuestionId);
+        const openDbOption = await testSetup.prisma.questionOption.findUnique({
+          where: { id: openResponse.body.questionOption.id },
+          include: { question: true },
+        });
+
+        expect(quizDbOption!.question.id).toBe(
+          testSetup.multipleChoiceQuestionId,
+        );
         expect(openDbOption!.question.id).toBe(testSetup.openQuestionId);
       });
 
       it('should ensure referential integrity', async () => {
-        const response: Response = await helpers.createQuestionOptionExpectSuccess(
-          testSetup.multipleChoiceQuestionId,
-          'Referential integrity test',
-        );
+        const response: Response =
+          await helpers.createQuestionOptionExpectSuccess(
+            testSetup.multipleChoiceQuestionId,
+            'Referential integrity test',
+          );
 
         // Verify option references existing question
         const dbOption = await testSetup.prisma.questionOption.findUnique({
-          where: { id: (response.body as any).questionOption.id },
+          where: { id: response.body.questionOption.id },
           include: { question: true },
         });
 

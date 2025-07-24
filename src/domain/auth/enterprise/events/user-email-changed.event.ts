@@ -12,7 +12,7 @@ export class UserEmailChangedEvent extends DomainEvent {
     userId: string,
     oldEmail: string,
     newEmail: string,
-    timestamp?: Date
+    timestamp?: Date,
   ) {
     super();
     this.userId = userId;

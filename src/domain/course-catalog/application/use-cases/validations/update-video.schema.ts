@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const updateVideoSchema = z
   .object({
@@ -10,7 +10,11 @@ export const updateVideoSchema = z
         message: 'Slug must be lowercase with hyphens only',
       })
       .optional(),
-    imageUrl: z.string().url({ message: 'Invalid image URL' }).nullable().optional(),
+    imageUrl: z
+      .string()
+      .url({ message: 'Invalid image URL' })
+      .nullable()
+      .optional(),
     providerVideoId: z
       .string()
       .min(1, { message: 'Provider video ID cannot be empty' })
@@ -20,7 +24,11 @@ export const updateVideoSchema = z
       .int({ message: 'Duration must be an integer' })
       .positive({ message: 'Duration must be positive' })
       .optional(),
-    lessonId: z.string().uuid({ message: 'Invalid lesson ID format' }).nullable().optional(),
+    lessonId: z
+      .string()
+      .uuid({ message: 'Invalid lesson ID format' })
+      .nullable()
+      .optional(),
     translations: z
       .array(
         z.object({
@@ -28,15 +36,24 @@ export const updateVideoSchema = z
             errorMap: () => ({ message: 'Locale must be pt, it, or es' }),
           }),
           title: z.string().min(1, { message: 'Title cannot be empty' }),
-          description: z.string().min(1, { message: 'Description cannot be empty' }),
+          description: z
+            .string()
+            .min(1, { message: 'Description cannot be empty' }),
         }),
       )
-      .length(3, { message: 'Must provide exactly 3 translations (pt, it, es)' })
+      .length(3, {
+        message: 'Must provide exactly 3 translations (pt, it, es)',
+      })
       .refine(
         (translations) => {
-          const locales = translations.map((t) => t.locale)
-          const uniqueLocales = new Set(locales)
-          return uniqueLocales.size === 3 && uniqueLocales.has('pt') && uniqueLocales.has('it') && uniqueLocales.has('es')
+          const locales = translations.map((t) => t.locale);
+          const uniqueLocales = new Set(locales);
+          return (
+            uniqueLocales.size === 3 &&
+            uniqueLocales.has('pt') &&
+            uniqueLocales.has('it') &&
+            uniqueLocales.has('es')
+          );
         },
         {
           message: 'Must provide one translation for each locale: pt, it, es',
@@ -52,11 +69,11 @@ export const updateVideoSchema = z
         data.providerVideoId !== undefined ||
         data.durationInSeconds !== undefined ||
         data.lessonId !== undefined ||
-        data.translations !== undefined
+        data.translations !== undefined;
 
-      return hasUpdateFields
+      return hasUpdateFields;
     },
     {
       message: 'At least one field must be provided for update',
     },
-  )
+  );

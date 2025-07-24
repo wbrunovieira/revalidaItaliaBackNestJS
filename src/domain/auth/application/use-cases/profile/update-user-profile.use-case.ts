@@ -50,22 +50,33 @@ export class UpdateUserProfileUseCase {
 
     // Check if at least one field is being updated
     const updateableFields = [
-      'fullName', 'phone', 'birthDate', 'profileImageUrl',
-      'bio', 'profession', 'specialization', 'preferredLanguage', 'timezone'
+      'fullName',
+      'phone',
+      'birthDate',
+      'profileImageUrl',
+      'bio',
+      'profession',
+      'specialization',
+      'preferredLanguage',
+      'timezone',
     ];
     const hasFieldsToUpdate = updateableFields.some(
-      field => request[field as keyof UpdateUserProfileRequestDto] !== undefined
+      (field) =>
+        request[field as keyof UpdateUserProfileRequestDto] !== undefined,
     );
 
     if (!hasFieldsToUpdate) {
       return left(
-        new InvalidInputError('At least one field must be provided for update', [
-          {
-            code: 'missingFields',
-            message: 'At least one field must be provided for update',
-            path: ['request'],
-          },
-        ]),
+        new InvalidInputError(
+          'At least one field must be provided for update',
+          [
+            {
+              code: 'missingFields',
+              message: 'At least one field must be provided for update',
+              path: ['request'],
+            },
+          ],
+        ),
       );
     }
 
@@ -99,7 +110,11 @@ export class UpdateUserProfileUseCase {
       profile.updateProfile({
         fullName: request.fullName,
         phone: request.phone,
-        birthDate: request.birthDate ? new Date(request.birthDate) : request.birthDate === null ? null : undefined,
+        birthDate: request.birthDate
+          ? new Date(request.birthDate)
+          : request.birthDate === null
+            ? null
+            : undefined,
         profileImageUrl: request.profileImageUrl,
         bio: request.bio,
         profession: request.profession,
@@ -113,10 +128,7 @@ export class UpdateUserProfileUseCase {
 
       if (saveResult.isLeft()) {
         return left(
-          RepositoryError.operationFailed(
-            'save profile',
-            saveResult.value,
-          ),
+          RepositoryError.operationFailed('save profile', saveResult.value),
         );
       }
 
@@ -124,7 +136,10 @@ export class UpdateUserProfileUseCase {
       try {
         const changedFields: string[] = [];
 
-        if (request.fullName !== undefined && request.fullName !== oldValues.fullName) {
+        if (
+          request.fullName !== undefined &&
+          request.fullName !== oldValues.fullName
+        ) {
           changedFields.push('fullName');
         }
         if (request.phone !== undefined && request.phone !== oldValues.phone) {
@@ -163,7 +178,10 @@ export class UpdateUserProfileUseCase {
         ) {
           changedFields.push('preferredLanguage');
         }
-        if (request.timezone !== undefined && request.timezone !== oldValues.timezone) {
+        if (
+          request.timezone !== undefined &&
+          request.timezone !== oldValues.timezone
+        ) {
           changedFields.push('timezone');
         }
 

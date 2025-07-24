@@ -8,7 +8,7 @@ import { FlashcardTestData } from './shared/flashcard-test-data';
 describe('GET /flashcards/:id', () => {
   let testSetup: FlashcardTestSetup;
   let testHelpers: FlashcardTestHelpers;
-  
+
   beforeAll(async () => {
     testSetup = new FlashcardTestSetup();
     await testSetup.initialize();
@@ -29,7 +29,8 @@ describe('GET /flashcards/:id', () => {
       const flashcardId = await testSetup.createTestFlashcard();
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
 
       // Assert
       expect(response.body).toMatchObject({
@@ -43,7 +44,8 @@ describe('GET /flashcards/:id', () => {
           },
           answer: {
             type: 'TEXT',
-            content: 'DDD is an approach to software development that centers the development on programming a domain model',
+            content:
+              'DDD is an approach to software development that centers the development on programming a domain model',
           },
           argumentId: testSetup.argumentId,
         },
@@ -55,10 +57,15 @@ describe('GET /flashcards/:id', () => {
 
     it('should get a flashcard with tags when includeTags is true', async () => {
       // Arrange
-      const flashcardId = await testSetup.createTestFlashcard({ withTags: true });
+      const flashcardId = await testSetup.createTestFlashcard({
+        withTags: true,
+      });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId, { includeTags: true });
+      const response = await testHelpers.getFlashcardByIdExpectSuccess(
+        flashcardId,
+        { includeTags: true },
+      );
 
       // Assert
       expect(response.body).toMatchObject({
@@ -72,7 +79,8 @@ describe('GET /flashcards/:id', () => {
           },
           answer: {
             type: 'TEXT',
-            content: 'DDD is an approach to software development that centers the development on programming a domain model',
+            content:
+              'DDD is an approach to software development that centers the development on programming a domain model',
           },
           argumentId: testSetup.argumentId,
           tags: expect.arrayContaining([
@@ -94,14 +102,19 @@ describe('GET /flashcards/:id', () => {
 
     it('should handle all filters set to true', async () => {
       // Arrange
-      const flashcardId = await testSetup.createTestFlashcard({ withTags: true });
+      const flashcardId = await testSetup.createTestFlashcard({
+        withTags: true,
+      });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId, {
-        includeTags: true,
-        includeInteractionStats: true,
-        includeRelatedFlashcards: true,
-      });
+      const response = await testHelpers.getFlashcardByIdExpectSuccess(
+        flashcardId,
+        {
+          includeTags: true,
+          includeInteractionStats: true,
+          includeRelatedFlashcards: true,
+        },
+      );
 
       // Assert
       expect(response.body).toMatchObject({
@@ -121,14 +134,19 @@ describe('GET /flashcards/:id', () => {
 
     it('should handle all filters set to false', async () => {
       // Arrange
-      const flashcardId = await testSetup.createTestFlashcard({ withTags: true });
+      const flashcardId = await testSetup.createTestFlashcard({
+        withTags: true,
+      });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId, {
-        includeTags: false,
-        includeInteractionStats: false,
-        includeRelatedFlashcards: false,
-      });
+      const response = await testHelpers.getFlashcardByIdExpectSuccess(
+        flashcardId,
+        {
+          includeTags: false,
+          includeInteractionStats: false,
+          includeRelatedFlashcards: false,
+        },
+      );
 
       // Assert
       expect(response.body.flashcard.tags).toBeUndefined();
@@ -136,14 +154,19 @@ describe('GET /flashcards/:id', () => {
 
     it('should handle mixed filter values', async () => {
       // Arrange
-      const flashcardId = await testSetup.createTestFlashcard({ withTags: true });
+      const flashcardId = await testSetup.createTestFlashcard({
+        withTags: true,
+      });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId, {
-        includeTags: true,
-        includeInteractionStats: false,
-        includeRelatedFlashcards: true,
-      });
+      const response = await testHelpers.getFlashcardByIdExpectSuccess(
+        flashcardId,
+        {
+          includeTags: true,
+          includeInteractionStats: false,
+          includeRelatedFlashcards: true,
+        },
+      );
 
       // Assert
       expect(response.body.flashcard.tags).toBeDefined();
@@ -160,7 +183,8 @@ describe('GET /flashcards/:id', () => {
       });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
 
       // Assert
       expect(response.body).toMatchObject({
@@ -190,7 +214,8 @@ describe('GET /flashcards/:id', () => {
       });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
 
       // Assert
       expect(response.body).toMatchObject({
@@ -202,7 +227,8 @@ describe('GET /flashcards/:id', () => {
           },
           answer: {
             type: 'TEXT',
-            content: 'DDD is an approach to software development that centers the development on programming a domain model',
+            content:
+              'DDD is an approach to software development that centers the development on programming a domain model',
           },
         },
       });
@@ -218,7 +244,8 @@ describe('GET /flashcards/:id', () => {
       });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
 
       // Assert
       expect(response.body).toMatchObject({
@@ -243,7 +270,8 @@ describe('GET /flashcards/:id', () => {
       const nonExistentId = '550e8400-e29b-41d4-a716-446655440999';
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectNotFound(nonExistentId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectNotFound(nonExistentId);
 
       // Assert
       expect(response.body).toMatchObject({
@@ -257,7 +285,8 @@ describe('GET /flashcards/:id', () => {
       const invalidId = 'invalid-uuid';
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectBadRequest(invalidId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectBadRequest(invalidId);
 
       // Assert
       expect(response.body).toMatchObject({
@@ -307,12 +336,17 @@ describe('GET /flashcards/:id', () => {
   describe('Query parameter transformations', () => {
     it('should transform string "true" to boolean true', async () => {
       // Arrange
-      const flashcardId = await testSetup.createTestFlashcard({ withTags: true });
+      const flashcardId = await testSetup.createTestFlashcard({
+        withTags: true,
+      });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId, {
-        includeTags: 'true',
-      });
+      const response = await testHelpers.getFlashcardByIdExpectSuccess(
+        flashcardId,
+        {
+          includeTags: 'true',
+        },
+      );
 
       // Assert
       expect(response.body.flashcard.tags).toBeDefined();
@@ -321,12 +355,17 @@ describe('GET /flashcards/:id', () => {
 
     it('should transform string "false" to boolean false', async () => {
       // Arrange
-      const flashcardId = await testSetup.createTestFlashcard({ withTags: true });
+      const flashcardId = await testSetup.createTestFlashcard({
+        withTags: true,
+      });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId, {
-        includeTags: 'false',
-      });
+      const response = await testHelpers.getFlashcardByIdExpectSuccess(
+        flashcardId,
+        {
+          includeTags: 'false',
+        },
+      );
 
       // Assert
       expect(response.body.flashcard.tags).toBeUndefined();
@@ -337,7 +376,8 @@ describe('GET /flashcards/:id', () => {
       const flashcardId = await testSetup.createTestFlashcard();
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
 
       // Assert
       expect(response.body.flashcard).toBeDefined();
@@ -362,7 +402,8 @@ describe('GET /flashcards/:id', () => {
       });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
 
       // Assert
       expect(response.body).toMatchObject({
@@ -399,7 +440,8 @@ describe('GET /flashcards/:id', () => {
       });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
 
       // Assert
       expect(response.body.flashcard.question.content).toHaveLength(1000);
@@ -424,7 +466,8 @@ describe('GET /flashcards/:id', () => {
       });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
 
       // Assert
       expect(response.body).toMatchObject({
@@ -441,7 +484,8 @@ describe('GET /flashcards/:id', () => {
   describe('Performance and special characters', () => {
     it('should handle special characters in content', async () => {
       // Arrange
-      const specialContent = 'Special chars: "quotes", \'single\', <tags>, &amp;, \\backslash, \n\nnewlines';
+      const specialContent =
+        'Special chars: "quotes", \'single\', <tags>, &amp;, \\backslash, \n\nnewlines';
       const flashcardId = '550e8400-e29b-41d4-a716-446655440103';
       await testSetup.prisma.flashcard.create({
         data: {
@@ -456,7 +500,8 @@ describe('GET /flashcards/:id', () => {
       });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
 
       // Assert
       expect(response.body.flashcard.question.content).toBe(specialContent);
@@ -480,7 +525,8 @@ describe('GET /flashcards/:id', () => {
       });
 
       // Act
-      const response = await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
+      const response =
+        await testHelpers.getFlashcardByIdExpectSuccess(flashcardId);
 
       // Assert
       expect(response.body.flashcard.question.content).toBe(unicodeContent);

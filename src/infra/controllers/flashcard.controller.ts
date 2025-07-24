@@ -115,13 +115,17 @@ export class FlashcardController {
       // Handle unexpected errors
       throw new InternalServerErrorException({
         error: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unexpected error occurred',
+        message:
+          error instanceof Error ? error.message : 'Unexpected error occurred',
       });
     }
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string, @Query() query: GetFlashcardByIdQueryDto) {
+  async findById(
+    @Param('id') id: string,
+    @Query() query: GetFlashcardByIdQueryDto,
+  ) {
     try {
       const result = await this.getFlashcardByIdUseCase.execute({
         id,
@@ -181,7 +185,8 @@ export class FlashcardController {
       // Handle unexpected errors
       throw new InternalServerErrorException({
         error: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unexpected error occurred',
+        message:
+          error instanceof Error ? error.message : 'Unexpected error occurred',
       });
     }
   }

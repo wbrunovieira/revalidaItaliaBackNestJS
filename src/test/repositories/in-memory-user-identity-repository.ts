@@ -13,44 +13,54 @@ export class InMemoryUserIdentityRepository extends IUserIdentityRepository {
   }
 
   async save(userIdentity: UserIdentity): Promise<Either<Error, void>> {
-    const index = this.items.findIndex(item => item.id.equals(userIdentity.id));
-    
+    const index = this.items.findIndex((item) =>
+      item.id.equals(userIdentity.id),
+    );
+
     if (index >= 0) {
       this.items[index] = userIdentity;
     } else {
       this.items.push(userIdentity);
     }
-    
+
     return right(undefined);
   }
 
   async findById(id: string): Promise<Either<Error, UserIdentity | null>> {
-    const userIdentity = this.items.find(item => item.id.toString() === id);
+    const userIdentity = this.items.find((item) => item.id.toString() === id);
     return right(userIdentity || null);
   }
 
   async findByEmail(email: Email): Promise<Either<Error, UserIdentity | null>> {
-    const userIdentity = this.items.find(item => item.email.equals(email));
+    const userIdentity = this.items.find((item) => item.email.equals(email));
     return right(userIdentity || null);
   }
 
-  async findByEmailVerificationToken(token: string): Promise<Either<Error, UserIdentity | null>> {
-    const userIdentity = this.items.find(item => item.emailVerificationToken === token);
+  async findByEmailVerificationToken(
+    token: string,
+  ): Promise<Either<Error, UserIdentity | null>> {
+    const userIdentity = this.items.find(
+      (item) => item.emailVerificationToken === token,
+    );
     return right(userIdentity || null);
   }
 
-  async findByPasswordResetToken(token: string): Promise<Either<Error, UserIdentity | null>> {
-    const userIdentity = this.items.find(item => item.passwordResetToken === token);
+  async findByPasswordResetToken(
+    token: string,
+  ): Promise<Either<Error, UserIdentity | null>> {
+    const userIdentity = this.items.find(
+      (item) => item.passwordResetToken === token,
+    );
     return right(userIdentity || null);
   }
 
   async emailExists(email: Email): Promise<Either<Error, boolean>> {
-    const exists = this.items.some(item => item.email.equals(email));
+    const exists = this.items.some((item) => item.email.equals(email));
     return right(exists);
   }
 
   async delete(id: string): Promise<Either<Error, void>> {
-    this.items = this.items.filter(item => item.id.toString() !== id);
+    this.items = this.items.filter((item) => item.id.toString() !== id);
     return right(undefined);
   }
 }

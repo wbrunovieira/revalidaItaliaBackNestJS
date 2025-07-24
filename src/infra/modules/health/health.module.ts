@@ -5,7 +5,7 @@ import { HealthController } from '@/infra/controllers/health.controller';
 
 /**
  * Health Module
- * 
+ *
  * Provides health check endpoints for monitoring and orchestration.
  * Used by Kubernetes, Docker, and load balancers to verify service status.
  */

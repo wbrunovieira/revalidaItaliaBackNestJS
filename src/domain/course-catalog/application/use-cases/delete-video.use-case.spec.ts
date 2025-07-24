@@ -46,7 +46,9 @@ function createValidVideo(id?: string): Video {
 }
 
 // Helper function to create a valid delete request
-function createValidDeleteRequest(overrides?: Partial<DeleteVideoRequest>): DeleteVideoRequest {
+function createValidDeleteRequest(
+  overrides?: Partial<DeleteVideoRequest>,
+): DeleteVideoRequest {
   return {
     id: new UniqueEntityID().toString(),
     ...overrides,
@@ -684,7 +686,9 @@ describe('DeleteVideoUseCase', () => {
       const targetVideo = createValidVideo();
       await repo.create(lessonId, targetVideo, translations);
 
-      const request = createValidDeleteRequest({ id: targetVideo.id.toString() });
+      const request = createValidDeleteRequest({
+        id: targetVideo.id.toString(),
+      });
       const start = Date.now();
 
       // Act

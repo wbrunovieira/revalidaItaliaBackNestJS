@@ -4,7 +4,7 @@ import { REDIS_CLIENT } from './redis.constants';
 
 /**
  * Compatibility provider for @nestjs-modules/ioredis
- * 
+ *
  * This allows modules using @InjectRedis() to work with our centralized Redis client
  */
 export const redisCompatProvider: Provider = {

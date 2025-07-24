@@ -1,4 +1,11 @@
-import { IsString, MinLength, MaxLength, IsOptional, Matches, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  Matches,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class CreateFlashcardTagDto {
   @IsString()

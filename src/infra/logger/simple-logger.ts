@@ -28,7 +28,7 @@ export class SimpleLogger {
 
   static init() {
     if (this.initialized) return;
-    
+
     if (!fs.existsSync(this.logDir)) {
       fs.mkdirSync(this.logDir, { recursive: true });
     }
@@ -41,7 +41,7 @@ export class SimpleLogger {
 
   static logError(traceId: string, error: any, context?: LogContext): void {
     this.init();
-    
+
     const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
       traceId,
@@ -50,9 +50,9 @@ export class SimpleLogger {
       error: {
         message: error.message || String(error),
         stack: error.stack,
-        type: error.constructor?.name || 'Error'
+        type: error.constructor?.name || 'Error',
       },
-      context: this.sanitizeContext(context)
+      context: this.sanitizeContext(context),
     };
 
     // Console em desenvolvimento
@@ -60,12 +60,15 @@ export class SimpleLogger {
       console.error('\n🔴 ERROR:', {
         traceId,
         message: error.message,
-        context: context?.endpoint
+        context: context?.endpoint,
       });
     }
 
     // Arquivo de erros por dia
-    const errorFile = path.join(this.logDir, `errors-${this.getDateString()}.log`);
+    const errorFile = path.join(
+      this.logDir,
+      `errors-${this.getDateString()}.log`,
+    );
     fs.appendFileSync(errorFile, JSON.stringify(logEntry) + '\n');
 
     // Também no log geral
@@ -75,13 +78,13 @@ export class SimpleLogger {
 
   static logInfo(message: string, context?: LogContext): void {
     this.init();
-    
+
     const logEntry: Omit<LogEntry, 'error'> = {
       timestamp: new Date().toISOString(),
       traceId: context?.traceId || this.generateTraceId(),
       level: 'INFO',
       message,
-      context: this.sanitizeContext(context)
+      context: this.sanitizeContext(context),
     };
 
     if (process.env.NODE_ENV !== 'production') {
@@ -94,13 +97,13 @@ export class SimpleLogger {
 
   static logWarn(message: string, context?: LogContext): void {
     this.init();
-    
+
     const logEntry: Omit<LogEntry, 'error'> = {
       timestamp: new Date().toISOString(),
       traceId: context?.traceId || this.generateTraceId(),
       level: 'WARN',
       message,
-      context: this.sanitizeContext(context)
+      context: this.sanitizeContext(context),
     };
 
     if (process.env.NODE_ENV !== 'production') {
@@ -113,15 +116,15 @@ export class SimpleLogger {
 
   static logDebug(message: string, context?: LogContext): void {
     if (process.env.NODE_ENV === 'production') return;
-    
+
     this.init();
-    
+
     const logEntry: Omit<LogEntry, 'error'> = {
       timestamp: new Date().toISOString(),
       traceId: context?.traceId || this.generateTraceId(),
       level: 'DEBUG',
       message,
-      context: this.sanitizeContext(context)
+      context: this.sanitizeContext(context),
     };
 
     console.log(`🐛 ${message}`);
@@ -140,7 +143,7 @@ export class SimpleLogger {
     if (sanitized.payload?.password) {
       sanitized.payload = {
         ...sanitized.payload,
-        password: '[REDACTED]'
+        password: '[REDACTED]',
       };
     }
 
@@ -148,7 +151,7 @@ export class SimpleLogger {
     if (sanitized.payload?.token) {
       sanitized.payload = {
         ...sanitized.payload,
-        token: '[REDACTED]'
+        token: '[REDACTED]',
       };
     }
 
@@ -162,15 +165,15 @@ export class SimpleLogger {
   // Método auxiliar para ler logs por traceId (útil para debugging)
   static async findByTraceId(traceId: string): Promise<LogEntry[]> {
     this.init();
-    
+
     const entries: LogEntry[] = [];
     const files = fs.readdirSync(this.logDir);
-    
+
     for (const file of files) {
       if (file.endsWith('.log')) {
         const content = fs.readFileSync(path.join(this.logDir, file), 'utf-8');
-        const lines = content.split('\n').filter(line => line.trim());
-        
+        const lines = content.split('\n').filter((line) => line.trim());
+
         for (const line of lines) {
           try {
             const entry = JSON.parse(line);
@@ -183,9 +186,10 @@ export class SimpleLogger {
         }
       }
     }
-    
-    return entries.sort((a, b) => 
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+
+    return entries.sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
   }
 }

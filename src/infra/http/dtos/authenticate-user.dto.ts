@@ -4,7 +4,7 @@ import { IsString, IsNotEmpty } from 'class-validator';
 
 /**
  * Authenticate User DTO
- * 
+ *
  * Validates login request structure at the HTTP layer.
  * Business rules validation is delegated to the domain.
  */

@@ -14,7 +14,7 @@ export class UserLoggedInEvent extends DomainEvent {
     email: string,
     ipAddress: string,
     userAgent: string,
-    timestamp?: Date
+    timestamp?: Date,
   ) {
     super();
     this.userId = userId;

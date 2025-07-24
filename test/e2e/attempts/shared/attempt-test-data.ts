@@ -26,17 +26,26 @@ export class AttemptTestData {
    * Valid start attempt requests
    */
   static readonly validRequests = {
-    studentQuiz: (studentId: string, quizId: string): StartAttemptRequestData => ({
+    studentQuiz: (
+      studentId: string,
+      quizId: string,
+    ): StartAttemptRequestData => ({
       userId: studentId,
       assessmentId: quizId,
     }),
 
-    studentSimulado: (studentId: string, simuladoId: string): StartAttemptRequestData => ({
+    studentSimulado: (
+      studentId: string,
+      simuladoId: string,
+    ): StartAttemptRequestData => ({
       userId: studentId,
       assessmentId: simuladoId,
     }),
 
-    studentProvaAberta: (studentId: string, provaAbertaId: string): StartAttemptRequestData => ({
+    studentProvaAberta: (
+      studentId: string,
+      provaAbertaId: string,
+    ): StartAttemptRequestData => ({
       userId: studentId,
       assessmentId: provaAbertaId,
     }),
@@ -485,7 +494,7 @@ export class AttemptTestData {
       this.invalidRequests.nullUserId(),
       this.invalidRequests.nullAssessmentId(),
     ];
-    
+
     return invalidTypes[Math.floor(Math.random() * invalidTypes.length)];
   }
 
@@ -493,13 +502,14 @@ export class AttemptTestData {
    * Get all invalid request test cases
    */
   static getAllInvalidRequests(): any[] {
-    return Object.values(this.invalidRequests).map(fn => fn());
+    return Object.values(this.invalidRequests).map((fn) => fn());
   }
 
   /**
    * UUID validation helper
    */
-  static readonly UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  static readonly UUID_REGEX =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   static isValidUUID(uuid: string): boolean {
     return this.UUID_REGEX.test(uuid);
@@ -509,25 +519,36 @@ export class AttemptTestData {
    * Valid review open answer requests
    */
   static readonly validReviewRequests = {
-    tutorReviewCorrect: (attemptAnswerId: string, reviewerId: string): ReviewOpenAnswerRequestData => ({
+    tutorReviewCorrect: (
+      attemptAnswerId: string,
+      reviewerId: string,
+    ): ReviewOpenAnswerRequestData => ({
       params: { id: attemptAnswerId },
       body: {
         reviewerId,
         isCorrect: true,
-        teacherComment: 'Excelente resposta! Demonstrou conhecimento completo sobre o tema.',
+        teacherComment:
+          'Excelente resposta! Demonstrou conhecimento completo sobre o tema.',
       },
     }),
 
-    tutorReviewIncorrect: (attemptAnswerId: string, reviewerId: string): ReviewOpenAnswerRequestData => ({
+    tutorReviewIncorrect: (
+      attemptAnswerId: string,
+      reviewerId: string,
+    ): ReviewOpenAnswerRequestData => ({
       params: { id: attemptAnswerId },
       body: {
         reviewerId,
         isCorrect: false,
-        teacherComment: 'Resposta incompleta. Faltou abordar aspectos importantes do tratamento.',
+        teacherComment:
+          'Resposta incompleta. Faltou abordar aspectos importantes do tratamento.',
       },
     }),
 
-    tutorReviewWithoutComment: (attemptAnswerId: string, reviewerId: string): ReviewOpenAnswerRequestData => ({
+    tutorReviewWithoutComment: (
+      attemptAnswerId: string,
+      reviewerId: string,
+    ): ReviewOpenAnswerRequestData => ({
       params: { id: attemptAnswerId },
       body: {
         reviewerId,
@@ -535,7 +556,10 @@ export class AttemptTestData {
       },
     }),
 
-    adminReviewCorrect: (attemptAnswerId: string, reviewerId: string): ReviewOpenAnswerRequestData => ({
+    adminReviewCorrect: (
+      attemptAnswerId: string,
+      reviewerId: string,
+    ): ReviewOpenAnswerRequestData => ({
       params: { id: attemptAnswerId },
       body: {
         reviewerId,
@@ -592,7 +616,10 @@ export class AttemptTestData {
       },
     }),
 
-    emptyTeacherComment: (attemptAnswerId: string, reviewerId: string): any => ({
+    emptyTeacherComment: (
+      attemptAnswerId: string,
+      reviewerId: string,
+    ): any => ({
       params: { id: attemptAnswerId },
       body: {
         reviewerId,
@@ -601,7 +628,10 @@ export class AttemptTestData {
       },
     }),
 
-    tooLongTeacherComment: (attemptAnswerId: string, reviewerId: string): any => ({
+    tooLongTeacherComment: (
+      attemptAnswerId: string,
+      reviewerId: string,
+    ): any => ({
       params: { id: attemptAnswerId },
       body: {
         reviewerId,
@@ -633,7 +663,9 @@ export class AttemptTestData {
    * Non-existent review requests for testing 404 errors
    */
   static readonly nonExistentReviewRequests = {
-    nonExistentAttemptAnswer: (reviewerId: string): ReviewOpenAnswerRequestData => ({
+    nonExistentAttemptAnswer: (
+      reviewerId: string,
+    ): ReviewOpenAnswerRequestData => ({
       params: { id: '40000000-0000-4000-8000-000000000000' },
       body: {
         reviewerId,
@@ -642,7 +674,9 @@ export class AttemptTestData {
       },
     }),
 
-    nonExistentReviewer: (attemptAnswerId: string): ReviewOpenAnswerRequestData => ({
+    nonExistentReviewer: (
+      attemptAnswerId: string,
+    ): ReviewOpenAnswerRequestData => ({
       params: { id: attemptAnswerId },
       body: {
         reviewerId: '50000000-0000-4000-8000-000000000000',

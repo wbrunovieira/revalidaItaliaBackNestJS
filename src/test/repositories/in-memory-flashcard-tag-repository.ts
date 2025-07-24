@@ -30,7 +30,9 @@ export class InMemoryFlashcardTagRepository implements IFlashcardTagRepository {
   }
 
   async findByName(name: string): Promise<Either<Error, FlashcardTag>> {
-    const tag = this.items.find((item) => item.name.toLowerCase() === name.toLowerCase());
+    const tag = this.items.find(
+      (item) => item.name.toLowerCase() === name.toLowerCase(),
+    );
 
     if (!tag) {
       return left(new Error('FlashcardTag not found'));
@@ -39,7 +41,9 @@ export class InMemoryFlashcardTagRepository implements IFlashcardTagRepository {
     return right(tag);
   }
 
-  async findByNameContaining(keyword: string): Promise<Either<Error, FlashcardTag[]>> {
+  async findByNameContaining(
+    keyword: string,
+  ): Promise<Either<Error, FlashcardTag[]>> {
     const searchTerm = keyword.toLowerCase();
     const tags = this.items
       .filter((item) => item.name.toLowerCase().includes(searchTerm))
@@ -56,7 +60,9 @@ export class InMemoryFlashcardTagRepository implements IFlashcardTagRepository {
     return right(tags);
   }
 
-  async findAll(params?: PaginationParams): Promise<Either<Error, FlashcardTag[]>> {
+  async findAll(
+    params?: PaginationParams,
+  ): Promise<Either<Error, FlashcardTag[]>> {
     let tags = this.items.sort((a, b) => a.name.localeCompare(b.name));
 
     if (params) {
@@ -109,7 +115,9 @@ export class InMemoryFlashcardTagRepository implements IFlashcardTagRepository {
   }
 
   async checkIfNameExists(name: string): Promise<Either<Error, boolean>> {
-    const exists = this.items.some((item) => item.name.toLowerCase() === name.toLowerCase());
+    const exists = this.items.some(
+      (item) => item.name.toLowerCase() === name.toLowerCase(),
+    );
     return right(exists);
   }
 

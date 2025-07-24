@@ -37,7 +37,8 @@ describe('AnswerController - getById', () => {
 
     it('should return answer for multiple choice question', async () => {
       const params = AnswerControllerTestData.validIds.multipleChoice();
-      const expectedAnswer = AnswerControllerTestData.sampleAnswers.multipleChoiceQuiz;
+      const expectedAnswer =
+        AnswerControllerTestData.sampleAnswers.multipleChoiceQuiz;
 
       const result = await testHelpers.executeGetByIdExpectSuccess(
         params,
@@ -50,7 +51,8 @@ describe('AnswerController - getById', () => {
 
     it('should return answer for open question', async () => {
       const params = AnswerControllerTestData.validIds.openQuestion();
-      const expectedAnswer = AnswerControllerTestData.sampleAnswers.openQuestionAnswer;
+      const expectedAnswer =
+        AnswerControllerTestData.sampleAnswers.openQuestionAnswer;
 
       const result = await testHelpers.executeGetByIdExpectSuccess(
         params,
@@ -62,7 +64,8 @@ describe('AnswerController - getById', () => {
 
     it('should return answer with translations', async () => {
       const params = AnswerControllerTestData.validIds.withTranslations();
-      const expectedAnswer = AnswerControllerTestData.sampleAnswers.medicalContent;
+      const expectedAnswer =
+        AnswerControllerTestData.sampleAnswers.medicalContent;
 
       const result = await testHelpers.executeGetByIdExpectSuccess(
         params,
@@ -76,7 +79,8 @@ describe('AnswerController - getById', () => {
 
     it('should return answer with special characters', async () => {
       const params = AnswerControllerTestData.validIds.withoutTranslations();
-      const expectedAnswer = AnswerControllerTestData.sampleAnswers.withSpecialChars;
+      const expectedAnswer =
+        AnswerControllerTestData.sampleAnswers.withSpecialChars;
 
       const result = await testHelpers.executeGetByIdExpectSuccess(
         params,
@@ -103,7 +107,8 @@ describe('AnswerController - getById', () => {
 
     it('should return answer with long explanation', async () => {
       const params = AnswerControllerTestData.validIds.standard();
-      const expectedAnswer = AnswerControllerTestData.sampleAnswers.longExplanation;
+      const expectedAnswer =
+        AnswerControllerTestData.sampleAnswers.longExplanation;
 
       const result = await testHelpers.executeGetByIdExpectSuccess(
         params,
@@ -115,7 +120,8 @@ describe('AnswerController - getById', () => {
 
     it('should return answer with medical content', async () => {
       const params = AnswerControllerTestData.validIds.medicalContent();
-      const expectedAnswer = AnswerControllerTestData.sampleAnswers.medicalContent;
+      const expectedAnswer =
+        AnswerControllerTestData.sampleAnswers.medicalContent;
 
       const result = await testHelpers.executeGetByIdExpectSuccess(
         params,
@@ -326,13 +332,12 @@ describe('AnswerController - getById', () => {
       const params = AnswerControllerTestData.validIds.standard();
 
       try {
-        await testHelpers.executeGetByIdExpectInternalError(params, 'repository');
-      } catch (error) {
-        testHelpers.verifyExceptionStructure(
-          error,
-          500,
-          'INTERNAL_ERROR',
+        await testHelpers.executeGetByIdExpectInternalError(
+          params,
+          'repository',
         );
+      } catch (error) {
+        testHelpers.verifyExceptionStructure(error, 500, 'INTERNAL_ERROR');
       }
     });
   });
@@ -391,7 +396,11 @@ describe('AnswerController - getById', () => {
       );
 
       expect(result.answer.translations).toHaveLength(3);
-      expect(result.answer.translations.map(t => t.locale)).toEqual(['pt', 'it', 'es']);
+      expect(result.answer.translations.map((t) => t.locale)).toEqual([
+        'pt',
+        'it',
+        'es',
+      ]);
     });
 
     it('should handle answer with minimal explanation', async () => {
@@ -425,10 +434,11 @@ describe('AnswerController - getById', () => {
     it('should handle concurrent requests efficiently', async () => {
       const paramsArray = AnswerControllerTestData.performance.concurrent(5);
 
-      const { executionTime } = await testHelpers.testConcurrentGetAnswerRequests(
-        paramsArray,
-        500, // 500ms max for 5 concurrent requests
-      );
+      const { executionTime } =
+        await testHelpers.testConcurrentGetAnswerRequests(
+          paramsArray,
+          500, // 500ms max for 5 concurrent requests
+        );
 
       expect(executionTime).toBeLessThan(500);
     });
@@ -499,13 +509,16 @@ describe('AnswerController - getById', () => {
 
       // Should match the expected response format from GetAnswerResponse
       expect(result).toEqual(
-        AnswerControllerTestData.expectedResponses.withSpecificData(expectedAnswer),
+        AnswerControllerTestData.expectedResponses.withSpecificData(
+          expectedAnswer,
+        ),
       );
     });
 
     it('should return consistent response structure for multiple choice', async () => {
       const params = AnswerControllerTestData.validIds.multipleChoice();
-      const expectedAnswer = AnswerControllerTestData.sampleAnswers.multipleChoiceQuiz;
+      const expectedAnswer =
+        AnswerControllerTestData.sampleAnswers.multipleChoiceQuiz;
 
       const result = await testHelpers.executeGetByIdExpectSuccess(
         params,
@@ -521,7 +534,8 @@ describe('AnswerController - getById', () => {
 
     it('should return consistent response structure for open question', async () => {
       const params = AnswerControllerTestData.validIds.openQuestion();
-      const expectedAnswer = AnswerControllerTestData.sampleAnswers.openQuestionAnswer;
+      const expectedAnswer =
+        AnswerControllerTestData.sampleAnswers.openQuestionAnswer;
 
       const result = await testHelpers.executeGetByIdExpectSuccess(
         params,

@@ -6,11 +6,11 @@ import { RedisModule } from './redis/redis.module';
 
 /**
  * Database Module
- * 
+ *
  * Provides database connections and data access services:
  * - PrismaService for PostgreSQL
  * - RedisModule for Redis (cache, stats, online tracking)
- * 
+ *
  * Repository implementations should be provided by their respective domain modules.
  */
 @Module({

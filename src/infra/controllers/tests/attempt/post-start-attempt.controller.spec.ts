@@ -50,7 +50,8 @@ describe('AttemptController - startAttempt', () => {
     it('should start attempt for quiz assessment', async () => {
       const dto: StartAttemptDto =
         AttemptControllerTestData.validStartAttemptDtoForQuiz();
-      const mockResponse = AttemptControllerTestData.mockStartAttemptResponseForQuiz();
+      const mockResponse =
+        AttemptControllerTestData.mockStartAttemptResponseForQuiz();
 
       testSetup.startAttemptUseCase.execute.mockResolvedValueOnce(
         right(mockResponse),
@@ -121,7 +122,8 @@ describe('AttemptController - startAttempt', () => {
     });
 
     it('should handle invalid identityId format', async () => {
-      const dto = AttemptControllerTestData.invalidStartAttemptDto.invalidIdentityId();
+      const dto =
+        AttemptControllerTestData.invalidStartAttemptDto.invalidIdentityId();
       const invalidInputError = new InvalidInputError('Invalid UUID format', [
         'identityId must be a valid UUID',
       ]);
@@ -142,7 +144,8 @@ describe('AttemptController - startAttempt', () => {
     });
 
     it('should handle invalid assessmentId format', async () => {
-      const dto = AttemptControllerTestData.invalidStartAttemptDto.invalidAssessmentId();
+      const dto =
+        AttemptControllerTestData.invalidStartAttemptDto.invalidAssessmentId();
       const invalidInputError = new InvalidInputError('Invalid UUID format', [
         'assessmentId must be a valid UUID',
       ]);
@@ -163,10 +166,12 @@ describe('AttemptController - startAttempt', () => {
     });
 
     it('should handle missing identityId', async () => {
-      const dto = AttemptControllerTestData.invalidStartAttemptDto.missingIdentityId();
-      const invalidInputError = new InvalidInputError('Missing required fields', [
-        'identityId is required',
-      ]);
+      const dto =
+        AttemptControllerTestData.invalidStartAttemptDto.missingIdentityId();
+      const invalidInputError = new InvalidInputError(
+        'Missing required fields',
+        ['identityId is required'],
+      );
 
       testSetup.startAttemptUseCase.execute.mockResolvedValueOnce(
         left(invalidInputError),
@@ -182,10 +187,12 @@ describe('AttemptController - startAttempt', () => {
     });
 
     it('should handle missing assessmentId', async () => {
-      const dto = AttemptControllerTestData.invalidStartAttemptDto.missingAssessmentId();
-      const invalidInputError = new InvalidInputError('Missing required fields', [
-        'assessmentId is required',
-      ]);
+      const dto =
+        AttemptControllerTestData.invalidStartAttemptDto.missingAssessmentId();
+      const invalidInputError = new InvalidInputError(
+        'Missing required fields',
+        ['assessmentId is required'],
+      );
 
       testSetup.startAttemptUseCase.execute.mockResolvedValueOnce(
         left(invalidInputError),
@@ -256,7 +263,7 @@ describe('AttemptController - startAttempt', () => {
       );
 
       const result = await testSetup.controller.startAttempt(dto);
-      
+
       expect(result).toEqual(existingAttemptResponse);
       expect(result.isNew).toBe(false);
     });
@@ -360,7 +367,8 @@ describe('AttemptController - startAttempt', () => {
 
   describe('Edge Cases', () => {
     it('should handle null/undefined values in DTO', async () => {
-      const dtoWithNull = AttemptControllerTestData.invalidStartAttemptDto.nullIdentityId();
+      const dtoWithNull =
+        AttemptControllerTestData.invalidStartAttemptDto.nullIdentityId();
       const invalidInputError = new InvalidInputError('Invalid input data', [
         'identityId must be a valid UUID',
         'identityId is required',
@@ -380,7 +388,8 @@ describe('AttemptController - startAttempt', () => {
     });
 
     it('should handle empty string values in DTO', async () => {
-      const dtoWithEmpty = AttemptControllerTestData.invalidStartAttemptDto.emptyIdentityId();
+      const dtoWithEmpty =
+        AttemptControllerTestData.invalidStartAttemptDto.emptyIdentityId();
       const invalidInputError = new InvalidInputError('Invalid input data', [
         'identityId must be a valid UUID',
         'identityId is required',
@@ -400,7 +409,8 @@ describe('AttemptController - startAttempt', () => {
     });
 
     it('should handle attempt that is about to expire', async () => {
-      const dto: StartAttemptDto = AttemptControllerTestData.validStartAttemptDtoForSimulado();
+      const dto: StartAttemptDto =
+        AttemptControllerTestData.validStartAttemptDtoForSimulado();
       const expiringAttemptResponse = {
         attempt: {
           id: 'expiring-attempt-id',
@@ -429,7 +439,8 @@ describe('AttemptController - startAttempt', () => {
     });
 
     it('should handle assessment with no time limit', async () => {
-      const dto: StartAttemptDto = AttemptControllerTestData.validStartAttemptDtoForQuiz();
+      const dto: StartAttemptDto =
+        AttemptControllerTestData.validStartAttemptDtoForQuiz();
       const noTimeLimitResponse = {
         attempt: {
           id: 'no-time-limit-attempt',
@@ -460,7 +471,8 @@ describe('AttemptController - startAttempt', () => {
 
   describe('Controller Response Structure', () => {
     it('should maintain consistent error response format', async () => {
-      const dto: StartAttemptDto = AttemptControllerTestData.validStartAttemptDto();
+      const dto: StartAttemptDto =
+        AttemptControllerTestData.validStartAttemptDto();
       const repositoryError = new RepositoryError('Database connection failed');
 
       testSetup.startAttemptUseCase.execute.mockResolvedValueOnce(

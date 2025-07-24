@@ -4,9 +4,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
-import { 
-  setupAssessmentControllerTest, 
-  AssessmentControllerTestContext 
+import {
+  setupAssessmentControllerTest,
+  AssessmentControllerTestContext,
 } from './shared/assessment-controller-test-setup';
 import { AssessmentControllerTestHelpers } from './shared/assessment-controller-test-helpers';
 import { AssessmentControllerTestData } from './shared/assessment-controller-test-data';
@@ -26,18 +26,22 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
     it('should return detailed questions for a valid QUIZ assessment', async () => {
       // Arrange
       const assessmentId = AssessmentControllerTestHelpers.createValidUUID();
-      const expectedResponse = AssessmentControllerTestData.createQuestionsDetailedResponse();
-      
+      const expectedResponse =
+        AssessmentControllerTestData.createQuestionsDetailedResponse();
+
       AssessmentControllerTestHelpers.mockUseCaseSuccess(
         testContext.getQuestionsDetailedUseCase,
-        expectedResponse
+        expectedResponse,
       );
 
       // Act
-      const result = await testContext.controller.getQuestionsDetailed(assessmentId);
+      const result =
+        await testContext.controller.getQuestionsDetailed(assessmentId);
 
       // Assert
-      expect(testContext.getQuestionsDetailedUseCase.execute).toHaveBeenCalledWith({
+      expect(
+        testContext.getQuestionsDetailedUseCase.execute,
+      ).toHaveBeenCalledWith({
         assessmentId,
       });
       expect(result).toEqual(expectedResponse);
@@ -52,15 +56,17 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
     it('should return detailed questions for a SIMULADO with arguments', async () => {
       // Arrange
       const assessmentId = AssessmentControllerTestHelpers.createValidUUID();
-      const expectedResponse = AssessmentControllerTestData.createSimuladoDetailedResponse();
-      
+      const expectedResponse =
+        AssessmentControllerTestData.createSimuladoDetailedResponse();
+
       AssessmentControllerTestHelpers.mockUseCaseSuccess(
         testContext.getQuestionsDetailedUseCase,
-        expectedResponse
+        expectedResponse,
       );
 
       // Act
-      const result = await testContext.controller.getQuestionsDetailed(assessmentId);
+      const result =
+        await testContext.controller.getQuestionsDetailed(assessmentId);
 
       // Assert
       expect(result.assessment.type).toBe('SIMULADO');
@@ -73,15 +79,17 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
     it('should return detailed questions for a PROVA_ABERTA with open questions', async () => {
       // Arrange
       const assessmentId = AssessmentControllerTestHelpers.createValidUUID();
-      const expectedResponse = AssessmentControllerTestData.createProvaAbertaDetailedResponse();
-      
+      const expectedResponse =
+        AssessmentControllerTestData.createProvaAbertaDetailedResponse();
+
       AssessmentControllerTestHelpers.mockUseCaseSuccess(
         testContext.getQuestionsDetailedUseCase,
-        expectedResponse
+        expectedResponse,
       );
 
       // Act
-      const result = await testContext.controller.getQuestionsDetailed(assessmentId);
+      const result =
+        await testContext.controller.getQuestionsDetailed(assessmentId);
 
       // Assert
       expect(result.assessment.type).toBe('PROVA_ABERTA');
@@ -95,15 +103,17 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
     it('should handle empty assessment with no questions', async () => {
       // Arrange
       const assessmentId = AssessmentControllerTestHelpers.createValidUUID();
-      const expectedResponse = AssessmentControllerTestData.createEmptyAssessmentResponse();
-      
+      const expectedResponse =
+        AssessmentControllerTestData.createEmptyAssessmentResponse();
+
       AssessmentControllerTestHelpers.mockUseCaseSuccess(
         testContext.getQuestionsDetailedUseCase,
-        expectedResponse
+        expectedResponse,
       );
 
       // Act
-      const result = await testContext.controller.getQuestionsDetailed(assessmentId);
+      const result =
+        await testContext.controller.getQuestionsDetailed(assessmentId);
 
       // Assert
       expect(result.questions).toHaveLength(0);
@@ -122,13 +132,13 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
 
       AssessmentControllerTestHelpers.mockUseCaseError(
         testContext.getQuestionsDetailedUseCase,
-        validationError
+        validationError,
       );
 
       // Act & Assert
       await AssessmentControllerTestHelpers.expectInvalidInputError(
         () => testContext.controller.getQuestionsDetailed(invalidId),
-        ['assessmentId: Assessment ID must be a valid UUID']
+        ['assessmentId: Assessment ID must be a valid UUID'],
       );
     });
 
@@ -141,13 +151,13 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
 
       AssessmentControllerTestHelpers.mockUseCaseError(
         testContext.getQuestionsDetailedUseCase,
-        validationError
+        validationError,
       );
 
       // Act & Assert
       await AssessmentControllerTestHelpers.expectInvalidInputError(
         () => testContext.controller.getQuestionsDetailed(emptyId),
-        ['assessmentId: Assessment ID is required']
+        ['assessmentId: Assessment ID is required'],
       );
     });
   });
@@ -160,12 +170,12 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
 
       AssessmentControllerTestHelpers.mockUseCaseError(
         testContext.getQuestionsDetailedUseCase,
-        notFoundError
+        notFoundError,
       );
 
       // Act & Assert
-      await AssessmentControllerTestHelpers.expectAssessmentNotFoundError(
-        () => testContext.controller.getQuestionsDetailed(assessmentId)
+      await AssessmentControllerTestHelpers.expectAssessmentNotFoundError(() =>
+        testContext.controller.getQuestionsDetailed(assessmentId),
       );
     });
   });
@@ -178,13 +188,13 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
 
       AssessmentControllerTestHelpers.mockUseCaseError(
         testContext.getQuestionsDetailedUseCase,
-        repositoryError
+        repositoryError,
       );
 
       // Act & Assert
       await AssessmentControllerTestHelpers.expectRepositoryError(
         () => testContext.controller.getQuestionsDetailed(assessmentId),
-        'Failed to fetch questions'
+        'Failed to fetch questions',
       );
     });
 
@@ -195,12 +205,12 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
 
       AssessmentControllerTestHelpers.mockUseCaseUnexpectedError(
         testContext.getQuestionsDetailedUseCase,
-        unexpectedError
+        unexpectedError,
       );
 
       // Act & Assert
       await expect(
-        testContext.controller.getQuestionsDetailed(assessmentId)
+        testContext.controller.getQuestionsDetailed(assessmentId),
       ).rejects.toThrow();
     });
   });
@@ -209,16 +219,18 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
     it('should handle assessment with lesson but lesson fetch failed', async () => {
       // Arrange
       const assessmentId = AssessmentControllerTestHelpers.createValidUUID();
-      const response = AssessmentControllerTestData.createQuestionsDetailedResponse();
+      const response =
+        AssessmentControllerTestData.createQuestionsDetailedResponse();
       response.lesson = undefined; // Lesson fetch failed but assessment continues
-      
+
       AssessmentControllerTestHelpers.mockUseCaseSuccess(
         testContext.getQuestionsDetailedUseCase,
-        response
+        response,
       );
 
       // Act
-      const result = await testContext.controller.getQuestionsDetailed(assessmentId);
+      const result =
+        await testContext.controller.getQuestionsDetailed(assessmentId);
 
       // Assert
       expect(result.assessment.lessonId).toBeDefined();
@@ -228,35 +240,39 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
     it('should handle questions with multilingual translations', async () => {
       // Arrange
       const assessmentId = AssessmentControllerTestHelpers.createValidUUID();
-      const response = AssessmentControllerTestData.createQuestionsDetailedResponse();
-      
+      const response =
+        AssessmentControllerTestData.createQuestionsDetailedResponse();
+
       AssessmentControllerTestHelpers.mockUseCaseSuccess(
         testContext.getQuestionsDetailedUseCase,
-        response
+        response,
       );
 
       // Act
-      const result = await testContext.controller.getQuestionsDetailed(assessmentId);
+      const result =
+        await testContext.controller.getQuestionsDetailed(assessmentId);
 
       // Assert
       const answer = result.questions[0].answer;
       expect(answer?.translations).toHaveLength(2);
-      expect(answer?.translations.find(t => t.locale === 'pt')).toBeDefined();
-      expect(answer?.translations.find(t => t.locale === 'it')).toBeDefined();
+      expect(answer?.translations.find((t) => t.locale === 'pt')).toBeDefined();
+      expect(answer?.translations.find((t) => t.locale === 'it')).toBeDefined();
     });
 
     it('should return all question details including timestamps', async () => {
       // Arrange
       const assessmentId = AssessmentControllerTestHelpers.createValidUUID();
-      const response = AssessmentControllerTestData.createQuestionsDetailedResponse();
-      
+      const response =
+        AssessmentControllerTestData.createQuestionsDetailedResponse();
+
       AssessmentControllerTestHelpers.mockUseCaseSuccess(
         testContext.getQuestionsDetailedUseCase,
-        response
+        response,
       );
 
       // Act
-      const result = await testContext.controller.getQuestionsDetailed(assessmentId);
+      const result =
+        await testContext.controller.getQuestionsDetailed(assessmentId);
 
       // Assert
       const question = result.questions[0];
@@ -271,33 +287,38 @@ describe('AssessmentController - GET /assessments/:id/questions/detailed', () =>
     it('should call use case exactly once per request', async () => {
       // Arrange
       const assessmentId = AssessmentControllerTestHelpers.createValidUUID();
-      const response = AssessmentControllerTestData.createQuestionsDetailedResponse();
-      
+      const response =
+        AssessmentControllerTestData.createQuestionsDetailedResponse();
+
       AssessmentControllerTestHelpers.mockUseCaseSuccess(
         testContext.getQuestionsDetailedUseCase,
-        response
+        response,
       );
 
       // Act
       await testContext.controller.getQuestionsDetailed(assessmentId);
 
       // Assert
-      expect(testContext.getQuestionsDetailedUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(
+        testContext.getQuestionsDetailedUseCase.execute,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should not modify the response from use case', async () => {
       // Arrange
       const assessmentId = AssessmentControllerTestHelpers.createValidUUID();
-      const originalResponse = AssessmentControllerTestData.createQuestionsDetailedResponse();
+      const originalResponse =
+        AssessmentControllerTestData.createQuestionsDetailedResponse();
       const responseCopy = JSON.parse(JSON.stringify(originalResponse));
-      
+
       AssessmentControllerTestHelpers.mockUseCaseSuccess(
         testContext.getQuestionsDetailedUseCase,
-        originalResponse
+        originalResponse,
       );
 
       // Act
-      const result = await testContext.controller.getQuestionsDetailed(assessmentId);
+      const result =
+        await testContext.controller.getQuestionsDetailed(assessmentId);
 
       // Assert
       expect(JSON.stringify(result)).toBe(JSON.stringify(responseCopy));

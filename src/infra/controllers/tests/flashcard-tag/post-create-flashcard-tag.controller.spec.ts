@@ -19,11 +19,12 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
   describe('Success Cases', () => {
     it('should create a flashcard tag with valid data', async () => {
       const dto = FlashcardTagControllerTestData.VALID_DTOS.SIMPLE_TAG;
-      const expectedResponse = FlashcardTagControllerTestData.SUCCESS_RESPONSES.SIMPLE_TAG;
+      const expectedResponse =
+        FlashcardTagControllerTestData.SUCCESS_RESPONSES.SIMPLE_TAG;
 
       FlashcardTagControllerTestHelpers.mockUseCaseSuccess(
         setup.createFlashcardTagUseCase,
-        expectedResponse
+        expectedResponse,
       );
 
       const result = await setup.controller.create(dto);
@@ -32,16 +33,20 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
         name: dto.name,
         slug: undefined,
       });
-      FlashcardTagControllerTestHelpers.expectSuccessResponse(result, expectedResponse);
+      FlashcardTagControllerTestHelpers.expectSuccessResponse(
+        result,
+        expectedResponse,
+      );
     });
 
     it('should create a flashcard tag with custom slug', async () => {
       const dto = FlashcardTagControllerTestData.VALID_DTOS.TAG_WITH_SLUG;
-      const expectedResponse = FlashcardTagControllerTestData.SUCCESS_RESPONSES.TAG_WITH_SLUG;
+      const expectedResponse =
+        FlashcardTagControllerTestData.SUCCESS_RESPONSES.TAG_WITH_SLUG;
 
       FlashcardTagControllerTestHelpers.mockUseCaseSuccess(
         setup.createFlashcardTagUseCase,
-        expectedResponse
+        expectedResponse,
       );
 
       const result = await setup.controller.create(dto);
@@ -50,16 +55,20 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
         name: dto.name,
         slug: dto.slug,
       });
-      FlashcardTagControllerTestHelpers.expectSuccessResponse(result, expectedResponse);
+      FlashcardTagControllerTestHelpers.expectSuccessResponse(
+        result,
+        expectedResponse,
+      );
     });
 
     it('should create a flashcard tag with minimal valid name', async () => {
       const dto = FlashcardTagControllerTestData.VALID_DTOS.MINIMAL_NAME;
-      const expectedResponse = FlashcardTagControllerTestData.SUCCESS_RESPONSES.SIMPLE_TAG;
+      const expectedResponse =
+        FlashcardTagControllerTestData.SUCCESS_RESPONSES.SIMPLE_TAG;
 
       FlashcardTagControllerTestHelpers.mockUseCaseSuccess(
         setup.createFlashcardTagUseCase,
-        expectedResponse
+        expectedResponse,
       );
 
       const result = await setup.controller.create(dto);
@@ -68,16 +77,20 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
         name: dto.name,
         slug: undefined,
       });
-      FlashcardTagControllerTestHelpers.expectSuccessResponse(result, expectedResponse);
+      FlashcardTagControllerTestHelpers.expectSuccessResponse(
+        result,
+        expectedResponse,
+      );
     });
 
     it('should create a flashcard tag with maximum valid name', async () => {
       const dto = FlashcardTagControllerTestData.VALID_DTOS.MAXIMUM_NAME;
-      const expectedResponse = FlashcardTagControllerTestData.SUCCESS_RESPONSES.SIMPLE_TAG;
+      const expectedResponse =
+        FlashcardTagControllerTestData.SUCCESS_RESPONSES.SIMPLE_TAG;
 
       FlashcardTagControllerTestHelpers.mockUseCaseSuccess(
         setup.createFlashcardTagUseCase,
-        expectedResponse
+        expectedResponse,
       );
 
       const result = await setup.controller.create(dto);
@@ -86,44 +99,61 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
         name: dto.name,
         slug: undefined,
       });
-      FlashcardTagControllerTestHelpers.expectSuccessResponse(result, expectedResponse);
+      FlashcardTagControllerTestHelpers.expectSuccessResponse(
+        result,
+        expectedResponse,
+      );
     });
   });
 
   describe('Validation Errors', () => {
     it('should throw BadRequestException for empty name', async () => {
       const dto = FlashcardTagControllerTestData.INVALID_DTOS.EMPTY_NAME;
-      const errorDetails = { name: ['Name must be at least 3 characters long'] };
+      const errorDetails = {
+        name: ['Name must be at least 3 characters long'],
+      };
 
       FlashcardTagControllerTestHelpers.mockUseCaseInvalidInput(
         setup.createFlashcardTagUseCase,
-        errorDetails
+        errorDetails,
       );
 
-      await expect(setup.controller.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(setup.controller.create(dto)).rejects.toThrow(
+        BadRequestException,
+      );
 
       try {
         await setup.controller.create(dto);
       } catch (error) {
-        FlashcardTagControllerTestHelpers.expectBadRequestException(error, errorDetails);
+        FlashcardTagControllerTestHelpers.expectBadRequestException(
+          error,
+          errorDetails,
+        );
       }
     });
 
     it('should throw BadRequestException for too short name', async () => {
       const dto = FlashcardTagControllerTestData.INVALID_DTOS.TOO_SHORT_NAME;
-      const errorDetails = { name: ['Name must be at least 3 characters long'] };
+      const errorDetails = {
+        name: ['Name must be at least 3 characters long'],
+      };
 
       FlashcardTagControllerTestHelpers.mockUseCaseInvalidInput(
         setup.createFlashcardTagUseCase,
-        errorDetails
+        errorDetails,
       );
 
-      await expect(setup.controller.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(setup.controller.create(dto)).rejects.toThrow(
+        BadRequestException,
+      );
 
       try {
         await setup.controller.create(dto);
       } catch (error) {
-        FlashcardTagControllerTestHelpers.expectBadRequestException(error, errorDetails);
+        FlashcardTagControllerTestHelpers.expectBadRequestException(
+          error,
+          errorDetails,
+        );
       }
     });
 
@@ -133,87 +163,129 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
 
       FlashcardTagControllerTestHelpers.mockUseCaseInvalidInput(
         setup.createFlashcardTagUseCase,
-        errorDetails
+        errorDetails,
       );
 
-      await expect(setup.controller.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(setup.controller.create(dto)).rejects.toThrow(
+        BadRequestException,
+      );
 
       try {
         await setup.controller.create(dto);
       } catch (error) {
-        FlashcardTagControllerTestHelpers.expectBadRequestException(error, errorDetails);
+        FlashcardTagControllerTestHelpers.expectBadRequestException(
+          error,
+          errorDetails,
+        );
       }
     });
 
     it('should throw BadRequestException for invalid slug with uppercase', async () => {
-      const dto = FlashcardTagControllerTestData.INVALID_DTOS.INVALID_SLUG_UPPERCASE;
-      const errorDetails = { slug: ['Slug must contain only lowercase letters, numbers, and hyphens'] };
+      const dto =
+        FlashcardTagControllerTestData.INVALID_DTOS.INVALID_SLUG_UPPERCASE;
+      const errorDetails = {
+        slug: [
+          'Slug must contain only lowercase letters, numbers, and hyphens',
+        ],
+      };
 
       FlashcardTagControllerTestHelpers.mockUseCaseInvalidInput(
         setup.createFlashcardTagUseCase,
-        errorDetails
+        errorDetails,
       );
 
-      await expect(setup.controller.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(setup.controller.create(dto)).rejects.toThrow(
+        BadRequestException,
+      );
 
       try {
         await setup.controller.create(dto);
       } catch (error) {
-        FlashcardTagControllerTestHelpers.expectBadRequestException(error, errorDetails);
+        FlashcardTagControllerTestHelpers.expectBadRequestException(
+          error,
+          errorDetails,
+        );
       }
     });
 
     it('should throw BadRequestException for invalid slug with spaces', async () => {
-      const dto = FlashcardTagControllerTestData.INVALID_DTOS.INVALID_SLUG_SPACES;
-      const errorDetails = { slug: ['Slug must contain only lowercase letters, numbers, and hyphens'] };
+      const dto =
+        FlashcardTagControllerTestData.INVALID_DTOS.INVALID_SLUG_SPACES;
+      const errorDetails = {
+        slug: [
+          'Slug must contain only lowercase letters, numbers, and hyphens',
+        ],
+      };
 
       FlashcardTagControllerTestHelpers.mockUseCaseInvalidInput(
         setup.createFlashcardTagUseCase,
-        errorDetails
+        errorDetails,
       );
 
-      await expect(setup.controller.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(setup.controller.create(dto)).rejects.toThrow(
+        BadRequestException,
+      );
 
       try {
         await setup.controller.create(dto);
       } catch (error) {
-        FlashcardTagControllerTestHelpers.expectBadRequestException(error, errorDetails);
+        FlashcardTagControllerTestHelpers.expectBadRequestException(
+          error,
+          errorDetails,
+        );
       }
     });
 
     it('should throw BadRequestException for invalid slug with underscore', async () => {
-      const dto = FlashcardTagControllerTestData.INVALID_DTOS.INVALID_SLUG_UNDERSCORE;
-      const errorDetails = { slug: ['Slug must contain only lowercase letters, numbers, and hyphens'] };
+      const dto =
+        FlashcardTagControllerTestData.INVALID_DTOS.INVALID_SLUG_UNDERSCORE;
+      const errorDetails = {
+        slug: [
+          'Slug must contain only lowercase letters, numbers, and hyphens',
+        ],
+      };
 
       FlashcardTagControllerTestHelpers.mockUseCaseInvalidInput(
         setup.createFlashcardTagUseCase,
-        errorDetails
+        errorDetails,
       );
 
-      await expect(setup.controller.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(setup.controller.create(dto)).rejects.toThrow(
+        BadRequestException,
+      );
 
       try {
         await setup.controller.create(dto);
       } catch (error) {
-        FlashcardTagControllerTestHelpers.expectBadRequestException(error, errorDetails);
+        FlashcardTagControllerTestHelpers.expectBadRequestException(
+          error,
+          errorDetails,
+        );
       }
     });
 
     it('should throw BadRequestException for too short slug', async () => {
       const dto = FlashcardTagControllerTestData.INVALID_DTOS.TOO_SHORT_SLUG;
-      const errorDetails = { slug: ['Slug must be at least 3 characters long'] };
+      const errorDetails = {
+        slug: ['Slug must be at least 3 characters long'],
+      };
 
       FlashcardTagControllerTestHelpers.mockUseCaseInvalidInput(
         setup.createFlashcardTagUseCase,
-        errorDetails
+        errorDetails,
       );
 
-      await expect(setup.controller.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(setup.controller.create(dto)).rejects.toThrow(
+        BadRequestException,
+      );
 
       try {
         await setup.controller.create(dto);
       } catch (error) {
-        FlashcardTagControllerTestHelpers.expectBadRequestException(error, errorDetails);
+        FlashcardTagControllerTestHelpers.expectBadRequestException(
+          error,
+          errorDetails,
+        );
       }
     });
 
@@ -223,15 +295,20 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
 
       FlashcardTagControllerTestHelpers.mockUseCaseInvalidInput(
         setup.createFlashcardTagUseCase,
-        errorDetails
+        errorDetails,
       );
 
-      await expect(setup.controller.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(setup.controller.create(dto)).rejects.toThrow(
+        BadRequestException,
+      );
 
       try {
         await setup.controller.create(dto);
       } catch (error) {
-        FlashcardTagControllerTestHelpers.expectBadRequestException(error, errorDetails);
+        FlashcardTagControllerTestHelpers.expectBadRequestException(
+          error,
+          errorDetails,
+        );
       }
     });
   });
@@ -241,10 +318,12 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
       const dto = FlashcardTagControllerTestData.VALID_DTOS.SIMPLE_TAG;
 
       FlashcardTagControllerTestHelpers.mockUseCaseDuplicateTag(
-        setup.createFlashcardTagUseCase
+        setup.createFlashcardTagUseCase,
       );
 
-      await expect(setup.controller.create(dto)).rejects.toThrow(ConflictException);
+      await expect(setup.controller.create(dto)).rejects.toThrow(
+        ConflictException,
+      );
 
       try {
         await setup.controller.create(dto);
@@ -259,15 +338,20 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
 
       FlashcardTagControllerTestHelpers.mockUseCaseInvalidInput(
         setup.createFlashcardTagUseCase,
-        errorDetails
+        errorDetails,
       );
 
-      await expect(setup.controller.create(dto)).rejects.toThrow(BadRequestException);
+      await expect(setup.controller.create(dto)).rejects.toThrow(
+        BadRequestException,
+      );
 
       try {
         await setup.controller.create(dto);
       } catch (error) {
-        FlashcardTagControllerTestHelpers.expectBadRequestException(error, errorDetails);
+        FlashcardTagControllerTestHelpers.expectBadRequestException(
+          error,
+          errorDetails,
+        );
       }
     });
   });
@@ -277,15 +361,19 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
       const dto = FlashcardTagControllerTestData.VALID_DTOS.SIMPLE_TAG;
 
       FlashcardTagControllerTestHelpers.mockUseCaseUnexpectedError(
-        setup.createFlashcardTagUseCase
+        setup.createFlashcardTagUseCase,
       );
 
-      await expect(setup.controller.create(dto)).rejects.toThrow(InternalServerErrorException);
+      await expect(setup.controller.create(dto)).rejects.toThrow(
+        InternalServerErrorException,
+      );
 
       try {
         await setup.controller.create(dto);
       } catch (error) {
-        FlashcardTagControllerTestHelpers.expectInternalServerErrorException(error);
+        FlashcardTagControllerTestHelpers.expectInternalServerErrorException(
+          error,
+        );
       }
     });
   });
@@ -293,11 +381,12 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
   describe('Edge Cases', () => {
     it('should pass undefined slug when not provided', async () => {
       const dto = { name: 'Test Name' };
-      const expectedResponse = FlashcardTagControllerTestData.SUCCESS_RESPONSES.SIMPLE_TAG;
+      const expectedResponse =
+        FlashcardTagControllerTestData.SUCCESS_RESPONSES.SIMPLE_TAG;
 
       FlashcardTagControllerTestHelpers.mockUseCaseSuccess(
         setup.createFlashcardTagUseCase,
-        expectedResponse
+        expectedResponse,
       );
 
       await setup.controller.create(dto);
@@ -310,11 +399,12 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
 
     it('should handle slug with numbers and hyphens', async () => {
       const dto = { name: 'Test Name', slug: 'test-123-slug' };
-      const expectedResponse = FlashcardTagControllerTestData.SUCCESS_RESPONSES.SIMPLE_TAG;
+      const expectedResponse =
+        FlashcardTagControllerTestData.SUCCESS_RESPONSES.SIMPLE_TAG;
 
       FlashcardTagControllerTestHelpers.mockUseCaseSuccess(
         setup.createFlashcardTagUseCase,
-        expectedResponse
+        expectedResponse,
       );
 
       const result = await setup.controller.create(dto);
@@ -323,7 +413,10 @@ describe('FlashcardTagController - POST /flashcard-tags', () => {
         name: dto.name,
         slug: dto.slug,
       });
-      FlashcardTagControllerTestHelpers.expectSuccessResponse(result, expectedResponse);
+      FlashcardTagControllerTestHelpers.expectSuccessResponse(
+        result,
+        expectedResponse,
+      );
     });
   });
 });

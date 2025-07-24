@@ -11,7 +11,7 @@ import { EventsModule } from '@/infra/events/events.module';
 
 /**
  * App Module
- * 
+ *
  * Root module of the application. Configures global services and imports
  * all feature modules through HttpModule.
  */

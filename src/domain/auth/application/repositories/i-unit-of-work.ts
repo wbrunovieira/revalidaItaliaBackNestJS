@@ -15,14 +15,14 @@ export abstract class AuthUnitOfWork implements IAuthUnitOfWork {
   abstract get identityRepository(): IUserIdentityRepository;
   abstract get profileRepository(): IUserProfileRepository;
   abstract get authorizationRepository(): IUserAuthorizationRepository;
-  
+
   abstract start(): Promise<void>;
   abstract commit(): Promise<void>;
   abstract rollback(): Promise<void>;
-  
+
   async execute<T>(work: () => Promise<T>): Promise<T> {
     await this.start();
-    
+
     try {
       const result = await work();
       await this.commit();

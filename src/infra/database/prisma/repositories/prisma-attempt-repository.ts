@@ -6,7 +6,10 @@ import { Attempt } from '@/domain/assessment/enterprise/entities/attempt.entity'
 import { AttemptStatusVO } from '@/domain/assessment/enterprise/value-objects/attempt-status.vo';
 import { ScoreVO } from '@/domain/assessment/enterprise/value-objects/score.vo';
 import { UniqueEntityID } from '@/core/unique-entity-id';
-import { IAttemptRepository, ListAttemptsFilters } from '@/domain/assessment/application/repositories/i-attempt.repository';
+import {
+  IAttemptRepository,
+  ListAttemptsFilters,
+} from '@/domain/assessment/application/repositories/i-attempt.repository';
 import { PaginationParams } from '@/core/repositories/pagination-params';
 import { PrismaService } from '@/prisma/prisma.service';
 
@@ -100,7 +103,9 @@ export class PrismaAttemptRepository implements IAttemptRepository {
     }
   }
 
-  async findByIdentityId(identityId: string): Promise<Either<Error, Attempt[]>> {
+  async findByIdentityId(
+    identityId: string,
+  ): Promise<Either<Error, Attempt[]>> {
     try {
       const attempts = await this.prisma.attempt.findMany({
         where: { identityId },
@@ -207,7 +212,9 @@ export class PrismaAttemptRepository implements IAttemptRepository {
         orderBy: {
           createdAt: 'desc',
         },
-        skip: pagination ? (pagination.page - 1) * pagination.pageSize : undefined,
+        skip: pagination
+          ? (pagination.page - 1) * pagination.pageSize
+          : undefined,
         take: pagination ? pagination.pageSize : undefined,
       });
 

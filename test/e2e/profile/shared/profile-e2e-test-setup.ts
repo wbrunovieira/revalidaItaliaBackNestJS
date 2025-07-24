@@ -17,7 +17,7 @@ export async function createTestUser(
   },
 ) {
   const hashedPassword = await hash(userData.password, 8);
-  
+
   return await prisma.user.create({
     data: {
       id: userData.id,
@@ -46,10 +46,7 @@ export async function cleanupTestUsers(
   });
 }
 
-export async function findUserByEmail(
-  prisma: PrismaService,
-  email: string,
-) {
+export async function findUserByEmail(prisma: PrismaService, email: string) {
   return await prisma.user.findUnique({
     where: { email },
   });

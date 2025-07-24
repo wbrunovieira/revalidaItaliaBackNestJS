@@ -55,42 +55,66 @@ describe('SubmitAttemptUseCase', () => {
   describe('Success Cases', () => {
     it('should submit attempt with multiple choice questions and calculate correct score', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
-      const answerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440007');
-      const correctOptionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440008');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
+      const answerId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440007',
+      );
+      const correctOptionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440008',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: assessmentId.toString(),
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: assessmentId.toString(),
+        },
+        attemptId,
+      );
 
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        quizPosition: 'BEFORE_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
-
-      const question = Question.create({
-        text: 'What is 2 + 2?',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
         assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-      }, questionId);
+      );
 
-      const correctAnswer = Answer.create({
-        correctOptionId: correctOptionId,
-        explanation: 'The answer is 4',
-        questionId: questionId,
-        translations: [],
-      }, answerId);
+      const question = Question.create(
+        {
+          text: 'What is 2 + 2?',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+        },
+        questionId,
+      );
+
+      const correctAnswer = Answer.create(
+        {
+          correctOptionId: correctOptionId,
+          explanation: 'The answer is 4',
+          questionId: questionId,
+          translations: [],
+        },
+        answerId,
+      );
 
       const attemptAnswer = AttemptAnswer.create({
         selectedOptionId: correctOptionId.toString(), // Correct answer
@@ -126,53 +150,83 @@ describe('SubmitAttemptUseCase', () => {
         expect(result.value.summary.scorePercentage).toBe(100);
 
         // Verify attempt answer was marked as SUBMITTED (then auto-graded)
-        const updatedAttemptAnswer = await attemptAnswerRepository.findById(attemptAnswer.id.toString());
+        const updatedAttemptAnswer = await attemptAnswerRepository.findById(
+          attemptAnswer.id.toString(),
+        );
         expect(updatedAttemptAnswer.isRight()).toBe(true);
         if (updatedAttemptAnswer.isRight()) {
-          expect(updatedAttemptAnswer.value.status.getValue()).toBe('SUBMITTED');
+          expect(updatedAttemptAnswer.value.status.getValue()).toBe(
+            'SUBMITTED',
+          );
         }
       }
     });
 
     it('should submit attempt with incorrect multiple choice answer', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
-      const answerId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440007');
-      const correctOptionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440008');
-      const wrongOptionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440009');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
+      const answerId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440007',
+      );
+      const correctOptionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440008',
+      );
+      const wrongOptionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440009',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: assessmentId.toString(),
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: assessmentId.toString(),
+        },
+        attemptId,
+      );
 
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        quizPosition: 'BEFORE_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
-
-      const question = Question.create({
-        text: 'What is 2 + 2?',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
         assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-      }, questionId);
+      );
 
-      const correctAnswer = Answer.create({
-        correctOptionId: correctOptionId,
-        explanation: 'The answer is 4',
-        questionId: questionId,
-        translations: [],
-      }, answerId);
+      const question = Question.create(
+        {
+          text: 'What is 2 + 2?',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+        },
+        questionId,
+      );
+
+      const correctAnswer = Answer.create(
+        {
+          correctOptionId: correctOptionId,
+          explanation: 'The answer is 4',
+          questionId: questionId,
+          translations: [],
+        },
+        answerId,
+      );
 
       const attemptAnswer = AttemptAnswer.create({
         selectedOptionId: wrongOptionId.toString(), // Wrong answer
@@ -206,32 +260,49 @@ describe('SubmitAttemptUseCase', () => {
 
     it('should submit attempt with open questions only', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: assessmentId.toString(),
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: assessmentId.toString(),
+        },
+        attemptId,
+      );
 
-      const assessment = Assessment.create({
-        slug: 'prova-aberta-test',
-        title: 'Prova Aberta Test',
-        type: 'PROVA_ABERTA',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
-
-      const question = Question.create({
-        text: 'Explain your reasoning',
-        type: new QuestionTypeVO('OPEN'),
+      const assessment = Assessment.create(
+        {
+          slug: 'prova-aberta-test',
+          title: 'Prova Aberta Test',
+          type: 'PROVA_ABERTA',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
         assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-      }, questionId);
+      );
+
+      const question = Question.create(
+        {
+          text: 'Explain your reasoning',
+          type: new QuestionTypeVO('OPEN'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+        },
+        questionId,
+      );
 
       const attemptAnswer = AttemptAnswer.create({
         textAnswer: 'My detailed answer here',
@@ -263,65 +334,106 @@ describe('SubmitAttemptUseCase', () => {
         expect(result.value.summary.scorePercentage).toBeUndefined();
 
         // Verify attempt answer was marked as SUBMITTED
-        const updatedAttemptAnswer = await attemptAnswerRepository.findById(attemptAnswer.id.toString());
+        const updatedAttemptAnswer = await attemptAnswerRepository.findById(
+          attemptAnswer.id.toString(),
+        );
         expect(updatedAttemptAnswer.isRight()).toBe(true);
         if (updatedAttemptAnswer.isRight()) {
-          expect(updatedAttemptAnswer.value.status.getValue()).toBe('SUBMITTED');
+          expect(updatedAttemptAnswer.value.status.getValue()).toBe(
+            'SUBMITTED',
+          );
         }
       }
     });
 
     it('should submit attempt with mixed question types (50% score)', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const mcQuestionId1 = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
-      const mcQuestionId2 = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440010');
-      const openQuestionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440006');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const mcQuestionId1 = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
+      const mcQuestionId2 = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440010',
+      );
+      const openQuestionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440006',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: assessmentId.toString(),
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: assessmentId.toString(),
+        },
+        attemptId,
+      );
 
-      const assessment = Assessment.create({
-        slug: 'mixed-test',
-        title: 'Mixed Test',
-        type: 'SIMULADO',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'mixed-test',
+          title: 'Mixed Test',
+          type: 'SIMULADO',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        assessmentId,
+      );
 
       // Multiple choice questions
-      const mcQuestion1 = Question.create({
-        text: 'What is 2 + 2?',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-        assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-      }, mcQuestionId1);
+      const mcQuestion1 = Question.create(
+        {
+          text: 'What is 2 + 2?',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+        },
+        mcQuestionId1,
+      );
 
-      const mcQuestion2 = Question.create({
-        text: 'What is 3 + 3?',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-        assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-      }, mcQuestionId2);
+      const mcQuestion2 = Question.create(
+        {
+          text: 'What is 3 + 3?',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+        },
+        mcQuestionId2,
+      );
 
       // Open question
-      const openQuestion = Question.create({
-        text: 'Explain your reasoning',
-        type: new QuestionTypeVO('OPEN'),
-        assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-      }, openQuestionId);
+      const openQuestion = Question.create(
+        {
+          text: 'Explain your reasoning',
+          type: new QuestionTypeVO('OPEN'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+        },
+        openQuestionId,
+      );
 
       // Correct answers
-      const correctOptionId1 = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440008');
-      const correctOptionId2 = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440011');
-      const wrongOptionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440009');
+      const correctOptionId1 = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440008',
+      );
+      const correctOptionId2 = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440011',
+      );
+      const wrongOptionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440009',
+      );
 
       const correctAnswer1 = Answer.create({
         correctOptionId: correctOptionId1,
@@ -441,15 +553,20 @@ describe('SubmitAttemptUseCase', () => {
 
     it('should return AttemptNotActiveError when attempt is already submitted', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('SUBMITTED'),
-        startedAt: new Date(),
-        submittedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440001',
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('SUBMITTED'),
+          startedAt: new Date(),
+          submittedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440001',
+        },
+        attemptId,
+      );
 
       await attemptRepository.create(attempt);
 
@@ -469,32 +586,42 @@ describe('SubmitAttemptUseCase', () => {
 
     it('should return AttemptExpiredError when time limit has expired', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
       const pastTime = new Date(Date.now() - 60000); // 1 minute ago
 
       // Create a SIMULADO assessment (allows time limit checking)
-      const assessment = Assessment.create({
-        slug: 'test-simulado',
-        title: 'Test Simulado',
-        description: 'Test simulado assessment',
-        type: 'SIMULADO',
-        passingScore: 70,
-        timeLimitInMinutes: 60,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-        lessonId: '550e8400-e29b-41d4-a716-446655440002',
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'test-simulado',
+          title: 'Test Simulado',
+          description: 'Test simulado assessment',
+          type: 'SIMULADO',
+          passingScore: 70,
+          timeLimitInMinutes: 60,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+          lessonId: '550e8400-e29b-41d4-a716-446655440002',
+        },
+        assessmentId,
+      );
 
       await assessmentRepository.create(assessment);
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        timeLimitExpiresAt: pastTime,
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: assessmentId.toString(),
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          timeLimitExpiresAt: pastTime,
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: assessmentId.toString(),
+        },
+        attemptId,
+      );
 
       await attemptRepository.create(attempt);
 
@@ -514,14 +641,19 @@ describe('SubmitAttemptUseCase', () => {
 
     it('should return AssessmentNotFoundError when assessment does not exist', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440001',
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440001',
+        },
+        attemptId,
+      );
 
       await attemptRepository.create(attempt);
 
@@ -541,25 +673,35 @@ describe('SubmitAttemptUseCase', () => {
 
     it('should return NoAnswersFoundError when no answers exist for attempt', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: assessmentId.toString(),
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: assessmentId.toString(),
+        },
+        attemptId,
+      );
 
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        quizPosition: 'BEFORE_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        assessmentId,
+      );
 
       await attemptRepository.create(attempt);
       await assessmentRepository.create(assessment);
@@ -582,33 +724,50 @@ describe('SubmitAttemptUseCase', () => {
   describe('Repository Errors', () => {
     it('should return RepositoryError when attempt repository fails to update', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: assessmentId.toString(),
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: assessmentId.toString(),
+        },
+        attemptId,
+      );
 
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        quizPosition: 'BEFORE_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
-
-      const question = Question.create({
-        text: 'What is 2 + 2?',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
         assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-      }, questionId);
+      );
+
+      const question = Question.create(
+        {
+          text: 'What is 2 + 2?',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+        },
+        questionId,
+      );
 
       const attemptAnswer = AttemptAnswer.create({
         selectedOptionId: '550e8400-e29b-41d4-a716-446655440005',
@@ -661,25 +820,35 @@ describe('SubmitAttemptUseCase', () => {
 
     it('should return RepositoryError when answers repository fails', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: assessmentId.toString(),
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: assessmentId.toString(),
+        },
+        attemptId,
+      );
 
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        quizPosition: 'BEFORE_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        assessmentId,
+      );
 
       await attemptRepository.create(attempt);
       await assessmentRepository.create(assessment);
@@ -720,34 +889,51 @@ describe('SubmitAttemptUseCase', () => {
   describe('Edge Cases', () => {
     it('should handle attempt without time limit', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: assessmentId.toString(),
-        // No timeLimitExpiresAt
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: assessmentId.toString(),
+          // No timeLimitExpiresAt
+        },
+        attemptId,
+      );
 
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        quizPosition: 'BEFORE_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
-
-      const question = Question.create({
-        text: 'What is 2 + 2?',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
         assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-      }, questionId);
+      );
+
+      const question = Question.create(
+        {
+          text: 'What is 2 + 2?',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+        },
+        questionId,
+      );
 
       const attemptAnswer = AttemptAnswer.create({
         selectedOptionId: '550e8400-e29b-41d4-a716-446655440005',
@@ -778,25 +964,35 @@ describe('SubmitAttemptUseCase', () => {
 
     it('should handle empty assessment (no questions)', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: assessmentId.toString(),
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: assessmentId.toString(),
+        },
+        attemptId,
+      );
 
-      const assessment = Assessment.create({
-        slug: 'empty-quiz',
-        title: 'Empty Quiz',
-        type: 'QUIZ',
-        quizPosition: 'BEFORE_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'empty-quiz',
+          title: 'Empty Quiz',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        assessmentId,
+      );
 
       // Create a dummy answer to pass the "no answers" check
       const attemptAnswer = AttemptAnswer.create({
@@ -828,33 +1024,50 @@ describe('SubmitAttemptUseCase', () => {
 
     it('should handle questions without correct answers', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: assessmentId.toString(),
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: assessmentId.toString(),
+        },
+        attemptId,
+      );
 
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        quizPosition: 'BEFORE_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
-
-      const question = Question.create({
-        text: 'What is 2 + 2?',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
         assessmentId,
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-      }, questionId);
+      );
+
+      const question = Question.create(
+        {
+          text: 'What is 2 + 2?',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId,
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+        },
+        questionId,
+      );
 
       const attemptAnswer = AttemptAnswer.create({
         selectedOptionId: '550e8400-e29b-41d4-a716-446655440005',

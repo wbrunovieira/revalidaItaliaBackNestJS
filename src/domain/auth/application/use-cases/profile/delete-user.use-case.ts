@@ -84,7 +84,9 @@ export class DeleteUserUseCase {
       }
 
       // Identity last (most critical)
-      const deleteIdentityResult = await this.identityRepo.delete(identity.id.toString());
+      const deleteIdentityResult = await this.identityRepo.delete(
+        identity.id.toString(),
+      );
       if (deleteIdentityResult.isLeft()) {
         return left(
           RepositoryError.operationFailed(

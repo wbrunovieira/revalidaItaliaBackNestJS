@@ -24,7 +24,7 @@ describe('[E2E] GET /assessments/:id/questions/detailed', () => {
     const { app: testApp } = await E2ETestModule.create([AppModule]);
     app = testApp;
     prisma = app.get(PrismaService);
-    
+
     testSetup = new AssessmentTestSetup(prisma);
     testHelpers = new AssessmentTestHelpers(app);
 

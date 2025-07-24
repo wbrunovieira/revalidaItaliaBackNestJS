@@ -7,7 +7,7 @@ type DomainEventCallback = (event: DomainEvent) => void;
 
 /**
  * Domain Events Dispatcher
- * 
+ *
  * Simple in-memory implementation for managing domain events.
  * In production, this could be replaced with a message queue or event bus.
  */
@@ -35,7 +35,7 @@ export class DomainEvents {
     if (aggregate) {
       const events = aggregate.getUncommittedEvents();
       events.forEach((event) => this.dispatch(event));
-      
+
       aggregate.clearEvents();
       this.removeAggregateFromMarkedDispatchList(aggregate);
     }
@@ -70,7 +70,7 @@ export class DomainEvents {
 
   private static dispatch(event: DomainEvent): void {
     const eventClassName = event.constructor.name;
-    
+
     if (this.handlersMap.has(eventClassName)) {
       const handlers = this.handlersMap.get(eventClassName)!;
       handlers.forEach((handler) => handler(event));
@@ -86,7 +86,9 @@ export class DomainEvents {
   private static removeAggregateFromMarkedDispatchList(
     aggregate: AggregateRoot<any>,
   ): void {
-    const index = this.markedAggregates.findIndex((a) => a.id.equals(aggregate.id));
+    const index = this.markedAggregates.findIndex((a) =>
+      a.id.equals(aggregate.id),
+    );
     this.markedAggregates.splice(index, 1);
   }
 }

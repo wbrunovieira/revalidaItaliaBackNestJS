@@ -33,13 +33,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should update only name', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -68,13 +71,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should update only email', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -102,13 +108,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should update only nationalId', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -136,13 +145,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should update phone number', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -170,13 +182,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should update birth date', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -204,13 +219,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should update profile image URL', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -230,20 +248,25 @@ describe('UpdateOwnProfileUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.profile.profileImageUrl).toBe('https://example.com/avatar.jpg');
+        expect(result.value.profile.profileImageUrl).toBe(
+          'https://example.com/avatar.jpg',
+        );
       }
     });
 
     it('should update multiple fields at once', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -271,20 +294,25 @@ describe('UpdateOwnProfileUseCase', () => {
         expect(result.value.profile.fullName).toBe('John Updated');
         expect(result.value.profile.phone).toBe('+1234567890');
         expect(result.value.profile.birthDate).toEqual(new Date('1990-01-01'));
-        expect(result.value.profile.profileImageUrl).toBe('https://example.com/avatar.jpg');
+        expect(result.value.profile.profileImageUrl).toBe(
+          'https://example.com/avatar.jpg',
+        );
       }
     });
 
     it('should handle null values to clear optional fields', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -319,13 +347,16 @@ describe('UpdateOwnProfileUseCase', () => {
       // Arrange
       const identityId = new UniqueEntityID();
       const email = 'john@example.com';
-      const identity = UserIdentity.create({
-        email: Email.create(email),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create(email),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -353,13 +384,16 @@ describe('UpdateOwnProfileUseCase', () => {
       // Arrange
       const identityId = new UniqueEntityID();
       const nationalId = '12345678901';
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -506,13 +540,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should return InvalidInputError when no fields are provided', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -532,7 +569,9 @@ describe('UpdateOwnProfileUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.message).toBe('At least one field must be provided for update');
+        expect(result.value.message).toBe(
+          'At least one field must be provided for update',
+        );
       }
     });
 
@@ -558,13 +597,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should return ResourceNotFoundError when profile does not exist', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
       // Profile not created
 
@@ -586,23 +628,29 @@ describe('UpdateOwnProfileUseCase', () => {
       // Arrange
       const identityId1 = new UniqueEntityID();
       const identityId2 = new UniqueEntityID();
-      
-      const identity1 = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId1);
+
+      const identity1 = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId1,
+      );
       await identityRepo.create(identity1);
 
-      const identity2 = UserIdentity.create({
-        email: Email.create('jane@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId2);
+      const identity2 = UserIdentity.create(
+        {
+          email: Email.create('jane@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId2,
+      );
       await identityRepo.create(identity2);
 
       const profile = UserProfile.create({
@@ -623,7 +671,9 @@ describe('UpdateOwnProfileUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(DuplicateEmailError);
-        expect(result.value.message).toBe('Conflict in User: Email already registered');
+        expect(result.value.message).toBe(
+          'Conflict in User: Email already registered',
+        );
       }
     });
 
@@ -631,23 +681,29 @@ describe('UpdateOwnProfileUseCase', () => {
       // Arrange
       const identityId1 = new UniqueEntityID();
       const identityId2 = new UniqueEntityID();
-      
-      const identity1 = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId1);
+
+      const identity1 = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId1,
+      );
       await identityRepo.create(identity1);
 
-      const identity2 = UserIdentity.create({
-        email: Email.create('jane@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId2);
+      const identity2 = UserIdentity.create(
+        {
+          email: Email.create('jane@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId2,
+      );
       await identityRepo.create(identity2);
 
       const profile1 = UserProfile.create({
@@ -676,20 +732,25 @@ describe('UpdateOwnProfileUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(DuplicateNationalIdError);
-        expect(result.value.message).toBe('Conflict in User: National ID already registered');
+        expect(result.value.message).toBe(
+          'Conflict in User: National ID already registered',
+        );
       }
     });
 
     it('should return InvalidInputError for invalid email value object', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -726,13 +787,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should return InvalidInputError for invalid nationalId value object', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -762,20 +826,25 @@ describe('UpdateOwnProfileUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.message).toBe('Invalid format for field: nationalId');
+        expect(result.value.message).toBe(
+          'Invalid format for field: nationalId',
+        );
       }
     });
 
     it('should return RepositoryError when identity save fails', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -787,7 +856,9 @@ describe('UpdateOwnProfileUseCase', () => {
       await profileRepo.create(profile);
 
       // Mock save to fail
-      vi.spyOn(identityRepo, 'save').mockResolvedValueOnce(left(new Error('Database error')));
+      vi.spyOn(identityRepo, 'save').mockResolvedValueOnce(
+        left(new Error('Database error')),
+      );
 
       // Act
       const result = await useCase.execute({
@@ -808,13 +879,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should return RepositoryError when profile save fails', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -826,7 +900,9 @@ describe('UpdateOwnProfileUseCase', () => {
       await profileRepo.create(profile);
 
       // Mock save to fail
-      vi.spyOn(profileRepo, 'save').mockResolvedValueOnce(left(new Error('Database error')));
+      vi.spyOn(profileRepo, 'save').mockResolvedValueOnce(
+        left(new Error('Database error')),
+      );
 
       // Act
       const result = await useCase.execute({
@@ -847,13 +923,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should return RepositoryError when email check fails', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -865,7 +944,9 @@ describe('UpdateOwnProfileUseCase', () => {
       await profileRepo.create(profile);
 
       // Mock findByEmail to throw
-      vi.spyOn(identityRepo, 'findByEmail').mockRejectedValueOnce(new Error('Database error'));
+      vi.spyOn(identityRepo, 'findByEmail').mockRejectedValueOnce(
+        new Error('Database error'),
+      );
 
       // Act
       const result = await useCase.execute({
@@ -886,13 +967,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should return RepositoryError when nationalId check fails', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -904,7 +988,9 @@ describe('UpdateOwnProfileUseCase', () => {
       await profileRepo.create(profile);
 
       // Mock findByNationalId to throw
-      vi.spyOn(profileRepo, 'findByNationalId').mockRejectedValueOnce(new Error('Database error'));
+      vi.spyOn(profileRepo, 'findByNationalId').mockRejectedValueOnce(
+        new Error('Database error'),
+      );
 
       // Act
       const result = await useCase.execute({
@@ -927,13 +1013,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should handle empty strings as validation error', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -988,16 +1077,21 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should handle profile repository returning null', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
-      vi.spyOn(profileRepo, 'findByIdentityId').mockResolvedValueOnce(right(null));
+      vi.spyOn(profileRepo, 'findByIdentityId').mockResolvedValueOnce(
+        right(null),
+      );
 
       // Act
       const result = await useCase.execute({
@@ -1015,7 +1109,9 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should handle identity repository returning error', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      vi.spyOn(identityRepo, 'findById').mockResolvedValueOnce(left(new Error('Database error')));
+      vi.spyOn(identityRepo, 'findById').mockResolvedValueOnce(
+        left(new Error('Database error')),
+      );
 
       // Act
       const result = await useCase.execute({
@@ -1033,16 +1129,21 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should handle profile repository returning error', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
-      vi.spyOn(profileRepo, 'findByIdentityId').mockResolvedValueOnce(left(new Error('Database error')));
+      vi.spyOn(profileRepo, 'findByIdentityId').mockResolvedValueOnce(
+        left(new Error('Database error')),
+      );
 
       // Act
       const result = await useCase.execute({
@@ -1063,14 +1164,17 @@ describe('UpdateOwnProfileUseCase', () => {
       const originalEmail = 'john@example.com';
       const originalName = 'John Doe';
       const originalNationalId = '12345678901';
-      
-      const identity = UserIdentity.create({
-        email: Email.create(originalEmail),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+
+      const identity = UserIdentity.create(
+        {
+          email: Email.create(originalEmail),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -1098,13 +1202,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should handle date string conversion correctly', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -1126,7 +1233,9 @@ describe('UpdateOwnProfileUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.profile.birthDate).toBeInstanceOf(Date);
-        expect(result.value.profile.birthDate?.toISOString()).toBe(birthDateString);
+        expect(result.value.profile.birthDate?.toISOString()).toBe(
+          birthDateString,
+        );
       }
     });
   });
@@ -1135,13 +1244,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should allow user to update their own profile', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -1165,13 +1277,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should maintain data consistency between identity and profile', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -1193,16 +1308,20 @@ describe('UpdateOwnProfileUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         // Verify data from repositories
-        const savedIdentity = await identityRepo.findById(identityId.toString());
-        const savedProfile = await profileRepo.findByIdentityId(identityId.toString());
-        
+        const savedIdentity = await identityRepo.findById(
+          identityId.toString(),
+        );
+        const savedProfile = await profileRepo.findByIdentityId(
+          identityId.toString(),
+        );
+
         expect(savedIdentity.isRight()).toBe(true);
         expect(savedProfile.isRight()).toBe(true);
-        
+
         if (savedIdentity.isRight() && savedIdentity.value) {
           expect(savedIdentity.value.email.value).toBe('john.new@example.com');
         }
-        
+
         if (savedProfile.isRight() && savedProfile.value) {
           expect(savedProfile.value.fullName).toBe('John New');
         }
@@ -1213,24 +1332,30 @@ describe('UpdateOwnProfileUseCase', () => {
       // Arrange
       const identityId1 = new UniqueEntityID();
       const identityId2 = new UniqueEntityID();
-      
+
       // Create two users
-      const identity1 = UserIdentity.create({
-        email: Email.create('user1@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId1);
+      const identity1 = UserIdentity.create(
+        {
+          email: Email.create('user1@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId1,
+      );
       await identityRepo.create(identity1);
 
-      const identity2 = UserIdentity.create({
-        email: Email.create('user2@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId2);
+      const identity2 = UserIdentity.create(
+        {
+          email: Email.create('user2@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId2,
+      );
       await identityRepo.create(identity2);
 
       const profile1 = UserProfile.create({
@@ -1258,24 +1383,30 @@ describe('UpdateOwnProfileUseCase', () => {
       // Arrange
       const identityId1 = new UniqueEntityID();
       const identityId2 = new UniqueEntityID();
-      
+
       // Create two users
-      const identity1 = UserIdentity.create({
-        email: Email.create('user1@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId1);
+      const identity1 = UserIdentity.create(
+        {
+          email: Email.create('user1@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId1,
+      );
       await identityRepo.create(identity1);
 
-      const identity2 = UserIdentity.create({
-        email: Email.create('user2@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId2);
+      const identity2 = UserIdentity.create(
+        {
+          email: Email.create('user2@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId2,
+      );
       await identityRepo.create(identity2);
 
       const profile1 = UserProfile.create({
@@ -1326,13 +1457,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should sanitize URLs for profileImageUrl', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -1361,13 +1495,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should handle updates efficiently', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({
@@ -1414,13 +1551,16 @@ describe('UpdateOwnProfileUseCase', () => {
     it('should handle date string formats correctly', async () => {
       // Arrange
       const identityId = new UniqueEntityID();
-      const identity = UserIdentity.create({
-        email: Email.create('john@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, identityId);
+      const identity = UserIdentity.create(
+        {
+          email: Email.create('john@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        identityId,
+      );
       await identityRepo.create(identity);
 
       const profile = UserProfile.create({

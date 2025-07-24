@@ -7,11 +7,7 @@ export class UserAddressUpdatedEvent extends DomainEvent {
   public readonly addressId: string;
   public readonly timestamp: Date;
 
-  constructor(
-    userId: string,
-    addressId: string,
-    timestamp?: Date
-  ) {
+  constructor(userId: string, addressId: string, timestamp?: Date) {
     super();
     this.userId = userId;
     this.addressId = addressId;

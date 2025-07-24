@@ -4,7 +4,7 @@ import { Email } from '../../enterprise/value-objects/email.vo';
 
 /**
  * Repository interface for UserIdentity aggregate
- * 
+ *
  * Handles all persistence operations related to user authentication
  * and identity management.
  */
@@ -12,7 +12,9 @@ export abstract class IUserIdentityRepository {
   /**
    * Find a user identity by email
    */
-  abstract findByEmail(email: Email): Promise<Either<Error, UserIdentity | null>>;
+  abstract findByEmail(
+    email: Email,
+  ): Promise<Either<Error, UserIdentity | null>>;
 
   /**
    * Find a user identity by ID
@@ -22,12 +24,16 @@ export abstract class IUserIdentityRepository {
   /**
    * Find by email verification token
    */
-  abstract findByEmailVerificationToken(token: string): Promise<Either<Error, UserIdentity | null>>;
+  abstract findByEmailVerificationToken(
+    token: string,
+  ): Promise<Either<Error, UserIdentity | null>>;
 
   /**
    * Find by password reset token
    */
-  abstract findByPasswordResetToken(token: string): Promise<Either<Error, UserIdentity | null>>;
+  abstract findByPasswordResetToken(
+    token: string,
+  ): Promise<Either<Error, UserIdentity | null>>;
 
   /**
    * Check if email already exists

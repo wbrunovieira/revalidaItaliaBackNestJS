@@ -40,7 +40,10 @@ export class FindUsersUseCase {
       const result = await this.userViewRepo.findForListing({
         page,
         limit: pageSize,
-        search: request.name?.trim() || request.email?.trim() || request.nationalId?.trim(),
+        search:
+          request.name?.trim() ||
+          request.email?.trim() ||
+          request.nationalId?.trim(),
         orderBy: 'createdAt',
         order: 'desc',
       });
@@ -52,7 +55,7 @@ export class FindUsersUseCase {
       const { items, total } = result.value;
 
       // Map to response DTOs
-      const users: UserResponseDto[] = items.map(view => ({
+      const users: UserResponseDto[] = items.map((view) => ({
         id: view.identityId,
         email: view.email,
         name: view.fullName,

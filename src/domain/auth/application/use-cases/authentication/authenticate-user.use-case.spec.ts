@@ -45,21 +45,24 @@ describe('AuthenticateUserUseCase', () => {
     authorizationRepo = new InMemoryUserAuthorizationRepository();
     eventDispatcher = new MockEventDispatcher();
     sut = new AuthenticateUserUseCase(
-      identityRepo, 
-      profileRepo, 
-      authorizationRepo, 
-      eventDispatcher
+      identityRepo,
+      profileRepo,
+      authorizationRepo,
+      eventDispatcher,
     );
 
     // Create test user entities
-    const identity = UserIdentity.create({
-      email: Email.create(testEmail),
-      password: Password.createFromPlain(testPassword),
-      emailVerified: true,
-      lastLogin: now,
-      createdAt: now,
-      updatedAt: now,
-    }, userId);
+    const identity = UserIdentity.create(
+      {
+        email: Email.create(testEmail),
+        password: Password.createFromPlain(testPassword),
+        emailVerified: true,
+        lastLogin: now,
+        createdAt: now,
+        updatedAt: now,
+      },
+      userId,
+    );
 
     const profile = UserProfile.create({
       fullName: 'John Doe',
@@ -109,7 +112,7 @@ describe('AuthenticateUserUseCase', () => {
 
     it('should authenticate user and update last login', async () => {
       const originalLastLogin = identityRepo.items[0].lastLogin;
-      
+
       const request: AuthenticateUserRequestDto = {
         email: testEmail,
         password: testPassword,
@@ -133,9 +136,12 @@ describe('AuthenticateUserUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       expect(eventDispatcher.dispatchedEvents).toHaveLength(1);
-      expect(eventDispatcher.dispatchedEvents[0]).toBeInstanceOf(UserLoggedInEvent);
-      
-      const loginEvent = eventDispatcher.dispatchedEvents[0] as UserLoggedInEvent;
+      expect(eventDispatcher.dispatchedEvents[0]).toBeInstanceOf(
+        UserLoggedInEvent,
+      );
+
+      const loginEvent = eventDispatcher
+        .dispatchedEvents[0] as UserLoggedInEvent;
       expect(loginEvent.userId).toBe(userId.toString());
       expect(loginEvent.email).toBe(testEmail);
       expect(loginEvent.ipAddress).toBe('192.168.1.1');
@@ -230,7 +236,9 @@ describe('AuthenticateUserUseCase', () => {
 
         await sut.execute(request);
 
-        expect(identityRepo.items[0].failedLoginAttempts).toBe(initialAttempts + 1);
+        expect(identityRepo.items[0].failedLoginAttempts).toBe(
+          initialAttempts + 1,
+        );
       });
 
       it('should fail when account is locked', async () => {
@@ -258,14 +266,17 @@ describe('AuthenticateUserUseCase', () => {
       it('should fail when email is not verified', async () => {
         // Create new identity with unverified email
         const unverifiedUserId = new UniqueEntityID('unverified-user-id');
-        const unverifiedIdentity = UserIdentity.create({
-          email: Email.create('unverified@example.com'),
-          password: Password.createFromPlain(testPassword),
-          emailVerified: false, // Not verified
-          lastLogin: now,
-          createdAt: now,
-          updatedAt: now,
-        }, unverifiedUserId);
+        const unverifiedIdentity = UserIdentity.create(
+          {
+            email: Email.create('unverified@example.com'),
+            password: Password.createFromPlain(testPassword),
+            emailVerified: false, // Not verified
+            lastLogin: now,
+            createdAt: now,
+            updatedAt: now,
+          },
+          unverifiedUserId,
+        );
 
         const unverifiedProfile = UserProfile.create({
           fullName: 'Unverified User',
@@ -345,14 +356,17 @@ describe('AuthenticateUserUseCase', () => {
       it('should fail when authorization is inactive', async () => {
         // Create new user with inactive authorization
         const inactiveUserId = new UniqueEntityID('inactive-user-id');
-        const inactiveIdentity = UserIdentity.create({
-          email: Email.create('inactive@example.com'),
-          password: Password.createFromPlain(testPassword),
-          emailVerified: true,
-          lastLogin: now,
-          createdAt: now,
-          updatedAt: now,
-        }, inactiveUserId);
+        const inactiveIdentity = UserIdentity.create(
+          {
+            email: Email.create('inactive@example.com'),
+            password: Password.createFromPlain(testPassword),
+            emailVerified: true,
+            lastLogin: now,
+            createdAt: now,
+            updatedAt: now,
+          },
+          inactiveUserId,
+        );
 
         const inactiveProfile = UserProfile.create({
           fullName: 'Inactive User',
@@ -398,7 +412,9 @@ describe('AuthenticateUserUseCase', () => {
 
     describe('Repository Errors', () => {
       it('should fail when identity repository findByEmail fails', async () => {
-        vi.spyOn(identityRepo, 'findByEmail').mockResolvedValueOnce(left(new Error('Database error')));
+        vi.spyOn(identityRepo, 'findByEmail').mockResolvedValueOnce(
+          left(new Error('Database error')),
+        );
 
         const request: AuthenticateUserRequestDto = {
           email: testEmail,
@@ -415,7 +431,9 @@ describe('AuthenticateUserUseCase', () => {
       });
 
       it('should fail when profile repository findByIdentityId fails', async () => {
-        vi.spyOn(profileRepo, 'findByIdentityId').mockResolvedValueOnce(left(new Error('Database error')));
+        vi.spyOn(profileRepo, 'findByIdentityId').mockResolvedValueOnce(
+          left(new Error('Database error')),
+        );
 
         const request: AuthenticateUserRequestDto = {
           email: testEmail,
@@ -432,7 +450,9 @@ describe('AuthenticateUserUseCase', () => {
       });
 
       it('should fail when authorization repository findByIdentityId fails', async () => {
-        vi.spyOn(authorizationRepo, 'findByIdentityId').mockResolvedValueOnce(left(new Error('Database error')));
+        vi.spyOn(authorizationRepo, 'findByIdentityId').mockResolvedValueOnce(
+          left(new Error('Database error')),
+        );
 
         const request: AuthenticateUserRequestDto = {
           email: testEmail,
@@ -449,8 +469,12 @@ describe('AuthenticateUserUseCase', () => {
       });
 
       it('should continue authentication even if last login update fails', async () => {
-        vi.spyOn(identityRepo, 'save').mockResolvedValueOnce(left(new Error('Save failed')));
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        vi.spyOn(identityRepo, 'save').mockResolvedValueOnce(
+          left(new Error('Save failed')),
+        );
+        const consoleSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
 
         const request: AuthenticateUserRequestDto = {
           email: testEmail,
@@ -460,14 +484,21 @@ describe('AuthenticateUserUseCase', () => {
         const result = await sut.execute(request);
 
         expect(result.isRight()).toBe(true);
-        expect(consoleSpy).toHaveBeenCalledWith('Failed to update last login:', expect.any(Error));
-        
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Failed to update last login:',
+          expect.any(Error),
+        );
+
         consoleSpy.mockRestore();
       });
 
       it('should continue authentication even if event dispatch fails', async () => {
-        vi.spyOn(eventDispatcher, 'dispatch').mockRejectedValueOnce(new Error('Event failed'));
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        vi.spyOn(eventDispatcher, 'dispatch').mockRejectedValueOnce(
+          new Error('Event failed'),
+        );
+        const consoleSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
 
         const request: AuthenticateUserRequestDto = {
           email: testEmail,
@@ -479,8 +510,11 @@ describe('AuthenticateUserUseCase', () => {
         const result = await sut.execute(request);
 
         expect(result.isRight()).toBe(true);
-        expect(consoleSpy).toHaveBeenCalledWith('Failed to dispatch login event:', expect.any(Error));
-        
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Failed to dispatch login event:',
+          expect.any(Error),
+        );
+
         consoleSpy.mockRestore();
       });
     });
@@ -561,7 +595,9 @@ describe('AuthenticateUserUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.user.profileImageUrl).toBe('https://example.com/avatar.jpg');
+        expect(result.value.user.profileImageUrl).toBe(
+          'https://example.com/avatar.jpg',
+        );
       }
     });
   });
@@ -571,14 +607,17 @@ describe('AuthenticateUserUseCase', () => {
     it('should enforce email verification requirement when configured', async () => {
       // Create user with unverified email
       const unverifiedUserId = new UniqueEntityID('unverified-business-user');
-      const unverifiedIdentity = UserIdentity.create({
-        email: Email.create('business@example.com'),
-        password: Password.createFromPlain(testPassword),
-        emailVerified: false,
-        lastLogin: now,
-        createdAt: now,
-        updatedAt: now,
-      }, unverifiedUserId);
+      const unverifiedIdentity = UserIdentity.create(
+        {
+          email: Email.create('business@example.com'),
+          password: Password.createFromPlain(testPassword),
+          emailVerified: false,
+          lastLogin: now,
+          createdAt: now,
+          updatedAt: now,
+        },
+        unverifiedUserId,
+      );
 
       const unverifiedProfile = UserProfile.create({
         fullName: 'Business User',
@@ -630,7 +669,7 @@ describe('AuthenticateUserUseCase', () => {
 
     it('should enforce account locking after multiple failed attempts', async () => {
       const identity = identityRepo.items[0];
-      
+
       // Simulate multiple failed attempts
       for (let i = 0; i < 4; i++) {
         identity.incrementFailedLoginAttempts();
@@ -658,14 +697,17 @@ describe('AuthenticateUserUseCase', () => {
     it('should require active authorization for login', async () => {
       // Create user with inactive authorization
       const inactiveUserId = new UniqueEntityID('inactive-business-user');
-      const inactiveIdentity = UserIdentity.create({
-        email: Email.create('inactive-business@example.com'),
-        password: Password.createFromPlain(testPassword),
-        emailVerified: true,
-        lastLogin: now,
-        createdAt: now,
-        updatedAt: now,
-      }, inactiveUserId);
+      const inactiveIdentity = UserIdentity.create(
+        {
+          email: Email.create('inactive-business@example.com'),
+          password: Password.createFromPlain(testPassword),
+          emailVerified: true,
+          lastLogin: now,
+          createdAt: now,
+          updatedAt: now,
+        },
+        inactiveUserId,
+      );
 
       const inactiveProfile = UserProfile.create({
         fullName: 'Inactive Business User',
@@ -793,7 +835,7 @@ describe('AuthenticateUserUseCase', () => {
   describe('Performance Tests', () => {
     it('should complete authentication within reasonable time', async () => {
       const start = Date.now();
-      
+
       const request: AuthenticateUserRequestDto = {
         email: testEmail,
         password: testPassword,
@@ -807,15 +849,17 @@ describe('AuthenticateUserUseCase', () => {
     });
 
     it('should handle concurrent authentication attempts', async () => {
-      const requests = Array(5).fill(null).map(() => ({
-        email: testEmail,
-        password: testPassword,
-      }));
+      const requests = Array(5)
+        .fill(null)
+        .map(() => ({
+          email: testEmail,
+          password: testPassword,
+        }));
 
-      const promises = requests.map(request => sut.execute(request));
+      const promises = requests.map((request) => sut.execute(request));
       const results = await Promise.all(promises);
 
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.isRight()).toBe(true);
       });
     });

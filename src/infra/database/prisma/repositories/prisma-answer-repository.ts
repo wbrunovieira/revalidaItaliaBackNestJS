@@ -2,7 +2,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Either, left, right } from '@/core/either';
-import { IAnswerRepository, PaginatedAnswersResult } from '@/domain/assessment/application/repositories/i-answer.repository';
+import {
+  IAnswerRepository,
+  PaginatedAnswersResult,
+} from '@/domain/assessment/application/repositories/i-answer.repository';
 import { Answer } from '@/domain/assessment/enterprise/entities/answer.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { AnswerTranslationVO } from '@/domain/assessment/enterprise/value-objects/answer-translation.vo';

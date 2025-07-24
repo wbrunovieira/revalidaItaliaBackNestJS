@@ -6,7 +6,9 @@ export class AttemptControllerTestHelpers {
   /**
    * Verifies that a StartAttemptResponse has the correct structure
    */
-  static verifyStartAttemptResponseStructure(response: StartAttemptResponse): void {
+  static verifyStartAttemptResponseStructure(
+    response: StartAttemptResponse,
+  ): void {
     expect(response).toHaveProperty('attempt');
     expect(response.attempt).toHaveProperty('id');
     expect(response.attempt).toHaveProperty('status');
@@ -18,7 +20,9 @@ export class AttemptControllerTestHelpers {
 
     // Verify data types
     expect(typeof response.attempt.id).toBe('string');
-    expect(['IN_PROGRESS', 'SUBMITTED', 'GRADING', 'GRADED']).toContain(response.attempt.status);
+    expect(['IN_PROGRESS', 'SUBMITTED', 'GRADING', 'GRADED']).toContain(
+      response.attempt.status,
+    );
     expect(response.attempt.startedAt).toBeInstanceOf(Date);
     expect(typeof response.attempt.identityId).toBe('string');
     expect(typeof response.attempt.assessmentId).toBe('string');
@@ -26,7 +30,8 @@ export class AttemptControllerTestHelpers {
     expect(response.attempt.updatedAt).toBeInstanceOf(Date);
 
     // Verify UUID format for IDs
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     expect(response.attempt.id).toMatch(uuidRegex);
     expect(response.attempt.identityId).toMatch(uuidRegex);
     expect(response.attempt.assessmentId).toMatch(uuidRegex);
@@ -35,15 +40,17 @@ export class AttemptControllerTestHelpers {
   /**
    * Verifies that a StartAttemptResponse has time limit properties when expected
    */
-  static verifyStartAttemptResponseWithTimeLimit(response: StartAttemptResponse): void {
+  static verifyStartAttemptResponseWithTimeLimit(
+    response: StartAttemptResponse,
+  ): void {
     this.verifyStartAttemptResponseStructure(response);
-    
+
     expect(response.attempt).toHaveProperty('timeLimitExpiresAt');
     expect(response.attempt.timeLimitExpiresAt).toBeInstanceOf(Date);
-    
+
     // Time limit should be after start time
     expect(response.attempt.timeLimitExpiresAt!.getTime()).toBeGreaterThan(
-      response.attempt.startedAt.getTime()
+      response.attempt.startedAt.getTime(),
     );
   }
 
@@ -51,9 +58,9 @@ export class AttemptControllerTestHelpers {
    * Verifies that an error response has the correct structure
    */
   static verifyErrorResponseStructure(
-    error: any, 
-    expectedError: string, 
-    expectedMessage: string
+    error: any,
+    expectedError: string,
+    expectedMessage: string,
   ): void {
     expect(error).toHaveProperty('error', expectedError);
     expect(error).toHaveProperty('message', expectedMessage);
@@ -90,7 +97,7 @@ export class AttemptControllerTestHelpers {
   static verifyUseCaseCalledWith(
     mockUseCase: any,
     expectedIdentityId: string,
-    expectedAssessmentId: string
+    expectedAssessmentId: string,
   ): void {
     expect(mockUseCase.execute).toHaveBeenCalledWith({
       identityId: expectedIdentityId,

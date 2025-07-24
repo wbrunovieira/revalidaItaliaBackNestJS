@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEmail, IsEnum, MinLength, IsNotEmpty, MaxLength, Matches } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsEnum,
+  MinLength,
+  IsNotEmpty,
+  MaxLength,
+  Matches,
+} from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -32,7 +40,8 @@ export class CreateUserDto {
 
   @ApiProperty({
     example: '12345678901',
-    description: 'National ID document (CPF, passport, or other identification)',
+    description:
+      'National ID document (CPF, passport, or other identification)',
     minLength: 5,
     maxLength: 20,
   })
@@ -40,8 +49,8 @@ export class CreateUserDto {
   @IsNotEmpty()
   @MinLength(5, { message: 'Document must have at least 5 characters' })
   @MaxLength(20, { message: 'Document must have at most 20 characters' })
-  @Matches(/^[A-Za-z0-9-]+$/, { 
-    message: 'Document can only contain letters, numbers and hyphens' 
+  @Matches(/^[A-Za-z0-9-]+$/, {
+    message: 'Document can only contain letters, numbers and hyphens',
   })
   nationalId: string;
 

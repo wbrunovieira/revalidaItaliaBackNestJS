@@ -1,12 +1,16 @@
-import { ApiOperationOptions, ApiResponseOptions, ApiBodyOptions } from '@nestjs/swagger';
+import {
+  ApiOperationOptions,
+  ApiResponseOptions,
+  ApiBodyOptions,
+} from '@nestjs/swagger';
 import { CreateAccountDto } from '@/domain/auth/application/dtos/create-account.dto';
 import { UserResponseDto } from '@/domain/auth/application/dtos/user-response.dto';
-import { 
-  BaseValidationErrorDoc, 
+import {
+  BaseValidationErrorDoc,
   BaseConflictErrorDoc,
   UnauthorizedResponseDoc,
   ForbiddenResponseDoc,
-  InternalServerErrorDoc
+  InternalServerErrorDoc,
 } from '../shared/error-responses.docs';
 
 export const CreateAccountOperation: ApiOperationOptions = {
@@ -73,10 +77,10 @@ export const CreateAccountValidationError: ApiResponseOptions = {
           name: ['Name must be at least 3 characters'],
           cpf: ['Document must have at least 5 characters'],
           password: ['Password must contain at least one uppercase letter'],
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 };
 
 // Specific conflict errors for create student
@@ -90,7 +94,7 @@ export const CreateAccountConflictError: ApiResponseOptions = {
         title: 'Duplicate Email',
         status: 409,
         detail: 'Email already registered in the system',
-      }
+      },
     },
     documentConflict: {
       summary: 'Document already exists',
@@ -99,9 +103,9 @@ export const CreateAccountConflictError: ApiResponseOptions = {
         title: 'Duplicate Document',
         status: 409,
         detail: 'CPF already registered in the system',
-      }
-    }
-  }
+      },
+    },
+  },
 };
 
 // Admin-specific forbidden message

@@ -43,18 +43,22 @@ export class ReviewOpenAnswerUseCase {
     private userAggregatedViewRepository: IUserAggregatedViewRepository,
   ) {}
 
-  async execute(request: ReviewOpenAnswerRequest): Promise<ReviewOpenAnswerUseCaseResponse> {
+  async execute(
+    request: ReviewOpenAnswerRequest,
+  ): Promise<ReviewOpenAnswerUseCaseResponse> {
     // Validate input
     const validation = reviewOpenAnswerSchema.safeParse(request);
     if (!validation.success) {
       return left(new InvalidInputError(validation.error.message));
     }
 
-    const { attemptAnswerId, reviewerId, isCorrect, teacherComment } = validation.data;
+    const { attemptAnswerId, reviewerId, isCorrect, teacherComment } =
+      validation.data;
 
     try {
       // Get attempt answer
-      const attemptAnswerResult = await this.attemptAnswerRepository.findById(attemptAnswerId);
+      const attemptAnswerResult =
+        await this.attemptAnswerRepository.findById(attemptAnswerId);
       if (attemptAnswerResult.isLeft()) {
         return left(new AttemptAnswerNotFoundError());
       }
@@ -62,7 +66,8 @@ export class ReviewOpenAnswerUseCase {
       const attemptAnswer = attemptAnswerResult.value;
 
       // Verify reviewer exists and has permission
-      const reviewerResult = await this.userAggregatedViewRepository.findByIdentityId(reviewerId);
+      const reviewerResult =
+        await this.userAggregatedViewRepository.findByIdentityId(reviewerId);
       if (reviewerResult.isLeft()) {
         return left(new UserNotFoundError());
       }
@@ -71,13 +76,15 @@ export class ReviewOpenAnswerUseCase {
       if (!reviewer) {
         return left(new UserNotFoundError());
       }
-      
+
       if (reviewer.role !== 'tutor' && reviewer.role !== 'admin') {
         return left(new InsufficientPermissionsError());
       }
 
       // Get attempt to check status
-      const attemptResult = await this.attemptRepository.findById(attemptAnswer.attemptId);
+      const attemptResult = await this.attemptRepository.findById(
+        attemptAnswer.attemptId,
+      );
       if (attemptResult.isLeft()) {
         return left(new AttemptNotFoundError());
       }
@@ -90,7 +97,9 @@ export class ReviewOpenAnswerUseCase {
       }
 
       // Get question to verify it's an open question
-      const questionResult = await this.questionRepository.findById(attemptAnswer.questionId);
+      const questionResult = await this.questionRepository.findById(
+        attemptAnswer.questionId,
+      );
       if (questionResult.isLeft()) {
         return left(new QuestionNotFoundError());
       }
@@ -121,13 +130,17 @@ export class ReviewOpenAnswerUseCase {
       attemptAnswer.grade(isCorrect, teacherComment, reviewerId);
 
       // Update attempt answer
-      const updateAnswerResult = await this.attemptAnswerRepository.update(attemptAnswer);
+      const updateAnswerResult =
+        await this.attemptAnswerRepository.update(attemptAnswer);
       if (updateAnswerResult.isLeft()) {
         return left(new RepositoryError('Failed to update attempt answer'));
       }
 
       // Check if all open questions in this attempt have been reviewed
-      const allAnswersResult = await this.attemptAnswerRepository.findByAttemptId(attempt.id.toString());
+      const allAnswersResult =
+        await this.attemptAnswerRepository.findByAttemptId(
+          attempt.id.toString(),
+        );
       if (allAnswersResult.isLeft()) {
         return left(new RepositoryError('Failed to fetch attempt answers'));
       }
@@ -139,13 +152,15 @@ export class ReviewOpenAnswerUseCase {
 
       // Check each answer to see if all open questions are graded
       for (const answer of allAnswers) {
-        const answerQuestionResult = await this.questionRepository.findById(answer.questionId);
+        const answerQuestionResult = await this.questionRepository.findById(
+          answer.questionId,
+        );
         if (answerQuestionResult.isRight()) {
           const answerQuestion = answerQuestionResult.value;
-          
+
           if (answerQuestion.type.isOpen()) {
             totalOpenQuestions++;
-            
+
             if (!answer.status.isGraded()) {
               allOpenQuestionsReviewed = false;
             } else if (answer.isCorrect) {
@@ -157,18 +172,19 @@ export class ReviewOpenAnswerUseCase {
 
       // If all open questions are reviewed, mark the attempt as grading
       let finalAttemptStatus = attempt.status.getValue();
-      
+
       if (allOpenQuestionsReviewed) {
         // When all open questions are reviewed, move to GRADING status
         // The final score calculation and GRADED status should be set
         // by a separate process or use case
         attempt.startGrading();
-        
-        const updateAttemptResult = await this.attemptRepository.update(attempt);
+
+        const updateAttemptResult =
+          await this.attemptRepository.update(attempt);
         if (updateAttemptResult.isLeft()) {
           return left(new RepositoryError('Failed to update attempt'));
         }
-        
+
         finalAttemptStatus = 'GRADING';
       }
 
@@ -176,7 +192,10 @@ export class ReviewOpenAnswerUseCase {
         attemptAnswer: {
           id: attemptAnswer.id.toString(),
           textAnswer: attemptAnswer.textAnswer,
-          status: attemptAnswer.status.getValue() as 'SUBMITTED' | 'GRADING' | 'GRADED',
+          status: attemptAnswer.status.getValue() as
+            | 'SUBMITTED'
+            | 'GRADING'
+            | 'GRADED',
           isCorrect: attemptAnswer.isCorrect!,
           teacherComment: attemptAnswer.teacherComment,
           reviewerId: attemptAnswer.reviewerId,

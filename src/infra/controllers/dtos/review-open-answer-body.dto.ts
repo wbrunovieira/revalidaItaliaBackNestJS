@@ -1,6 +1,13 @@
 // src/infra/controllers/dtos/review-open-answer-body.dto.ts
 
-import { IsBoolean, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class ReviewOpenAnswerBodyDto {
   @IsUUID(4, { message: 'Reviewer ID must be a valid UUID' })

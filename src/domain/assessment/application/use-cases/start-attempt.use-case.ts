@@ -61,7 +61,7 @@ export class StartAttemptUseCase {
     } catch (error) {
       return left(new RepositoryError('Failed to fetch user'));
     }
-    
+
     if (userResult.isLeft()) {
       const error = userResult.value;
       if (error.message === 'User not found') {
@@ -69,7 +69,7 @@ export class StartAttemptUseCase {
       }
       return left(new RepositoryError('Failed to fetch user'));
     }
-    
+
     const user = userResult.value;
     if (!user) {
       return left(new UserNotFoundError());
@@ -84,7 +84,7 @@ export class StartAttemptUseCase {
     } catch (error) {
       return left(new RepositoryError('Failed to fetch assessment'));
     }
-    
+
     if (assessmentResult.isLeft()) {
       const error = assessmentResult.value;
       if (error.message === 'Assessment not found') {

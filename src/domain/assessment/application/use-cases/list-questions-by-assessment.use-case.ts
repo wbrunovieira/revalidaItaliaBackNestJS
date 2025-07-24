@@ -7,16 +7,17 @@ import { IQuestionOptionRepository } from '../repositories/i-question-option-rep
 import { IAssessmentRepository } from '../repositories/i-assessment-repository';
 import { IArgumentRepository } from '../repositories/i-argument-repository';
 import { ListQuestionsByAssessmentRequest } from '../dtos/list-questions-by-assessment-request.dto';
-import { ListQuestionsByAssessmentResponse, QuestionResponse } from '../dtos/list-questions-by-assessment-response.dto';
+import {
+  ListQuestionsByAssessmentResponse,
+  QuestionResponse,
+} from '../dtos/list-questions-by-assessment-response.dto';
 import { listQuestionsByAssessmentSchema } from './validations/list-questions-by-assessment.schema';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { AssessmentNotFoundError } from './errors/assessment-not-found-error';
 import { RepositoryError } from './errors/repository-error';
 
 type ListQuestionsByAssessmentUseCaseResponse = Either<
-  | InvalidInputError
-  | AssessmentNotFoundError
-  | RepositoryError,
+  InvalidInputError | AssessmentNotFoundError | RepositoryError,
   ListQuestionsByAssessmentResponse
 >;
 
@@ -33,7 +34,9 @@ export class ListQuestionsByAssessmentUseCase {
     private argumentRepository: IArgumentRepository,
   ) {}
 
-  async execute(request: ListQuestionsByAssessmentRequest): Promise<ListQuestionsByAssessmentUseCaseResponse> {
+  async execute(
+    request: ListQuestionsByAssessmentRequest,
+  ): Promise<ListQuestionsByAssessmentUseCaseResponse> {
     // Validate input
     const validation = listQuestionsByAssessmentSchema.safeParse(request);
     if (!validation.success) {
@@ -44,13 +47,15 @@ export class ListQuestionsByAssessmentUseCase {
 
     try {
       // Check if assessment exists
-      const assessmentResult = await this.assessmentRepository.findById(assessmentId);
+      const assessmentResult =
+        await this.assessmentRepository.findById(assessmentId);
       if (assessmentResult.isLeft()) {
         return left(new AssessmentNotFoundError());
       }
 
       // Get questions from assessment
-      const questionsResult = await this.questionRepository.findByAssessmentId(assessmentId);
+      const questionsResult =
+        await this.questionRepository.findByAssessmentId(assessmentId);
       if (questionsResult.isLeft()) {
         return left(new RepositoryError('Failed to fetch questions'));
       }
@@ -58,10 +63,11 @@ export class ListQuestionsByAssessmentUseCase {
       const questions = questionsResult.value;
 
       // Get question IDs for fetching options
-      const questionIds = questions.map(q => q.id.toString());
+      const questionIds = questions.map((q) => q.id.toString());
 
       // Get all options for all questions in one query
-      const optionsResult = await this.questionOptionRepository.findByQuestionIds(questionIds);
+      const optionsResult =
+        await this.questionOptionRepository.findByQuestionIds(questionIds);
       if (optionsResult.isLeft()) {
         return left(new RepositoryError('Failed to fetch question options'));
       }
@@ -70,7 +76,7 @@ export class ListQuestionsByAssessmentUseCase {
 
       // Group options by question ID
       const optionsByQuestionId = new Map<string, typeof allOptions>();
-      allOptions.forEach(option => {
+      allOptions.forEach((option) => {
         const questionId = option.questionId.toString();
         if (!optionsByQuestionId.has(questionId)) {
           optionsByQuestionId.set(questionId, []);
@@ -83,9 +89,9 @@ export class ListQuestionsByAssessmentUseCase {
       // Fetch arguments by ID for all questions that have argumentId
       const argumentsByIdMap = new Map<string, string>();
       const argumentIds = questions
-        .map(q => q.argumentId?.toString())
+        .map((q) => q.argumentId?.toString())
         .filter(Boolean) as string[];
-      
+
       // Fetch each argument individually by ID
       for (const argumentId of argumentIds) {
         const argResult = await this.argumentRepository.findById(argumentId);
@@ -95,26 +101,32 @@ export class ListQuestionsByAssessmentUseCase {
       }
 
       // Build response
-      const questionsResponse: QuestionResponse[] = questions.map(question => {
-        const argumentId = question.argumentId?.toString();
-        const argumentName = argumentId ? argumentsByIdMap.get(argumentId) || null : null;
-        
-        const questionResponse: QuestionResponse = {
-          id: question.id.toString(),
-          text: question.text,
-          type: question.type.getValue() as 'MULTIPLE_CHOICE' | 'OPEN',
-          argumentId,
-          argumentName,
-          options: (optionsByQuestionId.get(question.id.toString()) || []).map(option => ({
-            id: option.id.toString(),
-            text: option.text,
-          })),
-          createdAt: question.createdAt,
-          updatedAt: question.updatedAt,
-        };
-        
-        return questionResponse;
-      });
+      const questionsResponse: QuestionResponse[] = questions.map(
+        (question) => {
+          const argumentId = question.argumentId?.toString();
+          const argumentName = argumentId
+            ? argumentsByIdMap.get(argumentId) || null
+            : null;
+
+          const questionResponse: QuestionResponse = {
+            id: question.id.toString(),
+            text: question.text,
+            type: question.type.getValue() as 'MULTIPLE_CHOICE' | 'OPEN',
+            argumentId,
+            argumentName,
+            options: (
+              optionsByQuestionId.get(question.id.toString()) || []
+            ).map((option) => ({
+              id: option.id.toString(),
+              text: option.text,
+            })),
+            createdAt: question.createdAt,
+            updatedAt: question.updatedAt,
+          };
+
+          return questionResponse;
+        },
+      );
 
       return right({
         assessment: {

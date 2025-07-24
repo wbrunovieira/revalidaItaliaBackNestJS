@@ -20,7 +20,7 @@ export const userErrorMappings: Record<string, ErrorMapping> = {
     type: 'forbidden',
     title: 'Forbidden',
     status: HttpStatus.FORBIDDEN,
-    extractDetail: (error) => 
+    extractDetail: (error) =>
       error.message || 'You do not have permission to perform this action',
   },
 

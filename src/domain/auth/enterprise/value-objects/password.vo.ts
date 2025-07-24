@@ -16,7 +16,7 @@ const DEFAULT_SALT_ROUNDS = 10;
 
 /**
  * Password Value Object
- * 
+ *
  * Encapsulates password validation and hashing logic.
  * Ensures passwords meet security requirements and handles
  * both plain text and hashed password scenarios.
@@ -35,7 +35,9 @@ export class Password {
    */
   get hash(): string {
     if (!this.isHashed) {
-      throw new Error('Cannot get hash from unhashed password. Use toHash() first.');
+      throw new Error(
+        'Cannot get hash from unhashed password. Use toHash() first.',
+      );
     }
     return this._value;
   }
@@ -95,7 +97,9 @@ export class Password {
     }
 
     if (plainPassword.length > MAX_LENGTH) {
-      throw new WeakPasswordException(`Password must be at most ${MAX_LENGTH} characters long`);
+      throw new WeakPasswordException(
+        `Password must be at most ${MAX_LENGTH} characters long`,
+      );
     }
 
     // Security validations with Unicode support
@@ -116,7 +120,9 @@ export class Password {
 
     // Check for common weak passwords
     const weakPasswords = ['password', '123456', 'qwerty', 'letmein'];
-    if (weakPasswords.some(weak => plainPassword.toLowerCase().includes(weak))) {
+    if (
+      weakPasswords.some((weak) => plainPassword.toLowerCase().includes(weak))
+    ) {
       throw WeakPasswordException.tooCommon();
     }
 

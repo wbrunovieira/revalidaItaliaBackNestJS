@@ -3,7 +3,10 @@ import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
 import { RepositoryError } from '@/domain/auth/domain/exceptions';
 
-import { ListUsersResponseDto, UserResponseDto } from '../../dtos/user-response.dto';
+import {
+  ListUsersResponseDto,
+  UserResponseDto,
+} from '../../dtos/user-response.dto';
 import { UserRole } from '@/domain/auth/enterprise/entities/user-authorization';
 import { IUserAggregatedViewRepository } from '../../repositories/i-user-aggregated-view-repository';
 
@@ -52,7 +55,10 @@ export class FindActiveUsersUseCase {
       const result = await this.userViewRepo.findForListing({
         page,
         limit: pageSize,
-        role: request.roles && request.roles.length === 1 ? request.roles[0] : undefined,
+        role:
+          request.roles && request.roles.length === 1
+            ? request.roles[0]
+            : undefined,
         orderBy: 'lastLogin',
         order: 'desc',
       });
@@ -67,17 +73,18 @@ export class FindActiveUsersUseCase {
 
       // Filter by active users and multiple roles if needed
       let filteredItems = items.filter(
-        view => view.lastLogin && view.lastLogin >= activeDate && view.isActive
+        (view) =>
+          view.lastLogin && view.lastLogin >= activeDate && view.isActive,
       );
 
       if (request.roles && request.roles.length > 0) {
-        filteredItems = filteredItems.filter(
-          view => request.roles!.includes(view.role as UserRole)
+        filteredItems = filteredItems.filter((view) =>
+          request.roles!.includes(view.role as UserRole),
         );
       }
 
       // Map to UserResponseDto
-      const users: UserResponseDto[] = filteredItems.map(view => ({
+      const users: UserResponseDto[] = filteredItems.map((view) => ({
         id: view.identityId,
         email: view.email,
         name: view.fullName,

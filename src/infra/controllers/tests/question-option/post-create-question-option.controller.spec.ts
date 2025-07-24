@@ -24,11 +24,15 @@ describe('QuestionOptionController - createOption', () => {
 
   describe('Success Cases', () => {
     it('should create a question option successfully', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
       const dto = QuestionOptionControllerTestData.VALID_DTOS.SIMPLE_OPTION;
-      const expectedResponse = QuestionOptionControllerTestData.SUCCESS_RESPONSES.SIMPLE_OPTION;
+      const expectedResponse =
+        QuestionOptionControllerTestData.SUCCESS_RESPONSES.SIMPLE_OPTION;
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(right(expectedResponse));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        right(expectedResponse),
+      );
 
       const result = await testSetup.controller.createOption(questionId, dto);
 
@@ -41,24 +45,36 @@ describe('QuestionOptionController - createOption', () => {
     });
 
     it('should create a question option with special characters', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
-      const dto = QuestionOptionControllerTestData.VALID_DTOS.OPTION_WITH_SPECIAL_CHARS;
-      const expectedResponse = QuestionOptionControllerTestData.SUCCESS_RESPONSES.OPTION_WITH_SPECIAL_CHARS;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const dto =
+        QuestionOptionControllerTestData.VALID_DTOS.OPTION_WITH_SPECIAL_CHARS;
+      const expectedResponse =
+        QuestionOptionControllerTestData.SUCCESS_RESPONSES
+          .OPTION_WITH_SPECIAL_CHARS;
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(right(expectedResponse));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        right(expectedResponse),
+      );
 
       const result = await testSetup.controller.createOption(questionId, dto);
 
       expect(result).toEqual(expectedResponse);
-      expect(result.questionOption.text).toBe('São Paulo (Brasil) - R$ 1.500,00');
+      expect(result.questionOption.text).toBe(
+        'São Paulo (Brasil) - R$ 1.500,00',
+      );
     });
 
     it('should create a question option for open question', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.OPEN_QUESTION;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.OPEN_QUESTION;
       const dto = QuestionOptionControllerTestData.VALID_DTOS.MEDICAL_OPTION;
-      const expectedResponse = QuestionOptionControllerTestData.SUCCESS_RESPONSES.MEDICAL_OPTION;
+      const expectedResponse =
+        QuestionOptionControllerTestData.SUCCESS_RESPONSES.MEDICAL_OPTION;
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(right(expectedResponse));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        right(expectedResponse),
+      );
 
       const result = await testSetup.controller.createOption(questionId, dto);
 
@@ -67,7 +83,8 @@ describe('QuestionOptionController - createOption', () => {
     });
 
     it('should create a question option with long text', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
       const dto = QuestionOptionControllerTestData.VALID_DTOS.LONG_OPTION;
       const expectedResponse = {
         questionOption: {
@@ -79,7 +96,9 @@ describe('QuestionOptionController - createOption', () => {
         },
       };
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(right(expectedResponse));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        right(expectedResponse),
+      );
 
       const result = await testSetup.controller.createOption(questionId, dto);
 
@@ -90,110 +109,166 @@ describe('QuestionOptionController - createOption', () => {
 
   describe('Error Cases', () => {
     it('should throw BadRequestException for invalid input', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
       const dto = QuestionOptionControllerTestData.INVALID_DTOS.EMPTY_TEXT;
-      const error = new InvalidInputError(QuestionOptionControllerTestData.ERROR_MESSAGES.INVALID_INPUT);
+      const error = new InvalidInputError(
+        QuestionOptionControllerTestData.ERROR_MESSAGES.INVALID_INPUT,
+      );
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(left(error));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        left(error),
+      );
 
-      await expect(testSetup.controller.createOption(questionId, dto)).rejects.toThrow(BadRequestException);
+      await expect(
+        testSetup.controller.createOption(questionId, dto),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw NotFoundException for question not found', async () => {
-      const questionId = QuestionOptionControllerTestData.INVALID_QUESTION_IDS.NOT_FOUND;
+      const questionId =
+        QuestionOptionControllerTestData.INVALID_QUESTION_IDS.NOT_FOUND;
       const dto = QuestionOptionControllerTestData.VALID_DTOS.SIMPLE_OPTION;
       const error = new QuestionNotFoundError();
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(left(error));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        left(error),
+      );
 
-      await expect(testSetup.controller.createOption(questionId, dto)).rejects.toThrow(NotFoundException);
+      await expect(
+        testSetup.controller.createOption(questionId, dto),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw InternalServerErrorException for repository error', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
       const dto = QuestionOptionControllerTestData.VALID_DTOS.SIMPLE_OPTION;
-      const error = new RepositoryError(QuestionOptionControllerTestData.ERROR_MESSAGES.REPOSITORY_ERROR);
+      const error = new RepositoryError(
+        QuestionOptionControllerTestData.ERROR_MESSAGES.REPOSITORY_ERROR,
+      );
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(left(error));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        left(error),
+      );
 
-      await expect(testSetup.controller.createOption(questionId, dto)).rejects.toThrow(InternalServerErrorException);
+      await expect(
+        testSetup.controller.createOption(questionId, dto),
+      ).rejects.toThrow(InternalServerErrorException);
     });
 
     it('should throw InternalServerErrorException for unknown error', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
       const dto = QuestionOptionControllerTestData.VALID_DTOS.SIMPLE_OPTION;
       const error = new Error('Unknown error');
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(left(error));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        left(error),
+      );
 
-      await expect(testSetup.controller.createOption(questionId, dto)).rejects.toThrow(InternalServerErrorException);
+      await expect(
+        testSetup.controller.createOption(questionId, dto),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 
   describe('Parameter Validation', () => {
     it('should handle invalid question ID format', async () => {
-      const questionId = QuestionOptionControllerTestData.INVALID_QUESTION_IDS.INVALID_UUID;
+      const questionId =
+        QuestionOptionControllerTestData.INVALID_QUESTION_IDS.INVALID_UUID;
       const dto = QuestionOptionControllerTestData.VALID_DTOS.SIMPLE_OPTION;
       const error = new InvalidInputError('Question ID must be a valid UUID');
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(left(error));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        left(error),
+      );
 
-      await expect(testSetup.controller.createOption(questionId, dto)).rejects.toThrow(BadRequestException);
+      await expect(
+        testSetup.controller.createOption(questionId, dto),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should handle empty text in DTO', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
       const dto = QuestionOptionControllerTestData.INVALID_DTOS.EMPTY_TEXT;
       const error = new InvalidInputError('Option text cannot be empty');
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(left(error));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        left(error),
+      );
 
-      await expect(testSetup.controller.createOption(questionId, dto)).rejects.toThrow(BadRequestException);
+      await expect(
+        testSetup.controller.createOption(questionId, dto),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should handle whitespace-only text in DTO', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
       const dto = QuestionOptionControllerTestData.INVALID_DTOS.WHITESPACE_TEXT;
       const error = new InvalidInputError('Option text cannot be empty');
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(left(error));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        left(error),
+      );
 
-      await expect(testSetup.controller.createOption(questionId, dto)).rejects.toThrow(BadRequestException);
+      await expect(
+        testSetup.controller.createOption(questionId, dto),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should handle text that is too long', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
       const dto = QuestionOptionControllerTestData.INVALID_DTOS.TOO_LONG_TEXT;
-      const error = new InvalidInputError('Option text must be less than 500 characters');
+      const error = new InvalidInputError(
+        'Option text must be less than 500 characters',
+      );
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(left(error));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        left(error),
+      );
 
-      await expect(testSetup.controller.createOption(questionId, dto)).rejects.toThrow(BadRequestException);
+      await expect(
+        testSetup.controller.createOption(questionId, dto),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('Use Case Integration', () => {
     it('should pass correct parameters to use case', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
       const dto = QuestionOptionControllerTestData.VALID_DTOS.SIMPLE_OPTION;
-      const expectedResponse = QuestionOptionControllerTestData.SUCCESS_RESPONSES.SIMPLE_OPTION;
+      const expectedResponse =
+        QuestionOptionControllerTestData.SUCCESS_RESPONSES.SIMPLE_OPTION;
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(right(expectedResponse));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        right(expectedResponse),
+      );
 
       await testSetup.controller.createOption(questionId, dto);
 
-      expect(testSetup.createQuestionOptionUseCase.execute).toHaveBeenCalledWith({
+      expect(
+        testSetup.createQuestionOptionUseCase.execute,
+      ).toHaveBeenCalledWith({
         text: dto.text,
         questionId,
       });
     });
 
     it('should handle use case response correctly', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
       const dto = QuestionOptionControllerTestData.VALID_DTOS.SIMPLE_OPTION;
-      const expectedResponse = QuestionOptionControllerTestData.SUCCESS_RESPONSES.SIMPLE_OPTION;
+      const expectedResponse =
+        QuestionOptionControllerTestData.SUCCESS_RESPONSES.SIMPLE_OPTION;
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(right(expectedResponse));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        right(expectedResponse),
+      );
 
       const result = await testSetup.controller.createOption(questionId, dto);
 
@@ -206,11 +281,15 @@ describe('QuestionOptionController - createOption', () => {
     });
 
     it('should not call use case multiple times for single request', async () => {
-      const questionId = QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
+      const questionId =
+        QuestionOptionControllerTestData.VALID_QUESTION_IDS.MULTIPLE_CHOICE;
       const dto = QuestionOptionControllerTestData.VALID_DTOS.SIMPLE_OPTION;
-      const expectedResponse = QuestionOptionControllerTestData.SUCCESS_RESPONSES.SIMPLE_OPTION;
+      const expectedResponse =
+        QuestionOptionControllerTestData.SUCCESS_RESPONSES.SIMPLE_OPTION;
 
-      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(right(expectedResponse));
+      testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce(
+        right(expectedResponse),
+      );
 
       await testSetup.controller.createOption(questionId, dto);
 

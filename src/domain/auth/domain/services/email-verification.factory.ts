@@ -9,8 +9,9 @@ import { EmailVerificationService } from './email-verification.service';
 export class EmailVerificationFactory {
   static create(): EmailVerificationService {
     // Here we read from environment, but the service doesn't know about it
-    const verificationRequired = process.env.EMAIL_VERIFICATION_REQUIRED === 'true';
-    
+    const verificationRequired =
+      process.env.EMAIL_VERIFICATION_REQUIRED === 'true';
+
     // Could also read skip sources from env if needed
     return new EmailVerificationService(verificationRequired);
   }

@@ -6,7 +6,10 @@ import { IAttemptRepository } from '../repositories/i-attempt.repository';
 import { IAssessmentRepository } from '../repositories/i-assessment-repository';
 import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { ListAttemptsRequest } from '../dtos/list-attempts-request.dto';
-import { ListAttemptsResponse, AttemptSummary } from '../dtos/list-attempts-response.dto';
+import {
+  ListAttemptsResponse,
+  AttemptSummary,
+} from '../dtos/list-attempts-response.dto';
 import { listAttemptsSchema } from './validations/list-attempts.schema';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { UserNotFoundError } from './errors/user-not-found-error';
@@ -32,24 +35,28 @@ export class ListAttemptsUseCase {
     private userAggregatedViewRepository: IUserAggregatedViewRepository,
   ) {}
 
-  async execute(request: ListAttemptsRequest): Promise<ListAttemptsUseCaseResponse> {
+  async execute(
+    request: ListAttemptsRequest,
+  ): Promise<ListAttemptsUseCaseResponse> {
     // Validate input
     const validation = listAttemptsSchema.safeParse(request);
     if (!validation.success) {
       return left(new InvalidInputError(validation.error.message));
     }
 
-    const { status, identityId, assessmentId, page, pageSize, requesterId } = validation.data;
+    const { status, identityId, assessmentId, page, pageSize, requesterId } =
+      validation.data;
 
     try {
       // Verify requester exists and has permission
-      const requesterResult = await this.userAggregatedViewRepository.findByIdentityId(requesterId);
+      const requesterResult =
+        await this.userAggregatedViewRepository.findByIdentityId(requesterId);
       if (requesterResult.isLeft()) {
         return left(new UserNotFoundError());
       }
 
       const requester = requesterResult.value;
-      
+
       // Check if requester exists
       if (!requester) {
         return left(new UserNotFoundError());
@@ -80,7 +87,10 @@ export class ListAttemptsUseCase {
       };
 
       // Get attempts with filters
-      const attemptsResult = await this.attemptRepository.findWithFilters(filters, pagination);
+      const attemptsResult = await this.attemptRepository.findWithFilters(
+        filters,
+        pagination,
+      );
       if (attemptsResult.isLeft()) {
         return left(new RepositoryError('Failed to fetch attempts'));
       }
@@ -89,28 +99,38 @@ export class ListAttemptsUseCase {
 
       // Build response with assessment and student info
       const attemptSummaries: AttemptSummary[] = [];
-      
+
       for (const attempt of attempts) {
         // Get assessment info
-        const assessmentResult = await this.assessmentRepository.findById(attempt.assessmentId);
+        const assessmentResult = await this.assessmentRepository.findById(
+          attempt.assessmentId,
+        );
         if (assessmentResult.isLeft()) {
           continue; // Skip attempts with missing assessments
         }
         const assessment = assessmentResult.value;
 
         // Get student info
-        const studentResult = await this.userAggregatedViewRepository.findByIdentityId(attempt.identityId);
+        const studentResult =
+          await this.userAggregatedViewRepository.findByIdentityId(
+            attempt.identityId,
+          );
         if (studentResult.isLeft()) {
           continue; // Skip attempts with missing students
         }
         const student = studentResult.value;
 
         // TODO: Calculate pending answers for PROVA_ABERTA
-        const pendingAnswers = assessment.type === 'PROVA_ABERTA' ? 0 : undefined;
+        const pendingAnswers =
+          assessment.type === 'PROVA_ABERTA' ? 0 : undefined;
 
         attemptSummaries.push({
           id: attempt.id.toString(),
-          status: attempt.status.getValue() as 'IN_PROGRESS' | 'SUBMITTED' | 'GRADING' | 'GRADED',
+          status: attempt.status.getValue() as
+            | 'IN_PROGRESS'
+            | 'SUBMITTED'
+            | 'GRADING'
+            | 'GRADED',
           score: attempt.score?.getValue(),
           startedAt: attempt.startedAt,
           submittedAt: attempt.submittedAt,
@@ -121,14 +141,16 @@ export class ListAttemptsUseCase {
           assessment: {
             id: assessment.id.toString(),
             title: assessment.title,
-            type: assessment.type as 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
+            type: assessment.type,
             passingScore: assessment.passingScore,
           },
-          student: student ? {
-            id: student.identityId,
-            name: student.fullName,
-            email: student.email,
-          } : undefined,
+          student: student
+            ? {
+                id: student.identityId,
+                name: student.fullName,
+                email: student.email,
+              }
+            : undefined,
           pendingAnswers,
           createdAt: attempt.createdAt,
           updatedAt: attempt.updatedAt,
@@ -136,7 +158,9 @@ export class ListAttemptsUseCase {
       }
 
       // Calculate pagination info (simplified - would need count from repository)
-      const totalPages = Math.ceil(attemptSummaries.length / pagination.pageSize);
+      const totalPages = Math.ceil(
+        attemptSummaries.length / pagination.pageSize,
+      );
 
       return right({
         attempts: attemptSummaries,

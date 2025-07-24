@@ -77,7 +77,7 @@ describe('AttemptController - GET /attempts', () => {
       mockSubmitAttemptUseCase as any,
       mockGetAttemptResultsUseCase as any,
       mockReviewOpenAnswerUseCase as any,
-      listAttemptsUseCase as any,
+      listAttemptsUseCase,
       mockListPendingReviewsUseCase as any,
     );
   });

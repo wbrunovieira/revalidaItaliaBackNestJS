@@ -63,7 +63,7 @@ describe('Course Catalog Error Mappings', () => {
   it('should extract detail from error message', () => {
     const mapping = courseCatalogErrorMappings.InvalidFileError;
     const error = new Error('File type not supported');
-    
+
     const detail = mapping.extractDetail!(error);
     expect(detail).toBe('File type not supported');
   });
@@ -71,7 +71,7 @@ describe('Course Catalog Error Mappings', () => {
   it('should use default detail when error has no message', () => {
     const mapping = courseCatalogErrorMappings.InvalidFileError;
     const error = new Error('');
-    
+
     const detail = mapping.extractDetail!(error);
     expect(detail).toBe('Invalid file format or content');
   });

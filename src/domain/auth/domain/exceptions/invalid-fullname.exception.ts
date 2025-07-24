@@ -5,11 +5,7 @@ import { BusinessRuleException } from '@/core/domain/exceptions/business-rule.ex
  */
 export class InvalidFullNameException extends BusinessRuleException {
   constructor(reason: string) {
-    super(
-      `Invalid full name: ${reason}`,
-      'AUTH.INVALID_FULL_NAME',
-      { reason }
-    );
+    super(`Invalid full name: ${reason}`, 'AUTH.INVALID_FULL_NAME', { reason });
   }
 
   static empty(): InvalidFullNameException {
@@ -17,10 +13,14 @@ export class InvalidFullNameException extends BusinessRuleException {
   }
 
   static tooShort(minLength: number): InvalidFullNameException {
-    return new InvalidFullNameException(`Full name must be at least ${minLength} characters`);
+    return new InvalidFullNameException(
+      `Full name must be at least ${minLength} characters`,
+    );
   }
 
   static invalidCharacters(): InvalidFullNameException {
-    return new InvalidFullNameException('Full name contains invalid characters');
+    return new InvalidFullNameException(
+      'Full name contains invalid characters',
+    );
   }
 }

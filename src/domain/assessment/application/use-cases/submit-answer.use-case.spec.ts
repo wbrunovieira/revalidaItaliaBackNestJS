@@ -42,23 +42,37 @@ describe('SubmitAnswerUseCase', () => {
   describe('Success Cases', () => {
     it('should submit multiple choice answer successfully', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
       const optionId = '550e8400-e29b-41d4-a716-446655440002';
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440004',
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440004',
+        },
+        attemptId,
+      );
 
-      const question = Question.create({
-        text: 'What is the correct answer?',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-        assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440005'),
-      }, questionId);
+      const question = Question.create(
+        {
+          text: 'What is the correct answer?',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440005',
+          ),
+        },
+        questionId,
+      );
 
       await attemptRepository.create(attempt);
       await questionRepository.create(question);
@@ -80,7 +94,9 @@ describe('SubmitAnswerUseCase', () => {
         expect(result.value.attemptAnswer.textAnswer).toBeUndefined();
         expect(result.value.attemptAnswer.status).toBe('IN_PROGRESS');
         expect(result.value.attemptAnswer.attemptId).toBe(attemptId.toString());
-        expect(result.value.attemptAnswer.questionId).toBe(questionId.toString());
+        expect(result.value.attemptAnswer.questionId).toBe(
+          questionId.toString(),
+        );
         expect(result.value.attemptAnswer.createdAt).toBeInstanceOf(Date);
         expect(result.value.attemptAnswer.updatedAt).toBeInstanceOf(Date);
       }
@@ -88,23 +104,37 @@ describe('SubmitAnswerUseCase', () => {
 
     it('should submit open answer successfully', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
       const textAnswer = 'This is my open answer';
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440004',
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440004',
+        },
+        attemptId,
+      );
 
-      const question = Question.create({
-        text: 'What is the correct answer?',
-        type: new QuestionTypeVO('OPEN'),
-        assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440005'),
-      }, questionId);
+      const question = Question.create(
+        {
+          text: 'What is the correct answer?',
+          type: new QuestionTypeVO('OPEN'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440005',
+          ),
+        },
+        questionId,
+      );
 
       await attemptRepository.create(attempt);
       await questionRepository.create(question);
@@ -129,24 +159,38 @@ describe('SubmitAnswerUseCase', () => {
 
     it('should update existing answer', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
       const originalOptionId = '550e8400-e29b-41d4-a716-446655440002';
       const newOptionId = '550e8400-e29b-41d4-a716-446655440006';
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440004',
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440004',
+        },
+        attemptId,
+      );
 
-      const question = Question.create({
-        text: 'What is the correct answer?',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-        assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440005'),
-      }, questionId);
+      const question = Question.create(
+        {
+          text: 'What is the correct answer?',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440005',
+          ),
+        },
+        questionId,
+      );
 
       const existingAnswer = AttemptAnswer.create({
         selectedOptionId: originalOptionId,
@@ -172,7 +216,9 @@ describe('SubmitAnswerUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.attemptAnswer.selectedOptionId).toBe(newOptionId);
-        expect(result.value.attemptAnswer.id).toBe(existingAnswer.id.toString());
+        expect(result.value.attemptAnswer.id).toBe(
+          existingAnswer.id.toString(),
+        );
       }
     });
   });
@@ -272,14 +318,19 @@ describe('SubmitAnswerUseCase', () => {
 
     it('should return AttemptNotActiveError when attempt is not in progress', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('SUBMITTED'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440004',
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('SUBMITTED'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440004',
+        },
+        attemptId,
+      );
 
       await attemptRepository.create(attempt);
 
@@ -301,14 +352,19 @@ describe('SubmitAnswerUseCase', () => {
 
     it('should return QuestionNotFoundError when question does not exist', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440004',
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440004',
+        },
+        attemptId,
+      );
 
       await attemptRepository.create(attempt);
 
@@ -330,22 +386,36 @@ describe('SubmitAnswerUseCase', () => {
 
     it('should return InvalidAnswerTypeError for multiple choice question with text answer', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440004',
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440004',
+        },
+        attemptId,
+      );
 
-      const question = Question.create({
-        text: 'What is the correct answer?',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-        assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440005'),
-      }, questionId);
+      const question = Question.create(
+        {
+          text: 'What is the correct answer?',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440005',
+          ),
+        },
+        questionId,
+      );
 
       await attemptRepository.create(attempt);
       await questionRepository.create(question);
@@ -368,22 +438,36 @@ describe('SubmitAnswerUseCase', () => {
 
     it('should return InvalidAnswerTypeError for open question with selected option', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440004',
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440004',
+        },
+        attemptId,
+      );
 
-      const question = Question.create({
-        text: 'What is the correct answer?',
-        type: new QuestionTypeVO('OPEN'),
-        assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440005'),
-      }, questionId);
+      const question = Question.create(
+        {
+          text: 'What is the correct answer?',
+          type: new QuestionTypeVO('OPEN'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440005',
+          ),
+        },
+        questionId,
+      );
 
       await attemptRepository.create(attempt);
       await questionRepository.create(question);
@@ -440,22 +524,36 @@ describe('SubmitAnswerUseCase', () => {
 
     it('should return RepositoryError when answer creation fails', async () => {
       // Arrange
-      const attemptId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440000');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const attemptId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440000',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date(),
-        userId: '550e8400-e29b-41d4-a716-446655440003',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440004',
-      }, attemptId);
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date(),
+          userId: '550e8400-e29b-41d4-a716-446655440003',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440004',
+        },
+        attemptId,
+      );
 
-      const question = Question.create({
-        text: 'What is the correct answer?',
-        type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-        assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440004'),
-        argumentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440005'),
-      }, questionId);
+      const question = Question.create(
+        {
+          text: 'What is the correct answer?',
+          type: new QuestionTypeVO('MULTIPLE_CHOICE'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440004',
+          ),
+          argumentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440005',
+          ),
+        },
+        questionId,
+      );
 
       await attemptRepository.create(attempt);
       await questionRepository.create(question);

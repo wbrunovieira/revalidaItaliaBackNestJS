@@ -156,7 +156,9 @@ export class PrismaAttemptAnswerRepository implements IAttemptAnswerRepository {
     }
   }
 
-  async findByReviewerId(reviewerId: string): Promise<Either<Error, AttemptAnswer[]>> {
+  async findByReviewerId(
+    reviewerId: string,
+  ): Promise<Either<Error, AttemptAnswer[]>> {
     try {
       const attemptAnswers = await this.prisma.attemptAnswer.findMany({
         where: { reviewerId },
@@ -171,7 +173,9 @@ export class PrismaAttemptAnswerRepository implements IAttemptAnswerRepository {
     }
   }
 
-  async findPendingReviewsByStatus(status: 'SUBMITTED' | 'GRADING' = 'SUBMITTED'): Promise<Either<Error, AttemptAnswer[]>> {
+  async findPendingReviewsByStatus(
+    status: 'SUBMITTED' | 'GRADING' = 'SUBMITTED',
+  ): Promise<Either<Error, AttemptAnswer[]>> {
     try {
       const attemptAnswers = await this.prisma.attemptAnswer.findMany({
         where: {

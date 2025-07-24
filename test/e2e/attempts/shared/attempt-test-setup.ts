@@ -108,12 +108,12 @@ export class AttemptTestSetup {
         canActivate: (context) => {
           const request = context.switchToHttp().getRequest();
           const authHeader = request.headers.authorization;
-          
+
           // Check if Authorization header is present
           if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return false; // This will cause a 401 Unauthorized
           }
-          
+
           // Extract user info from mock token
           const token = authHeader.replace('Bearer ', '');
           if (token.startsWith('mock-token-')) {
@@ -121,7 +121,7 @@ export class AttemptTestSetup {
             const tokenParts = token.replace('mock-token-', '').split('-');
             const userId = tokenParts.slice(0, -1).join('-'); // All parts except last are userId
             const role = tokenParts[tokenParts.length - 1]; // Last part is role
-            
+
             request.user = {
               sub: userId,
               email: `${role}@test.com`,
@@ -129,7 +129,7 @@ export class AttemptTestSetup {
             };
             return true;
           }
-          
+
           // Fallback for other tests
           request.user = mockUser;
           return true;
@@ -703,10 +703,12 @@ export class AttemptTestSetup {
       data: {
         status,
         startedAt: new Date(Date.now() - 3600000), // 1 hour ago
-        ...(status === 'SUBMITTED' && { submittedAt: new Date(Date.now() - 1800000) }), // 30 minutes ago
-        ...(status === 'GRADED' && { 
+        ...(status === 'SUBMITTED' && {
           submittedAt: new Date(Date.now() - 1800000),
-          gradedAt: new Date(Date.now() - 900000) // 15 minutes ago
+        }), // 30 minutes ago
+        ...(status === 'GRADED' && {
+          submittedAt: new Date(Date.now() - 1800000),
+          gradedAt: new Date(Date.now() - 900000), // 15 minutes ago
         }),
         userId,
         assessmentId,
@@ -837,24 +839,29 @@ export class AttemptTestSetup {
     const adminUser = await this.createUser('admin');
     const studentUser = await this.findUserById(this.studentUserId);
     const otherStudentUser = await this.createUser('student');
-    
+
     if (!studentUser) {
       throw new Error('Student user not found');
     }
-    
+
     const assessment = await this.findAssessmentById(this.quizAssessmentId);
-    const otherAssessment = await this.findAssessmentById(this.simuladoAssessmentId);
-    
+    const otherAssessment = await this.findAssessmentById(
+      this.simuladoAssessmentId,
+    );
+
     if (!assessment) {
       throw new Error('Quiz assessment not found');
     }
-    
+
     if (!otherAssessment) {
       throw new Error('Simulado assessment not found');
     }
-    
-    const attempt = await this.createActiveAttempt(studentUser.id, assessment.id);
-    
+
+    const attempt = await this.createActiveAttempt(
+      studentUser.id,
+      assessment.id,
+    );
+
     return {
       adminUser,
       studentUser,
@@ -868,7 +875,10 @@ export class AttemptTestSetup {
   /**
    * Create attempt for specific user and assessment
    */
-  async createAttemptForUser(userId: string, assessmentId: string): Promise<any> {
+  async createAttemptForUser(
+    userId: string,
+    assessmentId: string,
+  ): Promise<any> {
     return await this.prisma.attempt.create({
       data: {
         status: 'SUBMITTED',

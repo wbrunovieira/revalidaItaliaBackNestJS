@@ -19,7 +19,10 @@ describe('GetFlashcardByIdUseCase', () => {
   beforeEach(() => {
     flashcardRepository = new InMemoryFlashcardRepository();
     flashcardTagRepository = new InMemoryFlashcardTagRepository();
-    useCase = new GetFlashcardByIdUseCase(flashcardRepository, flashcardTagRepository);
+    useCase = new GetFlashcardByIdUseCase(
+      flashcardRepository,
+      flashcardTagRepository,
+    );
   });
 
   describe('Success scenarios', () => {
@@ -133,7 +136,9 @@ describe('GetFlashcardByIdUseCase', () => {
       // Arrange
       const flashcard = Flashcard.create({
         slug: 'anatomy-flashcard',
-        question: FlashcardContentVO.createImage('https://example.com/heart.jpg'),
+        question: FlashcardContentVO.createImage(
+          'https://example.com/heart.jpg',
+        ),
         answer: FlashcardContentVO.createText('The human heart'),
         argumentId: new UniqueEntityID('argument-id'),
         tagIds: [],
@@ -181,7 +186,9 @@ describe('GetFlashcardByIdUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.flashcard.importBatchId).toBe('batch-123');
-        expect(result.value.flashcard.exportedAt).toEqual(new Date('2024-01-01'));
+        expect(result.value.flashcard.exportedAt).toEqual(
+          new Date('2024-01-01'),
+        );
       }
     });
   });
@@ -230,7 +237,9 @@ describe('GetFlashcardByIdUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(FlashcardNotFoundError);
-        expect(result.value.message).toContain('550e8400-e29b-41d4-a716-446655440000');
+        expect(result.value.message).toContain(
+          '550e8400-e29b-41d4-a716-446655440000',
+        );
       }
     });
 
@@ -269,9 +278,11 @@ describe('GetFlashcardByIdUseCase', () => {
       });
       await flashcardRepository.create(flashcard);
 
-      vi.spyOn(flashcardTagRepository, 'findByIds').mockImplementationOnce(() => {
-        throw new Error('Tag repository error');
-      });
+      vi.spyOn(flashcardTagRepository, 'findByIds').mockImplementationOnce(
+        () => {
+          throw new Error('Tag repository error');
+        },
+      );
 
       // Act
       const result = await useCase.execute({
@@ -347,7 +358,9 @@ describe('GetFlashcardByIdUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.flashcard.tags).toHaveLength(1);
-        expect(result.value.flashcard.tags![0].id).toBe(existingTag.id.toString());
+        expect(result.value.flashcard.tags![0].id).toBe(
+          existingTag.id.toString(),
+        );
       }
     });
 

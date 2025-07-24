@@ -26,12 +26,13 @@ describe('CreateAnswer E2E - Core', () => {
   describe('Success scenarios', () => {
     it('should create basic answer for multiple choice question successfully', async () => {
       // Create a unique question with options for this test
-      const { questionId, optionIds } = await testSetup.createTestQuestionWithOptions({
-        text: 'Test multiple choice question for POST answer',
-        type: 'MULTIPLE_CHOICE',
-        assessmentId: testSetup.quizAssessmentId,
-        options: ['Option A', 'Option B', 'Option C']
-      });
+      const { questionId, optionIds } =
+        await testSetup.createTestQuestionWithOptions({
+          text: 'Test multiple choice question for POST answer',
+          type: 'MULTIPLE_CHOICE',
+          assessmentId: testSetup.quizAssessmentId,
+          options: ['Option A', 'Option B', 'Option C'],
+        });
 
       const answerData = {
         explanation: 'Basic explanation for multiple choice question',
@@ -39,7 +40,8 @@ describe('CreateAnswer E2E - Core', () => {
         correctOptionId: optionIds[0], // Use the first option
       };
 
-      const response: Response = await helpers.createAnswerExpectSuccess(answerData);
+      const response: Response =
+        await helpers.createAnswerExpectSuccess(answerData);
 
       // Verify response format
       helpers.verifyCreateAnswerSuccessResponseFormat(
@@ -70,7 +72,8 @@ describe('CreateAnswer E2E - Core', () => {
         questionId: questionId,
       };
 
-      const response: Response = await helpers.createAnswerExpectSuccess(answerData);
+      const response: Response =
+        await helpers.createAnswerExpectSuccess(answerData);
 
       expect(response.body.answer.explanation).toBe(answerData.explanation);
       expect(response.body.answer.questionId).toBe(answerData.questionId);
@@ -90,7 +93,8 @@ describe('CreateAnswer E2E - Core', () => {
         questionId: questionId,
       };
 
-      const response: Response = await helpers.createAnswerExpectSuccess(answerData);
+      const response: Response =
+        await helpers.createAnswerExpectSuccess(answerData);
 
       expect(response.body.answer.explanation).toContain('@#$%^&*()!');
       expect(response.body.answer.explanation).toContain('±≤≥≠≈');
@@ -105,11 +109,13 @@ describe('CreateAnswer E2E - Core', () => {
       });
 
       const answerData = {
-        explanation: 'Resposta em português 中文 العربية русский with emojis 🎯🚀',
+        explanation:
+          'Resposta em português 中文 العربية русский with emojis 🎯🚀',
         questionId: questionId,
       };
 
-      const response: Response = await helpers.createAnswerExpectSuccess(answerData);
+      const response: Response =
+        await helpers.createAnswerExpectSuccess(answerData);
 
       expect(response.body.answer.explanation).toContain('português');
       expect(response.body.answer.explanation).toContain('中文');
@@ -122,12 +128,13 @@ describe('CreateAnswer E2E - Core', () => {
   describe('Validation scenarios', () => {
     it('should reject empty explanation', async () => {
       // Create a unique question with options for this test
-      const { questionId, optionIds } = await testSetup.createTestQuestionWithOptions({
-        text: 'Test multiple choice question for empty explanation validation',
-        type: 'MULTIPLE_CHOICE',
-        assessmentId: testSetup.quizAssessmentId,
-        options: ['Option A', 'Option B']
-      });
+      const { questionId, optionIds } =
+        await testSetup.createTestQuestionWithOptions({
+          text: 'Test multiple choice question for empty explanation validation',
+          type: 'MULTIPLE_CHOICE',
+          assessmentId: testSetup.quizAssessmentId,
+          options: ['Option A', 'Option B'],
+        });
 
       const answerData = {
         explanation: '',
@@ -135,18 +142,20 @@ describe('CreateAnswer E2E - Core', () => {
         correctOptionId: optionIds[0],
       };
 
-      const response: Response = await helpers.createAnswerWithPayload(answerData);
+      const response: Response =
+        await helpers.createAnswerWithPayload(answerData);
       expect([400, 500]).toContain(response.status);
     });
 
     it('should reject null explanation', async () => {
       // Create a unique question with options for this test
-      const { questionId, optionIds } = await testSetup.createTestQuestionWithOptions({
-        text: 'Test multiple choice question for null explanation validation',
-        type: 'MULTIPLE_CHOICE',
-        assessmentId: testSetup.quizAssessmentId,
-        options: ['Option A', 'Option B']
-      });
+      const { questionId, optionIds } =
+        await testSetup.createTestQuestionWithOptions({
+          text: 'Test multiple choice question for null explanation validation',
+          type: 'MULTIPLE_CHOICE',
+          assessmentId: testSetup.quizAssessmentId,
+          options: ['Option A', 'Option B'],
+        });
 
       const answerData = {
         explanation: null,
@@ -154,25 +163,28 @@ describe('CreateAnswer E2E - Core', () => {
         correctOptionId: optionIds[0],
       };
 
-      const response: Response = await helpers.createAnswerWithPayload(answerData);
+      const response: Response =
+        await helpers.createAnswerWithPayload(answerData);
       expect(response.status).toBe(400);
     });
 
     it('should reject missing explanation field', async () => {
       // Create a unique question with options for this test
-      const { questionId, optionIds } = await testSetup.createTestQuestionWithOptions({
-        text: 'Test multiple choice question for missing explanation validation',
-        type: 'MULTIPLE_CHOICE',
-        assessmentId: testSetup.quizAssessmentId,
-        options: ['Option A', 'Option B']
-      });
+      const { questionId, optionIds } =
+        await testSetup.createTestQuestionWithOptions({
+          text: 'Test multiple choice question for missing explanation validation',
+          type: 'MULTIPLE_CHOICE',
+          assessmentId: testSetup.quizAssessmentId,
+          options: ['Option A', 'Option B'],
+        });
 
       const answerData = {
         questionId: questionId,
         correctOptionId: optionIds[0],
       };
 
-      const response: Response = await helpers.createAnswerWithPayload(answerData);
+      const response: Response =
+        await helpers.createAnswerWithPayload(answerData);
       expect(response.status).toBe(400);
     });
 
@@ -182,7 +194,7 @@ describe('CreateAnswer E2E - Core', () => {
         text: 'Test multiple choice question for invalid question ID validation',
         type: 'MULTIPLE_CHOICE',
         assessmentId: testSetup.quizAssessmentId,
-        options: ['Option A', 'Option B']
+        options: ['Option A', 'Option B'],
       });
 
       const answerData = {
@@ -191,7 +203,8 @@ describe('CreateAnswer E2E - Core', () => {
         correctOptionId: optionIds[0],
       };
 
-      const response: Response = await helpers.createAnswerWithPayload(answerData);
+      const response: Response =
+        await helpers.createAnswerWithPayload(answerData);
       expect(response.status).toBe(400);
     });
   });
@@ -208,12 +221,13 @@ describe('CreateAnswer E2E - Core', () => {
 
     it('should return 409 when answer already exists for question', async () => {
       // Create a unique question with options for this test
-      const { questionId, optionIds } = await testSetup.createTestQuestionWithOptions({
-        text: 'Test multiple choice question for conflict test',
-        type: 'MULTIPLE_CHOICE',
-        assessmentId: testSetup.quizAssessmentId,
-        options: ['Option A', 'Option B']
-      });
+      const { questionId, optionIds } =
+        await testSetup.createTestQuestionWithOptions({
+          text: 'Test multiple choice question for conflict test',
+          type: 'MULTIPLE_CHOICE',
+          assessmentId: testSetup.quizAssessmentId,
+          options: ['Option A', 'Option B'],
+        });
 
       const answerData = {
         explanation: 'First answer',
@@ -235,7 +249,9 @@ describe('CreateAnswer E2E - Core', () => {
     });
 
     it('should handle malformed request body', async () => {
-      const response: Response = await helpers.createAnswerWithPayload('invalid string instead of object');
+      const response: Response = await helpers.createAnswerWithPayload(
+        'invalid string instead of object',
+      );
       expect([400, 500]).toContain(response.status);
     });
   });
@@ -243,27 +259,34 @@ describe('CreateAnswer E2E - Core', () => {
   describe('Database integrity verification', () => {
     it('should maintain database consistency during operations', async () => {
       // Create unique questions for this test
-      const { questionId: openQuestionId } = await testSetup.createTestQuestionWithOptions({
-        text: 'Test open question for DB consistency',
-        type: 'OPEN',
-        assessmentId: testSetup.provaAbertaAssessmentId,
-      });
-      
-      const { questionId: mcQuestionId, optionIds } = await testSetup.createTestQuestionWithOptions({
-        text: 'Test multiple choice question for DB consistency',
-        type: 'MULTIPLE_CHOICE',
-        assessmentId: testSetup.quizAssessmentId,
-        options: ['Option A', 'Option B']
-      });
+      const { questionId: openQuestionId } =
+        await testSetup.createTestQuestionWithOptions({
+          text: 'Test open question for DB consistency',
+          type: 'OPEN',
+          assessmentId: testSetup.provaAbertaAssessmentId,
+        });
+
+      const { questionId: mcQuestionId, optionIds } =
+        await testSetup.createTestQuestionWithOptions({
+          text: 'Test multiple choice question for DB consistency',
+          type: 'MULTIPLE_CHOICE',
+          assessmentId: testSetup.quizAssessmentId,
+          options: ['Option A', 'Option B'],
+        });
 
       const answersToCreate = [
         { explanation: 'DB Answer 1', questionId: openQuestionId },
-        { explanation: 'DB Answer 2', questionId: mcQuestionId, correctOptionId: optionIds[0] },
+        {
+          explanation: 'DB Answer 2',
+          questionId: mcQuestionId,
+          correctOptionId: optionIds[0],
+        },
       ];
       const createdIds: string[] = [];
 
       for (const answerData of answersToCreate) {
-        const response: Response = await helpers.createAnswerExpectSuccess(answerData);
+        const response: Response =
+          await helpers.createAnswerExpectSuccess(answerData);
         createdIds.push(response.body.answer.id);
       }
 
@@ -279,12 +302,13 @@ describe('CreateAnswer E2E - Core', () => {
 
     it('should ensure referential integrity', async () => {
       // Create a unique question with options for this test
-      const { questionId, optionIds } = await testSetup.createTestQuestionWithOptions({
-        text: 'Test multiple choice question for referential integrity',
-        type: 'MULTIPLE_CHOICE',
-        assessmentId: testSetup.quizAssessmentId,
-        options: ['Option A', 'Option B']
-      });
+      const { questionId, optionIds } =
+        await testSetup.createTestQuestionWithOptions({
+          text: 'Test multiple choice question for referential integrity',
+          type: 'MULTIPLE_CHOICE',
+          assessmentId: testSetup.quizAssessmentId,
+          options: ['Option A', 'Option B'],
+        });
 
       const answerData = {
         explanation: 'Referential integrity test',
@@ -292,7 +316,8 @@ describe('CreateAnswer E2E - Core', () => {
         correctOptionId: optionIds[0],
       };
 
-      const response: Response = await helpers.createAnswerExpectSuccess(answerData);
+      const response: Response =
+        await helpers.createAnswerExpectSuccess(answerData);
 
       // Verify answer references existing question
       const dbAnswer = await testSetup.prisma.answer.findUnique({

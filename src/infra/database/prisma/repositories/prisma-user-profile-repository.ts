@@ -126,7 +126,7 @@ export class PrismaUserProfileRepository implements IUserProfileRepository {
         timezone: data.timezone,
         updatedAt: data.updatedAt,
       };
-      
+
       // Add optional fields only if they're not null
       if (data.phone !== null) {
         updateData.phone = data.phone;
@@ -158,7 +158,7 @@ export class PrismaUserProfileRepository implements IUserProfileRepository {
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
-      
+
       // Add optional fields only if they're not null/undefined
       if (data.phone !== null && data.phone !== undefined) {
         createData.phone = data.phone;

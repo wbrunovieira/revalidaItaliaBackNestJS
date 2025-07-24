@@ -4,17 +4,14 @@ import { BusinessRuleException } from '@/core/domain/exceptions/business-rule.ex
  * Exception thrown when an invalid role is provided
  */
 export class InvalidRoleException extends BusinessRuleException {
-  constructor(
-    providedRole: string,
-    validRoles: string[]
-  ) {
+  constructor(providedRole: string, validRoles: string[]) {
     super(
       `Invalid role: ${providedRole}. Must be one of: ${validRoles.join(', ')}`,
       'AUTH.INVALID_ROLE',
-      { 
+      {
         providedRole,
-        validRoles
-      }
+        validRoles,
+      },
     );
   }
 }

@@ -3,7 +3,7 @@ import { EntityNotFoundException } from '@/core/domain/exceptions';
 
 /**
  * Exception thrown when a resource is not found
- * 
+ *
  * This is an alias for EntityNotFoundException to maintain backward compatibility
  * and provide domain-specific semantics
  */
@@ -12,11 +12,7 @@ export class ResourceNotFoundError extends EntityNotFoundException {
    * Factory method for type-based searches
    */
   static withType(resourceType: string): ResourceNotFoundError {
-    return new ResourceNotFoundError(
-      resourceType,
-      {},
-      undefined
-    );
+    return new ResourceNotFoundError(resourceType, {}, undefined);
   }
 
   /**
@@ -27,7 +23,7 @@ export class ResourceNotFoundError extends EntityNotFoundException {
       entityName,
       { id },
       id,
-      `${entityName} with ID ${id} not found`
+      `${entityName} with ID ${id} not found`,
     );
   }
 
@@ -41,7 +37,7 @@ export class ResourceNotFoundError extends EntityNotFoundException {
       value: message,
       writable: false,
       enumerable: true,
-      configurable: true
+      configurable: true,
     });
     return error;
   }

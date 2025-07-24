@@ -3,7 +3,7 @@ import { DomainEvent } from '../domain-event';
 
 /**
  * Event Dispatcher Interface
- * 
+ *
  * Defines the contract for dispatching domain events.
  * Implementations can use different strategies (in-memory, message queue, etc.)
  */

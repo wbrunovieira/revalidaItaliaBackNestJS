@@ -5,7 +5,10 @@ import { UpdateAddressUseCase } from './update-address.use-case';
 import { InMemoryAddressRepository } from '@/test/repositories/in-memory-address-repository';
 import { UpdateAddressRequestDto } from '../dtos/update-address-request.dto';
 import { Address } from '@/domain/auth/enterprise/entities/address.entity';
-import { ResourceNotFoundError, RepositoryError } from '@/domain/auth/domain/exceptions';
+import {
+  ResourceNotFoundError,
+  RepositoryError,
+} from '@/domain/auth/domain/exceptions';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { left } from '@/core/either';
 
@@ -142,7 +145,7 @@ describe('UpdateAddressUseCase', () => {
       addressRepo.items.push(address);
 
       // Wait a bit to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise((resolve) => setTimeout(resolve, 1));
 
       const request: UpdateAddressRequestDto = {
         id: address.id.toString(),
@@ -153,7 +156,9 @@ describe('UpdateAddressUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
+        expect(result.value.updatedAt.getTime()).toBeGreaterThan(
+          originalUpdatedAt.getTime(),
+        );
       }
     });
 
@@ -195,7 +200,11 @@ describe('UpdateAddressUseCase', () => {
       });
 
       it('should fail when findById returns undefined', async () => {
-        vi.spyOn(addressRepo, 'findById').mockResolvedValueOnce({ isLeft: () => false, isRight: () => true, value: undefined } as any);
+        vi.spyOn(addressRepo, 'findById').mockResolvedValueOnce({
+          isLeft: () => false,
+          isRight: () => true,
+          value: undefined,
+        } as any);
 
         const request: UpdateAddressRequestDto = {
           id: 'some-id',
@@ -214,7 +223,9 @@ describe('UpdateAddressUseCase', () => {
     describe('Repository Errors', () => {
       it('should fail when repository findById returns left', async () => {
         const repositoryError = new Error('Database connection failed');
-        vi.spyOn(addressRepo, 'findById').mockResolvedValueOnce(left(repositoryError));
+        vi.spyOn(addressRepo, 'findById').mockResolvedValueOnce(
+          left(repositoryError),
+        );
 
         const request: UpdateAddressRequestDto = {
           id: 'some-id',
@@ -253,7 +264,9 @@ describe('UpdateAddressUseCase', () => {
         addressRepo.items.push(address);
 
         const updateError = new Error('Update failed');
-        vi.spyOn(addressRepo, 'update').mockResolvedValueOnce(left(updateError));
+        vi.spyOn(addressRepo, 'update').mockResolvedValueOnce(
+          left(updateError),
+        );
 
         const request: UpdateAddressRequestDto = {
           id: address.id.toString(),
@@ -405,7 +418,7 @@ describe('UpdateAddressUseCase', () => {
     it('should only update the specified address', async () => {
       const address1 = createTestAddress({ street: 'Street 1' });
       const address2 = createTestAddress({ street: 'Street 2' });
-      
+
       addressRepo.items.push(address1, address2);
 
       const request: UpdateAddressRequestDto = {
@@ -416,7 +429,7 @@ describe('UpdateAddressUseCase', () => {
       const result = await sut.execute(request);
 
       expect(result.isRight()).toBe(true);
-      
+
       // Verify only the first address was updated
       expect(addressRepo.items[0].street).toBe('Updated Street 1');
       expect(addressRepo.items[1].street).toBe('Street 2'); // Unchanged
@@ -426,7 +439,7 @@ describe('UpdateAddressUseCase', () => {
       const address = createTestAddress();
       const originalStreet = address.street;
       const originalNumber = address.number;
-      
+
       addressRepo.items.push(address);
 
       const request: UpdateAddressRequestDto = {
@@ -471,7 +484,9 @@ describe('UpdateAddressUseCase', () => {
 
       // One of the updates should have succeeded
       const finalAddress = addressRepo.items[0];
-      expect(['Updated by Request 1', 'Updated by Request 2']).toContain(finalAddress.street);
+      expect(['Updated by Request 1', 'Updated by Request 2']).toContain(
+        finalAddress.street,
+      );
     });
 
     it('should not allow updating non-existent fields', async () => {
@@ -501,7 +516,7 @@ describe('UpdateAddressUseCase', () => {
       addressRepo.items.push(address);
 
       const start = Date.now();
-      
+
       const request: UpdateAddressRequestDto = {
         id: address.id.toString(),
         street: 'Performance Test Street',
@@ -547,10 +562,10 @@ describe('UpdateAddressUseCase', () => {
   describe('Integration Tests', () => {
     it('should work end-to-end with repository operations', async () => {
       const address = createTestAddress();
-      
+
       // Add to repository
       await addressRepo.create(address);
-      
+
       // Update through use case
       const request: UpdateAddressRequestDto = {
         id: address.id.toString(),

@@ -135,11 +135,13 @@ export class AssessmentControllerTestData {
                 translations: [
                   {
                     locale: 'pt',
-                    explanation: 'A frequência cardíaca normal de repouso em adultos é 60-100 bpm',
+                    explanation:
+                      'A frequência cardíaca normal de repouso em adultos é 60-100 bpm',
                   },
                   {
                     locale: 'it',
-                    explanation: 'La frequenza cardiaca normale a riposo negli adulti è 60-100 bpm',
+                    explanation:
+                      'La frequenza cardiaca normale a riposo negli adulti è 60-100 bpm',
                   },
                 ],
               },
@@ -184,11 +186,13 @@ export class AssessmentControllerTestData {
             translations: [
               {
                 locale: 'pt',
-                explanation: 'A frequência cardíaca normal de repouso em adultos é 60-100 bpm',
+                explanation:
+                  'A frequência cardíaca normal de repouso em adultos é 60-100 bpm',
               },
               {
                 locale: 'it',
-                explanation: 'La frequenza cardiaca normale a riposo negli adulti è 60-100 bpm',
+                explanation:
+                  'La frequenza cardiaca normale a riposo negli adulti è 60-100 bpm',
               },
             ],
           },

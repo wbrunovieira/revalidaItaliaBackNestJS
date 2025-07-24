@@ -4,7 +4,7 @@ import { IsString, IsOptional, IsEnum } from 'class-validator';
 
 /**
  * Update User DTO
- * 
+ *
  * All fields are optional for partial updates.
  * Validates request structure at the HTTP layer.
  */

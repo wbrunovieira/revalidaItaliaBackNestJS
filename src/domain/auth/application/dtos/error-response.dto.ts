@@ -50,7 +50,7 @@ export class ValidationErrorResponseDto extends ErrorResponseDto {
       errors: {
         name: ['Name must be at least 3 characters'],
         email: ['Invalid email format'],
-      }
+      },
     },
     description: 'Detailed validation errors by field',
   })

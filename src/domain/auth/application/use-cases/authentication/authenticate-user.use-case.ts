@@ -74,7 +74,10 @@ export class AuthenticateUserUseCase {
 
     // Use domain service to check email verification policy
     const emailVerificationService = EmailVerificationFactory.create();
-    if (emailVerificationService.isVerificationRequiredForLogin() && !identity.emailVerified) {
+    if (
+      emailVerificationService.isVerificationRequiredForLogin() &&
+      !identity.emailVerified
+    ) {
       return left(AuthenticationError.emailNotVerified());
     }
 

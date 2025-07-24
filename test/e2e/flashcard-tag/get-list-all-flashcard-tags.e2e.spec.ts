@@ -11,7 +11,7 @@ describe('GET /flashcard-tags E2E Tests', () => {
   beforeEach(async () => {
     testSetup = new FlashcardTagGetTestSetup();
     testHelpers = new FlashcardTagTestHelpers(testSetup);
-    
+
     await testSetup.initialize();
     await testSetup.setupTestData();
   });
@@ -26,8 +26,11 @@ describe('GET /flashcard-tags E2E Tests', () => {
       const response = await testHelpers.listAllFlashcardTagsExpectSuccess(5);
 
       // Assert
-      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(response.body, 5);
-      
+      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(
+        response.body,
+        5,
+      );
+
       // Verify all tags are returned (sorted by name)
       const tags = response.body.flashcardTags;
       expect(tags[0].name).toBe('Anatomia');
@@ -53,7 +56,10 @@ describe('GET /flashcard-tags E2E Tests', () => {
       const response = await testHelpers.listAllFlashcardTagsExpectSuccess(0);
 
       // Assert
-      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(response.body, 0);
+      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(
+        response.body,
+        0,
+      );
       expect(response.body.flashcardTags).toEqual([]);
     });
 
@@ -74,7 +80,10 @@ describe('GET /flashcard-tags E2E Tests', () => {
       const response = await testHelpers.listAllFlashcardTagsExpectSuccess(1);
 
       // Assert
-      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(response.body, 1);
+      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(
+        response.body,
+        1,
+      );
       expect(response.body.flashcardTags[0]).toEqual({
         id: testSetup.flashcardTagId1,
         name: 'Única Tag',
@@ -110,7 +119,10 @@ describe('GET /flashcard-tags E2E Tests', () => {
       const response = await testHelpers.listAllFlashcardTagsExpectSuccess(2);
 
       // Assert
-      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(response.body, 2);
+      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(
+        response.body,
+        2,
+      );
       expect(response.body.flashcardTags[0].name).toBe('Anatomia & Fisiologia');
       expect(response.body.flashcardTags[0].slug).toBe('anatomia-fisiologia');
       expect(response.body.flashcardTags[1].name).toBe('Médico Português');
@@ -150,7 +162,10 @@ describe('GET /flashcard-tags E2E Tests', () => {
       const response = await testHelpers.listAllFlashcardTagsExpectSuccess(3);
 
       // Assert - Should be sorted alphabetically by name
-      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(response.body, 3);
+      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(
+        response.body,
+        3,
+      );
       expect(response.body.flashcardTags[0].name).toBe('Anatomia');
       expect(response.body.flashcardTags[1].name).toBe('Medicina');
       expect(response.body.flashcardTags[2].name).toBe('Zootecnia');
@@ -175,7 +190,10 @@ describe('GET /flashcard-tags E2E Tests', () => {
       const response = await testHelpers.listAllFlashcardTagsExpectSuccess(1);
 
       // Assert
-      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(response.body, 1);
+      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(
+        response.body,
+        1,
+      );
       const tag = response.body.flashcardTags[0];
       expect(tag.id).toBe(testSetup.flashcardTagId1);
       expect(tag.name).toBe('Test Tag');
@@ -210,11 +228,22 @@ describe('GET /flashcard-tags E2E Tests', () => {
       const response = await testHelpers.listAllFlashcardTagsExpectSuccess(2);
 
       // Assert
-      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(response.body, 2);
-      expect(response.body.flashcardTags[0].createdAt).toBe('2024-01-01T00:00:00.000Z');
-      expect(response.body.flashcardTags[0].updatedAt).toBe('2024-01-01T00:00:00.000Z');
-      expect(response.body.flashcardTags[1].createdAt).toBe('2024-01-02T00:00:00.000Z');
-      expect(response.body.flashcardTags[1].updatedAt).toBe('2024-01-02T01:00:00.000Z');
+      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(
+        response.body,
+        2,
+      );
+      expect(response.body.flashcardTags[0].createdAt).toBe(
+        '2024-01-01T00:00:00.000Z',
+      );
+      expect(response.body.flashcardTags[0].updatedAt).toBe(
+        '2024-01-01T00:00:00.000Z',
+      );
+      expect(response.body.flashcardTags[1].createdAt).toBe(
+        '2024-01-02T00:00:00.000Z',
+      );
+      expect(response.body.flashcardTags[1].updatedAt).toBe(
+        '2024-01-02T01:00:00.000Z',
+      );
     });
   });
 
@@ -237,7 +266,10 @@ describe('GET /flashcard-tags E2E Tests', () => {
       const response = await testHelpers.listAllFlashcardTagsExpectSuccess(1);
 
       // Assert
-      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(response.body, 1);
+      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(
+        response.body,
+        1,
+      );
       expect(response.body.flashcardTags[0].name).toBe(longName);
       expect(response.body.flashcardTags[0].slug).toBe('a'.repeat(50));
     });
@@ -268,7 +300,10 @@ describe('GET /flashcard-tags E2E Tests', () => {
       const response = await testHelpers.listAllFlashcardTagsExpectSuccess(2);
 
       // Assert
-      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(response.body, 2);
+      testHelpers.verifyListAllFlashcardTagsSuccessResponseFormat(
+        response.body,
+        2,
+      );
       expect(response.body.flashcardTags[0].name).toBe('Duplicate Name');
       expect(response.body.flashcardTags[1].name).toBe('Duplicate Name');
       expect(response.body.flashcardTags[0].slug).toBe('duplicate-1');
@@ -302,7 +337,7 @@ describe('GET /flashcard-tags E2E Tests', () => {
 
       // Act - Make multiple concurrent requests
       const promises = Array.from({ length: 5 }, () =>
-        testHelpers.listAllFlashcardTags()
+        testHelpers.listAllFlashcardTags(),
       );
       const responses = await Promise.all(promises);
 

@@ -57,12 +57,12 @@ describe('CreateAnswer E2E - Simple Debug', () => {
     // Check if questions were created properly
     const mcQuestion = await testSetup.prisma.question.findUnique({
       where: { id: testSetup.multipleChoiceQuestionId },
-      include: { assessment: true }
+      include: { assessment: true },
     });
-    
+
     const openQuestion = await testSetup.prisma.question.findUnique({
       where: { id: testSetup.openQuestionId },
-      include: { assessment: true }
+      include: { assessment: true },
     });
 
     console.log('Multiple choice question:', mcQuestion);

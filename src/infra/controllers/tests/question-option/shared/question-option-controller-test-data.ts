@@ -52,7 +52,10 @@ export class QuestionOptionControllerTestData {
   };
 
   // Success responses
-  static readonly SUCCESS_RESPONSES: Record<string, CreateQuestionOptionResponse> = {
+  static readonly SUCCESS_RESPONSES: Record<
+    string,
+    CreateQuestionOptionResponse
+  > = {
     SIMPLE_OPTION: {
       questionOption: {
         id: '550e8400-e29b-41d4-a716-446655440100',

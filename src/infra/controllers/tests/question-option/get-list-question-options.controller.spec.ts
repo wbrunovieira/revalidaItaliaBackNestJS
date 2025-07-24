@@ -1,7 +1,11 @@
 // src/infra/controllers/tests/question-option/get-list-question-options.controller.spec.ts
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { QuestionOptionControllerTestSetup } from './shared/question-option-controller-test-setup';
 import { right, left } from '@/core/either';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
@@ -135,13 +139,19 @@ describe('QuestionOptionController - listOptions', () => {
     it('should throw BadRequestException for invalid input', async () => {
       // Arrange
       const questionId = 'invalid-uuid';
-      const mockError = new InvalidInputError('Question ID must be a valid UUID');
+      const mockError = new InvalidInputError(
+        'Question ID must be a valid UUID',
+      );
 
       listQuestionOptionsUseCase.execute.mockResolvedValue(left(mockError));
 
       // Act & Assert
-      await expect(controller.listOptions(questionId)).rejects.toThrow(BadRequestException);
-      await expect(controller.listOptions(questionId)).rejects.toThrow('Question ID must be a valid UUID');
+      await expect(controller.listOptions(questionId)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(controller.listOptions(questionId)).rejects.toThrow(
+        'Question ID must be a valid UUID',
+      );
 
       expect(listQuestionOptionsUseCase.execute).toHaveBeenCalledWith({
         questionId,
@@ -156,8 +166,12 @@ describe('QuestionOptionController - listOptions', () => {
       listQuestionOptionsUseCase.execute.mockResolvedValue(left(mockError));
 
       // Act & Assert
-      await expect(controller.listOptions(questionId)).rejects.toThrow(NotFoundException);
-      await expect(controller.listOptions(questionId)).rejects.toThrow('Question not found');
+      await expect(controller.listOptions(questionId)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(controller.listOptions(questionId)).rejects.toThrow(
+        'Question not found',
+      );
 
       expect(listQuestionOptionsUseCase.execute).toHaveBeenCalledWith({
         questionId,
@@ -172,8 +186,12 @@ describe('QuestionOptionController - listOptions', () => {
       listQuestionOptionsUseCase.execute.mockResolvedValue(left(mockError));
 
       // Act & Assert
-      await expect(controller.listOptions(questionId)).rejects.toThrow(InternalServerErrorException);
-      await expect(controller.listOptions(questionId)).rejects.toThrow('Failed to fetch question options');
+      await expect(controller.listOptions(questionId)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+      await expect(controller.listOptions(questionId)).rejects.toThrow(
+        'Failed to fetch question options',
+      );
 
       expect(listQuestionOptionsUseCase.execute).toHaveBeenCalledWith({
         questionId,
@@ -188,8 +206,12 @@ describe('QuestionOptionController - listOptions', () => {
       listQuestionOptionsUseCase.execute.mockResolvedValue(left(mockError));
 
       // Act & Assert
-      await expect(controller.listOptions(questionId)).rejects.toThrow(InternalServerErrorException);
-      await expect(controller.listOptions(questionId)).rejects.toThrow('An unexpected error occurred');
+      await expect(controller.listOptions(questionId)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+      await expect(controller.listOptions(questionId)).rejects.toThrow(
+        'An unexpected error occurred',
+      );
 
       expect(listQuestionOptionsUseCase.execute).toHaveBeenCalledWith({
         questionId,
@@ -206,7 +228,9 @@ describe('QuestionOptionController - listOptions', () => {
       listQuestionOptionsUseCase.execute.mockResolvedValue(left(mockError));
 
       // Act & Assert
-      await expect(controller.listOptions(questionId)).rejects.toThrow(BadRequestException);
+      await expect(controller.listOptions(questionId)).rejects.toThrow(
+        BadRequestException,
+      );
 
       expect(listQuestionOptionsUseCase.execute).toHaveBeenCalledWith({
         questionId,
@@ -216,12 +240,16 @@ describe('QuestionOptionController - listOptions', () => {
     it('should handle malformed UUID', async () => {
       // Arrange
       const questionId = '550e8400e29b41d4a716446655440000'; // Missing hyphens
-      const mockError = new InvalidInputError('Question ID must be a valid UUID');
+      const mockError = new InvalidInputError(
+        'Question ID must be a valid UUID',
+      );
 
       listQuestionOptionsUseCase.execute.mockResolvedValue(left(mockError));
 
       // Act & Assert
-      await expect(controller.listOptions(questionId)).rejects.toThrow(BadRequestException);
+      await expect(controller.listOptions(questionId)).rejects.toThrow(
+        BadRequestException,
+      );
 
       expect(listQuestionOptionsUseCase.execute).toHaveBeenCalledWith({
         questionId,
@@ -236,7 +264,9 @@ describe('QuestionOptionController - listOptions', () => {
       listQuestionOptionsUseCase.execute.mockResolvedValue(left(mockError));
 
       // Act & Assert
-      await expect(controller.listOptions(questionId)).rejects.toThrow(NotFoundException);
+      await expect(controller.listOptions(questionId)).rejects.toThrow(
+        NotFoundException,
+      );
 
       expect(listQuestionOptionsUseCase.execute).toHaveBeenCalledWith({
         questionId,
@@ -277,7 +307,9 @@ describe('QuestionOptionController - listOptions', () => {
         ],
       };
 
-      listQuestionOptionsUseCase.execute.mockResolvedValue(right(expectedResponse));
+      listQuestionOptionsUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       const result = await controller.listOptions(questionId);
@@ -325,7 +357,7 @@ describe('QuestionOptionController - listOptions', () => {
       // Assert
       expect(result).toHaveProperty('options');
       expect(Array.isArray(result.options)).toBe(true);
-      
+
       if (result.options.length > 0) {
         const option = result.options[0];
         expect(option).toHaveProperty('id');
@@ -333,7 +365,7 @@ describe('QuestionOptionController - listOptions', () => {
         expect(option).toHaveProperty('questionId');
         expect(option).toHaveProperty('createdAt');
         expect(option).toHaveProperty('updatedAt');
-        
+
         expect(typeof option.id).toBe('string');
         expect(typeof option.text).toBe('string');
         expect(typeof option.questionId).toBe('string');
@@ -347,7 +379,7 @@ describe('QuestionOptionController - listOptions', () => {
       const questionId = '550e8400-e29b-41d4-a716-446655440001';
       const createdAt = new Date('2024-01-01T10:00:00Z');
       const updatedAt = new Date('2024-01-01T10:01:00Z');
-      
+
       const mockResponse = {
         options: [
           {
@@ -379,12 +411,16 @@ describe('QuestionOptionController - listOptions', () => {
     it('should handle very long question ID', async () => {
       // Arrange
       const questionId = '550e8400-e29b-41d4-a716-446655440001';
-      const mockError = new InvalidInputError('Question ID must be a valid UUID');
+      const mockError = new InvalidInputError(
+        'Question ID must be a valid UUID',
+      );
 
       listQuestionOptionsUseCase.execute.mockResolvedValue(left(mockError));
 
       // Act & Assert
-      await expect(controller.listOptions(questionId + '-extra')).rejects.toThrow(BadRequestException);
+      await expect(
+        controller.listOptions(questionId + '-extra'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should handle question with maximum number of options', async () => {

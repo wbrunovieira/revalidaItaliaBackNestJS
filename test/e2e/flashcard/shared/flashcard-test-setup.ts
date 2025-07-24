@@ -36,7 +36,7 @@ export class TestFlashcardModule {}
 export class FlashcardTestSetup {
   public app: INestApplication;
   public prisma: PrismaService;
-  
+
   // Pre-defined test IDs
   public argumentId: string = '7f5a6c3b-1234-4567-8901-234567890123';
   public flashcardTagId1: string = 'a1234567-1234-4567-8901-234567890123';
@@ -53,11 +53,13 @@ export class FlashcardTestSetup {
     this.app = moduleRef.createNestApplication();
     this.prisma = moduleRef.get(PrismaService);
 
-    this.app.useGlobalPipes(new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }));
+    this.app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await this.app.init();
   }
 
@@ -68,7 +70,7 @@ export class FlashcardTestSetup {
       await tx.flashcardInteraction.deleteMany({});
       await tx.flashcardInteractionContext.deleteMany({});
       await tx.lessonFlashcard.deleteMany({});
-      
+
       // Then clean main tables
       await tx.flashcard.deleteMany({});
       await tx.flashcardTag.deleteMany({});
@@ -253,13 +255,14 @@ export class FlashcardTestSetup {
     answerType?: FlashcardContentType;
   }): Promise<string> {
     const flashcardId = options?.id || this.flashcardId1;
-    
+
     const flashcardData: any = {
       id: flashcardId,
       slug: options?.slug || 'test-flashcard',
       questionText: 'What is Domain-Driven Design?',
       questionType: options?.questionType || FlashcardContentType.TEXT,
-      answerText: 'DDD is an approach to software development that centers the development on programming a domain model',
+      answerText:
+        'DDD is an approach to software development that centers the development on programming a domain model',
       answerType: options?.answerType || FlashcardContentType.TEXT,
       argumentId: this.argumentId,
     };
@@ -276,10 +279,7 @@ export class FlashcardTestSetup {
 
     if (options?.withTags) {
       flashcardData.tags = {
-        connect: [
-          { id: this.flashcardTagId1 },
-          { id: this.flashcardTagId2 },
-        ],
+        connect: [{ id: this.flashcardTagId1 }, { id: this.flashcardTagId2 }],
       };
     }
 
@@ -305,7 +305,7 @@ export class FlashcardTestSetup {
       await tx.course.deleteMany({});
       await tx.user.deleteMany({});
     });
-    
+
     await this.app.close();
   }
 

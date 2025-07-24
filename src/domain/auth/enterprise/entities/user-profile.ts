@@ -196,9 +196,9 @@ export class UserProfile extends Entity<UserProfileProps> {
     if (typeof props.fullName !== 'string') {
       throw InvalidFullNameException.empty();
     }
-    
+
     const trimmedFullName = props.fullName.trim();
-    
+
     if (!trimmedFullName) {
       throw InvalidFullNameException.empty();
     }

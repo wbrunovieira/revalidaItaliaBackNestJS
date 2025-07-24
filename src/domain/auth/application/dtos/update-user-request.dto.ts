@@ -1,5 +1,14 @@
 // src/domain/auth/application/dtos/update-user-request.dto.ts
-import { IsOptional, IsString, IsUUID, IsEmail, IsUrl, MinLength, MaxLength, IsIn } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsEmail,
+  IsUrl,
+  MinLength,
+  MaxLength,
+  IsIn,
+} from 'class-validator';
 
 export class UpdateUserRequestDto {
   @IsUUID()

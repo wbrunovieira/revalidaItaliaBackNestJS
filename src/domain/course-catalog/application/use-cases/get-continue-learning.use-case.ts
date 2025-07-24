@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Either, right } from '@/core/either';
 import { ILessonProgressTracker } from '../services/i-lesson-progress-tracker';
-import { 
-  GetContinueLearningRequest, 
+import {
+  GetContinueLearningRequest,
   GetContinueLearningResponse,
-  ContinueLearningData 
+  ContinueLearningData,
 } from '../dtos/get-continue-learning.dto';
 
 type GetContinueLearningUseCaseResponse = Either<

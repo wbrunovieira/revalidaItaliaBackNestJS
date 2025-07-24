@@ -17,7 +17,9 @@ import { ListDocumentsRequest } from '../dtos/list-documents-request.dto';
 import { ListDocumentsUseCaseResponse } from './list-documents.use-case';
 
 // Helper function to create a valid request
-function createValidRequest(overrides?: Partial<ListDocumentsRequest>): ListDocumentsRequest {
+function createValidRequest(
+  overrides?: Partial<ListDocumentsRequest>,
+): ListDocumentsRequest {
   return {
     lessonId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
     ...overrides,
@@ -25,7 +27,9 @@ function createValidRequest(overrides?: Partial<ListDocumentsRequest>): ListDocu
 }
 
 // Helper function to create a test lesson
-function createTestLesson(id: string = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'): Lesson {
+function createTestLesson(
+  id: string = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+): Lesson {
   return Lesson.create(
     {
       slug: 'lesson-test',
@@ -41,7 +45,9 @@ function createTestLesson(id: string = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'): 
 }
 
 // Helper function to create document translations
-function createDocumentTranslations(prefix: string): DocumentTranslationProps[] {
+function createDocumentTranslations(
+  prefix: string,
+): DocumentTranslationProps[] {
   return [
     {
       locale: 'pt',
@@ -77,7 +83,6 @@ describe('ListDocumentsUseCase', () => {
 
   // Success Cases
   describe('Success Cases', () => {
-
     it('should list documents successfully when lesson has documents', async () => {
       // Arrange
       const lesson = createTestLesson();
@@ -275,7 +280,7 @@ describe('ListDocumentsUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.documents).toHaveLength(5);
-        const filenames = result.value.documents.map(d => d.filename);
+        const filenames = result.value.documents.map((d) => d.filename);
         expect(filenames).toEqual(
           expect.arrayContaining([
             'document-1.pdf',

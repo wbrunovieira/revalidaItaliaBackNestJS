@@ -224,10 +224,7 @@ export class AnswerTestData {
       },
     }),
 
-    openQuestion: (
-      id: string,
-      questionId: string,
-    ): AnswerResponse => ({
+    openQuestion: (id: string, questionId: string): AnswerResponse => ({
       answer: {
         id,
         explanation: expect.any(String),
@@ -289,7 +286,8 @@ export class AnswerTestData {
   static readonly sampleAnswers = {
     standard: {
       id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      explanation: 'This is a standard answer explanation for testing purposes.',
+      explanation:
+        'This is a standard answer explanation for testing purposes.',
       questionId: 'question-aaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
       correctOptionId: 'option-aaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
       translations: [
@@ -320,7 +318,8 @@ export class AnswerTestData {
         },
         {
           locale: 'it',
-          explanation: 'Brasília è la capitale del Brasile, stabilita nel 1960.',
+          explanation:
+            'Brasília è la capitale del Brasile, stabilita nel 1960.',
         },
         {
           locale: 'es',
@@ -331,64 +330,75 @@ export class AnswerTestData {
 
     openQuestionAnswer: {
       id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
-      explanation: 'Hypertension is characterized by elevated blood pressure (≥140/90 mmHg). The pathophysiology involves increased peripheral resistance, reduced arterial compliance, and endothelial dysfunction. Treatment includes lifestyle modifications and antihypertensive medications.',
+      explanation:
+        'Hypertension is characterized by elevated blood pressure (≥140/90 mmHg). The pathophysiology involves increased peripheral resistance, reduced arterial compliance, and endothelial dysfunction. Treatment includes lifestyle modifications and antihypertensive medications.',
       questionId: 'question-cccc-dddd-eeee-ffff-aaaaaaaaaaaa',
       correctOptionId: undefined,
       translations: [
         {
           locale: 'pt',
-          explanation: 'A hipertensão é caracterizada por pressão arterial elevada (≥140/90 mmHg). A fisiopatologia envolve aumento da resistência periférica, redução da complacência arterial e disfunção endotelial. O tratamento inclui modificações no estilo de vida e medicamentos anti-hipertensivos.',
+          explanation:
+            'A hipertensão é caracterizada por pressão arterial elevada (≥140/90 mmHg). A fisiopatologia envolve aumento da resistência periférica, redução da complacência arterial e disfunção endotelial. O tratamento inclui modificações no estilo de vida e medicamentos anti-hipertensivos.',
         },
       ],
     },
 
     medicalContent: {
       id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
-      explanation: 'Acute myocardial infarction (AMI) is diagnosed based on clinical presentation, ECG changes, and elevated cardiac biomarkers. The pathophysiology involves coronary artery occlusion leading to myocardial necrosis. Treatment includes reperfusion therapy, antiplatelet agents, and supportive care.',
+      explanation:
+        'Acute myocardial infarction (AMI) is diagnosed based on clinical presentation, ECG changes, and elevated cardiac biomarkers. The pathophysiology involves coronary artery occlusion leading to myocardial necrosis. Treatment includes reperfusion therapy, antiplatelet agents, and supportive care.',
       questionId: 'question-dddd-eeee-ffff-aaaa-bbbbbbbbbbbb',
       correctOptionId: 'option-dddd-eeee-ffff-aaaa-bbbbbbbbbbbb',
       translations: [
         {
           locale: 'pt',
-          explanation: 'O infarto agudo do miocárdio (IAM) é diagnosticado com base na apresentação clínica, alterações no ECG e biomarcadores cardíacos elevados. A fisiopatologia envolve oclusão da artéria coronária levando à necrose miocárdica. O tratamento inclui terapia de reperfusão, agentes antiplaquetários e cuidados de suporte.',
+          explanation:
+            'O infarto agudo do miocárdio (IAM) é diagnosticado com base na apresentação clínica, alterações no ECG e biomarcadores cardíacos elevados. A fisiopatologia envolve oclusão da artéria coronária levando à necrose miocárdica. O tratamento inclui terapia de reperfusão, agentes antiplaquetários e cuidados de suporte.',
         },
         {
           locale: 'it',
-          explanation: 'L\'infarto miocardico acuto (IMA) è diagnosticato sulla base della presentazione clinica, dei cambiamenti ECG e dei biomarcatori cardiaci elevati. La fisiopatologia coinvolge l\'occlusione dell\'arteria coronaria che porta alla necrosi miocardica. Il trattamento include terapia di riperfusione, agenti antipiastrinici e cure di supporto.',
+          explanation:
+            "L'infarto miocardico acuto (IMA) è diagnosticato sulla base della presentazione clinica, dei cambiamenti ECG e dei biomarcatori cardiaci elevati. La fisiopatologia coinvolge l'occlusione dell'arteria coronaria che porta alla necrosi miocardica. Il trattamento include terapia di riperfusione, agenti antipiastrinici e cure di supporto.",
         },
         {
           locale: 'es',
-          explanation: 'El infarto agudo de miocardio (IAM) se diagnostica basándose en la presentación clínica, cambios en el ECG y biomarcadores cardíacos elevados. La fisiopatología involucra oclusión de la arteria coronaria que lleva a necrosis miocárdica. El tratamiento incluye terapia de reperfusión, agentes antiplaquetarios y cuidado de apoyo.',
+          explanation:
+            'El infarto agudo de miocardio (IAM) se diagnostica basándose en la presentación clínica, cambios en el ECG y biomarcadores cardíacos elevados. La fisiopatología involucra oclusión de la arteria coronaria que lleva a necrosis miocárdica. El tratamiento incluye terapia de reperfusión, agentes antiplaquetarios y cuidado de apoyo.',
         },
       ],
     },
 
     withSpecialChars: {
       id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
-      explanation: 'Answer with special characters: @#$%^&*()! and symbols: ±≤≥≠≈',
+      explanation:
+        'Answer with special characters: @#$%^&*()! and symbols: ±≤≥≠≈',
       questionId: 'question-eeee-ffff-aaaa-bbbb-cccccccccccc',
       correctOptionId: undefined,
       translations: [
         {
           locale: 'pt',
-          explanation: 'Resposta com caracteres especiais: @#$%^&*()! e símbolos: ±≤≥≠≈',
+          explanation:
+            'Resposta com caracteres especiais: @#$%^&*()! e símbolos: ±≤≥≠≈',
         },
       ],
     },
 
     withUnicode: {
       id: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
-      explanation: 'Answer in multiple languages: português 中文 العربية русский with emojis 🎯🚀',
+      explanation:
+        'Answer in multiple languages: português 中文 العربية русский with emojis 🎯🚀',
       questionId: 'question-ffff-aaaa-bbbb-cccc-dddddddddddd',
       correctOptionId: undefined,
       translations: [
         {
           locale: 'pt',
-          explanation: 'Resposta em múltiplas línguas: português 中文 العربية русский com emojis 🎯🚀',
+          explanation:
+            'Resposta em múltiplas línguas: português 中文 العربية русский com emojis 🎯🚀',
         },
         {
           locale: 'zh',
-          explanation: '多语言答案：português 中文 العربية русский 带表情符号 🎯🚀',
+          explanation:
+            '多语言答案：português 中文 العربية русский 带表情符号 🎯🚀',
         },
       ],
     },
@@ -547,21 +557,21 @@ export class AnswerTestData {
    * Get all invalid ID test cases
    */
   static getAllInvalidIds(): any[] {
-    return Object.values(this.invalidIds).map(fn => fn());
+    return Object.values(this.invalidIds).map((fn) => fn());
   }
 
   /**
    * Get all valid ID test cases
    */
   static getAllValidIds(): GetAnswerRequest[] {
-    return Object.values(this.validIds).map(fn => fn());
+    return Object.values(this.validIds).map((fn) => fn());
   }
 
   /**
    * Get all non-existent ID test cases
    */
   static getAllNonExistentIds(): GetAnswerRequest[] {
-    return Object.values(this.nonExistentIds).map(fn => fn());
+    return Object.values(this.nonExistentIds).map((fn) => fn());
   }
 
   /**
@@ -581,13 +591,15 @@ export class AnswerTestData {
   }
 
   static isValidAnswerResponse(response: any): boolean {
-    return response &&
-           response.answer &&
-           typeof response.answer.id === 'string' &&
-           typeof response.answer.explanation === 'string' &&
-           typeof response.answer.questionId === 'string' &&
-           Array.isArray(response.answer.translations) &&
-           typeof response.answer.createdAt === 'string' &&
-           typeof response.answer.updatedAt === 'string';
+    return (
+      response &&
+      response.answer &&
+      typeof response.answer.id === 'string' &&
+      typeof response.answer.explanation === 'string' &&
+      typeof response.answer.questionId === 'string' &&
+      Array.isArray(response.answer.translations) &&
+      typeof response.answer.createdAt === 'string' &&
+      typeof response.answer.updatedAt === 'string'
+    );
   }
 }

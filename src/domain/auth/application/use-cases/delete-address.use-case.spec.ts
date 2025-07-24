@@ -4,7 +4,11 @@ import { InMemoryAddressRepository } from '@/test/repositories/in-memory-address
 import { Address } from '@/domain/auth/enterprise/entities/address.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { left, right } from '@/core/either';
-import { InvalidInputError, ResourceNotFoundError, RepositoryError } from '@/domain/auth/domain/exceptions';
+import {
+  InvalidInputError,
+  ResourceNotFoundError,
+  RepositoryError,
+} from '@/domain/auth/domain/exceptions';
 
 describe('DeleteAddressUseCase', () => {
   let addressRepo: InMemoryAddressRepository;
@@ -61,7 +65,7 @@ describe('DeleteAddressUseCase', () => {
 
     it('should delete only the specified address when multiple exist', async () => {
       const profileId = new UniqueEntityID('profile-3');
-      
+
       // Create multiple addresses
       const address1 = Address.create({
         profileId,
@@ -71,7 +75,7 @@ describe('DeleteAddressUseCase', () => {
         country: 'Country 1',
         postalCode: '11111',
       });
-      
+
       const address2 = Address.create({
         profileId,
         street: 'Street 2',
@@ -80,7 +84,7 @@ describe('DeleteAddressUseCase', () => {
         country: 'Country 2',
         postalCode: '22222',
       });
-      
+
       addressRepo.items.push(address1, address2);
 
       // Delete only address1
@@ -95,19 +99,21 @@ describe('DeleteAddressUseCase', () => {
   describe('Error scenarios', () => {
     it('should return InvalidInputError when id is empty string', async () => {
       const result = await sut.execute({ id: '' });
-      
+
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
         expect(result.value.message).toBe('Missing id');
         const error = result.value as InvalidInputError;
-        expect(error.details).toEqual([{ field: 'id', message: 'Field is required' }]);
+        expect(error.details).toEqual([
+          { field: 'id', message: 'Field is required' },
+        ]);
       }
     });
 
     it('should return InvalidInputError when id is null', async () => {
       const result = await sut.execute({ id: null as any });
-      
+
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
@@ -116,7 +122,7 @@ describe('DeleteAddressUseCase', () => {
 
     it('should return InvalidInputError when id is undefined', async () => {
       const result = await sut.execute({ id: undefined as any });
-      
+
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
@@ -138,7 +144,7 @@ describe('DeleteAddressUseCase', () => {
       vi.spyOn(addressRepo, 'findById').mockResolvedValueOnce(left(dbError));
 
       const result = await sut.execute({ id: 'any-id' });
-      
+
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(RepositoryError);
@@ -153,7 +159,7 @@ describe('DeleteAddressUseCase', () => {
       });
 
       const result = await sut.execute({ id: 'any-id' });
-      
+
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(RepositoryError);
@@ -177,7 +183,7 @@ describe('DeleteAddressUseCase', () => {
       vi.spyOn(addressRepo, 'delete').mockResolvedValueOnce(left(deleteError));
 
       const result = await sut.execute({ id: address.id.toString() });
-      
+
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(RepositoryError);
@@ -203,7 +209,7 @@ describe('DeleteAddressUseCase', () => {
       });
 
       const result = await sut.execute({ id: address.id.toString() });
-      
+
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(RepositoryError);
@@ -230,7 +236,7 @@ describe('DeleteAddressUseCase', () => {
     it('should handle very long id strings', async () => {
       const veryLongId = 'a'.repeat(1000);
       const result = await sut.execute({ id: veryLongId });
-      
+
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(ResourceNotFoundError);
@@ -268,20 +274,20 @@ describe('DeleteAddressUseCase', () => {
 
       // Both should succeed in the current implementation
       // This is because the repository doesn't implement proper locking
-      const successes = results.filter(r => r.isRight()).length;
-      const failures = results.filter(r => r.isLeft()).length;
-      
+      const successes = results.filter((r) => r.isRight()).length;
+      const failures = results.filter((r) => r.isLeft()).length;
+
       // Current behavior: both succeed (not ideal for concurrency)
       expect(successes).toBe(2);
       expect(failures).toBe(0);
-      
+
       // Address should be deleted
       expect(addressRepo.items).toHaveLength(0);
     });
 
     it('should handle multiple different addresses being deleted concurrently', async () => {
       const profileId = new UniqueEntityID('profile-multi');
-      const addresses = Array.from({ length: 5 }, (_, i) => 
+      const addresses = Array.from({ length: 5 }, (_, i) =>
         Address.create({
           profileId,
           street: `Street ${i}`,
@@ -289,18 +295,18 @@ describe('DeleteAddressUseCase', () => {
           city: `City ${i}`,
           country: 'Country',
           postalCode: `0000${i}`,
-        })
+        }),
       );
-      
-      addresses.forEach(addr => addressRepo.items.push(addr));
+
+      addresses.forEach((addr) => addressRepo.items.push(addr));
 
       // Delete all addresses concurrently
       const results = await Promise.all(
-        addresses.map(addr => sut.execute({ id: addr.id.toString() }))
+        addresses.map((addr) => sut.execute({ id: addr.id.toString() })),
       );
 
       // All should succeed
-      expect(results.every(r => r.isRight())).toBe(true);
+      expect(results.every((r) => r.isRight())).toBe(true);
       expect(addressRepo.items).toHaveLength(0);
     });
   });
@@ -310,13 +316,13 @@ describe('DeleteAddressUseCase', () => {
       const sqlInjectionIds = [
         "'; DROP TABLE addresses; --",
         "1' OR '1'='1",
-        "1; DELETE FROM addresses WHERE 1=1;",
+        '1; DELETE FROM addresses WHERE 1=1;',
         "<script>alert('xss')</script>",
       ];
 
       for (const maliciousId of sqlInjectionIds) {
         const result = await sut.execute({ id: maliciousId });
-        
+
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(ResourceNotFoundError);
@@ -325,17 +331,23 @@ describe('DeleteAddressUseCase', () => {
     });
 
     it('should not expose internal errors to user', async () => {
-      const internalError = new Error('Internal database connection string exposed');
-      vi.spyOn(addressRepo, 'findById').mockResolvedValueOnce(left(internalError));
+      const internalError = new Error(
+        'Internal database connection string exposed',
+      );
+      vi.spyOn(addressRepo, 'findById').mockResolvedValueOnce(
+        left(internalError),
+      );
 
       const result = await sut.execute({ id: 'test-id' });
-      
+
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(RepositoryError);
         // The current implementation does expose the error message
         // This is a security issue that should be fixed in the use case
-        expect(result.value.message).toBe('Internal database connection string exposed');
+        expect(result.value.message).toBe(
+          'Internal database connection string exposed',
+        );
       }
     });
   });
@@ -344,7 +356,7 @@ describe('DeleteAddressUseCase', () => {
     it('should allow deletion of addresses from different profiles', async () => {
       const profile1 = new UniqueEntityID('profile-1');
       const profile2 = new UniqueEntityID('profile-2');
-      
+
       const address1 = Address.create({
         profileId: profile1,
         street: 'Profile 1 Street',
@@ -353,7 +365,7 @@ describe('DeleteAddressUseCase', () => {
         country: 'Country',
         postalCode: '11111',
       });
-      
+
       const address2 = Address.create({
         profileId: profile2,
         street: 'Profile 2 Street',
@@ -362,7 +374,7 @@ describe('DeleteAddressUseCase', () => {
         country: 'Country',
         postalCode: '22222',
       });
-      
+
       addressRepo.items.push(address1, address2);
 
       // Delete address from profile 1
@@ -388,17 +400,19 @@ describe('DeleteAddressUseCase', () => {
       // Store original times
       const originalCreatedAt = address.createdAt;
       const originalUpdatedAt = address.updatedAt;
-      
+
       // Wait a bit to ensure time difference
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       // Update the address
       address.street = 'Updated Street';
       address.city = 'Updated City';
-      
+
       // Verify updatedAt changed
       expect(address.updatedAt).not.toEqual(originalUpdatedAt);
-      expect(address.updatedAt.getTime()).toBeGreaterThan(originalCreatedAt.getTime());
+      expect(address.updatedAt.getTime()).toBeGreaterThan(
+        originalCreatedAt.getTime(),
+      );
 
       // Delete the updated address
       const result = await sut.execute({ id: address.id.toString() });
@@ -426,7 +440,7 @@ describe('DeleteAddressUseCase', () => {
 
     it('should handle missing request object properties', async () => {
       const result = await sut.execute({} as any);
-      
+
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);

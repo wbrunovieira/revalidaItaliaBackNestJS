@@ -93,7 +93,10 @@ export class UserController {
   @HttpCode(200)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async update(@Param('id') id: string, @Body() dto: UpdateUserDto): Promise<UpdateUserResponseDto> {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+  ): Promise<UpdateUserResponseDto> {
     const request: UpdateUserRequestDto = { id, ...dto };
     const result = await this.updateUser.execute(request);
 

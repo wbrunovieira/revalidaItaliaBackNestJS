@@ -10,18 +10,22 @@ import { REDIS_CLIENT } from '../../src/infra/database/redis/redis.constants';
 describe('Lesson Progress (E2E)', () => {
   let app: INestApplication;
   let redis: Redis;
-  
+
   // Test user IDs (valid UUIDs)
   const user1Id = '11111111-1111-1111-1111-111111111111';
   const user2Id = '22222222-2222-2222-2222-222222222222';
-  
+
   // Create test tokens with proper JWT format
   const createTestToken = (userId: string) => {
-    const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
-    const payload = Buffer.from(JSON.stringify({ sub: userId, role: 'student' })).toString('base64url');
+    const header = Buffer.from(
+      JSON.stringify({ alg: 'RS256', typ: 'JWT' }),
+    ).toString('base64url');
+    const payload = Buffer.from(
+      JSON.stringify({ sub: userId, role: 'student' }),
+    ).toString('base64url');
     return `${header}.${payload}.fake-signature`;
   };
-  
+
   const user1Token = createTestToken(user1Id);
   const user2Token = createTestToken(user2Id);
 
@@ -80,7 +84,7 @@ describe('Lesson Progress (E2E)', () => {
       // Verify data was saved in Redis
       const savedData = await redis.get(`lesson_progress:user:${user1Id}`);
       expect(savedData).toBeTruthy();
-      
+
       const parsedData = JSON.parse(savedData!);
       expect(parsedData.lessonId).toBe(validProgressData.lessonId);
       expect(parsedData.videoProgress).toEqual(validProgressData.videoProgress);
@@ -180,10 +184,14 @@ describe('Lesson Progress (E2E)', () => {
       expect(response.body.hasProgress).toBe(true);
       expect(response.body.lastAccessed).toBeDefined();
       expect(response.body.lastAccessed.lessonId).toBe(progressData.lessonId);
-      expect(response.body.lastAccessed.lessonTitle).toBe(progressData.lessonTitle);
-      expect(response.body.lastAccessed.videoProgress).toEqual(progressData.videoProgress);
+      expect(response.body.lastAccessed.lessonTitle).toBe(
+        progressData.lessonTitle,
+      );
+      expect(response.body.lastAccessed.videoProgress).toEqual(
+        progressData.videoProgress,
+      );
       expect(response.body.lastAccessed.lessonUrl).toBe(
-        '/pt/courses/curso-teste-pt/modules/modulo-1/lessons/d50f6fb6-c282-402e-b8e1-00fd902dc0da'
+        '/pt/courses/curso-teste-pt/modules/modulo-1/lessons/d50f6fb6-c282-402e-b8e1-00fd902dc0da',
       );
       expect(response.body.lastAccessed.lastUpdatedAt).toBeDefined();
     });
@@ -258,7 +266,9 @@ describe('Lesson Progress (E2E)', () => {
         .set('Authorization', `Bearer ${user1Token}`)
         .expect(200);
 
-      expect(user1Response.body.lastAccessed.lessonId).toBe(user1Progress.lessonId);
+      expect(user1Response.body.lastAccessed.lessonId).toBe(
+        user1Progress.lessonId,
+      );
       expect(user1Response.body.lastAccessed.lessonTitle).toBe('User 1 Lesson');
 
       const user2Response = await request(app.getHttpServer())
@@ -266,7 +276,9 @@ describe('Lesson Progress (E2E)', () => {
         .set('Authorization', `Bearer ${user2Token}`)
         .expect(200);
 
-      expect(user2Response.body.lastAccessed.lessonId).toBe(user2Progress.lessonId);
+      expect(user2Response.body.lastAccessed.lessonId).toBe(
+        user2Progress.lessonId,
+      );
       expect(user2Response.body.lastAccessed.lessonTitle).toBe('User 2 Lesson');
     });
   });
@@ -275,10 +287,10 @@ describe('Lesson Progress (E2E)', () => {
     it('should update existing progress when saving new progress', async () => {
       const testUserId = '33333333-3333-3333-3333-333333333333';
       const testToken = createTestToken(testUserId);
-      
+
       // Clear any existing progress
       await redis.del(`lesson_progress:user:${testUserId}`);
-      
+
       // Save initial progress
       const initialProgress = {
         lessonId: 'f50f6fb6-c282-402e-b8e1-00fd902dc0da',
@@ -333,7 +345,9 @@ describe('Lesson Progress (E2E)', () => {
         .set('Authorization', `Bearer ${testToken}`)
         .expect(200);
 
-      expect(response.body.lastAccessed.lessonId).toBe(updatedProgress.lessonId);
+      expect(response.body.lastAccessed.lessonId).toBe(
+        updatedProgress.lessonId,
+      );
       expect(response.body.lastAccessed.lessonTitle).toBe('Updated Lesson');
       expect(response.body.lastAccessed.videoProgress.percentage).toBe(80);
     });

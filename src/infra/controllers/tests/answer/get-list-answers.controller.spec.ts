@@ -1,7 +1,11 @@
 // src/infra/controllers/tests/answer/get-list-answers.controller.spec.ts
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
 import { AnswerControllerTestSetup } from './shared/answer-controller-test-setup';
 import { AnswerControllerTestData } from './shared/answer-controller-test-data';
@@ -22,8 +26,11 @@ describe('AnswerController - GET /answers (List)', () => {
   describe('Success scenarios', () => {
     it('should return answers with default pagination when no parameters provided', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       const result = await setup.controller.list();
@@ -39,9 +46,13 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should return answers with custom pagination', async () => {
       // Arrange
-      const request = AnswerControllerTestData.listAnswersRequests.withPagination();
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.middlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const request =
+        AnswerControllerTestData.listAnswersRequests.withPagination();
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.middlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       const result = await setup.controller.list('1', '10');
@@ -57,14 +68,17 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should return answers filtered by questionId', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       const result = await setup.controller.list(
         undefined,
         undefined,
-        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
       );
 
       // Assert
@@ -78,14 +92,17 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should return answers with all parameters', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.middlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.middlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       const result = await setup.controller.list(
         '2',
         '5',
-        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
+        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
       );
 
       // Assert
@@ -99,8 +116,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should return empty list when no answers found', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.empty();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.empty();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       const result = await setup.controller.list();
@@ -113,8 +133,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should handle large result sets with pagination', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.multiplePages();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.multiplePages();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       const result = await setup.controller.list('1', '10');
@@ -130,8 +153,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should handle last page correctly', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.lastPage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.lastPage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       const result = await setup.controller.list('3', '10');
@@ -144,8 +170,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should convert string parameters to numbers', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list('5', '20');
@@ -162,11 +191,17 @@ describe('AnswerController - GET /answers (List)', () => {
   describe('Error scenarios', () => {
     it('should throw BadRequestException when input validation fails', async () => {
       // Arrange
-      const invalidInputError = new InvalidInputError('Page must be at least 1');
-      setup.listAnswersUseCase.execute.mockResolvedValue(left(invalidInputError));
+      const invalidInputError = new InvalidInputError(
+        'Page must be at least 1',
+      );
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        left(invalidInputError),
+      );
 
       // Act & Assert
-      await expect(setup.controller.list('0', '10')).rejects.toThrow(BadRequestException);
+      await expect(setup.controller.list('0', '10')).rejects.toThrow(
+        BadRequestException,
+      );
       expect(setup.listAnswersUseCase.execute).toHaveBeenCalledWith({
         page: 0,
         limit: 10,
@@ -177,11 +212,13 @@ describe('AnswerController - GET /answers (List)', () => {
     it('should throw NotFoundException when question not found', async () => {
       // Arrange
       const questionNotFoundError = new QuestionNotFoundError();
-      setup.listAnswersUseCase.execute.mockResolvedValue(left(questionNotFoundError));
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        left(questionNotFoundError),
+      );
 
       // Act & Assert
       await expect(
-        setup.controller.list(undefined, undefined, 'non-existent-question-id')
+        setup.controller.list(undefined, undefined, 'non-existent-question-id'),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -191,7 +228,9 @@ describe('AnswerController - GET /answers (List)', () => {
       setup.listAnswersUseCase.execute.mockResolvedValue(left(repositoryError));
 
       // Act & Assert
-      await expect(setup.controller.list()).rejects.toThrow(InternalServerErrorException);
+      await expect(setup.controller.list()).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
 
     it('should throw InternalServerErrorException for unknown errors', async () => {
@@ -200,16 +239,20 @@ describe('AnswerController - GET /answers (List)', () => {
       setup.listAnswersUseCase.execute.mockResolvedValue(left(unknownError));
 
       // Act & Assert
-      await expect(setup.controller.list()).rejects.toThrow(InternalServerErrorException);
+      await expect(setup.controller.list()).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
 
     it('should validate BadRequestException error details for invalid input', async () => {
       // Arrange
-      const invalidInputError = new InvalidInputError('Limit cannot exceed 100', [
-        'limit must be at most 100',
-        'page must be at least 1'
-      ]);
-      setup.listAnswersUseCase.execute.mockResolvedValue(left(invalidInputError));
+      const invalidInputError = new InvalidInputError(
+        'Limit cannot exceed 100',
+        ['limit must be at most 100', 'page must be at least 1'],
+      );
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        left(invalidInputError),
+      );
 
       // Act & Assert
       try {
@@ -219,10 +262,7 @@ describe('AnswerController - GET /answers (List)', () => {
         expect(error.getResponse()).toEqual({
           error: 'INVALID_INPUT',
           message: 'Invalid input data',
-          details: [
-            'limit must be at most 100',
-            'page must be at least 1'
-          ],
+          details: ['limit must be at most 100', 'page must be at least 1'],
         });
       }
     });
@@ -230,11 +270,17 @@ describe('AnswerController - GET /answers (List)', () => {
     it('should validate NotFoundException error format for question not found', async () => {
       // Arrange
       const questionNotFoundError = new QuestionNotFoundError();
-      setup.listAnswersUseCase.execute.mockResolvedValue(left(questionNotFoundError));
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        left(questionNotFoundError),
+      );
 
       // Act & Assert
       try {
-        await setup.controller.list(undefined, undefined, 'invalid-question-id');
+        await setup.controller.list(
+          undefined,
+          undefined,
+          'invalid-question-id',
+        );
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundException);
         expect(error.getResponse()).toEqual({
@@ -265,8 +311,11 @@ describe('AnswerController - GET /answers (List)', () => {
   describe('Parameter handling', () => {
     it('should handle undefined string parameters correctly', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list(undefined, undefined, undefined);
@@ -281,8 +330,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should handle empty string parameters correctly', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list('', '', '');
@@ -297,11 +349,18 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should convert valid numeric strings to numbers', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
-      await setup.controller.list('1', '10', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
+      await setup.controller.list(
+        '1',
+        '10',
+        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      );
 
       // Assert
       expect(setup.listAnswersUseCase.execute).toHaveBeenCalledWith({
@@ -313,8 +372,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should handle non-numeric strings as NaN', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list('not-a-number', 'also-not-a-number');
@@ -329,8 +391,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should handle decimal strings by converting to integers', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list('1.5', '10.9');
@@ -347,8 +412,11 @@ describe('AnswerController - GET /answers (List)', () => {
   describe('Use case interaction', () => {
     it('should call use case with correct parameters once', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list('2', '5', 'test-question-id');
@@ -364,8 +432,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should not call other use cases', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list();
@@ -377,8 +448,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should pass through use case response unchanged on success', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.multiplePages();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.multiplePages();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       const result = await setup.controller.list();
@@ -391,8 +465,11 @@ describe('AnswerController - GET /answers (List)', () => {
   describe('Edge cases', () => {
     it('should handle zero values for pagination', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.empty();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.empty();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list('0', '0');
@@ -407,8 +484,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should handle negative values for pagination', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.empty();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.empty();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list('-1', '-5');
@@ -423,8 +503,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should handle very large numbers', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.empty();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.empty();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list('999999999', '999999999');
@@ -439,8 +522,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should handle special characters in questionId', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.empty();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.empty();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list(undefined, undefined, 'special@chars#$%');
@@ -457,8 +543,11 @@ describe('AnswerController - GET /answers (List)', () => {
   describe('Performance scenarios', () => {
     it('should handle maximum allowed limit', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.multiplePages();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.multiplePages();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list('1', '100');
@@ -473,8 +562,11 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should handle minimum values', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
       await setup.controller.list('1', '1');
@@ -489,18 +581,21 @@ describe('AnswerController - GET /answers (List)', () => {
 
     it('should handle concurrent calls efficiently', async () => {
       // Arrange
-      const expectedResponse = AnswerControllerTestData.listAnswersResponses.singlePage();
-      setup.listAnswersUseCase.execute.mockResolvedValue(right(expectedResponse));
+      const expectedResponse =
+        AnswerControllerTestData.listAnswersResponses.singlePage();
+      setup.listAnswersUseCase.execute.mockResolvedValue(
+        right(expectedResponse),
+      );
 
       // Act
-      const promises = Array.from({ length: 10 }, () => 
-        setup.controller.list('1', '10')
+      const promises = Array.from({ length: 10 }, () =>
+        setup.controller.list('1', '10'),
       );
       const results = await Promise.all(promises);
 
       // Assert
       expect(setup.listAnswersUseCase.execute).toHaveBeenCalledTimes(10);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result).toEqual(expectedResponse);
       });
     });

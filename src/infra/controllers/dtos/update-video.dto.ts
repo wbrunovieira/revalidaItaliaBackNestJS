@@ -12,22 +12,22 @@ import {
   ArrayMinSize,
   ArrayMaxSize,
   IsIn,
-} from 'class-validator'
-import { Type } from 'class-transformer'
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class VideoTranslationDto {
   @IsString()
   @IsNotEmpty()
   @IsIn(['pt', 'it', 'es'])
-  locale: string
+  locale: string;
 
   @IsString()
   @IsNotEmpty()
-  title: string
+  title: string;
 
   @IsString()
   @IsNotEmpty()
-  description: string
+  description: string;
 }
 
 export class UpdateVideoDto {
@@ -37,25 +37,25 @@ export class UpdateVideoDto {
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
     message: 'Slug must be lowercase with hyphens only',
   })
-  slug?: string
+  slug?: string;
 
   @IsOptional()
   @IsUrl()
-  imageUrl?: string | null
+  imageUrl?: string | null;
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  providerVideoId?: string
+  providerVideoId?: string;
 
   @IsOptional()
   @IsInt()
   @Min(1)
-  durationInSeconds?: number
+  durationInSeconds?: number;
 
   @IsOptional()
   @IsUUID()
-  lessonId?: string | null
+  lessonId?: string | null;
 
   @IsOptional()
   @IsArray()
@@ -63,5 +63,5 @@ export class UpdateVideoDto {
   @ArrayMaxSize(3)
   @ValidateNested({ each: true })
   @Type(() => VideoTranslationDto)
-  translations?: VideoTranslationDto[]
+  translations?: VideoTranslationDto[];
 }

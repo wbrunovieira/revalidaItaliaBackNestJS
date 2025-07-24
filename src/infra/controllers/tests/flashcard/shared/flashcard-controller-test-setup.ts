@@ -79,10 +79,7 @@ export class FlashcardControllerTestSetup {
   }
 
   mockGetFlashcardByIdError(
-    error:
-      | InvalidInputError
-      | FlashcardNotFoundError
-      | RepositoryError,
+    error: InvalidInputError | FlashcardNotFoundError | RepositoryError,
   ): void {
     this.getFlashcardByIdUseCaseMock.execute.mockResolvedValueOnce(left(error));
   }

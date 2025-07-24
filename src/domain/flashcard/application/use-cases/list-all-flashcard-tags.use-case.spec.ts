@@ -29,7 +29,11 @@ describe('ListAllFlashcardTagsUseCase', () => {
         new UniqueEntityID('3'),
       );
 
-      flashcardTagRepository.items.push(flashcardTag1, flashcardTag2, flashcardTag3);
+      flashcardTagRepository.items.push(
+        flashcardTag1,
+        flashcardTag2,
+        flashcardTag3,
+      );
 
       // Act
       const result = await useCase.execute({});
@@ -164,9 +168,10 @@ describe('ListAllFlashcardTagsUseCase', () => {
     it('should handle repository errors gracefully', async () => {
       // Arrange
       const errorMessage = 'Database connection failed';
-      vi.spyOn(flashcardTagRepository, 'findAll').mockResolvedValue(
-        { isLeft: () => true, value: new Error(errorMessage) } as any,
-      );
+      vi.spyOn(flashcardTagRepository, 'findAll').mockResolvedValue({
+        isLeft: () => true,
+        value: new Error(errorMessage),
+      } as any);
 
       // Act
       const result = await useCase.execute({});
@@ -204,7 +209,9 @@ describe('ListAllFlashcardTagsUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.flashcardTags[0].name).toBe('Anatomia & Fisiologia');
+        expect(result.value.flashcardTags[0].name).toBe(
+          'Anatomia & Fisiologia',
+        );
         expect(result.value.flashcardTags[0].slug).toBe('anatomia-fisiologia');
       }
     });
@@ -244,7 +251,9 @@ describe('ListAllFlashcardTagsUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.flashcardTags[0].name).toBe(longName);
-        expect(result.value.flashcardTags[0].slug.length).toBeLessThanOrEqual(50);
+        expect(result.value.flashcardTags[0].slug.length).toBeLessThanOrEqual(
+          50,
+        );
       }
     });
 
@@ -291,7 +300,7 @@ describe('ListAllFlashcardTagsUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         const responseTag = result.value.flashcardTags[0];
-        
+
         // Verificar que os dados não foram modificados
         expect(responseTag.name).toBe(originalTag.name);
         expect(responseTag.slug).toBe(originalTag.slug);

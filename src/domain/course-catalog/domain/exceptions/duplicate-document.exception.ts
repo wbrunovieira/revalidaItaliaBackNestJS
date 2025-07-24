@@ -8,7 +8,7 @@ export class DuplicateDocumentError extends DomainException {
   constructor(filename: string) {
     const message = `Document with filename '${filename}' already exists`;
     const code = 'DOCUMENT.DUPLICATE_FILENAME';
-    
+
     super(message, code, { filename });
   }
 }

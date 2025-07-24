@@ -3,14 +3,14 @@ import { EntityNotFoundException } from '@/core/domain/exceptions';
 
 /**
  * Exception thrown when a user is not found
- * 
+ *
  * Maintains backward compatibility with ResourceNotFoundError
  */
 export class UserNotFoundError extends EntityNotFoundException {
   constructor(message: string = 'User not found') {
     // Extract criteria from message if possible
     const criteria: Record<string, any> = {};
-    
+
     if (message.includes('id:')) {
       const match = message.match(/id:\s*(\S+)/);
       if (match) criteria.id = match[1];
@@ -18,9 +18,9 @@ export class UserNotFoundError extends EntityNotFoundException {
       const match = message.match(/email:\s*(\S+)/);
       if (match) criteria.email = match[1];
     }
-    
+
     super('User', criteria);
-    
+
     // Override message to maintain compatibility
     this.message = message;
     this._code = 'USER.NOT_FOUND';

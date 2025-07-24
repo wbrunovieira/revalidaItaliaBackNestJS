@@ -38,17 +38,20 @@ describe('UpdateUserUseCase', () => {
     sut = new UpdateUserUseCase(identityRepo, profileRepo, authorizationRepo);
 
     // Create test user entities
-    const identity = UserIdentity.create({
-      email: Email.create('john@example.com'),
-      password: Password.createFromPlain('StrongP@ssw0rd2024'),
-      emailVerified: true,
-      lastLogin: now,
-      createdAt: now,
-      updatedAt: now,
-    }, userId);
+    const identity = UserIdentity.create(
+      {
+        email: Email.create('john@example.com'),
+        password: Password.createFromPlain('StrongP@ssw0rd2024'),
+        emailVerified: true,
+        lastLogin: now,
+        createdAt: now,
+        updatedAt: now,
+      },
+      userId,
+    );
 
     const profile = UserProfile.create({
-      fullName: 'John Doe', 
+      fullName: 'John Doe',
       nationalId: NationalId.create('12345678901'),
       birthDate: new Date('1990-01-01'),
       phone: null,
@@ -97,7 +100,9 @@ describe('UpdateUserUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.identity.email).toBe('johnupdated@example.com');
-        expect(identityRepo.items[0].email.value).toBe('johnupdated@example.com');
+        expect(identityRepo.items[0].email.value).toBe(
+          'johnupdated@example.com',
+        );
       }
     });
 
@@ -197,13 +202,17 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(InvalidInputError);
-          expect(result.value.message).toBe('At least one field must be provided for update');
+          expect(result.value.message).toBe(
+            'At least one field must be provided for update',
+          );
           if (result.value instanceof InvalidInputError) {
-            expect(result.value.details).toEqual([{
-              code: 'missingFields',
-              message: 'At least one field must be provided for update',
-              path: ['request'],
-            }]);
+            expect(result.value.details).toEqual([
+              {
+                code: 'missingFields',
+                message: 'At least one field must be provided for update',
+                path: ['request'],
+              },
+            ]);
           }
         }
       });
@@ -222,7 +231,6 @@ describe('UpdateUserUseCase', () => {
           expect(result.value.message).toBe('Invalid format for field: email');
         }
       });
-
     });
 
     describe('Resource Not Found Errors', () => {
@@ -238,20 +246,25 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(ResourceNotFoundError);
-          expect(result.value.message).toBe(`UserIdentity with ID ${nonExistentId.toString()} not found`);
+          expect(result.value.message).toBe(
+            `UserIdentity with ID ${nonExistentId.toString()} not found`,
+          );
         }
       });
 
       it('should fail when user profile not found', async () => {
         const newUserId = new UniqueEntityID('user-without-profile');
-        const identity = UserIdentity.create({
-          email: Email.create('noprofile@example.com'),
-          password: Password.createFromPlain('StrongP@ssw0rd2024'),
-          emailVerified: true,
-          lastLogin: now,
-          createdAt: now,
-          updatedAt: now,
-        }, newUserId);
+        const identity = UserIdentity.create(
+          {
+            email: Email.create('noprofile@example.com'),
+            password: Password.createFromPlain('StrongP@ssw0rd2024'),
+            emailVerified: true,
+            lastLogin: now,
+            createdAt: now,
+            updatedAt: now,
+          },
+          newUserId,
+        );
         identityRepo.items.push(identity);
 
         const request: UpdateUserRequestDto = {
@@ -264,20 +277,25 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(ResourceNotFoundError);
-          expect(result.value.message).toBe(`UserProfile with ID ${newUserId.toString()} not found`);
+          expect(result.value.message).toBe(
+            `UserProfile with ID ${newUserId.toString()} not found`,
+          );
         }
       });
 
       it('should fail when user authorization not found for role update', async () => {
         const newUserId = new UniqueEntityID('user-without-auth');
-        const identity = UserIdentity.create({
-          email: Email.create('noauth@example.com'),
-          password: Password.createFromPlain('StrongP@ssw0rd2024'),
-          emailVerified: true,
-          lastLogin: now,
-          createdAt: now,
-          updatedAt: now,
-        }, newUserId);
+        const identity = UserIdentity.create(
+          {
+            email: Email.create('noauth@example.com'),
+            password: Password.createFromPlain('StrongP@ssw0rd2024'),
+            emailVerified: true,
+            lastLogin: now,
+            createdAt: now,
+            updatedAt: now,
+          },
+          newUserId,
+        );
 
         const profile = UserProfile.create({
           fullName: 'No Auth User',
@@ -302,7 +320,9 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(ResourceNotFoundError);
-          expect(result.value.message).toBe(`UserAuthorization with ID ${newUserId.toString()} not found`);
+          expect(result.value.message).toBe(
+            `UserAuthorization with ID ${newUserId.toString()} not found`,
+          );
         }
       });
     });
@@ -310,14 +330,17 @@ describe('UpdateUserUseCase', () => {
     describe('Duplicate Data Errors', () => {
       it('should fail when email already exists for another user', async () => {
         const anotherUserId = new UniqueEntityID('another-user-id');
-        const anotherIdentity = UserIdentity.create({
-          email: Email.create('another@example.com'),
-          password: Password.createFromPlain('StrongP@ssw0rd2024'),
-          emailVerified: true,
-          lastLogin: now,
-          createdAt: now,
-          updatedAt: now,
-        }, anotherUserId);
+        const anotherIdentity = UserIdentity.create(
+          {
+            email: Email.create('another@example.com'),
+            password: Password.createFromPlain('StrongP@ssw0rd2024'),
+            emailVerified: true,
+            lastLogin: now,
+            createdAt: now,
+            updatedAt: now,
+          },
+          anotherUserId,
+        );
         identityRepo.items.push(anotherIdentity);
 
         const request: UpdateUserRequestDto = {
@@ -330,7 +353,9 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(DuplicateEmailError);
-          expect(result.value.message).toBe('Conflict in User: Email already registered');
+          expect(result.value.message).toBe(
+            'Conflict in User: Email already registered',
+          );
         }
       });
 
@@ -357,14 +382,18 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(DuplicateNationalIdError);
-          expect(result.value.message).toBe('Conflict in User: National ID already registered');
+          expect(result.value.message).toBe(
+            'Conflict in User: National ID already registered',
+          );
         }
       });
     });
 
     describe('Repository Errors', () => {
       it('should fail when identity repository save fails', async () => {
-        vi.spyOn(identityRepo, 'save').mockResolvedValueOnce(left(new Error('Identity save failed')));
+        vi.spyOn(identityRepo, 'save').mockResolvedValueOnce(
+          left(new Error('Identity save failed')),
+        );
 
         const request: UpdateUserRequestDto = {
           id: userId.toString(),
@@ -376,12 +405,16 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(RepositoryError);
-          expect(result.value.message).toBe('Repository operation failed: save identity');
+          expect(result.value.message).toBe(
+            'Repository operation failed: save identity',
+          );
         }
       });
 
       it('should fail when profile repository save fails', async () => {
-        vi.spyOn(profileRepo, 'save').mockResolvedValueOnce(left(new Error('Profile save failed')));
+        vi.spyOn(profileRepo, 'save').mockResolvedValueOnce(
+          left(new Error('Profile save failed')),
+        );
 
         const request: UpdateUserRequestDto = {
           id: userId.toString(),
@@ -393,12 +426,16 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(RepositoryError);
-          expect(result.value.message).toBe('Repository operation failed: save profile');
+          expect(result.value.message).toBe(
+            'Repository operation failed: save profile',
+          );
         }
       });
 
       it('should fail when authorization repository save fails', async () => {
-        vi.spyOn(authorizationRepo, 'save').mockResolvedValueOnce(left(new Error('Authorization save failed')));
+        vi.spyOn(authorizationRepo, 'save').mockResolvedValueOnce(
+          left(new Error('Authorization save failed')),
+        );
 
         const request: UpdateUserRequestDto = {
           id: userId.toString(),
@@ -410,12 +447,16 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(RepositoryError);
-          expect(result.value.message).toBe('Repository operation failed: save authorization');
+          expect(result.value.message).toBe(
+            'Repository operation failed: save authorization',
+          );
         }
       });
 
       it('should fail when identity repository findById fails', async () => {
-        vi.spyOn(identityRepo, 'findById').mockResolvedValueOnce(left(new Error('Find failed')));
+        vi.spyOn(identityRepo, 'findById').mockResolvedValueOnce(
+          left(new Error('Find failed')),
+        );
 
         const request: UpdateUserRequestDto = {
           id: userId.toString(),
@@ -427,12 +468,16 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(ResourceNotFoundError);
-          expect(result.value.message).toBe(`UserIdentity with ID ${userId.toString()} not found`);
+          expect(result.value.message).toBe(
+            `UserIdentity with ID ${userId.toString()} not found`,
+          );
         }
       });
 
       it('should fail when profile repository findByIdentityId fails', async () => {
-        vi.spyOn(profileRepo, 'findByIdentityId').mockResolvedValueOnce(left(new Error('Find failed')));
+        vi.spyOn(profileRepo, 'findByIdentityId').mockResolvedValueOnce(
+          left(new Error('Find failed')),
+        );
 
         const request: UpdateUserRequestDto = {
           id: userId.toString(),
@@ -444,12 +489,16 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(ResourceNotFoundError);
-          expect(result.value.message).toBe(`UserProfile with ID ${userId.toString()} not found`);
+          expect(result.value.message).toBe(
+            `UserProfile with ID ${userId.toString()} not found`,
+          );
         }
       });
 
       it('should fail when authorization repository findByIdentityId fails for role update', async () => {
-        vi.spyOn(authorizationRepo, 'findByIdentityId').mockResolvedValueOnce(left(new Error('Find failed')));
+        vi.spyOn(authorizationRepo, 'findByIdentityId').mockResolvedValueOnce(
+          left(new Error('Find failed')),
+        );
 
         const request: UpdateUserRequestDto = {
           id: userId.toString(),
@@ -461,12 +510,16 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(ResourceNotFoundError);
-          expect(result.value.message).toBe(`UserAuthorization with ID ${userId.toString()} not found`);
+          expect(result.value.message).toBe(
+            `UserAuthorization with ID ${userId.toString()} not found`,
+          );
         }
       });
 
       it('should handle general repository errors', async () => {
-        vi.spyOn(identityRepo, 'findById').mockRejectedValueOnce(new Error('Unexpected error'));
+        vi.spyOn(identityRepo, 'findById').mockRejectedValueOnce(
+          new Error('Unexpected error'),
+        );
 
         const request: UpdateUserRequestDto = {
           id: userId.toString(),
@@ -478,7 +531,9 @@ describe('UpdateUserUseCase', () => {
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
           expect(result.value).toBeInstanceOf(RepositoryError);
-          expect(result.value.message).toBe('Repository operation failed: updateUser');
+          expect(result.value.message).toBe(
+            'Repository operation failed: updateUser',
+          );
         }
       });
     });
@@ -498,7 +553,9 @@ describe('UpdateUserUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.message).toBe('At least one field must be provided for update');
+        expect(result.value.message).toBe(
+          'At least one field must be provided for update',
+        );
       }
     });
 
@@ -514,7 +571,9 @@ describe('UpdateUserUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.message).toBe('At least one field must be provided for update');
+        expect(result.value.message).toBe(
+          'At least one field must be provided for update',
+        );
       }
     });
 
@@ -532,7 +591,9 @@ describe('UpdateUserUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.message).toBe('At least one field must be provided for update');
+        expect(result.value.message).toBe(
+          'At least one field must be provided for update',
+        );
       }
     });
 
@@ -593,14 +654,17 @@ describe('UpdateUserUseCase', () => {
 
     it('should enforce email uniqueness across all users', async () => {
       const user2Id = new UniqueEntityID('user-2-id');
-      const user2Identity = UserIdentity.create({
-        email: Email.create('user2@example.com'),
-        password: Password.createFromPlain('StrongP@ssw0rd2024'),
-        emailVerified: true,
-        lastLogin: now,
-        createdAt: now,
-        updatedAt: now,
-      }, user2Id);
+      const user2Identity = UserIdentity.create(
+        {
+          email: Email.create('user2@example.com'),
+          password: Password.createFromPlain('StrongP@ssw0rd2024'),
+          emailVerified: true,
+          lastLogin: now,
+          createdAt: now,
+          updatedAt: now,
+        },
+        user2Id,
+      );
       identityRepo.items.push(user2Identity);
 
       const request: UpdateUserRequestDto = {
@@ -644,7 +708,7 @@ describe('UpdateUserUseCase', () => {
 
     it('should allow valid role transitions', async () => {
       const roles = ['student', 'tutor', 'admin'] as const;
-      
+
       for (const role of roles) {
         const request: UpdateUserRequestDto = {
           id: userId.toString(),
@@ -653,7 +717,7 @@ describe('UpdateUserUseCase', () => {
 
         const result = await sut.execute(request);
         expect(result.isRight()).toBe(true);
-        
+
         if (result.isRight()) {
           expect(result.value.authorization.role).toBe(role);
         }
@@ -704,7 +768,9 @@ describe('UpdateUserUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(ResourceNotFoundError);
-        expect(result.value.message).toBe('UserIdentity with ID invalid-uuid not found');
+        expect(result.value.message).toBe(
+          'UserIdentity with ID invalid-uuid not found',
+        );
       }
     });
   });
@@ -713,7 +779,7 @@ describe('UpdateUserUseCase', () => {
   describe('Performance Tests', () => {
     it('should handle updates efficiently', async () => {
       const startTime = Date.now();
-      
+
       const request: UpdateUserRequestDto = {
         id: userId.toString(),
         name: 'Performance Test',
@@ -765,8 +831,12 @@ describe('UpdateUserUseCase', () => {
     });
 
     it('should handle role enum correctly', async () => {
-      const roles: Array<'admin' | 'tutor' | 'student'> = ['admin', 'tutor', 'student'];
-      
+      const roles: Array<'admin' | 'tutor' | 'student'> = [
+        'admin',
+        'tutor',
+        'student',
+      ];
+
       for (const role of roles) {
         const request: UpdateUserRequestDto = {
           id: userId.toString(),
@@ -775,7 +845,7 @@ describe('UpdateUserUseCase', () => {
 
         const result = await sut.execute(request);
         expect(result.isRight()).toBe(true);
-        
+
         if (result.isRight()) {
           expect(result.value.authorization.role).toBe(role);
         }

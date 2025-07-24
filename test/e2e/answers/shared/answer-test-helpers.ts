@@ -3,7 +3,11 @@ import request, { Response } from 'supertest';
 import { randomUUID } from 'crypto';
 import { expect } from 'vitest';
 import { AnswerTestSetup } from './answer-test-setup';
-import { GetAnswerRequest, ListAnswersRequest, ListAnswersResponse } from './answer-test-data';
+import {
+  GetAnswerRequest,
+  ListAnswersRequest,
+  ListAnswersResponse,
+} from './answer-test-data';
 
 export class AnswerTestHelpers {
   constructor(private readonly testSetup: AnswerTestSetup) {}
@@ -276,10 +280,7 @@ export class AnswerTestHelpers {
   /**
    * Verify GetAnswer load test results
    */
-  verifyGetAnswerLoadTestResults(
-    responses: Response[],
-    expectedCount: number,
-  ) {
+  verifyGetAnswerLoadTestResults(responses: Response[], expectedCount: number) {
     // All should succeed
     responses.forEach((res, index) => {
       expect(res.status).toBe(200);
@@ -325,7 +326,9 @@ export class AnswerTestHelpers {
     if (dbAnswer!.correctOptionId === null) {
       expect(apiResponse.body.answer.correctOptionId).toBeUndefined();
     } else {
-      expect(apiResponse.body.answer.correctOptionId).toBe(dbAnswer!.correctOptionId);
+      expect(apiResponse.body.answer.correctOptionId).toBe(
+        dbAnswer!.correctOptionId,
+      );
     }
 
     // Verify timestamps (API returns ISO strings, DB returns Date objects)
@@ -340,7 +343,7 @@ export class AnswerTestHelpers {
     expect(apiResponse.body.answer.translations).toHaveLength(
       dbAnswer!.translations.length,
     );
-    
+
     dbAnswer!.translations.forEach((dbTranslation, index) => {
       const apiTranslation = apiResponse.body.answer.translations[index];
       expect(apiTranslation.locale).toBe(dbTranslation.locale);
@@ -368,22 +371,26 @@ export class AnswerTestHelpers {
    */
   async testGetAnswerWithSpecialContent(): Promise<void> {
     // Create answer with special characters
-    const { answerId: specialAnswerId } = await this.testSetup.createAnswerWithQuestion({
-      questionText: 'Question with special chars',
-      questionType: 'MULTIPLE_CHOICE',
-      answerExplanation: 'Answer with special chars: @#$%^&*()! and symbols: ±≤≥≠≈',
-    });
+    const { answerId: specialAnswerId } =
+      await this.testSetup.createAnswerWithQuestion({
+        questionText: 'Question with special chars',
+        questionType: 'MULTIPLE_CHOICE',
+        answerExplanation:
+          'Answer with special chars: @#$%^&*()! and symbols: ±≤≥≠≈',
+      });
 
     const specialRes = await this.getAnswerExpectSuccess(specialAnswerId);
     expect(specialRes.body.answer.explanation).toContain('@#$%^&*()!');
     expect(specialRes.body.answer.explanation).toContain('±≤≥≠≈');
 
     // Create answer with unicode characters
-    const { answerId: unicodeAnswerId } = await this.testSetup.createAnswerWithQuestion({
-      questionText: 'Question with unicode',
-      questionType: 'OPEN',
-      answerExplanation: 'Resposta em português 中文 العربية русский with emojis 🎯🚀',
-    });
+    const { answerId: unicodeAnswerId } =
+      await this.testSetup.createAnswerWithQuestion({
+        questionText: 'Question with unicode',
+        questionType: 'OPEN',
+        answerExplanation:
+          'Resposta em português 中文 العربية русский with emojis 🎯🚀',
+      });
 
     const unicodeRes = await this.getAnswerExpectSuccess(unicodeAnswerId);
     expect(unicodeRes.body.answer.explanation).toContain('português');
@@ -453,13 +460,14 @@ export class AnswerTestHelpers {
   async testGetAnswerWithTranslations(): Promise<void> {
     // Test answer with multiple translations
     await this.getAnswerExpectSuccess(this.testSetup.multipleChoiceAnswerId);
-    
+
     // Create answer with single translation
-    const { answerId: singleTranslationAnswerId } = await this.testSetup.createAnswerWithQuestion({
-      questionText: 'Question for single translation test',
-      questionType: 'MULTIPLE_CHOICE',
-      answerExplanation: 'Answer with single translation',
-    });
+    const { answerId: singleTranslationAnswerId } =
+      await this.testSetup.createAnswerWithQuestion({
+        questionText: 'Question for single translation test',
+        questionType: 'MULTIPLE_CHOICE',
+        answerExplanation: 'Answer with single translation',
+      });
 
     const singleTranslationAnswer = await this.testSetup.createTestAnswer({
       explanation: 'Single translation answer',
@@ -472,7 +480,9 @@ export class AnswerTestHelpers {
       ],
     });
 
-    const singleRes = await this.getAnswerExpectSuccess(singleTranslationAnswer);
+    const singleRes = await this.getAnswerExpectSuccess(
+      singleTranslationAnswer,
+    );
     expect(singleRes.body.answer.translations).toHaveLength(1);
     expect(singleRes.body.answer.translations[0].locale).toBe('pt');
   }
@@ -490,7 +500,7 @@ export class AnswerTestHelpers {
     for (const answer of answers) {
       const question = await this.testSetup.findQuestionById(answer.questionId);
       expect(question).toBeDefined();
-      
+
       // Verify answer data integrity
       const isValid = await this.testSetup.verifyAnswerDataIntegrity(answer.id);
       expect(isValid).toBe(true);
@@ -518,12 +528,13 @@ export class AnswerTestHelpers {
    */
   async testGetAnswerWithLongExplanation(): Promise<void> {
     const longExplanation = 'A'.repeat(1000);
-    
-    const { answerId: longAnswerId } = await this.testSetup.createAnswerWithQuestion({
-      questionText: 'Question with long answer',
-      questionType: 'OPEN',
-      answerExplanation: longExplanation,
-    });
+
+    const { answerId: longAnswerId } =
+      await this.testSetup.createAnswerWithQuestion({
+        questionText: 'Question with long answer',
+        questionType: 'OPEN',
+        answerExplanation: longExplanation,
+      });
 
     const longRes = await this.getAnswerExpectSuccess(longAnswerId);
     expect(longRes.body.answer.explanation).toBe(longExplanation);
@@ -535,12 +546,13 @@ export class AnswerTestHelpers {
    */
   async testGetAnswerWithMinimalExplanation(): Promise<void> {
     const minimalExplanation = 'A';
-    
-    const { answerId: minimalAnswerId } = await this.testSetup.createAnswerWithQuestion({
-      questionText: 'Question with minimal answer',
-      questionType: 'MULTIPLE_CHOICE',
-      answerExplanation: minimalExplanation,
-    });
+
+    const { answerId: minimalAnswerId } =
+      await this.testSetup.createAnswerWithQuestion({
+        questionText: 'Question with minimal answer',
+        questionType: 'MULTIPLE_CHOICE',
+        answerExplanation: minimalExplanation,
+      });
 
     const minimalRes = await this.getAnswerExpectSuccess(minimalAnswerId);
     expect(minimalRes.body.answer.explanation).toBe(minimalExplanation);
@@ -621,7 +633,9 @@ export class AnswerTestHelpers {
       .expect(409);
 
     expect(response.body.error).toBe('ANSWER_ALREADY_EXISTS');
-    expect(response.body.message).toBe('Answer already exists for this question');
+    expect(response.body.message).toBe(
+      'Answer already exists for this question',
+    );
 
     return response;
   }
@@ -681,26 +695,31 @@ export class AnswerTestHelpers {
    */
   async listAnswers(params?: ListAnswersRequest): Promise<Response> {
     let url = '/answers';
-    
+
     if (params) {
       const queryParams = new URLSearchParams();
-      if (params.page !== undefined) queryParams.append('page', params.page.toString());
-      if (params.limit !== undefined) queryParams.append('limit', params.limit.toString());
-      if (params.questionId !== undefined) queryParams.append('questionId', params.questionId);
-      
+      if (params.page !== undefined)
+        queryParams.append('page', params.page.toString());
+      if (params.limit !== undefined)
+        queryParams.append('limit', params.limit.toString());
+      if (params.questionId !== undefined)
+        queryParams.append('questionId', params.questionId);
+
       const queryString = queryParams.toString();
       if (queryString) {
         url += `?${queryString}`;
       }
     }
-    
+
     return request(this.testSetup.getHttpServer()).get(url);
   }
 
   /**
    * List answers and expect success
    */
-  async listAnswersExpectSuccess(params?: ListAnswersRequest): Promise<Response> {
+  async listAnswersExpectSuccess(
+    params?: ListAnswersRequest,
+  ): Promise<Response> {
     const res = await this.listAnswers(params);
 
     expect(res.status).toBe(200);

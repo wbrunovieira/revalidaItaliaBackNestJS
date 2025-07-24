@@ -4,7 +4,7 @@ import { ErrorMapping } from './shared.mappings';
 
 /**
  * Error mappings for new domain exceptions
- * 
+ *
  * These complement existing mappings and handle the new exception hierarchy
  */
 export const domainExceptionMappings: Record<string, ErrorMapping> = {
@@ -59,6 +59,7 @@ export const domainExceptionMappings: Record<string, ErrorMapping> = {
     type: 'forbidden',
     title: 'Forbidden',
     status: HttpStatus.FORBIDDEN,
-    extractDetail: (error) => error.message || 'You do not have permission to perform this action',
+    extractDetail: (error) =>
+      error.message || 'You do not have permission to perform this action',
   },
 };

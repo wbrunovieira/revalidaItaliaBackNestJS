@@ -17,10 +17,7 @@ import {
 } from './validations/create-question-option.schema';
 
 type CreateQuestionOptionUseCaseResponse = Either<
-  | InvalidInputError
-  | QuestionNotFoundError
-  | RepositoryError
-  | Error,
+  InvalidInputError | QuestionNotFoundError | RepositoryError | Error,
   CreateQuestionOptionResponse
 >;
 
@@ -63,7 +60,8 @@ export class CreateQuestionOptionUseCase {
     });
 
     // 4. Save question option to repository
-    const createResult = await this.questionOptionRepository.create(questionOption);
+    const createResult =
+      await this.questionOptionRepository.create(questionOption);
     if (createResult.isLeft()) {
       return left(new RepositoryError('Failed to create question option'));
     }

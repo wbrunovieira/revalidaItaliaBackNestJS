@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { FlashcardTagControllerTestSetup } from './shared/flashcard-tag-controller-test-setup';
 import { FlashcardTagControllerTestData } from './shared/flashcard-tag-controller-test-data';
 import { left, right } from '@/core/either';
@@ -18,13 +21,18 @@ describe('FlashcardTagController - GET / (List All)', () => {
       const mockTags = FlashcardTagControllerTestData.multipleFlashcardTags();
       const mockResult = right({ flashcardTags: mockTags });
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act
       const result = await testSetup.controller.findAll();
 
       // Assert
-      expect(testSetup.listAllFlashcardTagsUseCase.execute).toHaveBeenCalledWith({});
+      expect(
+        testSetup.listAllFlashcardTagsUseCase.execute,
+      ).toHaveBeenCalledWith({});
       expect(result).toEqual({
         flashcardTags: mockTags,
       });
@@ -34,13 +42,18 @@ describe('FlashcardTagController - GET / (List All)', () => {
       // Arrange
       const mockResult = right({ flashcardTags: [] });
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act
       const result = await testSetup.controller.findAll();
 
       // Assert
-      expect(testSetup.listAllFlashcardTagsUseCase.execute).toHaveBeenCalledWith({});
+      expect(
+        testSetup.listAllFlashcardTagsUseCase.execute,
+      ).toHaveBeenCalledWith({});
       expect(result).toEqual({
         flashcardTags: [],
       });
@@ -51,13 +64,18 @@ describe('FlashcardTagController - GET / (List All)', () => {
       const mockTags = FlashcardTagControllerTestData.singleFlashcardTag();
       const mockResult = right({ flashcardTags: mockTags });
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act
       const result = await testSetup.controller.findAll();
 
       // Assert
-      expect(testSetup.listAllFlashcardTagsUseCase.execute).toHaveBeenCalledWith({});
+      expect(
+        testSetup.listAllFlashcardTagsUseCase.execute,
+      ).toHaveBeenCalledWith({});
       expect(result).toEqual({
         flashcardTags: mockTags,
       });
@@ -65,16 +83,22 @@ describe('FlashcardTagController - GET / (List All)', () => {
 
     it('should handle flashcard tags with special characters', async () => {
       // Arrange
-      const mockTags = FlashcardTagControllerTestData.flashcardTagsWithSpecialChars();
+      const mockTags =
+        FlashcardTagControllerTestData.flashcardTagsWithSpecialChars();
       const mockResult = right({ flashcardTags: mockTags });
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act
       const result = await testSetup.controller.findAll();
 
       // Assert
-      expect(testSetup.listAllFlashcardTagsUseCase.execute).toHaveBeenCalledWith({});
+      expect(
+        testSetup.listAllFlashcardTagsUseCase.execute,
+      ).toHaveBeenCalledWith({});
       expect(result).toEqual({
         flashcardTags: mockTags,
       });
@@ -85,7 +109,10 @@ describe('FlashcardTagController - GET / (List All)', () => {
       const mockTags = FlashcardTagControllerTestData.multipleFlashcardTags();
       const mockResult = right({ flashcardTags: mockTags });
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act
       const result = await testSetup.controller.findAll();
@@ -93,7 +120,7 @@ describe('FlashcardTagController - GET / (List All)', () => {
       // Assert
       expect(result).toHaveProperty('flashcardTags');
       expect(Array.isArray(result.flashcardTags)).toBe(true);
-      
+
       if (result.flashcardTags.length > 0) {
         const tag = result.flashcardTags[0];
         expect(tag).toHaveProperty('id');
@@ -109,7 +136,10 @@ describe('FlashcardTagController - GET / (List All)', () => {
       const mockTags = FlashcardTagControllerTestData.multipleFlashcardTags();
       const mockResult = right({ flashcardTags: mockTags });
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act
       const result = await testSetup.controller.findAll();
@@ -125,15 +155,20 @@ describe('FlashcardTagController - GET / (List All)', () => {
     it('should throw BadRequestException when InvalidInputError occurs', async () => {
       // Arrange
       const mockError = new InvalidInputError('Validation failed', {
-        general: ['Invalid request']
+        general: ['Invalid request'],
       });
       const mockResult = left(mockError);
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act & Assert
-      await expect(testSetup.controller.findAll()).rejects.toThrow(BadRequestException);
-      
+      await expect(testSetup.controller.findAll()).rejects.toThrow(
+        BadRequestException,
+      );
+
       try {
         await testSetup.controller.findAll();
       } catch (error) {
@@ -151,11 +186,16 @@ describe('FlashcardTagController - GET / (List All)', () => {
       const mockError = new Error('Database connection failed');
       const mockResult = left(mockError);
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act & Assert
-      await expect(testSetup.controller.findAll()).rejects.toThrow(InternalServerErrorException);
-      
+      await expect(testSetup.controller.findAll()).rejects.toThrow(
+        InternalServerErrorException,
+      );
+
       try {
         await testSetup.controller.findAll();
       } catch (error) {
@@ -169,12 +209,15 @@ describe('FlashcardTagController - GET / (List All)', () => {
 
     it('should handle use case rejections gracefully', async () => {
       // Arrange
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockRejectedValue(
-        new Error('Unexpected rejection')
-      );
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockRejectedValue(new Error('Unexpected rejection'));
 
       // Act & Assert
-      await expect(testSetup.controller.findAll()).rejects.toThrow('Unexpected rejection');
+      await expect(testSetup.controller.findAll()).rejects.toThrow(
+        'Unexpected rejection',
+      );
     });
   });
 
@@ -182,7 +225,9 @@ describe('FlashcardTagController - GET / (List All)', () => {
     it('should call use case with empty object', async () => {
       // Arrange
       const mockResult = right({ flashcardTags: [] });
-      const executeSpy = vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      const executeSpy = vi
+        .spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute')
+        .mockResolvedValue(mockResult);
 
       // Act
       await testSetup.controller.findAll();
@@ -195,7 +240,9 @@ describe('FlashcardTagController - GET / (List All)', () => {
     it('should handle use case execution only once per request', async () => {
       // Arrange
       const mockResult = right({ flashcardTags: [] });
-      const executeSpy = vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      const executeSpy = vi
+        .spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute')
+        .mockResolvedValue(mockResult);
 
       // Act
       await testSetup.controller.findAll();
@@ -218,7 +265,10 @@ describe('FlashcardTagController - GET / (List All)', () => {
       }));
       const mockResult = right({ flashcardTags: largeMockTags });
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act
       const result = await testSetup.controller.findAll();
@@ -242,7 +292,10 @@ describe('FlashcardTagController - GET / (List All)', () => {
       ];
       const mockResult = right({ flashcardTags: mockTags });
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act
       const result = await testSetup.controller.findAll();
@@ -259,7 +312,10 @@ describe('FlashcardTagController - GET / (List All)', () => {
       const mockTags = FlashcardTagControllerTestData.multipleFlashcardTags();
       const mockResult = right({ flashcardTags: mockTags });
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act
       const result = await testSetup.controller.findAll();
@@ -267,7 +323,7 @@ describe('FlashcardTagController - GET / (List All)', () => {
       // Assert
       expect(result.flashcardTags).toEqual(mockTags);
       expect(result.flashcardTags).toHaveLength(mockTags.length);
-      
+
       result.flashcardTags.forEach((tag, index) => {
         expect(tag.id).toBe(mockTags[index].id);
         expect(tag.name).toBe(mockTags[index].name);
@@ -280,10 +336,13 @@ describe('FlashcardTagController - GET / (List All)', () => {
     it('should not modify use case result data', async () => {
       // Arrange
       const mockTags = FlashcardTagControllerTestData.multipleFlashcardTags();
-      const originalTags = mockTags.map(tag => ({ ...tag })); // Shallow copy preserving Date objects
+      const originalTags = mockTags.map((tag) => ({ ...tag })); // Shallow copy preserving Date objects
       const mockResult = right({ flashcardTags: mockTags });
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act
       const result = await testSetup.controller.findAll();
@@ -299,17 +358,24 @@ describe('FlashcardTagController - GET / (List All)', () => {
       const mockTags = FlashcardTagControllerTestData.multipleFlashcardTags();
       const mockResult = right({ flashcardTags: mockTags });
 
-      vi.spyOn(testSetup.listAllFlashcardTagsUseCase, 'execute').mockResolvedValue(mockResult);
+      vi.spyOn(
+        testSetup.listAllFlashcardTagsUseCase,
+        'execute',
+      ).mockResolvedValue(mockResult);
 
       // Act
-      const promises = Array.from({ length: 10 }, () => testSetup.controller.findAll());
+      const promises = Array.from({ length: 10 }, () =>
+        testSetup.controller.findAll(),
+      );
       const results = await Promise.all(promises);
 
       // Assert
       results.forEach((result) => {
         expect(result).toEqual({ flashcardTags: mockTags });
       });
-      expect(testSetup.listAllFlashcardTagsUseCase.execute).toHaveBeenCalledTimes(10);
+      expect(
+        testSetup.listAllFlashcardTagsUseCase.execute,
+      ).toHaveBeenCalledTimes(10);
     });
   });
 });

@@ -132,19 +132,17 @@ describe('Create Address (E2E)', () => {
       });
     const userId = userRes.body.user.id;
 
-    await request(app.getHttpServer())
-      .post('/addresses')
-      .send({
-        userId,
-        street: '200 Main St',
-        number: '20',
-        complement: '',
-        district: 'Midtown',
-        city: 'Townsville',
-        state: 'Stateland',
-        country: 'Countryland',
-        postalCode: '22233-445',
-      });
+    await request(app.getHttpServer()).post('/addresses').send({
+      userId,
+      street: '200 Main St',
+      number: '20',
+      complement: '',
+      district: 'Midtown',
+      city: 'Townsville',
+      state: 'Stateland',
+      country: 'Countryland',
+      postalCode: '22233-445',
+    });
 
     const res = await request(app.getHttpServer())
       .get(`/addresses?userId=${userId}`)

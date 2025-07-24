@@ -9,7 +9,7 @@ export const redisProviders: Provider[] = [
     provide: REDIS_CLIENT,
     useFactory: (configService: ConfigService) => {
       const redisUrl = configService.get('REDIS_URL', 'redis://redis:6379');
-      
+
       const client = new Redis(redisUrl, {
         maxRetriesPerRequest: 3,
         retryStrategy: (times: number) => {

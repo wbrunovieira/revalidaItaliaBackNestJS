@@ -25,7 +25,7 @@ export class QuestionOptionControllerTestHelpers {
     expectedResponse: any;
   }) {
     const { questionId, dto, expectedResponse } = params;
-    
+
     // Mock successful response
     this.testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce({
       isRight: () => true,
@@ -44,7 +44,7 @@ export class QuestionOptionControllerTestHelpers {
     error: any;
   }) {
     const { questionId, dto, error } = params;
-    
+
     // Mock error response
     this.testSetup.createQuestionOptionUseCase.execute.mockResolvedValueOnce({
       isLeft: () => true,
@@ -61,13 +61,17 @@ export class QuestionOptionControllerTestHelpers {
     text: string;
     questionId: string;
   }) {
-    expect(this.testSetup.createQuestionOptionUseCase.execute).toHaveBeenCalledWith(params);
+    expect(
+      this.testSetup.createQuestionOptionUseCase.execute,
+    ).toHaveBeenCalledWith(params);
   }
 
   /**
    * Helper to verify use case was called exactly once
    */
   expectUseCaseToHaveBeenCalledOnce() {
-    expect(this.testSetup.createQuestionOptionUseCase.execute).toHaveBeenCalledTimes(1);
+    expect(
+      this.testSetup.createQuestionOptionUseCase.execute,
+    ).toHaveBeenCalledTimes(1);
   }
 }

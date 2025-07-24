@@ -13,11 +13,11 @@ export class LoggingInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
     const { method, url, body, user } = request;
-    
+
     // Generate trace ID for this request
     const traceId = SimpleLogger.generateTraceId();
     request.traceId = traceId;
-    
+
     // Log incoming request
     SimpleLogger.logInfo(`Incoming request: ${method} ${url}`, {
       traceId,
@@ -31,7 +31,7 @@ export class LoggingInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap((response) => {
         const duration = Date.now() - startTime;
-        
+
         SimpleLogger.logInfo(`Request completed: ${method} ${url}`, {
           traceId,
           endpoint: `${method} ${url}`,
@@ -41,14 +41,14 @@ export class LoggingInterceptor implements NestInterceptor {
       }),
       catchError((error) => {
         const duration = Date.now() - startTime;
-        
+
         SimpleLogger.logError(traceId, error, {
           endpoint: `${method} ${url}`,
           duration: `${duration}ms`,
           userId: user?.id,
           payload: this.sanitizePayload(body),
         });
-        
+
         throw error;
       }),
     );
@@ -60,9 +60,14 @@ export class LoggingInterceptor implements NestInterceptor {
     const sanitized = { ...payload };
 
     // Remove sensitive fields
-    const sensitiveFields = ['password', 'token', 'accessToken', 'refreshToken'];
-    
-    sensitiveFields.forEach(field => {
+    const sensitiveFields = [
+      'password',
+      'token',
+      'accessToken',
+      'refreshToken',
+    ];
+
+    sensitiveFields.forEach((field) => {
       if (field in sanitized) {
         sanitized[field] = '[REDACTED]';
       }

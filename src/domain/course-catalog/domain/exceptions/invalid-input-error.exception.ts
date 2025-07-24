@@ -7,7 +7,7 @@ import { DomainException } from '@/core/domain/exceptions/domain.exception';
 export class InvalidInputError extends DomainException {
   constructor(
     message: string = 'Invalid input provided',
-    public readonly details?: any[]
+    public readonly details?: any[],
   ) {
     const code = 'VALIDATION.INVALID_INPUT';
     super(message, code, { details });

@@ -23,7 +23,9 @@ let assessmentRepository: InMemoryAssessmentRepository;
 let userAggregatedViewRepository: InMemoryUserAggregatedViewRepository;
 
 // Helper function to create test users
-function createTestUser(overrides: Partial<UserAggregatedView> = {}): UserAggregatedView {
+function createTestUser(
+  overrides: Partial<UserAggregatedView> = {},
+): UserAggregatedView {
   const now = new Date();
   return {
     identityId: '550e8400-e29b-41d4-a716-446655440001',
@@ -56,7 +58,7 @@ describe('StartAttemptUseCase', () => {
     attemptRepository = new InMemoryAttemptRepository();
     assessmentRepository = new InMemoryAssessmentRepository();
     userAggregatedViewRepository = new InMemoryUserAggregatedViewRepository();
-    
+
     sut = new StartAttemptUseCase(
       attemptRepository,
       assessmentRepository,
@@ -69,7 +71,9 @@ describe('StartAttemptUseCase', () => {
     it('should start attempt for QUIZ assessment', async () => {
       // Arrange
       const identityId = '12345678-1234-1234-1234-123456789012';
-      const assessmentId = new UniqueEntityID('12345678-1234-1234-1234-123456789013');
+      const assessmentId = new UniqueEntityID(
+        '12345678-1234-1234-1234-123456789013',
+      );
 
       const user = createTestUser({
         identityId,
@@ -78,15 +82,18 @@ describe('StartAttemptUseCase', () => {
         role: 'student',
       });
 
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-        quizPosition: 'BEFORE_LESSON',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+          quizPosition: 'BEFORE_LESSON',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        assessmentId,
+      );
 
       await userAggregatedViewRepository.create(user);
       await assessmentRepository.create(assessment);
@@ -117,19 +124,24 @@ describe('StartAttemptUseCase', () => {
     it('should start attempt for SIMULADO assessment with time limit', async () => {
       // Arrange
       const identityId = '12345678-1234-1234-1234-123456789012';
-      const assessmentId = new UniqueEntityID('12345678-1234-1234-1234-123456789013');
+      const assessmentId = new UniqueEntityID(
+        '12345678-1234-1234-1234-123456789013',
+      );
 
       const user = createTestUser({ identityId });
 
-      const assessment = Assessment.create({
-        slug: 'simulado-test',
-        title: 'Simulado Test',
-        type: 'SIMULADO',
-        passingScore: 70,
-        timeLimitInMinutes: 120,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'simulado-test',
+          title: 'Simulado Test',
+          type: 'SIMULADO',
+          passingScore: 70,
+          timeLimitInMinutes: 120,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        assessmentId,
+      );
 
       await userAggregatedViewRepository.create(user);
       await assessmentRepository.create(assessment);
@@ -151,9 +163,15 @@ describe('StartAttemptUseCase', () => {
         expect(result.value.attempt.timeLimitExpiresAt).toBeDefined();
 
         // Check that time limit is approximately 120 minutes from start time
-        const expectedExpiresAt = new Date(startTime.getTime() + 120 * 60 * 1000);
-        const actualExpiresAt = new Date(result.value.attempt.timeLimitExpiresAt!);
-        const timeDiff = Math.abs(actualExpiresAt.getTime() - expectedExpiresAt.getTime());
+        const expectedExpiresAt = new Date(
+          startTime.getTime() + 120 * 60 * 1000,
+        );
+        const actualExpiresAt = new Date(
+          result.value.attempt.timeLimitExpiresAt!,
+        );
+        const timeDiff = Math.abs(
+          actualExpiresAt.getTime() - expectedExpiresAt.getTime(),
+        );
         expect(timeDiff).toBeLessThan(5000); // Allow 5 seconds difference
       }
     });
@@ -161,18 +179,23 @@ describe('StartAttemptUseCase', () => {
     it('should start attempt for PROVA_ABERTA assessment', async () => {
       // Arrange
       const identityId = '12345678-1234-1234-1234-123456789012';
-      const assessmentId = new UniqueEntityID('12345678-1234-1234-1234-123456789013');
+      const assessmentId = new UniqueEntityID(
+        '12345678-1234-1234-1234-123456789013',
+      );
 
       const user = createTestUser({ identityId });
 
-      const assessment = Assessment.create({
-        slug: 'prova-aberta-test',
-        title: 'Prova Aberta Test',
-        type: 'PROVA_ABERTA',
-        passingScore: 70,
-        randomizeQuestions: false,
-        randomizeOptions: false,
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'prova-aberta-test',
+          title: 'Prova Aberta Test',
+          type: 'PROVA_ABERTA',
+          passingScore: 70,
+          randomizeQuestions: false,
+          randomizeOptions: false,
+        },
+        assessmentId,
+      );
 
       await userAggregatedViewRepository.create(user);
       await assessmentRepository.create(assessment);
@@ -196,14 +219,19 @@ describe('StartAttemptUseCase', () => {
     it('should return existing active attempt instead of creating new one', async () => {
       // Arrange
       const identityId = '12345678-1234-1234-1234-123456789012';
-      const assessmentId = new UniqueEntityID('12345678-1234-1234-1234-123456789013');
+      const assessmentId = new UniqueEntityID(
+        '12345678-1234-1234-1234-123456789013',
+      );
 
       const user = createTestUser({ identityId });
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+        },
+        assessmentId,
+      );
 
       const existingAttempt = Attempt.create({
         status: new AttemptStatusVO('IN_PROGRESS'),
@@ -237,16 +265,21 @@ describe('StartAttemptUseCase', () => {
       // Arrange
       const user1Id = '12345678-1234-1234-1234-123456789011';
       const user2Id = '12345678-1234-1234-1234-123456789012';
-      const assessmentId = new UniqueEntityID('12345678-1234-1234-1234-123456789013');
+      const assessmentId = new UniqueEntityID(
+        '12345678-1234-1234-1234-123456789013',
+      );
 
       const user1 = createTestUser({ identityId: user1Id });
       const user2 = createTestUser({ identityId: user2Id });
 
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+        },
+        assessmentId,
+      );
 
       await userAggregatedViewRepository.create(user1);
       await userAggregatedViewRepository.create(user2);
@@ -308,7 +341,9 @@ describe('StartAttemptUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.message).toContain('Identity ID must be a valid UUID');
+        expect(result.value.message).toContain(
+          'Identity ID must be a valid UUID',
+        );
       }
     });
 
@@ -344,7 +379,9 @@ describe('StartAttemptUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.message).toContain('Assessment ID must be a valid UUID');
+        expect(result.value.message).toContain(
+          'Assessment ID must be a valid UUID',
+        );
       }
     });
 
@@ -417,7 +454,10 @@ describe('StartAttemptUseCase', () => {
     it('should return RepositoryError when user repository fails', async () => {
       // Arrange
       const error = new Error('Database error');
-      vi.spyOn(userAggregatedViewRepository, 'findByIdentityId').mockResolvedValueOnce(left(error));
+      vi.spyOn(
+        userAggregatedViewRepository,
+        'findByIdentityId',
+      ).mockResolvedValueOnce(left(error));
 
       const request: StartAttemptRequest = {
         identityId: '12345678-1234-1234-1234-123456789012',
@@ -442,7 +482,9 @@ describe('StartAttemptUseCase', () => {
       await userAggregatedViewRepository.create(user);
 
       const error = new Error('Database error');
-      vi.spyOn(assessmentRepository, 'findById').mockResolvedValueOnce(left(error));
+      vi.spyOn(assessmentRepository, 'findById').mockResolvedValueOnce(
+        left(error),
+      );
 
       const request: StartAttemptRequest = {
         identityId,
@@ -463,14 +505,19 @@ describe('StartAttemptUseCase', () => {
     it('should return RepositoryError when attempt creation fails', async () => {
       // Arrange
       const identityId = '12345678-1234-1234-1234-123456789012';
-      const assessmentId = new UniqueEntityID('12345678-1234-1234-1234-123456789013');
+      const assessmentId = new UniqueEntityID(
+        '12345678-1234-1234-1234-123456789013',
+      );
 
       const user = createTestUser({ identityId });
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+        },
+        assessmentId,
+      );
 
       await userAggregatedViewRepository.create(user);
       await assessmentRepository.create(assessment);
@@ -499,7 +546,9 @@ describe('StartAttemptUseCase', () => {
       const user = createTestUser();
       await userAggregatedViewRepository.create(user);
 
-      vi.spyOn(assessmentRepository, 'findById').mockRejectedValueOnce(new Error('Unexpected error'));
+      vi.spyOn(assessmentRepository, 'findById').mockRejectedValueOnce(
+        new Error('Unexpected error'),
+      );
 
       const request: StartAttemptRequest = {
         identityId: user.identityId,
@@ -520,16 +569,21 @@ describe('StartAttemptUseCase', () => {
     it('should handle SIMULADO without time limit', async () => {
       // Arrange
       const identityId = '12345678-1234-1234-1234-123456789012';
-      const assessmentId = new UniqueEntityID('12345678-1234-1234-1234-123456789013');
+      const assessmentId = new UniqueEntityID(
+        '12345678-1234-1234-1234-123456789013',
+      );
 
       const user = createTestUser({ identityId });
-      const assessment = Assessment.create({
-        slug: 'simulado-test',
-        title: 'Simulado Test',
-        type: 'SIMULADO',
-        passingScore: 70,
-        // No timeLimitInMinutes
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'simulado-test',
+          title: 'Simulado Test',
+          type: 'SIMULADO',
+          passingScore: 70,
+          // No timeLimitInMinutes
+        },
+        assessmentId,
+      );
 
       await userAggregatedViewRepository.create(user);
       await assessmentRepository.create(assessment);
@@ -553,14 +607,19 @@ describe('StartAttemptUseCase', () => {
     it('should allow starting new attempt after previous was submitted', async () => {
       // Arrange
       const identityId = '12345678-1234-1234-1234-123456789012';
-      const assessmentId = new UniqueEntityID('12345678-1234-1234-1234-123456789013');
+      const assessmentId = new UniqueEntityID(
+        '12345678-1234-1234-1234-123456789013',
+      );
 
       const user = createTestUser({ identityId });
-      const assessment = Assessment.create({
-        slug: 'quiz-test',
-        title: 'Quiz Test',
-        type: 'QUIZ',
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'quiz-test',
+          title: 'Quiz Test',
+          type: 'QUIZ',
+        },
+        assessmentId,
+      );
 
       // Create a submitted attempt (not IN_PROGRESS)
       const previousAttempt = Attempt.create({
@@ -658,7 +717,8 @@ describe('StartAttemptUseCase', () => {
         expect(expiresAt).toBeDefined();
         if (expiresAt) {
           const now = new Date();
-          const diffInHours = (new Date(expiresAt).getTime() - now.getTime()) / (1000 * 60 * 60);
+          const diffInHours =
+            (new Date(expiresAt).getTime() - now.getTime()) / (1000 * 60 * 60);
           expect(diffInHours).toBeCloseTo(16.65, 1); // 999 minutes = 16.65 hours
         }
       }
@@ -690,18 +750,18 @@ describe('StartAttemptUseCase', () => {
       const start = Date.now();
 
       // Act - Start attempts concurrently
-      const promises = users.map(user =>
+      const promises = users.map((user) =>
         sut.execute({
           identityId: user.identityId,
           assessmentId: assessment.id.toString(),
-        })
+        }),
       );
 
       const results = await Promise.all(promises);
       const duration = Date.now() - start;
 
       // Assert
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.isRight()).toBe(true);
       });
       expect(duration).toBeLessThan(1000); // Should complete within 1 second
@@ -747,11 +807,11 @@ describe('StartAttemptUseCase', () => {
       // Assert
       expect(quizResult.isRight()).toBe(true);
       expect(provaResult.isRight()).toBe(true);
-      
+
       if (quizResult.isRight()) {
         expect(quizResult.value.attempt.timeLimitExpiresAt).toBeUndefined();
       }
-      
+
       if (provaResult.isRight()) {
         expect(provaResult.value.attempt.timeLimitExpiresAt).toBeUndefined();
       }
@@ -784,13 +844,21 @@ describe('StartAttemptUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         const attempt = result.value.attempt;
-        
+
         // Check timestamps
-        expect(attempt.startedAt.getTime()).toBeGreaterThanOrEqual(beforeStart.getTime());
-        expect(attempt.startedAt.getTime()).toBeLessThanOrEqual(afterStart.getTime());
-        expect(attempt.createdAt.getTime()).toBeGreaterThanOrEqual(beforeStart.getTime());
-        expect(attempt.updatedAt.getTime()).toBeGreaterThanOrEqual(beforeStart.getTime());
-        
+        expect(attempt.startedAt.getTime()).toBeGreaterThanOrEqual(
+          beforeStart.getTime(),
+        );
+        expect(attempt.startedAt.getTime()).toBeLessThanOrEqual(
+          afterStart.getTime(),
+        );
+        expect(attempt.createdAt.getTime()).toBeGreaterThanOrEqual(
+          beforeStart.getTime(),
+        );
+        expect(attempt.updatedAt.getTime()).toBeGreaterThanOrEqual(
+          beforeStart.getTime(),
+        );
+
         // Check initial state
         expect(attempt.status).toBe('IN_PROGRESS');
         expect(result.value.answeredQuestions).toBe(0);
@@ -801,13 +869,16 @@ describe('StartAttemptUseCase', () => {
       // Arrange
       const identityId = '12345678-1234-1234-1234-123456789012';
       const assessmentId = new UniqueEntityID();
-      
+
       const user = createTestUser({ identityId });
-      const assessment = Assessment.create({
-        slug: 'test',
-        title: 'Test',
-        type: 'QUIZ',
-      }, assessmentId);
+      const assessment = Assessment.create(
+        {
+          slug: 'test',
+          title: 'Test',
+          type: 'QUIZ',
+        },
+        assessmentId,
+      );
 
       // Create attempts with different statuses
       const gradedAttempt = Attempt.create({

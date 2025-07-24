@@ -15,19 +15,25 @@ export type FindAddressByProfileUseCaseResponse = Either<
 export class FindAddressByProfileUseCase {
   constructor(
     @Inject(IAddressRepository)
-    private readonly repo: IAddressRepository
+    private readonly repo: IAddressRepository,
   ) {}
 
   async execute(
-    request: FindAddressByProfileRequestDto
+    request: FindAddressByProfileRequestDto,
   ): Promise<FindAddressByProfileUseCaseResponse> {
     try {
       const result = await this.repo.findByProfileId(request.profileId);
       if (result.isLeft()) {
-        return left(new RepositoryError(result.value.message, 'findByProfileId', result.value));
+        return left(
+          new RepositoryError(
+            result.value.message,
+            'findByProfileId',
+            result.value,
+          ),
+        );
       }
 
-      const addresses = result.value.map(address => ({
+      const addresses = result.value.map((address) => ({
         id: address.id.toString(),
         street: address.street,
         number: address.number,

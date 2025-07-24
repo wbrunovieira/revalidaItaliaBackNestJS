@@ -12,7 +12,7 @@ describe('GetAnswer E2E Tests', () => {
   beforeEach(async () => {
     testSetup = new AnswerTestSetup();
     testHelpers = new AnswerTestHelpers(testSetup);
-    
+
     await testSetup.initialize();
     await testSetup.setupTestData();
   });
@@ -33,7 +33,9 @@ describe('GetAnswer E2E Tests', () => {
       );
 
       expect(response.body.answer.explanation).toBeDefined();
-      expect(response.body.answer.questionId).toBe(testSetup.multipleChoiceQuestionId);
+      expect(response.body.answer.questionId).toBe(
+        testSetup.multipleChoiceQuestionId,
+      );
       expect(response.body.answer.correctOptionId).toBeDefined();
       expect(response.body.answer.translations).toBeDefined();
       expect(Array.isArray(response.body.answer.translations)).toBe(true);
@@ -83,21 +85,27 @@ describe('GetAnswer E2E Tests', () => {
       const { answerId } = await testSetup.createAnswerWithQuestion({
         questionText: 'What is the pathophysiology of hypertension?',
         questionType: 'OPEN',
-        answerExplanation: 'Hypertension is characterized by elevated blood pressure (≥140/90 mmHg). The pathophysiology involves increased peripheral resistance, reduced arterial compliance, and endothelial dysfunction.',
+        answerExplanation:
+          'Hypertension is characterized by elevated blood pressure (≥140/90 mmHg). The pathophysiology involves increased peripheral resistance, reduced arterial compliance, and endothelial dysfunction.',
       });
 
       const response = await testHelpers.getAnswerExpectSuccess(answerId);
 
       expect(response.body.answer.explanation).toContain('140/90 mmHg');
-      expect(response.body.answer.explanation.toLowerCase()).toContain('hypertension');
-      expect(response.body.answer.explanation.toLowerCase()).toContain('pathophysiology');
+      expect(response.body.answer.explanation.toLowerCase()).toContain(
+        'hypertension',
+      );
+      expect(response.body.answer.explanation.toLowerCase()).toContain(
+        'pathophysiology',
+      );
     });
 
     it('should retrieve answer with special characters', async () => {
       const { answerId } = await testSetup.createAnswerWithQuestion({
         questionText: 'Question with special chars',
         questionType: 'MULTIPLE_CHOICE',
-        answerExplanation: 'Answer with special chars: @#$%^&*()! and symbols: ±≤≥≠≈',
+        answerExplanation:
+          'Answer with special chars: @#$%^&*()! and symbols: ±≤≥≠≈',
       });
 
       const response = await testHelpers.getAnswerExpectSuccess(answerId);
@@ -110,7 +118,8 @@ describe('GetAnswer E2E Tests', () => {
       const { answerId } = await testSetup.createAnswerWithQuestion({
         questionText: 'Question with unicode',
         questionType: 'OPEN',
-        answerExplanation: 'Resposta em português 中文 العربية русский with emojis 🎯🚀',
+        answerExplanation:
+          'Resposta em português 中文 العربية русский with emojis 🎯🚀',
       });
 
       const response = await testHelpers.getAnswerExpectSuccess(answerId);
@@ -224,7 +233,7 @@ describe('GetAnswer E2E Tests', () => {
 
     it('should test systematic validation of all invalid formats', async () => {
       const invalidIds = AnswerTestData.getAllInvalidIds();
-      
+
       for (const invalidRequest of invalidIds) {
         if (typeof invalidRequest.id === 'string') {
           await testHelpers.getAnswerExpectValidationError(invalidRequest.id);
@@ -251,7 +260,7 @@ describe('GetAnswer E2E Tests', () => {
 
     it('should test systematic validation of all non-existent IDs', async () => {
       const nonExistentIds = AnswerTestData.getAllNonExistentIds();
-      
+
       for (const nonExistentRequest of nonExistentIds) {
         await testHelpers.getAnswerExpectNotFound(nonExistentRequest.id);
       }
@@ -290,7 +299,9 @@ describe('GetAnswer E2E Tests', () => {
 
       expect(response.body.answer.translations).toHaveLength(1);
       expect(response.body.answer.translations[0].locale).toBe('pt');
-      expect(response.body.answer.translations[0].explanation).toBe('Resposta com tradução única');
+      expect(response.body.answer.translations[0].explanation).toBe(
+        'Resposta com tradução única',
+      );
     });
 
     it('should handle answer with multiple translations', async () => {
@@ -311,12 +322,14 @@ describe('GetAnswer E2E Tests', () => {
       const response = await testHelpers.getAnswerExpectSuccess(answerId);
 
       expect(response.body.answer.translations).toHaveLength(3);
-      expect(response.body.answer.translations.map((t: any) => t.locale)).toEqual(['pt', 'it', 'es']);
+      expect(
+        response.body.answer.translations.map((t: any) => t.locale),
+      ).toEqual(['pt', 'it', 'es']);
     });
 
     it('should handle case insensitive UUID retrieval', async () => {
       const answerId = testSetup.multipleChoiceAnswerId;
-      
+
       // Test UUID validation accepts case variations (even if DB is case sensitive)
       const lowerCaseId = answerId.toLowerCase();
       const res1 = await testHelpers.getAnswerById(lowerCaseId);
@@ -326,9 +339,12 @@ describe('GetAnswer E2E Tests', () => {
       const res2 = await testHelpers.getAnswerById(upperCaseId);
       expect([200, 404]).toContain(res2.status); // 200 if case insensitive, 404 if case sensitive
 
-      const mixedCaseId = answerId.split('').map((char, i) => 
-        i % 2 === 0 ? char.toLowerCase() : char.toUpperCase()
-      ).join('');
+      const mixedCaseId = answerId
+        .split('')
+        .map((char, i) =>
+          i % 2 === 0 ? char.toLowerCase() : char.toUpperCase(),
+        )
+        .join('');
       const res3 = await testHelpers.getAnswerById(mixedCaseId);
       expect([200, 404]).toContain(res3.status); // 200 if case insensitive, 404 if case sensitive
     });
@@ -382,7 +398,7 @@ describe('GetAnswer E2E Tests', () => {
 
     it('should maintain consistent response times', async () => {
       const answerId = testSetup.multipleChoiceAnswerId;
-      
+
       await testHelpers.testGetAnswerResponseTimeConsistency(
         answerId,
         5, // 5 iterations
@@ -393,7 +409,9 @@ describe('GetAnswer E2E Tests', () => {
 
   describe('Data Integrity', () => {
     it('should maintain data consistency between database and API', async () => {
-      await testHelpers.verifyAnswerDataIntegrity(testSetup.multipleChoiceAnswerId);
+      await testHelpers.verifyAnswerDataIntegrity(
+        testSetup.multipleChoiceAnswerId,
+      );
       await testHelpers.verifyAnswerDataIntegrity(testSetup.openAnswerId);
     });
 
@@ -470,7 +488,8 @@ describe('GetAnswer E2E Tests', () => {
 
     it('should return proper error format for validation errors', async () => {
       const invalidId = 'invalid-uuid-format';
-      const response = await testHelpers.getAnswerExpectValidationError(invalidId);
+      const response =
+        await testHelpers.getAnswerExpectValidationError(invalidId);
 
       if (response.status === 400) {
         testHelpers.verifyErrorResponseFormat(
@@ -487,7 +506,8 @@ describe('GetAnswer E2E Tests', () => {
       const { answerId } = await testSetup.createAnswerWithQuestion({
         questionText: 'Medical terminology question',
         questionType: 'OPEN',
-        answerExplanation: 'Tachycardia is defined as a heart rate >100 bpm. It can be caused by physiological or pathological conditions.',
+        answerExplanation:
+          'Tachycardia is defined as a heart rate >100 bpm. It can be caused by physiological or pathological conditions.',
       });
 
       const response = await testHelpers.getAnswerExpectSuccess(answerId);
@@ -500,7 +520,8 @@ describe('GetAnswer E2E Tests', () => {
       const { answerId } = await testSetup.createAnswerWithQuestion({
         questionText: 'Mathematical expression question',
         questionType: 'MULTIPLE_CHOICE',
-        answerExplanation: 'The formula is: BP = CO × SVR, where BP is blood pressure, CO is cardiac output, and SVR is systemic vascular resistance.',
+        answerExplanation:
+          'The formula is: BP = CO × SVR, where BP is blood pressure, CO is cardiac output, and SVR is systemic vascular resistance.',
       });
 
       const response = await testHelpers.getAnswerExpectSuccess(answerId);
@@ -512,12 +533,15 @@ describe('GetAnswer E2E Tests', () => {
       const { answerId } = await testSetup.createAnswerWithQuestion({
         questionText: 'HTML-like content question',
         questionType: 'OPEN',
-        answerExplanation: 'The answer contains <strong>bold</strong> and <em>italic</em> text for emphasis.',
+        answerExplanation:
+          'The answer contains <strong>bold</strong> and <em>italic</em> text for emphasis.',
       });
 
       const response = await testHelpers.getAnswerExpectSuccess(answerId);
 
-      expect(response.body.answer.explanation).toContain('<strong>bold</strong>');
+      expect(response.body.answer.explanation).toContain(
+        '<strong>bold</strong>',
+      );
       expect(response.body.answer.explanation).toContain('<em>italic</em>');
     });
 
@@ -525,7 +549,8 @@ describe('GetAnswer E2E Tests', () => {
       const { answerId } = await testSetup.createAnswerWithQuestion({
         questionText: 'Formatted content question',
         questionType: 'OPEN',
-        answerExplanation: 'Line 1\nLine 2\n\nParagraph 2\n\t- Bullet point 1\n\t- Bullet point 2',
+        answerExplanation:
+          'Line 1\nLine 2\n\nParagraph 2\n\t- Bullet point 1\n\t- Bullet point 2',
       });
 
       const response = await testHelpers.getAnswerExpectSuccess(answerId);
@@ -538,7 +563,7 @@ describe('GetAnswer E2E Tests', () => {
   describe('Comprehensive Test Scenarios', () => {
     it('should handle all valid test scenarios', async () => {
       const scenarios = AnswerTestData.testScenarios.happyPath.requests;
-      
+
       // Since we can't use the predefined IDs, we'll create our own test answers
       const testAnswers = [
         testSetup.multipleChoiceAnswerId,
@@ -555,14 +580,14 @@ describe('GetAnswer E2E Tests', () => {
     it('should handle mixed content scenarios', async () => {
       // Use existing answer and add special content test
       const answerId = testSetup.multipleChoiceAnswerId;
-      
+
       const response = await testHelpers.getAnswerExpectSuccess(answerId);
 
       // Test that the answer structure is correct for mixed content scenarios
       expect(response.body.answer).toHaveProperty('explanation');
       expect(response.body.answer).toHaveProperty('translations');
       expect(Array.isArray(response.body.answer.translations)).toBe(true);
-      
+
       // Test that special characters in existing answer are handled correctly
       const explanation = response.body.answer.explanation;
       expect(typeof explanation).toBe('string');

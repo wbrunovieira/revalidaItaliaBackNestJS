@@ -75,13 +75,16 @@ export class UpdateOwnProfileUseCase {
       profileImageUrl === undefined
     ) {
       return left(
-        new InvalidInputError('At least one field must be provided for update', [
-          {
-            code: 'missingFields',
-            message: 'At least one field must be provided for update',
-            path: ['request'],
-          },
-        ]),
+        new InvalidInputError(
+          'At least one field must be provided for update',
+          [
+            {
+              code: 'missingFields',
+              message: 'At least one field must be provided for update',
+              path: ['request'],
+            },
+          ],
+        ),
       );
     }
 
@@ -96,9 +99,8 @@ export class UpdateOwnProfileUseCase {
     }
 
     // Find profile
-    const profileResult = await this.profileRepository.findByIdentityId(
-      identityId,
-    );
+    const profileResult =
+      await this.profileRepository.findByIdentityId(identityId);
     if (profileResult.isLeft()) {
       return left(ResourceNotFoundError.withId('UserProfile', identityId));
     }

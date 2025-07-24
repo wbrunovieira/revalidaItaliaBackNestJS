@@ -1,25 +1,35 @@
-import { UserAuthorization as PrismaUserAuthorization, UserRole as PrismaUserRole } from '@prisma/client';
-import { UserAuthorization, UserRole, Permission, Restriction } from '../../enterprise/entities/user-authorization';
+import {
+  UserAuthorization as PrismaUserAuthorization,
+  UserRole as PrismaUserRole,
+} from '@prisma/client';
+import {
+  UserAuthorization,
+  UserRole,
+  Permission,
+  Restriction,
+} from '../../enterprise/entities/user-authorization';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 
 export class UserAuthorizationMapper {
   static toDomain(raw: PrismaUserAuthorization): UserAuthorization {
-    const customPermissions = typeof raw.customPermissions === 'string' 
-      ? JSON.parse(raw.customPermissions) 
-      : (raw.customPermissions as any[]) || [];
-    const restrictions = typeof raw.restrictions === 'string' 
-      ? JSON.parse(raw.restrictions) 
-      : (raw.restrictions as any[]) || [];
+    const customPermissions =
+      typeof raw.customPermissions === 'string'
+        ? JSON.parse(raw.customPermissions)
+        : (raw.customPermissions as any[]) || [];
+    const restrictions =
+      typeof raw.restrictions === 'string'
+        ? JSON.parse(raw.restrictions)
+        : (raw.restrictions as any[]) || [];
 
     return UserAuthorization.create(
       {
         identityId: new UniqueEntityID(raw.identityId),
         role: this.mapPrismaRoleToRole(raw.role),
-        customPermissions: customPermissions.map(p => ({
+        customPermissions: customPermissions.map((p) => ({
           resource: p.resource,
           action: p.action,
         })),
-        restrictions: restrictions.map(r => ({
+        restrictions: restrictions.map((r) => ({
           resource: r.resource,
           reason: r.reason,
         })),

@@ -30,7 +30,7 @@ describe('POST /flashcards (E2E)', () => {
 
       expect(response.body).toHaveProperty('success', true);
       expect(response.body).toHaveProperty('flashcard');
-      
+
       const { flashcard } = response.body;
       expect(flashcard).toHaveProperty('id');
       expect(flashcard).toHaveProperty('slug');
@@ -52,7 +52,7 @@ describe('POST /flashcards (E2E)', () => {
         where: { id: flashcard.id },
         include: { tags: true },
       });
-      
+
       expect(dbFlashcard).toBeTruthy();
       expect(dbFlashcard?.questionText).toBe(data.question.content);
       expect(dbFlashcard?.questionType).toBe(data.question.type);
@@ -67,7 +67,7 @@ describe('POST /flashcards (E2E)', () => {
 
       expect(response.body).toHaveProperty('success', true);
       expect(response.body).toHaveProperty('flashcard');
-      
+
       const { flashcard } = response.body;
       expect(flashcard.question).toEqual({
         type: 'IMAGE',
@@ -82,7 +82,7 @@ describe('POST /flashcards (E2E)', () => {
       const dbFlashcard = await testSetup.prisma.flashcard.findUnique({
         where: { id: flashcard.id },
       });
-      
+
       expect(dbFlashcard?.questionImageUrl).toBe(data.question.content);
       expect(dbFlashcard?.questionType).toBe(data.question.type);
       expect(dbFlashcard?.answerImageUrl).toBe(data.answer.content);
@@ -101,7 +101,7 @@ describe('POST /flashcards (E2E)', () => {
       const dbFlashcard = await testSetup.prisma.flashcard.findUnique({
         where: { id: flashcard.id },
       });
-      
+
       expect(dbFlashcard?.questionImageUrl).toBe(data.question.content);
       expect(dbFlashcard?.answerText).toBe(data.answer.content);
     });
@@ -118,7 +118,7 @@ describe('POST /flashcards (E2E)', () => {
       const dbFlashcard = await testSetup.prisma.flashcard.findUnique({
         where: { id: flashcard.id },
       });
-      
+
       expect(dbFlashcard?.questionText).toBe(data.question.content);
       expect(dbFlashcard?.answerImageUrl).toBe(data.answer.content);
     });
@@ -129,19 +129,19 @@ describe('POST /flashcards (E2E)', () => {
 
       const { flashcard } = response.body;
       expect(flashcard.tagIds).toHaveLength(2);
-      expect(flashcard.tagIds).toContain(data.tagIds![0]);
-      expect(flashcard.tagIds).toContain(data.tagIds![1]);
+      expect(flashcard.tagIds).toContain(data.tagIds[0]);
+      expect(flashcard.tagIds).toContain(data.tagIds[1]);
 
       // Verify in database
       const dbFlashcard = await testSetup.prisma.flashcard.findUnique({
         where: { id: flashcard.id },
         include: { tags: true },
       });
-      
+
       expect(dbFlashcard?.tags).toHaveLength(2);
-      const tagIds = dbFlashcard?.tags.map(tag => tag.id) || [];
-      expect(tagIds).toContain(data.tagIds![0]);
-      expect(tagIds).toContain(data.tagIds![1]);
+      const tagIds = dbFlashcard?.tags.map((tag) => tag.id) || [];
+      expect(tagIds).toContain(data.tagIds[0]);
+      expect(tagIds).toContain(data.tagIds[1]);
     });
 
     it('should create a flashcard with custom slug', async () => {
@@ -155,7 +155,7 @@ describe('POST /flashcards (E2E)', () => {
       const dbFlashcard = await testSetup.prisma.flashcard.findUnique({
         where: { slug: data.slug },
       });
-      
+
       expect(dbFlashcard).toBeTruthy();
     });
 
@@ -170,7 +170,7 @@ describe('POST /flashcards (E2E)', () => {
       const dbFlashcard = await testSetup.prisma.flashcard.findUnique({
         where: { id: flashcard.id },
       });
-      
+
       expect(dbFlashcard?.importBatchId).toBe(data.importBatchId);
     });
 
@@ -181,7 +181,7 @@ describe('POST /flashcards (E2E)', () => {
       const { flashcard } = response.body;
       expect(flashcard.slug).toBe(data.slug);
       expect(flashcard.tagIds).toHaveLength(1);
-      expect(flashcard.tagIds[0]).toBe(data.tagIds![0]);
+      expect(flashcard.tagIds[0]).toBe(data.tagIds[0]);
       expect(flashcard.importBatchId).toBe(data.importBatchId);
     });
 
@@ -225,8 +225,8 @@ describe('POST /flashcards (E2E)', () => {
       const response = await testHelpers.createFlashcardExpectBadRequest(data);
 
       expect(response.body).toHaveProperty('message');
-      const message = Array.isArray(response.body.message) 
-        ? response.body.message.join(' ') 
+      const message = Array.isArray(response.body.message)
+        ? response.body.message.join(' ')
         : response.body.message;
       expect(message).toContain('TEXT, IMAGE');
     });
@@ -236,8 +236,8 @@ describe('POST /flashcards (E2E)', () => {
       const response = await testHelpers.createFlashcardExpectBadRequest(data);
 
       expect(response.body).toHaveProperty('message');
-      const message = Array.isArray(response.body.message) 
-        ? response.body.message.join(' ') 
+      const message = Array.isArray(response.body.message)
+        ? response.body.message.join(' ')
         : response.body.message;
       expect(message).toContain('content should not be empty');
     });
@@ -247,8 +247,8 @@ describe('POST /flashcards (E2E)', () => {
       const response = await testHelpers.createFlashcardExpectBadRequest(data);
 
       expect(response.body).toHaveProperty('message');
-      const message = Array.isArray(response.body.message) 
-        ? response.body.message.join(' ') 
+      const message = Array.isArray(response.body.message)
+        ? response.body.message.join(' ')
         : response.body.message;
       expect(message).toContain('1000 characters');
     });
@@ -258,8 +258,8 @@ describe('POST /flashcards (E2E)', () => {
       const response = await testHelpers.createFlashcardExpectBadRequest(data);
 
       expect(response.body).toHaveProperty('message');
-      const message = Array.isArray(response.body.message) 
-        ? response.body.message.join(' ') 
+      const message = Array.isArray(response.body.message)
+        ? response.body.message.join(' ')
         : response.body.message;
       expect(message).toContain('UUID');
     });
@@ -269,8 +269,8 @@ describe('POST /flashcards (E2E)', () => {
       const response = await testHelpers.createFlashcardExpectBadRequest(data);
 
       expect(response.body).toHaveProperty('message');
-      const message = Array.isArray(response.body.message) 
-        ? response.body.message.join(' ') 
+      const message = Array.isArray(response.body.message)
+        ? response.body.message.join(' ')
         : response.body.message;
       expect(message).toContain('UUID');
     });
@@ -280,8 +280,8 @@ describe('POST /flashcards (E2E)', () => {
       const response = await testHelpers.createFlashcardExpectBadRequest(data);
 
       expect(response.body).toHaveProperty('message');
-      const message = Array.isArray(response.body.message) 
-        ? response.body.message.join(' ') 
+      const message = Array.isArray(response.body.message)
+        ? response.body.message.join(' ')
         : response.body.message;
       expect(message).toContain('lowercase letters, numbers, and hyphens');
     });
@@ -322,7 +322,8 @@ describe('POST /flashcards (E2E)', () => {
       const data = {
         question: {
           type: 'TEXT',
-          content: 'What\'s the "best" way to handle <special> characters & symbols?',
+          content:
+            'What\'s the "best" way to handle <special> characters & symbols?',
         },
         answer: {
           type: 'TEXT',
@@ -333,7 +334,7 @@ describe('POST /flashcards (E2E)', () => {
 
       const response = await testHelpers.createFlashcardExpectSuccess(data);
       const { flashcard } = response.body;
-      
+
       expect(flashcard.question.content).toBe(data.question.content);
       expect(flashcard.answer.content).toBe(data.answer.content);
     });
@@ -353,7 +354,7 @@ describe('POST /flashcards (E2E)', () => {
 
       const response = await testHelpers.createFlashcardExpectSuccess(data);
       const { flashcard } = response.body;
-      
+
       expect(flashcard.question.content).toBe(data.question.content);
       expect(flashcard.answer.content).toBe(data.answer.content);
     });
@@ -376,7 +377,7 @@ describe('POST /flashcards (E2E)', () => {
 
       const response = await testHelpers.createFlashcardExpectSuccess(data);
       const { flashcard } = response.body;
-      
+
       expect(flashcard.question.content).toBe(maxQuestionContent);
       expect(flashcard.answer.content).toBe(maxAnswerContent);
       expect(flashcard.slug).toBe('max-content-test');
@@ -390,7 +391,7 @@ describe('POST /flashcards (E2E)', () => {
 
       const response = await testHelpers.createFlashcardExpectSuccess(data);
       const { flashcard } = response.body;
-      
+
       expect(flashcard.tagIds).toEqual([]);
     });
   });

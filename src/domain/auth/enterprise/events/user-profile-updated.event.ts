@@ -7,11 +7,7 @@ export class UserProfileUpdatedEvent extends DomainEvent {
   public readonly changedFields: string[];
   public readonly timestamp: Date;
 
-  constructor(
-    userId: string,
-    changedFields: string[],
-    timestamp?: Date
-  ) {
+  constructor(userId: string, changedFields: string[], timestamp?: Date) {
     super();
     this.userId = userId;
     this.changedFields = changedFields;

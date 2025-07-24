@@ -1,7 +1,12 @@
 // src/infra/controllers/tests/attempt/get-list-pending-reviews.controller.spec.ts
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BadRequestException, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { AttemptController } from '../../attempt.controller';
 import { ListPendingReviewsUseCase } from '@/domain/assessment/application/use-cases/list-pending-reviews.use-case';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
@@ -69,14 +74,16 @@ describe('AttemptController - GET /attempts/pending-review', () => {
       mockGetAttemptResultsUseCase as any,
       mockReviewOpenAnswerUseCase as any,
       mockListAttemptsUseCase as any,
-      listPendingReviewsUseCase as any,
+      listPendingReviewsUseCase,
     );
   });
 
   describe('listPendingReviews', () => {
     it('should return pending reviews list successfully', async () => {
       // Arrange
-      listPendingReviewsUseCase.execute.mockResolvedValue(right(mockPendingReviewsList));
+      listPendingReviewsUseCase.execute.mockResolvedValue(
+        right(mockPendingReviewsList),
+      );
 
       const query: ListPendingReviewsQueryDto = {
         page: 1,
@@ -97,7 +104,9 @@ describe('AttemptController - GET /attempts/pending-review', () => {
 
     it('should use default pagination when not provided', async () => {
       // Arrange
-      listPendingReviewsUseCase.execute.mockResolvedValue(right(mockPendingReviewsList));
+      listPendingReviewsUseCase.execute.mockResolvedValue(
+        right(mockPendingReviewsList),
+      );
 
       const query: ListPendingReviewsQueryDto = {};
 
@@ -116,53 +125,61 @@ describe('AttemptController - GET /attempts/pending-review', () => {
     it('should throw BadRequestException for invalid input error', async () => {
       // Arrange
       const invalidInputError = new InvalidInputError('Invalid input data');
-      listPendingReviewsUseCase.execute.mockResolvedValue(left(invalidInputError));
+      listPendingReviewsUseCase.execute.mockResolvedValue(
+        left(invalidInputError),
+      );
 
       const query: ListPendingReviewsQueryDto = {};
 
       // Act & Assert
-      await expect(controller.listPendingReviews(query, mockTutorUser)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        controller.listPendingReviews(query, mockTutorUser),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw NotFoundException for user not found error', async () => {
       // Arrange
       const userNotFoundError = new UserNotFoundError();
-      listPendingReviewsUseCase.execute.mockResolvedValue(left(userNotFoundError));
+      listPendingReviewsUseCase.execute.mockResolvedValue(
+        left(userNotFoundError),
+      );
 
       const query: ListPendingReviewsQueryDto = {};
 
       // Act & Assert
-      await expect(controller.listPendingReviews(query, mockTutorUser)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        controller.listPendingReviews(query, mockTutorUser),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ForbiddenException for insufficient permissions error', async () => {
       // Arrange
       const insufficientPermissionsError = new InsufficientPermissionsError();
-      listPendingReviewsUseCase.execute.mockResolvedValue(left(insufficientPermissionsError));
+      listPendingReviewsUseCase.execute.mockResolvedValue(
+        left(insufficientPermissionsError),
+      );
 
       const query: ListPendingReviewsQueryDto = {};
 
       // Act & Assert
-      await expect(controller.listPendingReviews(query, mockTutorUser)).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        controller.listPendingReviews(query, mockTutorUser),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw InternalServerErrorException for repository error', async () => {
       // Arrange
       const repositoryError = new RepositoryError('Database error');
-      listPendingReviewsUseCase.execute.mockResolvedValue(left(repositoryError));
+      listPendingReviewsUseCase.execute.mockResolvedValue(
+        left(repositoryError),
+      );
 
       const query: ListPendingReviewsQueryDto = {};
 
       // Act & Assert
-      await expect(controller.listPendingReviews(query, mockTutorUser)).rejects.toThrow(
-        InternalServerErrorException,
-      );
+      await expect(
+        controller.listPendingReviews(query, mockTutorUser),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 });

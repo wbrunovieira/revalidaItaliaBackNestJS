@@ -48,13 +48,16 @@ export class ListQuestionOptionsUseCase {
 
     try {
       // Get question options
-      const optionsResult = await this.questionOptionRepository.findByQuestionId(questionId);
+      const optionsResult =
+        await this.questionOptionRepository.findByQuestionId(questionId);
       if (optionsResult.isLeft()) {
         return left(new RepositoryError('Failed to fetch question options'));
       }
 
       // Convert entities to response objects
-      const options = optionsResult.value.map((option) => option.toResponseObject());
+      const options = optionsResult.value.map((option) =>
+        option.toResponseObject(),
+      );
 
       return right({
         options,

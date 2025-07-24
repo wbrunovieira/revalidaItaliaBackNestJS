@@ -22,13 +22,16 @@ describe('GET /attempts/pending-review', () => {
     // Arrange
     const { adminUser, studentUser, assessment } = await setup.createTestData();
     const tutorUser = await setup.createUser('tutor');
-    
+
     // Create prova aberta assessment
-    const provaAbertaAssessment = await setup.createAssessmentWithQuestions('PROVA_ABERTA', {
-      numberOfQuestions: 3,
-      allOpenQuestions: true,
-    });
-    
+    const provaAbertaAssessment = await setup.createAssessmentWithQuestions(
+      'PROVA_ABERTA',
+      {
+        numberOfQuestions: 3,
+        allOpenQuestions: true,
+      },
+    );
+
     // Create attempt with open answers pending review
     const { attemptId } = await setup.createAttemptWithOpenAnswers(
       studentUser.id,
@@ -46,7 +49,7 @@ describe('GET /attempts/pending-review', () => {
     expect(response.body).toHaveProperty('attempts');
     expect(response.body).toHaveProperty('pagination');
     expect(Array.isArray(response.body.attempts)).toBe(true);
-    
+
     if (response.body.attempts.length > 0) {
       const pendingReview = response.body.attempts[0];
       expect(pendingReview).toHaveProperty('id');
@@ -64,20 +67,23 @@ describe('GET /attempts/pending-review', () => {
   it('should list pending reviews for admin user', async () => {
     // Arrange
     const { adminUser, studentUser } = await setup.createTestData();
-    
+
     // Create prova aberta assessment
-    const provaAbertaAssessment = await setup.createAssessmentWithQuestions('PROVA_ABERTA', {
-      numberOfQuestions: 2,
-      allOpenQuestions: true,
-    });
-    
+    const provaAbertaAssessment = await setup.createAssessmentWithQuestions(
+      'PROVA_ABERTA',
+      {
+        numberOfQuestions: 2,
+        allOpenQuestions: true,
+      },
+    );
+
     // Create multiple attempts with open answers
     await setup.createAttemptWithOpenAnswers(
       studentUser.id,
       provaAbertaAssessment.id,
       'SUBMITTED',
     );
-    
+
     const otherStudent = await setup.createUser('student');
     await setup.createAttemptWithOpenAnswers(
       otherStudent.id,
@@ -100,7 +106,7 @@ describe('GET /attempts/pending-review', () => {
     // Arrange
     const { adminUser, studentUser, assessment } = await setup.createTestData();
     const tutorUser = await setup.createUser('tutor');
-    
+
     // Create only graded attempts (no pending reviews)
     await setup.createGradedAttempt(studentUser.id, assessment.id);
 
@@ -120,13 +126,16 @@ describe('GET /attempts/pending-review', () => {
     // Arrange
     const { adminUser, studentUser } = await setup.createTestData();
     const tutorUser = await setup.createUser('tutor');
-    
+
     // Create prova aberta assessment
-    const provaAbertaAssessment = await setup.createAssessmentWithQuestions('PROVA_ABERTA', {
-      numberOfQuestions: 2,
-      allOpenQuestions: true,
-    });
-    
+    const provaAbertaAssessment = await setup.createAssessmentWithQuestions(
+      'PROVA_ABERTA',
+      {
+        numberOfQuestions: 2,
+        allOpenQuestions: true,
+      },
+    );
+
     // Create multiple attempts
     for (let i = 0; i < 5; i++) {
       const student = await setup.createUser('student');
@@ -174,18 +183,21 @@ describe('GET /attempts/pending-review', () => {
     // Arrange
     const { adminUser, studentUser } = await setup.createTestData();
     const tutorUser = await setup.createUser('tutor');
-    
+
     // Create different types of assessments
     const quizAssessment = await setup.createAssessmentWithQuestions('QUIZ', {
       numberOfQuestions: 2,
       allMultipleChoice: true,
     });
-    
-    const provaAbertaAssessment = await setup.createAssessmentWithQuestions('PROVA_ABERTA', {
-      numberOfQuestions: 2,
-      allOpenQuestions: true,
-    });
-    
+
+    const provaAbertaAssessment = await setup.createAssessmentWithQuestions(
+      'PROVA_ABERTA',
+      {
+        numberOfQuestions: 2,
+        allOpenQuestions: true,
+      },
+    );
+
     // Create various attempts
     await setup.createActiveAttempt(studentUser.id, quizAssessment.id); // IN_PROGRESS - should not appear
     await setup.createAttemptForUser(studentUser.id, quizAssessment.id); // SUBMITTED but QUIZ - should not appear
@@ -208,7 +220,7 @@ describe('GET /attempts/pending-review', () => {
 
     // Assert
     expect(response.body.attempts).toBeDefined();
-    
+
     // All returned attempts should be SUBMITTED and PROVA_ABERTA
     response.body.attempts.forEach((attempt: any) => {
       expect(attempt.status).toBe('SUBMITTED');
@@ -220,24 +232,39 @@ describe('GET /attempts/pending-review', () => {
     // Arrange
     const { adminUser } = await setup.createTestData();
     const tutorUser = await setup.createUser('tutor');
-    
+
     // Create prova aberta assessment
-    const provaAbertaAssessment = await setup.createAssessmentWithQuestions('PROVA_ABERTA', {
-      numberOfQuestions: 2,
-      allOpenQuestions: true,
-    });
-    
+    const provaAbertaAssessment = await setup.createAssessmentWithQuestions(
+      'PROVA_ABERTA',
+      {
+        numberOfQuestions: 2,
+        allOpenQuestions: true,
+      },
+    );
+
     // Create attempts with different submission times
     const student1 = await setup.createUser('student');
     const student2 = await setup.createUser('student');
     const student3 = await setup.createUser('student');
-    
+
     // Wait between creating attempts to ensure different timestamps
-    await setup.createAttemptWithOpenAnswers(student1.id, provaAbertaAssessment.id, 'SUBMITTED');
+    await setup.createAttemptWithOpenAnswers(
+      student1.id,
+      provaAbertaAssessment.id,
+      'SUBMITTED',
+    );
     await setup.wait(100);
-    await setup.createAttemptWithOpenAnswers(student2.id, provaAbertaAssessment.id, 'SUBMITTED');
+    await setup.createAttemptWithOpenAnswers(
+      student2.id,
+      provaAbertaAssessment.id,
+      'SUBMITTED',
+    );
     await setup.wait(100);
-    await setup.createAttemptWithOpenAnswers(student3.id, provaAbertaAssessment.id, 'SUBMITTED');
+    await setup.createAttemptWithOpenAnswers(
+      student3.id,
+      provaAbertaAssessment.id,
+      'SUBMITTED',
+    );
 
     // Act
     const response = await request(app.getHttpServer())
@@ -248,11 +275,15 @@ describe('GET /attempts/pending-review', () => {
     // Assert
     expect(response.body.attempts).toBeDefined();
     expect(response.body.attempts.length).toBeGreaterThanOrEqual(3);
-    
+
     // Check that attempts are sorted by submittedAt (oldest first)
     for (let i = 1; i < response.body.attempts.length; i++) {
-      const prevSubmittedAt = new Date(response.body.attempts[i - 1].submittedAt).getTime();
-      const currSubmittedAt = new Date(response.body.attempts[i].submittedAt).getTime();
+      const prevSubmittedAt = new Date(
+        response.body.attempts[i - 1].submittedAt,
+      ).getTime();
+      const currSubmittedAt = new Date(
+        response.body.attempts[i].submittedAt,
+      ).getTime();
       expect(prevSubmittedAt).toBeLessThanOrEqual(currSubmittedAt);
     }
   });

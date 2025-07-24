@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SaveLessonProgressUseCase } from './save-lesson-progress.use-case';
-import { ILessonProgressTracker, LessonProgressData } from '../services/i-lesson-progress-tracker';
+import {
+  ILessonProgressTracker,
+  LessonProgressData,
+} from '../services/i-lesson-progress-tracker';
 import { SaveLessonProgressRequest } from '../dtos/save-lesson-progress.dto';
 import { InvalidInputError } from './errors/invalid-input-error';
 
@@ -11,7 +14,9 @@ class MockLessonProgressTracker implements ILessonProgressTracker {
     this.savedData.set(userId, data);
   }
 
-  async getContinueLearning(userId: string): Promise<LessonProgressData | null> {
+  async getContinueLearning(
+    userId: string,
+  ): Promise<LessonProgressData | null> {
     return this.savedData.get(userId) || null;
   }
 }
@@ -83,7 +88,9 @@ describe('SaveLessonProgressUseCase', () => {
 
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(InvalidInputError);
-    expect((result.value as InvalidInputError).message).toBe('Validation failed');
+    expect((result.value as InvalidInputError).message).toBe(
+      'Validation failed',
+    );
   });
 
   it('should return error for empty lesson title', async () => {

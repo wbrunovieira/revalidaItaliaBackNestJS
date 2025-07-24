@@ -26,12 +26,16 @@ export abstract class IFlashcardInteractionRepository {
     identityId: string,
     flashcardId: string,
   ): Promise<Either<Error, FlashcardInteraction | null>>;
-  abstract findByUserId(identityId: string): Promise<Either<Error, FlashcardInteraction[]>>;
+  abstract findByUserId(
+    identityId: string,
+  ): Promise<Either<Error, FlashcardInteraction[]>>;
   abstract findByUserIdAndDifficulty(
     identityId: string,
     difficulty: FlashcardDifficultyLevelVO,
   ): Promise<Either<Error, FlashcardInteraction[]>>;
-  abstract findByFlashcardId(flashcardId: string): Promise<Either<Error, FlashcardInteraction[]>>;
+  abstract findByFlashcardId(
+    flashcardId: string,
+  ): Promise<Either<Error, FlashcardInteraction[]>>;
   abstract findByUserIdAndDateRange(
     identityId: string,
     startDate: Date,
@@ -41,8 +45,13 @@ export abstract class IFlashcardInteractionRepository {
     identityId: string,
     argumentId: string,
   ): Promise<Either<Error, FlashcardInteraction[]>>;
-  abstract createOrUpdate(interaction: FlashcardInteraction): Promise<Either<Error, void>>;
-  abstract delete(identityId: string, flashcardId: string): Promise<Either<Error, void>>;
+  abstract createOrUpdate(
+    interaction: FlashcardInteraction,
+  ): Promise<Either<Error, void>>;
+  abstract delete(
+    identityId: string,
+    flashcardId: string,
+  ): Promise<Either<Error, void>>;
   abstract countByUserIdAndDifficulty(
     identityId: string,
     difficulty: FlashcardDifficultyLevelVO,
@@ -55,7 +64,9 @@ export abstract class IFlashcardInteractionRepository {
     argumentId: string,
     difficulty: FlashcardDifficultyLevelVO,
   ): Promise<Either<Error, number>>;
-  abstract getFlashcardStats(flashcardId: string): Promise<Either<Error, FlashcardInteractionStats>>;
+  abstract getFlashcardStats(
+    flashcardId: string,
+  ): Promise<Either<Error, FlashcardInteractionStats>>;
   abstract getUserStatsGroupedByArgument(
     identityId: string,
   ): Promise<Either<Error, UserFlashcardStats[]>>;

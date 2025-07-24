@@ -10,12 +10,22 @@ export interface PaginatedFlashcardsResult {
 export abstract class IFlashcardRepository {
   abstract findById(id: string): Promise<Either<Error, Flashcard>>;
   abstract findBySlug(slug: string): Promise<Either<Error, Flashcard>>;
-  abstract findByArgumentId(argumentId: string): Promise<Either<Error, Flashcard[]>>;
+  abstract findByArgumentId(
+    argumentId: string,
+  ): Promise<Either<Error, Flashcard[]>>;
   abstract findByTagIds(tagIds: string[]): Promise<Either<Error, Flashcard[]>>;
-  abstract findByImportBatchId(batchId: string): Promise<Either<Error, Flashcard[]>>;
-  abstract findByQuestionContent(content: string): Promise<Either<Error, Flashcard[]>>;
-  abstract findByAnswerContent(content: string): Promise<Either<Error, Flashcard[]>>;
-  abstract findAll(params?: PaginationParams): Promise<Either<Error, Flashcard[]>>;
+  abstract findByImportBatchId(
+    batchId: string,
+  ): Promise<Either<Error, Flashcard[]>>;
+  abstract findByQuestionContent(
+    content: string,
+  ): Promise<Either<Error, Flashcard[]>>;
+  abstract findByAnswerContent(
+    content: string,
+  ): Promise<Either<Error, Flashcard[]>>;
+  abstract findAll(
+    params?: PaginationParams,
+  ): Promise<Either<Error, Flashcard[]>>;
   abstract findAllPaginated(
     limit: number,
     offset: number,
@@ -29,6 +39,8 @@ export abstract class IFlashcardRepository {
   abstract createMany(flashcards: Flashcard[]): Promise<Either<Error, void>>;
   abstract update(flashcard: Flashcard): Promise<Either<Error, void>>;
   abstract delete(id: string): Promise<Either<Error, void>>;
-  abstract countByArgumentId(argumentId: string): Promise<Either<Error, number>>;
+  abstract countByArgumentId(
+    argumentId: string,
+  ): Promise<Either<Error, number>>;
   abstract countByTagIds(tagIds: string[]): Promise<Either<Error, number>>;
 }

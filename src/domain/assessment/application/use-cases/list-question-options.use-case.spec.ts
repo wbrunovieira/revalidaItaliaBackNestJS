@@ -23,14 +23,21 @@ describe('ListQuestionOptionsUseCase', () => {
   beforeEach(() => {
     questionOptionRepository = new InMemoryQuestionOptionRepository();
     questionRepository = new InMemoryQuestionRepository();
-    useCase = new ListQuestionOptionsUseCase(questionOptionRepository, questionRepository);
+    useCase = new ListQuestionOptionsUseCase(
+      questionOptionRepository,
+      questionRepository,
+    );
   });
 
   describe('Success Cases', () => {
     it('should successfully list question options', async () => {
       // Arrange
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
       const question = Question.create(
         {
@@ -81,19 +88,22 @@ describe('ListQuestionOptionsUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         const response = result.value;
-        
+
         expect(response.options).toHaveLength(3);
-        
+
         // Verify all options are present (order may vary)
-        const optionTexts = response.options.map(o => o.text);
+        const optionTexts = response.options.map((o) => o.text);
         expect(optionTexts).toContain('São Paulo');
         expect(optionTexts).toContain('Rio de Janeiro');
         expect(optionTexts).toContain('Brasília');
-        
+
         // Verify structure of first option
         expect(response.options[0]).toHaveProperty('id');
         expect(response.options[0]).toHaveProperty('text');
-        expect(response.options[0]).toHaveProperty('questionId', questionId.toString());
+        expect(response.options[0]).toHaveProperty(
+          'questionId',
+          questionId.toString(),
+        );
         expect(response.options[0]).toHaveProperty('createdAt');
         expect(response.options[0]).toHaveProperty('updatedAt');
       }
@@ -101,8 +111,12 @@ describe('ListQuestionOptionsUseCase', () => {
 
     it('should return empty array when question has no options', async () => {
       // Arrange
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
       const question = Question.create(
         {
@@ -131,8 +145,12 @@ describe('ListQuestionOptionsUseCase', () => {
 
     it('should list options in creation order', async () => {
       // Arrange
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
       const question = Question.create(
         {
@@ -151,14 +169,14 @@ describe('ListQuestionOptionsUseCase', () => {
         questionId,
       });
       await questionOptionRepository.create(option1);
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise((resolve) => setTimeout(resolve, 1));
 
       const option2 = QuestionOption.create({
         text: 'Option B',
         questionId,
       });
       await questionOptionRepository.create(option2);
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise((resolve) => setTimeout(resolve, 1));
 
       const option3 = QuestionOption.create({
         text: 'Option C',
@@ -178,7 +196,7 @@ describe('ListQuestionOptionsUseCase', () => {
       if (result.isRight()) {
         const response = result.value;
         expect(response.options).toHaveLength(3);
-        
+
         // Options should be in creation order (ascending by createdAt)
         expect(response.options[0].text).toBe('Option A');
         expect(response.options[1].text).toBe('Option B');
@@ -310,7 +328,9 @@ describe('ListQuestionOptionsUseCase', () => {
       };
 
       // Mock repository to fail
-      vi.spyOn(questionRepository, 'findById').mockRejectedValue(new Error('Database error'));
+      vi.spyOn(questionRepository, 'findById').mockRejectedValue(
+        new Error('Database error'),
+      );
 
       // Act
       const result = await useCase.execute(request);
@@ -348,8 +368,12 @@ describe('ListQuestionOptionsUseCase', () => {
 
     it('should return RepositoryError when question option repository fails', async () => {
       // Arrange
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
       const question = Question.create(
         {
@@ -384,8 +408,12 @@ describe('ListQuestionOptionsUseCase', () => {
 
     it('should return RepositoryError when question option repository returns left', async () => {
       // Arrange
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
       const question = Question.create(
         {
@@ -446,8 +474,12 @@ describe('ListQuestionOptionsUseCase', () => {
   describe('Edge Cases', () => {
     it('should handle question with single option', async () => {
       // Arrange
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
       const question = Question.create(
         {
@@ -484,8 +516,12 @@ describe('ListQuestionOptionsUseCase', () => {
 
     it('should handle options with very long text', async () => {
       // Arrange
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
 
       const question = Question.create(
         {
@@ -524,9 +560,15 @@ describe('ListQuestionOptionsUseCase', () => {
 
     it('should handle multiple questions with different options', async () => {
       // Arrange
-      const assessmentId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
-      const questionId1 = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002');
-      const questionId2 = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440003');
+      const assessmentId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
+      const questionId1 = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440002',
+      );
+      const questionId2 = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440003',
+      );
 
       const question1 = Question.create(
         {
@@ -581,9 +623,9 @@ describe('ListQuestionOptionsUseCase', () => {
       if (result.isRight()) {
         const response = result.value;
         expect(response.options).toHaveLength(2);
-        
+
         // Should only return options for question 1
-        const optionTexts = response.options.map(o => o.text);
+        const optionTexts = response.options.map((o) => o.text);
         expect(optionTexts).toContain('Q1 Option A');
         expect(optionTexts).toContain('Q1 Option B');
         expect(optionTexts).not.toContain('Q2 Option A');

@@ -473,7 +473,9 @@ describe('CreateAssessmentUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.assessment.type).toBe('PROVA_ABERTA');
-        expect(result.value.assessment.title).toBe('Prova Dissertativa de Cardiologia 3');
+        expect(result.value.assessment.title).toBe(
+          'Prova Dissertativa de Cardiologia 3',
+        );
         expect(result.value.assessment.passingScore).toBeUndefined();
         expect(result.value.assessment.randomizeQuestions).toBeUndefined();
         expect(result.value.assessment.randomizeOptions).toBeUndefined();
@@ -492,8 +494,12 @@ describe('CreateAssessmentUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.assessment.type).toBe('PROVA_ABERTA');
-        expect(result.value.assessment.title).toBe('Prova Dissertativa de Cardiologia 3');
-        expect(result.value.assessment.description).toBe('Avaliação com questões dissertativas sobre cardiologia');
+        expect(result.value.assessment.title).toBe(
+          'Prova Dissertativa de Cardiologia 3',
+        );
+        expect(result.value.assessment.description).toBe(
+          'Avaliação com questões dissertativas sobre cardiologia',
+        );
         expect(result.value.assessment.passingScore).toBeUndefined();
         expect(result.value.assessment.randomizeQuestions).toBeUndefined();
         expect(result.value.assessment.randomizeOptions).toBeUndefined();

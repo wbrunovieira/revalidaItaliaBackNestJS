@@ -1621,8 +1621,10 @@ describe('CreateUserUseCase', () => {
 
         const result = await sut.execute(request);
         expect(result.isRight()).toBe(true);
-        
-        const profile = profileRepo.items.find(p => p.nationalId.value === '43333333333');
+
+        const profile = profileRepo.items.find(
+          (p) => p.nationalId.value === '43333333333',
+        );
         expect(profile?.age).toBe(25);
       });
     });
@@ -1708,8 +1710,10 @@ describe('CreateUserUseCase', () => {
 
         const result = await sut.execute(request);
         expect(result.isRight()).toBe(true);
-        
-        const profile = profileRepo.items.find(p => p.nationalId.value === '61111111111');
+
+        const profile = profileRepo.items.find(
+          (p) => p.nationalId.value === '61111111111',
+        );
         expect(profile?.profession).toBe('Mathematics Teacher');
         expect(profile?.specialization).toBe('Calculus and Linear Algebra');
       });
@@ -1852,8 +1856,10 @@ describe('CreateUserUseCase', () => {
 
           const result = await sut.execute(request);
           expect(result.isRight()).toBe(true);
-          
-          const identity = identityRepo.items.find(i => i.email.value === request.email);
+
+          const identity = identityRepo.items.find(
+            (i) => i.email.value === request.email,
+          );
           expect(identity?.emailVerified).toBe(config.shouldVerify);
         }
       });
@@ -1907,7 +1913,7 @@ describe('CreateUserUseCase', () => {
         const request = {
           email: 'user@example.com',
           password: 'Ññ1234', // Unicode in password
-          fullName: '李明 García-O\'Connor', // Mixed scripts
+          fullName: "李明 García-O'Connor", // Mixed scripts
           nationalId: '82222222222',
           bio: 'Multi-line\nbio with\ttabs and émojis 🎉',
           profession: 'Développeur / デベロッパー',
@@ -1985,8 +1991,10 @@ describe('CreateUserUseCase', () => {
 
         const result = await sut.execute(request);
         expect(result.isRight()).toBe(true);
-        
-        const profile = profileRepo.items.find(p => p.nationalId.value === '92222222221');
+
+        const profile = profileRepo.items.find(
+          (p) => p.nationalId.value === '92222222221',
+        );
         // Zero-width spaces should be preserved
         expect(profile?.fullName).toContain('\u200B');
       });
@@ -2015,8 +2023,10 @@ describe('CreateUserUseCase', () => {
 
         const result = await sut.execute(request);
         expect(result.isRight()).toBe(true);
-        
-        const profile = profileRepo.items.find(p => p.nationalId.value === '92222222223');
+
+        const profile = profileRepo.items.find(
+          (p) => p.nationalId.value === '92222222223',
+        );
         expect(profile?.fullName).toBe('😀 Happy User 🎉');
         expect(profile?.profession).toBe('Software Engineer 💻');
       });
@@ -2088,8 +2098,10 @@ describe('CreateUserUseCase', () => {
         const result = await sut.execute(request);
         // JavaScript coerces to March 2nd
         expect(result.isRight()).toBe(true);
-        
-        const profile = profileRepo.items.find(p => p.nationalId.value === '94444444442');
+
+        const profile = profileRepo.items.find(
+          (p) => p.nationalId.value === '94444444442',
+        );
         expect(profile?.birthDate?.getMonth()).toBe(2); // March (0-indexed)
       });
 
@@ -2112,7 +2124,7 @@ describe('CreateUserUseCase', () => {
         const today = new Date();
         const birthDate = new Date(today);
         birthDate.setFullYear(today.getFullYear() - 18); // Exactly 18 years ago
-        
+
         const request = {
           email: 'birthday@example.com',
           password: 'SecurePass123',
@@ -2123,8 +2135,10 @@ describe('CreateUserUseCase', () => {
 
         const result = await sut.execute(request);
         expect(result.isRight()).toBe(true);
-        
-        const profile = profileRepo.items.find(p => p.nationalId.value === '95555555551');
+
+        const profile = profileRepo.items.find(
+          (p) => p.nationalId.value === '95555555551',
+        );
         expect(profile?.age).toBe(18);
       });
 
@@ -2209,9 +2223,11 @@ describe('CreateUserUseCase', () => {
 
         const result = await sut.execute(request);
         expect(result.isRight()).toBe(true);
-        
+
         // Should store as-is without decoding
-        const profile = profileRepo.items.find(p => p.nationalId.value === '98888888882');
+        const profile = profileRepo.items.find(
+          (p) => p.nationalId.value === '98888888882',
+        );
         expect(profile?.fullName).toBe('%253Cscript%253E');
       });
     });

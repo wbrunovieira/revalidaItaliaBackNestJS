@@ -301,7 +301,7 @@ describe('FindUsersUseCase', () => {
       if (result.isRight()) {
         expect(result.value.users).toHaveLength(1);
         const dto = result.value.users[0];
-        
+
         expect(dto.id).toBe('user-1');
         expect(dto.email).toBe('john@example.com');
         expect(dto.name).toBe('John Doe');

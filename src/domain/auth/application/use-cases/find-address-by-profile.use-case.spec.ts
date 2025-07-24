@@ -51,7 +51,7 @@ describe('FindAddressByProfileUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.addresses).toHaveLength(2);
-        
+
         expect(result.value.addresses[0]).toEqual({
           id: address1.id.toString(),
           street: 'Via Roma',
@@ -94,15 +94,15 @@ describe('FindAddressByProfileUseCase', () => {
     });
 
     it('should return only addresses for the specified profile', async () => {
-      const targetProfileAddress = createTestAddress({ 
+      const targetProfileAddress = createTestAddress({
         profileId: new UniqueEntityID(profileId),
-        street: 'Target Street'
+        street: 'Target Street',
       });
-      const otherProfileAddress = createTestAddress({ 
+      const otherProfileAddress = createTestAddress({
         profileId: new UniqueEntityID('other-profile'),
-        street: 'Other Street'
+        street: 'Other Street',
       });
-      
+
       addressRepo.items.push(targetProfileAddress, otherProfileAddress);
 
       const request: FindAddressByProfileRequestDto = { profileId };
@@ -112,7 +112,9 @@ describe('FindAddressByProfileUseCase', () => {
       if (result.isRight()) {
         expect(result.value.addresses).toHaveLength(1);
         expect(result.value.addresses[0].street).toBe('Target Street');
-        expect(result.value.addresses[0].id).toBe(targetProfileAddress.id.toString());
+        expect(result.value.addresses[0].id).toBe(
+          targetProfileAddress.id.toString(),
+        );
       }
     });
 
@@ -140,7 +142,7 @@ describe('FindAddressByProfileUseCase', () => {
       const address1 = createTestAddress({ street: 'First Street' });
       const address2 = createTestAddress({ street: 'Second Street' });
       const address3 = createTestAddress({ street: 'Third Street' });
-      
+
       addressRepo.items.push(address1, address2, address3);
 
       const request: FindAddressByProfileRequestDto = { profileId };
@@ -161,7 +163,9 @@ describe('FindAddressByProfileUseCase', () => {
     describe('Repository Errors', () => {
       it('should fail when repository findByProfileId returns left', async () => {
         const repositoryError = new Error('Database connection failed');
-        vi.spyOn(addressRepo, 'findByProfileId').mockResolvedValueOnce(left(repositoryError));
+        vi.spyOn(addressRepo, 'findByProfileId').mockResolvedValueOnce(
+          left(repositoryError),
+        );
 
         const request: FindAddressByProfileRequestDto = { profileId };
         const result = await sut.execute(request);
@@ -189,7 +193,9 @@ describe('FindAddressByProfileUseCase', () => {
 
       it('should handle repository timeout errors', async () => {
         const timeoutError = new Error('Query timeout');
-        vi.spyOn(addressRepo, 'findByProfileId').mockRejectedValueOnce(timeoutError);
+        vi.spyOn(addressRepo, 'findByProfileId').mockRejectedValueOnce(
+          timeoutError,
+        );
 
         const request: FindAddressByProfileRequestDto = { profileId };
         const result = await sut.execute(request);
@@ -203,7 +209,9 @@ describe('FindAddressByProfileUseCase', () => {
 
       it('should handle repository network errors', async () => {
         const networkError = new Error('Network connection lost');
-        vi.spyOn(addressRepo, 'findByProfileId').mockResolvedValueOnce(left(networkError));
+        vi.spyOn(addressRepo, 'findByProfileId').mockResolvedValueOnce(
+          left(networkError),
+        );
 
         const request: FindAddressByProfileRequestDto = { profileId };
         const result = await sut.execute(request);
@@ -221,12 +229,14 @@ describe('FindAddressByProfileUseCase', () => {
   describe('Edge Cases', () => {
     it('should handle profile ID with special characters', async () => {
       const specialProfileId = 'profile-123-abc_def@domain.com';
-      const address = createTestAddress({ 
-        profileId: new UniqueEntityID(specialProfileId) 
+      const address = createTestAddress({
+        profileId: new UniqueEntityID(specialProfileId),
       });
       addressRepo.items.push(address);
 
-      const request: FindAddressByProfileRequestDto = { profileId: specialProfileId };
+      const request: FindAddressByProfileRequestDto = {
+        profileId: specialProfileId,
+      };
       const result = await sut.execute(request);
 
       expect(result.isRight()).toBe(true);
@@ -237,12 +247,14 @@ describe('FindAddressByProfileUseCase', () => {
 
     it('should handle UUID format profile IDs', async () => {
       const uuidProfileId = '550e8400-e29b-41d4-a716-446655440000';
-      const address = createTestAddress({ 
-        profileId: new UniqueEntityID(uuidProfileId) 
+      const address = createTestAddress({
+        profileId: new UniqueEntityID(uuidProfileId),
       });
       addressRepo.items.push(address);
 
-      const request: FindAddressByProfileRequestDto = { profileId: uuidProfileId };
+      const request: FindAddressByProfileRequestDto = {
+        profileId: uuidProfileId,
+      };
       const result = await sut.execute(request);
 
       expect(result.isRight()).toBe(true);
@@ -253,12 +265,14 @@ describe('FindAddressByProfileUseCase', () => {
 
     it('should handle very long profile IDs', async () => {
       const longProfileId = 'a'.repeat(255);
-      const address = createTestAddress({ 
-        profileId: new UniqueEntityID(longProfileId) 
+      const address = createTestAddress({
+        profileId: new UniqueEntityID(longProfileId),
       });
       addressRepo.items.push(address);
 
-      const request: FindAddressByProfileRequestDto = { profileId: longProfileId };
+      const request: FindAddressByProfileRequestDto = {
+        profileId: longProfileId,
+      };
       const result = await sut.execute(request);
 
       expect(result.isRight()).toBe(true);
@@ -309,7 +323,9 @@ describe('FindAddressByProfileUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.addresses).toHaveLength(1);
-        expect(result.value.addresses[0].street).toBe('Rua São José & Cia. #123');
+        expect(result.value.addresses[0].street).toBe(
+          'Rua São José & Cia. #123',
+        );
         expect(result.value.addresses[0].postalCode).toBe('01234-567');
       }
     });
@@ -320,7 +336,7 @@ describe('FindAddressByProfileUseCase', () => {
     it('should return all addresses for a profile regardless of count', async () => {
       // Create many addresses for the same profile
       for (let i = 0; i < 10; i++) {
-        const address = createTestAddress({ 
+        const address = createTestAddress({
           street: `Street ${i}`,
           number: `${i + 1}`,
         });
@@ -333,7 +349,7 @@ describe('FindAddressByProfileUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.addresses).toHaveLength(10);
-        
+
         // Verify all addresses are for the correct profile
         result.value.addresses.forEach((address, index) => {
           expect(address.street).toBe(`Street ${index}`);
@@ -352,7 +368,7 @@ describe('FindAddressByProfileUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         const returnedAddress = result.value.addresses[0];
-        
+
         // Verify all fields are correctly mapped
         expect(returnedAddress.id).toBe(originalAddress.id.toString());
         expect(returnedAddress.street).toBe(originalAddress.street);
@@ -381,16 +397,18 @@ describe('FindAddressByProfileUseCase', () => {
     });
 
     it('should handle case-sensitive profile ID matching', async () => {
-      const address1 = createTestAddress({ 
-        profileId: new UniqueEntityID('Profile-123')
+      const address1 = createTestAddress({
+        profileId: new UniqueEntityID('Profile-123'),
       });
-      const address2 = createTestAddress({ 
-        profileId: new UniqueEntityID('profile-123')
+      const address2 = createTestAddress({
+        profileId: new UniqueEntityID('profile-123'),
       });
       addressRepo.items.push(address1, address2);
 
       // Search for exact case match
-      const request: FindAddressByProfileRequestDto = { profileId: 'Profile-123' };
+      const request: FindAddressByProfileRequestDto = {
+        profileId: 'Profile-123',
+      };
       const result = await sut.execute(request);
 
       expect(result.isRight()).toBe(true);
@@ -404,11 +422,11 @@ describe('FindAddressByProfileUseCase', () => {
   describe('Performance Tests', () => {
     it('should handle large number of addresses efficiently', async () => {
       // Create 100 addresses for the profile
-      const addresses = Array.from({ length: 100 }, (_, index) => 
-        createTestAddress({ 
+      const addresses = Array.from({ length: 100 }, (_, index) =>
+        createTestAddress({
           street: `Street ${index}`,
           number: `${index + 1}`,
-        })
+        }),
       );
       addressRepo.items.push(...addresses);
 
@@ -428,20 +446,22 @@ describe('FindAddressByProfileUseCase', () => {
       const address = createTestAddress();
       addressRepo.items.push(address);
 
-      const requests = Array(10).fill(null).map(() => ({ profileId }));
-      const promises = requests.map(request => sut.execute(request));
-      
+      const requests = Array(10)
+        .fill(null)
+        .map(() => ({ profileId }));
+      const promises = requests.map((request) => sut.execute(request));
+
       const start = Date.now();
       const results = await Promise.all(promises);
       const duration = Date.now() - start;
 
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.isRight()).toBe(true);
         if (result.isRight()) {
           expect(result.value.addresses).toHaveLength(1);
         }
       });
-      
+
       expect(duration).toBeLessThan(200); // All requests should complete within 200ms
     });
   });
@@ -450,10 +470,10 @@ describe('FindAddressByProfileUseCase', () => {
   describe('Integration Tests', () => {
     it('should work end-to-end with repository operations', async () => {
       const address = createTestAddress();
-      
+
       // Simulate address creation through repository
       await addressRepo.create(address);
-      
+
       // Now find it
       const request: FindAddressByProfileRequestDto = { profileId };
       const result = await sut.execute(request);
@@ -467,7 +487,7 @@ describe('FindAddressByProfileUseCase', () => {
 
     it('should maintain consistency with repository state changes', async () => {
       const request: FindAddressByProfileRequestDto = { profileId };
-      
+
       // Initially no addresses
       let result = await sut.execute(request);
       expect(result.isRight()).toBe(true);

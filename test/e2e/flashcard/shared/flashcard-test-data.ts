@@ -42,7 +42,8 @@ export class FlashcardTestData {
       },
       answer: {
         type: 'TEXT',
-        content: 'The heart is a muscular organ that pumps blood throughout the body',
+        content:
+          'The heart is a muscular organ that pumps blood throughout the body',
       },
       argumentId: FlashcardTestData.TEST_UUIDS.ARGUMENT_ID,
     }),

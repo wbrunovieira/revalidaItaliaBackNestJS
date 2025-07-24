@@ -42,7 +42,7 @@ describe('CreateAddressUseCase', () => {
 
       // Verify address was saved to repository
       expect(addressRepo.items).toHaveLength(1);
-      
+
       const savedAddress = addressRepo.items[0];
       expect(savedAddress.profileId.toString()).toBe(validRequest.profileId);
       expect(savedAddress.street).toBe(validRequest.street);
@@ -71,7 +71,7 @@ describe('CreateAddressUseCase', () => {
       }
 
       expect(addressRepo.items).toHaveLength(1);
-      
+
       const savedAddress = addressRepo.items[0];
       expect(savedAddress.profileId.toString()).toBe(minimalRequest.profileId);
       expect(savedAddress.street).toBe(minimalRequest.street);
@@ -101,7 +101,7 @@ describe('CreateAddressUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       expect(addressRepo.items).toHaveLength(1);
-      
+
       const savedAddress = addressRepo.items[0];
       expect(savedAddress.complement).toBeNull();
       expect(savedAddress.district).toBeNull(); // Address entity converts undefined to null
@@ -134,14 +134,22 @@ describe('CreateAddressUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       expect(addressRepo.items).toHaveLength(1);
-      
+
       const savedAddress = addressRepo.items[0];
       expect(savedAddress.createdAt).toBeInstanceOf(Date);
       expect(savedAddress.updatedAt).toBeInstanceOf(Date);
-      expect(savedAddress.createdAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
-      expect(savedAddress.createdAt.getTime()).toBeLessThanOrEqual(after.getTime());
-      expect(savedAddress.updatedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
-      expect(savedAddress.updatedAt.getTime()).toBeLessThanOrEqual(after.getTime());
+      expect(savedAddress.createdAt.getTime()).toBeGreaterThanOrEqual(
+        before.getTime(),
+      );
+      expect(savedAddress.createdAt.getTime()).toBeLessThanOrEqual(
+        after.getTime(),
+      );
+      expect(savedAddress.updatedAt.getTime()).toBeGreaterThanOrEqual(
+        before.getTime(),
+      );
+      expect(savedAddress.updatedAt.getTime()).toBeLessThanOrEqual(
+        after.getTime(),
+      );
     });
   });
 
@@ -150,7 +158,9 @@ describe('CreateAddressUseCase', () => {
     describe('Repository Errors', () => {
       it('should fail when repository create method returns left', async () => {
         const repositoryError = new Error('Database connection failed');
-        vi.spyOn(addressRepo, 'create').mockResolvedValueOnce(left(repositoryError));
+        vi.spyOn(addressRepo, 'create').mockResolvedValueOnce(
+          left(repositoryError),
+        );
 
         const result = await sut.execute(validRequest);
 
@@ -189,7 +199,9 @@ describe('CreateAddressUseCase', () => {
 
       it('should handle repository constraint violation errors', async () => {
         const constraintError = new Error('Foreign key constraint violation');
-        vi.spyOn(addressRepo, 'create').mockResolvedValueOnce(left(constraintError));
+        vi.spyOn(addressRepo, 'create').mockResolvedValueOnce(
+          left(constraintError),
+        );
 
         const result = await sut.execute(validRequest);
 
@@ -234,7 +246,7 @@ describe('CreateAddressUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       expect(addressRepo.items).toHaveLength(1);
-      
+
       const savedAddress = addressRepo.items[0];
       expect(savedAddress.street).toBe('Rua São José & Cia.');
       expect(savedAddress.number).toBe('123-A');
@@ -259,7 +271,7 @@ describe('CreateAddressUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       expect(addressRepo.items).toHaveLength(1);
-      
+
       const savedAddress = addressRepo.items[0];
       expect(savedAddress.complement).toBeNull(); // Empty string becomes null
       expect(savedAddress.state).toBeNull(); // Empty string becomes null
@@ -281,7 +293,7 @@ describe('CreateAddressUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       expect(addressRepo.items).toHaveLength(1);
-      
+
       const savedAddress = addressRepo.items[0];
       expect(savedAddress.profileId.toString()).toBe('12345');
       expect(savedAddress.number).toBe('456');
@@ -301,7 +313,7 @@ describe('CreateAddressUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       expect(addressRepo.items).toHaveLength(1);
-      
+
       const savedAddress = addressRepo.items[0];
       // Values are stored as-is (trimming would be handled at controller/DTO level)
       expect(savedAddress.street).toBe('  Via Roma  ');
@@ -323,9 +335,13 @@ describe('CreateAddressUseCase', () => {
       expect(result1.isRight()).toBe(true);
       expect(result2.isRight()).toBe(true);
       expect(addressRepo.items).toHaveLength(2);
-      
-      expect(addressRepo.items[0].profileId.toString()).toBe(validRequest.profileId);
-      expect(addressRepo.items[1].profileId.toString()).toBe(validRequest.profileId);
+
+      expect(addressRepo.items[0].profileId.toString()).toBe(
+        validRequest.profileId,
+      );
+      expect(addressRepo.items[1].profileId.toString()).toBe(
+        validRequest.profileId,
+      );
       expect(addressRepo.items[0].street).toBe('Via Roma');
       expect(addressRepo.items[1].street).toBe('Via Milano');
     });
@@ -340,7 +356,7 @@ describe('CreateAddressUseCase', () => {
       expect(result1.isRight()).toBe(true);
       expect(result2.isRight()).toBe(true);
       expect(addressRepo.items).toHaveLength(2);
-      
+
       expect(addressRepo.items[0].profileId.toString()).toBe('profile-1');
       expect(addressRepo.items[1].profileId.toString()).toBe('profile-2');
       expect(addressRepo.items[0].street).toBe(addressRepo.items[1].street);
@@ -348,12 +364,12 @@ describe('CreateAddressUseCase', () => {
 
     it('should maintain data integrity across address creation', async () => {
       const originalRequest = { ...validRequest };
-      
+
       await sut.execute(validRequest);
-      
+
       // Modify the original request to ensure immutability
       validRequest.street = 'Modified Street';
-      
+
       expect(addressRepo.items).toHaveLength(1);
       expect(addressRepo.items[0].street).toBe(originalRequest.street);
     });
@@ -363,7 +379,7 @@ describe('CreateAddressUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       expect(addressRepo.items).toHaveLength(1);
-      
+
       const savedAddress = addressRepo.items[0];
       expect(savedAddress.profileId).toBeInstanceOf(UniqueEntityID);
       expect(savedAddress.profileId.toString()).toBe(validRequest.profileId);
@@ -375,17 +391,17 @@ describe('CreateAddressUseCase', () => {
     it('should work end-to-end with repository operations', async () => {
       // Create address
       const result = await sut.execute(validRequest);
-      
+
       expect(result.isRight()).toBe(true);
       expect(addressRepo.items).toHaveLength(1);
-      
+
       if (result.isRight()) {
         const addressId = result.value.addressId;
-        
+
         // Verify we can find the created address
         const findResult = await addressRepo.findById(addressId);
         expect(findResult.isRight()).toBe(true);
-        
+
         if (findResult.isRight()) {
           expect(findResult.value).toBeDefined();
           expect(findResult.value?.id.toString()).toBe(addressId);
@@ -394,26 +410,28 @@ describe('CreateAddressUseCase', () => {
     });
 
     it('should handle concurrent address creation', async () => {
-      const requests = Array(5).fill(null).map((_, index) => ({
-        ...validRequest,
-        profileId: `profile-${index}`,
-        street: `Via Test ${index}`,
-      }));
+      const requests = Array(5)
+        .fill(null)
+        .map((_, index) => ({
+          ...validRequest,
+          profileId: `profile-${index}`,
+          street: `Via Test ${index}`,
+        }));
 
-      const promises = requests.map(request => sut.execute(request));
+      const promises = requests.map((request) => sut.execute(request));
       const results = await Promise.all(promises);
 
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.isRight()).toBe(true);
       });
 
       expect(addressRepo.items).toHaveLength(5);
-      
+
       // Verify all addresses have unique IDs
-      const addressIds = results.map(result => 
-        result.isRight() ? result.value.addressId : null
-      ).filter(Boolean);
-      
+      const addressIds = results
+        .map((result) => (result.isRight() ? result.value.addressId : null))
+        .filter(Boolean);
+
       const uniqueIds = new Set(addressIds);
       expect(uniqueIds.size).toBe(5);
     });
@@ -423,9 +441,9 @@ describe('CreateAddressUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       expect(addressRepo.items).toHaveLength(1);
-      
+
       const savedAddress = addressRepo.items[0];
-      
+
       // Test all getters work correctly
       expect(savedAddress.profileId.toString()).toBe(validRequest.profileId);
       expect(savedAddress.street).toBe(validRequest.street);
@@ -438,7 +456,7 @@ describe('CreateAddressUseCase', () => {
       expect(savedAddress.postalCode).toBe(validRequest.postalCode);
       expect(savedAddress.createdAt).toBeInstanceOf(Date);
       expect(savedAddress.updatedAt).toBeInstanceOf(Date);
-      
+
       // Test response object methods
       const responseObj = savedAddress.toResponseObject();
       expect(responseObj).toHaveProperty('id');

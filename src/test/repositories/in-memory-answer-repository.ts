@@ -1,7 +1,10 @@
 // src/test/repositories/in-memory-answer-repository.ts
 import { Either, left, right } from '@/core/either';
 import { Answer } from '@/domain/assessment/enterprise/entities/answer.entity';
-import { IAnswerRepository, PaginatedAnswersResult } from '@/domain/assessment/application/repositories/i-answer.repository';
+import {
+  IAnswerRepository,
+  PaginatedAnswersResult,
+} from '@/domain/assessment/application/repositories/i-answer.repository';
 
 export class InMemoryAnswerRepository implements IAnswerRepository {
   public items: Answer[] = [];

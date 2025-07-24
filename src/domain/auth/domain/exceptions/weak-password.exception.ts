@@ -9,37 +9,45 @@ export class WeakPasswordException extends BusinessRuleException {
     super(
       `Password does not meet security requirements: ${reason}`,
       'USER.PASSWORD.WEAK',
-      { 
+      {
         reason,
         requirements: {
           minLength: 6,
           requireUppercase: true,
           requireLowercase: true,
-          requireNumbers: true
-        }
-      }
+          requireNumbers: true,
+        },
+      },
     );
   }
 
   static tooShort(length: number, minLength: number): WeakPasswordException {
     return new WeakPasswordException(
-      `Password must be at least ${minLength} characters (got ${length})`
+      `Password must be at least ${minLength} characters (got ${length})`,
     );
   }
 
   static missingUppercase(): WeakPasswordException {
-    return new WeakPasswordException('Password must contain at least one uppercase letter');
+    return new WeakPasswordException(
+      'Password must contain at least one uppercase letter',
+    );
   }
 
   static missingLowercase(): WeakPasswordException {
-    return new WeakPasswordException('Password must contain at least one lowercase letter');
+    return new WeakPasswordException(
+      'Password must contain at least one lowercase letter',
+    );
   }
 
   static missingNumber(): WeakPasswordException {
-    return new WeakPasswordException('Password must contain at least one number');
+    return new WeakPasswordException(
+      'Password must contain at least one number',
+    );
   }
 
   static tooCommon(): WeakPasswordException {
-    return new WeakPasswordException('Password is too common or easily guessable');
+    return new WeakPasswordException(
+      'Password is too common or easily guessable',
+    );
   }
 }

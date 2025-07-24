@@ -5,7 +5,7 @@ import { UserPasswordChangedEvent } from '@/domain/auth/enterprise/events/user-p
 
 /**
  * User Password Changed Event Handler
- * 
+ *
  * Handles UserPasswordChangedEvent for domain-level side effects.
  */
 @Injectable()
@@ -13,12 +13,12 @@ export class UserPasswordChangedHandler {
   @OnEvent(UserPasswordChangedEvent.name)
   async handle(event: UserPasswordChangedEvent): Promise<void> {
     const { identityId } = event;
-    
+
     console.log(`[Domain] User password changed:`, {
       userId: identityId,
       occurredAt: event.occurredAt,
     });
-    
+
     // Here you could:
     // - Send security notification email
     // - Invalidate existing sessions

@@ -22,12 +22,14 @@ export class AnswerControllerTestHelpers {
       answer: {
         id: answerData.id,
         correctOptionId: answerData.correctOptionId || undefined,
-        explanation: answerData.explanation || 'This is the correct answer because...',
+        explanation:
+          answerData.explanation || 'This is the correct answer because...',
         questionId: answerData.questionId || this.generateUniqueId(),
         translations: answerData.translations || [
           {
             locale: 'pt',
-            explanation: answerData.explanation || 'Esta é a resposta correta porque...',
+            explanation:
+              answerData.explanation || 'Esta é a resposta correta porque...',
           },
         ],
         createdAt: answerData.createdAt || new Date(),
@@ -35,7 +37,9 @@ export class AnswerControllerTestHelpers {
       },
     };
 
-    this.testSetup.getAnswerUseCase.execute.mockResolvedValueOnce(right(result));
+    this.testSetup.getAnswerUseCase.execute.mockResolvedValueOnce(
+      right(result),
+    );
     return result;
   }
 
@@ -78,14 +82,19 @@ export class AnswerControllerTestHelpers {
   /**
    * Execute controller getById and expect success
    */
-  async executeGetByIdExpectSuccess(params: { id: string }, expectedAnswerData?: any) {
+  async executeGetByIdExpectSuccess(
+    params: { id: string },
+    expectedAnswerData?: any,
+  ) {
     const mockResult = this.mockGetAnswerSuccess(
       expectedAnswerData || { id: params.id },
     );
     const result = await this.testSetup.controller.getById(params.id);
 
     // Verify use case was called correctly
-    expect(this.testSetup.getAnswerUseCase.execute).toHaveBeenCalledWith({ id: params.id });
+    expect(this.testSetup.getAnswerUseCase.execute).toHaveBeenCalledWith({
+      id: params.id,
+    });
 
     // Verify response format
     expect(result).toEqual(mockResult);
@@ -106,13 +115,18 @@ export class AnswerControllerTestHelpers {
     );
 
     // Verify use case was called
-    expect(this.testSetup.getAnswerUseCase.execute).toHaveBeenCalledWith({ id: params.id });
+    expect(this.testSetup.getAnswerUseCase.execute).toHaveBeenCalledWith({
+      id: params.id,
+    });
   }
 
   /**
    * Execute controller getById and expect BadRequestException
    */
-  async executeGetByIdExpectBadRequest(params: { id: string }, mockError?: () => any) {
+  async executeGetByIdExpectBadRequest(
+    params: { id: string },
+    mockError?: () => any,
+  ) {
     if (mockError) {
       mockError();
     } else {
@@ -218,13 +232,13 @@ export class AnswerControllerTestHelpers {
 
     // Verify specific data if provided
     if (expectedData) {
-      if (expectedData.explanation) 
+      if (expectedData.explanation)
         expect(answer.explanation).toBe(expectedData.explanation);
-      if (expectedData.questionId) 
+      if (expectedData.questionId)
         expect(answer.questionId).toBe(expectedData.questionId);
-      if (expectedData.correctOptionId !== undefined) 
+      if (expectedData.correctOptionId !== undefined)
         expect(answer.correctOptionId).toBe(expectedData.correctOptionId);
-      if (expectedData.translations) 
+      if (expectedData.translations)
         expect(answer.translations).toEqual(expectedData.translations);
     }
   }
@@ -337,7 +351,10 @@ export class AnswerControllerTestHelpers {
   /**
    * Test performance
    */
-  async testGetAnswerPerformance(params: { id: string }, maxExecutionTime = 100) {
+  async testGetAnswerPerformance(
+    params: { id: string },
+    maxExecutionTime = 100,
+  ) {
     const { result, executionTime } = await this.measureExecutionTime(
       async () => {
         return await this.executeGetByIdExpectSuccess(params);
@@ -367,8 +384,8 @@ export class AnswerControllerTestHelpers {
 
     const { result, executionTime } = await this.measureExecutionTime(
       async () => {
-        const promises = paramsArray.map((params) => 
-          this.testSetup.controller.getById(params.id)
+        const promises = paramsArray.map((params) =>
+          this.testSetup.controller.getById(params.id),
         );
         return await Promise.all(promises);
       },

@@ -35,12 +35,12 @@ describe('Students Controller (E2E)', () => {
         .post('/students')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        name: 'Admin User',
-        email: 'admin@example.com',
-        password: 'Admin123!',
-        cpf: '99999999999',
-        role: 'admin',
-      });
+          name: 'Admin User',
+          email: 'admin@example.com',
+          password: 'Admin123!',
+          cpf: '99999999999',
+          role: 'admin',
+        });
     }
     expect(adminToken).not.toBe('');
   });
@@ -105,12 +105,12 @@ describe('Students Controller (E2E)', () => {
         .post('/students')
         .set('Authorization', `Bearer ${token}`)
         .send({
-        name: 'Bruno Vieira',
-        email: 'bruno@example.com',
-        password: '12345@aA',
-        cpf: '12345678909',
-        role: 'student',
-      });
+          name: 'Bruno Vieira',
+          email: 'bruno@example.com',
+          password: '12345@aA',
+          cpf: '12345678909',
+          role: 'student',
+        });
 
       expect(res.status).toBe(201);
       expect(res.body.user).toBeDefined();
@@ -128,11 +128,11 @@ describe('Students Controller (E2E)', () => {
         .post('/students')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        email: 'missingname@example.com',
-        password: '12345@aA',
-        cpf: '11122233344',
-        role: 'student',
-      });
+          email: 'missingname@example.com',
+          password: '12345@aA',
+          cpf: '11122233344',
+          role: 'student',
+        });
 
       expect(res.status).toBe(400);
       expect(res.body.detail).toBeDefined();
@@ -143,11 +143,11 @@ describe('Students Controller (E2E)', () => {
         .post('/students')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        name: 'Alice',
-        email: 'alice@example.com',
-        password: '12345@aA',
-        role: 'student',
-      });
+          name: 'Alice',
+          email: 'alice@example.com',
+          password: '12345@aA',
+          role: 'student',
+        });
 
       expect(res.status).toBe(400);
       expect(res.body.detail).toBeDefined();
@@ -158,11 +158,11 @@ describe('Students Controller (E2E)', () => {
         .post('/students')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        name: 'Bob',
-        email: 'bob@example.com',
-        password: '12345@aA',
-        cpf: '55566677788',
-      });
+          name: 'Bob',
+          email: 'bob@example.com',
+          password: '12345@aA',
+          cpf: '55566677788',
+        });
 
       expect(res.status).toBe(400);
       expect(res.body.detail).toBeDefined();
@@ -173,12 +173,12 @@ describe('Students Controller (E2E)', () => {
         .post('/students')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        name: 'Invalid Email',
-        email: 'invalid-email',
-        password: '12345@aA',
-        cpf: '22233344455',
-        role: 'student',
-      });
+          name: 'Invalid Email',
+          email: 'invalid-email',
+          password: '12345@aA',
+          cpf: '22233344455',
+          role: 'student',
+        });
 
       expect(res.status).toBe(400);
       expect(res.body.detail).toBeDefined();
@@ -191,12 +191,12 @@ describe('Students Controller (E2E)', () => {
         .post('/students')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        name: 'Weak Password',
-        email: 'weak@example.com',
-        password: 'weak',
-        cpf: '77788899900',
-        role: 'student',
-      });
+          name: 'Weak Password',
+          email: 'weak@example.com',
+          password: 'weak',
+          cpf: '77788899900',
+          role: 'student',
+        });
 
       expect(res.status).toBe(400);
       expect(res.body.detail).toBeDefined();
@@ -246,12 +246,12 @@ describe('Students Controller (E2E)', () => {
         .post('/students')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        name: 'User B',
-        email: 'another@example.com',
-        password: '12345@aA',
-        cpf: '88899900011',
-        role: 'student',
-      });
+          name: 'User B',
+          email: 'another@example.com',
+          password: '12345@aA',
+          cpf: '88899900011',
+          role: 'student',
+        });
 
       expect(res.status).toBe(409);
       expect(res.body.detail).toBe('Unable to create resource due to conflict');
@@ -314,9 +314,7 @@ describe('Students Controller (E2E)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({});
       expect(res.status).toBe(400);
-      expect(res.body.detail).toBe(
-        'One or more fields failed validation',
-      );
+      expect(res.body.detail).toBe('One or more fields failed validation');
       expect(res.body).toHaveProperty('detail');
     });
 
@@ -334,22 +332,22 @@ describe('Students Controller (E2E)', () => {
         .post('/students')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        name: 'EmailA',
-        email: 'emaila@example.com',
-        password: 'Cc33$$cc',
-        cpf: '30303030303',
-        role: 'student',
-      });
+          name: 'EmailA',
+          email: 'emaila@example.com',
+          password: 'Cc33$$cc',
+          cpf: '30303030303',
+          role: 'student',
+        });
       const u2 = await request(app.getHttpServer())
         .post('/students')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        name: 'EmailB',
-        email: 'emailb@example.com',
-        password: 'Dd44%%dd',
-        cpf: '40404040404',
-        role: 'student',
-      });
+          name: 'EmailB',
+          email: 'emailb@example.com',
+          password: 'Dd44%%dd',
+          cpf: '40404040404',
+          role: 'student',
+        });
       const idA = u1.body.user.id;
 
       const res = await request(app.getHttpServer())
@@ -365,22 +363,22 @@ describe('Students Controller (E2E)', () => {
         .post('/students')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        name: 'CpfA',
-        email: 'cpfa@example.com',
-        password: 'Ee55^^ee',
-        cpf: '50505050505',
-        role: 'student',
-      });
+          name: 'CpfA',
+          email: 'cpfa@example.com',
+          password: 'Ee55^^ee',
+          cpf: '50505050505',
+          role: 'student',
+        });
       const u2 = await request(app.getHttpServer())
         .post('/students')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        name: 'CpfB',
-        email: 'cpfb@example.com',
-        password: 'Ff66&&ff',
-        cpf: '60606060606',
-        role: 'student',
-      });
+          name: 'CpfB',
+          email: 'cpfb@example.com',
+          password: 'Ff66&&ff',
+          cpf: '60606060606',
+          role: 'student',
+        });
       const idA = u1.body.user.id;
 
       const res = await request(app.getHttpServer())
@@ -1102,7 +1100,7 @@ describe('Students Controller (E2E)', () => {
             cpf: '88888888888',
             role: 'admin',
           });
-        
+
         if (createAdminRes.status !== 201) {
           // Se falhar ao criar, pular o teste
           console.log('Skipping test - could not create admin user');
@@ -1135,7 +1133,7 @@ describe('Students Controller (E2E)', () => {
       } else if (res.status === 403) {
         // Se houver regra de negócio impedindo
         expect(res.body.status).toBe(403);
-        
+
         // Verificar que o admin ainda existe
         const adminStillExists = await prisma.user.findUnique({
           where: { id: adminUser.id },
@@ -1511,9 +1509,9 @@ describe('Students Controller (E2E)', () => {
         .patch(`/students/${fullUserId}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-        phone: '+5511888888888',
-        // birthDate seria necessário adicionar no update se suportado
-      });
+          phone: '+5511888888888',
+          // birthDate seria necessário adicionar no update se suportado
+        });
 
       const res = await request(app.getHttpServer())
         .get(`/students/${fullUserId}`)

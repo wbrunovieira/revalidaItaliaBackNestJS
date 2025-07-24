@@ -9,16 +9,18 @@ import { IAnswerRepository } from '../repositories/i-answer.repository';
 import { IArgumentRepository } from '../repositories/i-argument-repository';
 import { ILessonRepository } from '@/domain/course-catalog/application/repositories/i-lesson-repository';
 import { GetQuestionsDetailedRequest } from '../dtos/get-questions-detailed-request.dto';
-import { GetQuestionsDetailedResponse, QuestionDetailed, ArgumentDetailed } from '../dtos/get-questions-detailed-response.dto';
+import {
+  GetQuestionsDetailedResponse,
+  QuestionDetailed,
+  ArgumentDetailed,
+} from '../dtos/get-questions-detailed-response.dto';
 import { getQuestionsDetailedSchema } from './validations/get-questions-detailed.schema';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { AssessmentNotFoundError } from './errors/assessment-not-found-error';
 import { RepositoryError } from './errors/repository-error';
 
 type GetQuestionsDetailedUseCaseResponse = Either<
-  | InvalidInputError
-  | AssessmentNotFoundError
-  | RepositoryError,
+  InvalidInputError | AssessmentNotFoundError | RepositoryError,
   GetQuestionsDetailedResponse
 >;
 
@@ -39,7 +41,9 @@ export class GetQuestionsDetailedUseCase {
     private lessonRepository: ILessonRepository,
   ) {}
 
-  async execute(request: GetQuestionsDetailedRequest): Promise<GetQuestionsDetailedUseCaseResponse> {
+  async execute(
+    request: GetQuestionsDetailedRequest,
+  ): Promise<GetQuestionsDetailedUseCaseResponse> {
     // Validate input
     const validation = getQuestionsDetailedSchema.safeParse(request);
     if (!validation.success) {
@@ -53,30 +57,38 @@ export class GetQuestionsDetailedUseCase {
 
     try {
       // Get assessment
-      const assessmentResult = await this.assessmentRepository.findById(assessmentId);
+      const assessmentResult =
+        await this.assessmentRepository.findById(assessmentId);
       if (assessmentResult.isLeft()) {
         return left(new AssessmentNotFoundError());
       }
       const assessment = assessmentResult.value;
 
       // Get lesson if assessment has lessonId
-      let lessonInfo: {
-        id: string;
-        slug: string;
-        title: string;
-        order: number;
-        moduleId: string;
-      } | undefined = undefined;
-      
+      let lessonInfo:
+        | {
+            id: string;
+            slug: string;
+            title: string;
+            order: number;
+            moduleId: string;
+          }
+        | undefined = undefined;
+
       if (assessment.lessonId) {
-        const lessonResult = await this.lessonRepository.findById(assessment.lessonId.toString());
+        const lessonResult = await this.lessonRepository.findById(
+          assessment.lessonId.toString(),
+        );
         if (lessonResult.isRight()) {
           const lessonEntity = lessonResult.value;
-          const ptTranslation = lessonEntity.translations.find(t => t.locale === 'pt');
+          const ptTranslation = lessonEntity.translations.find(
+            (t) => t.locale === 'pt',
+          );
           lessonInfo = {
             id: lessonEntity.id.toString(),
             slug: lessonEntity.slug,
-            title: ptTranslation?.title || lessonEntity.translations[0]?.title || '',
+            title:
+              ptTranslation?.title || lessonEntity.translations[0]?.title || '',
             order: lessonEntity.order,
             moduleId: lessonEntity.moduleId,
           };
@@ -84,38 +96,41 @@ export class GetQuestionsDetailedUseCase {
       }
 
       // Get all questions for the assessment
-      const questionsResult = await this.questionRepository.findByAssessmentId(assessmentId);
+      const questionsResult =
+        await this.questionRepository.findByAssessmentId(assessmentId);
       if (questionsResult.isLeft()) {
         return left(new RepositoryError('Failed to fetch questions'));
       }
       const questions = questionsResult.value;
 
       // Get all question IDs
-      const questionIds = questions.map(q => q.id.toString());
+      const questionIds = questions.map((q) => q.id.toString());
 
       // Get all options for all questions
-      const optionsResult = await this.questionOptionRepository.findByQuestionIds(questionIds);
+      const optionsResult =
+        await this.questionOptionRepository.findByQuestionIds(questionIds);
       if (optionsResult.isLeft()) {
         return left(new RepositoryError('Failed to fetch question options'));
       }
       const allOptions = optionsResult.value;
 
       // Get all answers for all questions
-      const answersResult = await this.answerRepository.findManyByQuestionIds(questionIds);
+      const answersResult =
+        await this.answerRepository.findManyByQuestionIds(questionIds);
       if (answersResult.isLeft()) {
         return left(new RepositoryError('Failed to fetch answers'));
       }
       const allAnswers = answersResult.value;
 
       // Create map of answers by questionId
-      const answersByQuestionId = new Map<string, typeof allAnswers[0]>();
-      allAnswers.forEach(answer => {
+      const answersByQuestionId = new Map<string, (typeof allAnswers)[0]>();
+      allAnswers.forEach((answer) => {
         answersByQuestionId.set(answer.questionId.toString(), answer);
       });
 
       // Create map of options by questionId
       const optionsByQuestionId = new Map<string, typeof allOptions>();
-      allOptions.forEach(option => {
+      allOptions.forEach((option) => {
         const questionId = option.questionId.toString();
         if (!optionsByQuestionId.has(questionId)) {
           optionsByQuestionId.set(questionId, []);
@@ -124,15 +139,16 @@ export class GetQuestionsDetailedUseCase {
       });
 
       // Get arguments if assessment type is SIMULADO
-      let argumentsList: ArgumentDetailed[] = [];
+      const argumentsList: ArgumentDetailed[] = [];
       const argumentsMap = new Map<string, ArgumentDetailed>();
-      
+
       if (assessment.type === 'SIMULADO') {
-        const argumentsResult = await this.argumentRepository.findByAssessmentId(assessmentId);
+        const argumentsResult =
+          await this.argumentRepository.findByAssessmentId(assessmentId);
         if (argumentsResult.isRight()) {
           const assessmentArguments = argumentsResult.value;
-          
-          assessmentArguments.forEach(arg => {
+
+          assessmentArguments.forEach((arg) => {
             if (arg.assessmentId) {
               const argDetailed: ArgumentDetailed = {
                 id: arg.id.toString(),
@@ -154,7 +170,7 @@ export class GetQuestionsDetailedUseCase {
       const questionsDetailed: QuestionDetailed[] = [];
       let totalQuestionsWithAnswers = 0;
 
-      questions.forEach(question => {
+      questions.forEach((question) => {
         const questionId = question.id.toString();
         const answer = answersByQuestionId.get(questionId);
         const options = optionsByQuestionId.get(questionId) || [];
@@ -168,21 +184,23 @@ export class GetQuestionsDetailedUseCase {
           text: question.text,
           type: question.type.getValue() as 'MULTIPLE_CHOICE' | 'OPEN',
           argumentId: question.argumentId?.toString(),
-          options: options.map(opt => ({
+          options: options.map((opt) => ({
             id: opt.id.toString(),
             text: opt.text,
             createdAt: opt.createdAt,
             updatedAt: opt.updatedAt,
           })),
-          answer: answer ? {
-            id: answer.id.toString(),
-            correctOptionId: answer.correctOptionId?.toString(),
-            explanation: answer.explanation,
-            translations: answer.translations.map(t => ({
-              locale: t.locale,
-              explanation: t.explanation,
-            })),
-          } : undefined,
+          answer: answer
+            ? {
+                id: answer.id.toString(),
+                correctOptionId: answer.correctOptionId?.toString(),
+                explanation: answer.explanation,
+                translations: answer.translations.map((t) => ({
+                  locale: t.locale,
+                  explanation: t.explanation,
+                })),
+              }
+            : undefined,
           createdAt: question.createdAt,
           updatedAt: question.updatedAt,
         };
@@ -190,8 +208,13 @@ export class GetQuestionsDetailedUseCase {
         questionsDetailed.push(questionDetailed);
 
         // Add question to its argument if it has one
-        if (question.argumentId && argumentsMap.has(question.argumentId.toString())) {
-          argumentsMap.get(question.argumentId.toString())!.questions.push(questionDetailed);
+        if (
+          question.argumentId &&
+          argumentsMap.has(question.argumentId.toString())
+        ) {
+          argumentsMap
+            .get(question.argumentId.toString())!
+            .questions.push(questionDetailed);
         }
       });
 

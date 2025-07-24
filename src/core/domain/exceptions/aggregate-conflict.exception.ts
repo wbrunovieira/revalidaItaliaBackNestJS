@@ -3,7 +3,7 @@ import { DomainException } from './domain.exception';
 
 /**
  * Exception thrown when there's a conflict at the aggregate level
- * 
+ *
  * Use this for concurrency issues, duplicate keys, or state conflicts
  */
 export class AggregateConflictException extends DomainException {
@@ -11,12 +11,17 @@ export class AggregateConflictException extends DomainException {
     aggregateName: string,
     conflictType: string,
     context?: Record<string, any>,
-    aggregateId?: string
+    aggregateId?: string,
   ) {
     const message = `Conflict in ${aggregateName}: ${conflictType}`;
     const code = `DOMAIN.${aggregateName.toUpperCase()}_CONFLICT`;
-    
-    super(message, code, { aggregateName, conflictType, ...context }, aggregateId);
+
+    super(
+      message,
+      code,
+      { aggregateName, conflictType, ...context },
+      aggregateId,
+    );
   }
 
   /**
@@ -26,13 +31,13 @@ export class AggregateConflictException extends DomainException {
     aggregateName: string,
     field: string,
     value: any,
-    aggregateId?: string
+    aggregateId?: string,
   ): AggregateConflictException {
     return new AggregateConflictException(
       aggregateName,
       `${field} already exists`,
       { field, value },
-      aggregateId
+      aggregateId,
     );
   }
 
@@ -43,13 +48,13 @@ export class AggregateConflictException extends DomainException {
     aggregateName: string,
     expectedVersion: number,
     currentVersion: number,
-    aggregateId?: string
+    aggregateId?: string,
   ): AggregateConflictException {
     return new AggregateConflictException(
       aggregateName,
       'Concurrent modification detected',
       { expectedVersion, currentVersion },
-      aggregateId
+      aggregateId,
     );
   }
 }

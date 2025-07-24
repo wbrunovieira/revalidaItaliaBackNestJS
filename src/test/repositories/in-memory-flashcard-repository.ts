@@ -29,7 +29,9 @@ export class InMemoryFlashcardRepository implements IFlashcardRepository {
     return right(flashcard);
   }
 
-  async findByArgumentId(argumentId: string): Promise<Either<Error, Flashcard[]>> {
+  async findByArgumentId(
+    argumentId: string,
+  ): Promise<Either<Error, Flashcard[]>> {
     const flashcards = this.items
       .filter((item) => item.argumentId.toString() === argumentId)
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
@@ -39,15 +41,17 @@ export class InMemoryFlashcardRepository implements IFlashcardRepository {
 
   async findByTagIds(tagIds: string[]): Promise<Either<Error, Flashcard[]>> {
     const flashcards = this.items
-      .filter((item) => 
-        item.tagIds.some((tagId) => tagIds.includes(tagId.toString()))
+      .filter((item) =>
+        item.tagIds.some((tagId) => tagIds.includes(tagId.toString())),
       )
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     return right(flashcards);
   }
 
-  async findByImportBatchId(batchId: string): Promise<Either<Error, Flashcard[]>> {
+  async findByImportBatchId(
+    batchId: string,
+  ): Promise<Either<Error, Flashcard[]>> {
     const flashcards = this.items
       .filter((item) => item.importBatchId === batchId)
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
@@ -55,7 +59,9 @@ export class InMemoryFlashcardRepository implements IFlashcardRepository {
     return right(flashcards);
   }
 
-  async findByQuestionContent(content: string): Promise<Either<Error, Flashcard[]>> {
+  async findByQuestionContent(
+    content: string,
+  ): Promise<Either<Error, Flashcard[]>> {
     const searchTerm = content.toLowerCase();
     const flashcards = this.items
       .filter((item) => {
@@ -67,7 +73,9 @@ export class InMemoryFlashcardRepository implements IFlashcardRepository {
     return right(flashcards);
   }
 
-  async findByAnswerContent(content: string): Promise<Either<Error, Flashcard[]>> {
+  async findByAnswerContent(
+    content: string,
+  ): Promise<Either<Error, Flashcard[]>> {
     const searchTerm = content.toLowerCase();
     const flashcards = this.items
       .filter((item) => {
@@ -79,8 +87,12 @@ export class InMemoryFlashcardRepository implements IFlashcardRepository {
     return right(flashcards);
   }
 
-  async findAll(params?: PaginationParams): Promise<Either<Error, Flashcard[]>> {
-    let flashcards = this.items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  async findAll(
+    params?: PaginationParams,
+  ): Promise<Either<Error, Flashcard[]>> {
+    let flashcards = this.items.sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
 
     if (params) {
       const start = (params.page - 1) * params.pageSize;
@@ -95,7 +107,9 @@ export class InMemoryFlashcardRepository implements IFlashcardRepository {
     limit: number,
     offset: number,
   ): Promise<Either<Error, PaginatedFlashcardsResult>> {
-    const sorted = this.items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    const sorted = this.items.sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
     const flashcards = sorted.slice(offset, offset + limit);
 
     return right({
@@ -154,13 +168,15 @@ export class InMemoryFlashcardRepository implements IFlashcardRepository {
   }
 
   async countByArgumentId(argumentId: string): Promise<Either<Error, number>> {
-    const count = this.items.filter((item) => item.argumentId.toString() === argumentId).length;
+    const count = this.items.filter(
+      (item) => item.argumentId.toString() === argumentId,
+    ).length;
     return right(count);
   }
 
   async countByTagIds(tagIds: string[]): Promise<Either<Error, number>> {
     const count = this.items.filter((item) =>
-      item.tagIds.some((tagId) => tagIds.includes(tagId.toString()))
+      item.tagIds.some((tagId) => tagIds.includes(tagId.toString())),
     ).length;
     return right(count);
   }

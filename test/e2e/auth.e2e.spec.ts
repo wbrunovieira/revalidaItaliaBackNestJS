@@ -56,9 +56,9 @@ rPmLQN7k5ePXO2++HHGLUXo7iT7JNUoD3YzGsXFjy0TJQgS7NhCGD0or0Y0EYs2v
 BnwlqCmpCRQlwY3lg3Og3a92dTQoM4NCJEoQjvBJxPHxGR2vYPCqBx8nGhpvNGeP
 vwIDAQAB
 -----END PUBLIC KEY-----`;
-    
+
     execSync('npx prisma migrate deploy', { stdio: 'inherit' });
-    
+
     // Ensure JWT env vars are set before module creation
     const { app: testApp } = await E2ETestModule.create([AppModule]);
     app = testApp;

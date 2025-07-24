@@ -6,7 +6,11 @@ export class FlashcardDifficultyLevelVO {
   }
 
   private validate(): void {
-    const validLevels: FlashcardDifficultyLevelValue[] = ['EASY', 'HARD', 'NEUTRAL'];
+    const validLevels: FlashcardDifficultyLevelValue[] = [
+      'EASY',
+      'HARD',
+      'NEUTRAL',
+    ];
     if (!validLevels.includes(this.value)) {
       throw new Error(`Invalid flashcard difficulty level: ${this.value}`);
     }

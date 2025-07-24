@@ -12,4 +12,6 @@ export const createQuestionOptionSchema = z.object({
     .uuid({ message: 'Question ID must be a valid UUID' }),
 });
 
-export type CreateQuestionOptionSchema = z.infer<typeof createQuestionOptionSchema>;
+export type CreateQuestionOptionSchema = z.infer<
+  typeof createQuestionOptionSchema
+>;

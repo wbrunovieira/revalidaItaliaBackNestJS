@@ -110,7 +110,9 @@ describe('[Unit] AttemptController - POST /:id/answers (submitAnswer)', () => {
         const attemptId = '550e8400-e29b-41d4-a716-446655440010';
         const dto =
           AttemptControllerTestData.invalidSubmitAnswerDto.invalidQuestionId();
-        const error = new InvalidInputError('Invalid input data', ['Invalid question ID format']);
+        const error = new InvalidInputError('Invalid input data', [
+          'Invalid question ID format',
+        ]);
 
         submitAnswerUseCase.execute.mockResolvedValue(left(error));
 

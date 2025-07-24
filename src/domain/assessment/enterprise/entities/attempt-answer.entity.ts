@@ -90,7 +90,11 @@ export class AttemptAnswer extends Entity<AttemptAnswerProps> {
     this.touch();
   }
 
-  public grade(isCorrect: boolean, teacherComment?: string, reviewerId?: string): void {
+  public grade(
+    isCorrect: boolean,
+    teacherComment?: string,
+    reviewerId?: string,
+  ): void {
     if (!this.status.isSubmitted() && !this.status.isGrading()) {
       throw new Error('Can only grade submitted or grading answers');
     }

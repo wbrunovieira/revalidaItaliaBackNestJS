@@ -12,7 +12,7 @@ import { DatabaseModule } from '@/infra/database/database.module';
 
 /**
  * Events Module
- * 
+ *
  * Global module that provides event dispatching infrastructure.
  * Uses NestJS EventEmitter2 for async event handling.
  */

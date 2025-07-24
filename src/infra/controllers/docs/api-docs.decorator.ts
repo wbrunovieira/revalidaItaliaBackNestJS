@@ -20,7 +20,9 @@ interface ApiDocsOptions {
  * Keeps controllers clean while maintaining comprehensive documentation
  */
 export function ApiDocs(options: ApiDocsOptions) {
-  const decorators: Array<ClassDecorator | MethodDecorator | PropertyDecorator> = [];
+  const decorators: Array<
+    ClassDecorator | MethodDecorator | PropertyDecorator
+  > = [];
 
   if (options.operation) {
     decorators.push(ApiOperation(options.operation));

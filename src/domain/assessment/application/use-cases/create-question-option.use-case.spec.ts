@@ -30,12 +30,16 @@ describe('CreateQuestionOptionUseCase', () => {
   describe('Success Cases', () => {
     it('should create a question option successfully', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
       const question = Question.create(
         {
           text: 'What is the capital of France?',
           type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-          assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440010'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440010',
+          ),
         },
         questionId,
       );
@@ -67,12 +71,16 @@ describe('CreateQuestionOptionUseCase', () => {
 
     it('should create multiple options for the same question', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
       const question = Question.create(
         {
           text: 'What is the capital of France?',
           type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-          assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440010'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440010',
+          ),
         },
         questionId,
       );
@@ -109,12 +117,16 @@ describe('CreateQuestionOptionUseCase', () => {
 
     it('should persist the question option in the repository', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
       const question = Question.create(
         {
           text: 'What is the capital of France?',
           type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-          assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440010'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440010',
+          ),
         },
         questionId,
       );
@@ -252,7 +264,9 @@ describe('CreateQuestionOptionUseCase', () => {
         {
           text: 'What is the capital of France?',
           type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-          assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440010'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440010',
+          ),
         },
         new UniqueEntityID('550e8400-e29b-41d4-a716-446655440002'),
       );
@@ -261,7 +275,9 @@ describe('CreateQuestionOptionUseCase', () => {
         {
           text: 'Explain photosynthesis',
           type: new QuestionTypeVO('OPEN'),
-          assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440010'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440010',
+          ),
         },
         new UniqueEntityID('550e8400-e29b-41d4-a716-446655440003'),
       );
@@ -309,17 +325,23 @@ describe('CreateQuestionOptionUseCase', () => {
       // Assert
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(RepositoryError);
-      expect((result.value as RepositoryError).message).toContain('Failed to fetch question');
+      expect((result.value as RepositoryError).message).toContain(
+        'Failed to fetch question',
+      );
     });
 
     it('should handle repository errors when creating question option', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
       const question = Question.create(
         {
           text: 'What is the capital of France?',
           type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-          assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440010'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440010',
+          ),
         },
         questionId,
       );
@@ -351,12 +373,16 @@ describe('CreateQuestionOptionUseCase', () => {
   describe('Edge Cases', () => {
     it('should handle text with special characters', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
       const question = Question.create(
         {
           text: 'What is the capital of France?',
           type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-          assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440010'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440010',
+          ),
         },
         questionId,
       );
@@ -374,18 +400,24 @@ describe('CreateQuestionOptionUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.questionOption.text).toBe('Pàrïs (Frânçe) - €500/m²');
+        expect(result.value.questionOption.text).toBe(
+          'Pàrïs (Frânçe) - €500/m²',
+        );
       }
     });
 
     it('should handle text at maximum length', async () => {
       // Arrange
-      const questionId = new UniqueEntityID('550e8400-e29b-41d4-a716-446655440001');
+      const questionId = new UniqueEntityID(
+        '550e8400-e29b-41d4-a716-446655440001',
+      );
       const question = Question.create(
         {
           text: 'What is the capital of France?',
           type: new QuestionTypeVO('MULTIPLE_CHOICE'),
-          assessmentId: new UniqueEntityID('550e8400-e29b-41d4-a716-446655440010'),
+          assessmentId: new UniqueEntityID(
+            '550e8400-e29b-41d4-a716-446655440010',
+          ),
         },
         questionId,
       );

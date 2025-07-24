@@ -3,7 +3,7 @@
 /**
  * Read model that aggregates data from UserIdentity, UserProfile, and UserAuthorization
  * for efficient querying across the separated aggregates.
- * 
+ *
  * This is a denormalized view optimized for read operations.
  */
 export interface UserAggregatedView {
@@ -12,7 +12,7 @@ export interface UserAggregatedView {
   email: string;
   emailVerified: boolean;
   lastLogin?: Date | null;
-  
+
   // Profile fields
   fullName: string;
   nationalId: string;
@@ -24,13 +24,13 @@ export interface UserAggregatedView {
   specialization?: string | null;
   preferredLanguage: string;
   timezone: string;
-  
+
   // Authorization fields
   role: 'admin' | 'tutor' | 'student';
   customPermissions: Array<{ resource: string; action: string }>;
   restrictions: Array<{ resource: string; reason: string }>;
   isActive: boolean;
-  
+
   // Aggregated metadata
   createdAt: Date;
   updatedAt: Date;
@@ -45,23 +45,23 @@ export interface UserAggregatedViewCriteria {
   nameContains?: string;
   nationalId?: string;
   nationalIdContains?: string;
-  
+
   // Role filters
   roles?: Array<'admin' | 'tutor' | 'student'>;
-  
+
   // Activity filters
   lastLoginAfter?: Date;
   lastLoginBefore?: Date;
   isActive?: boolean;
-  
+
   // Date filters
   createdAfter?: Date;
   createdBefore?: Date;
-  
+
   // Pagination
   page?: number;
   pageSize?: number;
-  
+
   // Sorting
   orderBy?: 'name' | 'email' | 'createdAt' | 'lastLogin' | 'role';
   orderDirection?: 'asc' | 'desc';
@@ -77,18 +77,18 @@ export interface UserAggregatedViewRepository {
     page: number;
     pageSize: number;
   }>;
-  
+
   /**
    * Find a single user by identity ID
    */
   findById(identityId: string): Promise<UserAggregatedView | null>;
-  
+
   /**
    * Rebuild the view from the source aggregates
    * This should be called when data changes in any of the source aggregates
    */
   rebuild(identityId: string): Promise<void>;
-  
+
   /**
    * Remove a user from the view
    */

@@ -61,7 +61,7 @@ export function createSwaggerConfig() {
   // Add servers from environment
   const swaggerServers = process.env.SWAGGER_SERVERS?.split(',') || [
     'http://localhost:3333',
-    'https://api.portalrevalida.com'
+    'https://api.portalrevalida.com',
   ];
 
   swaggerServers.forEach((server, index) => {

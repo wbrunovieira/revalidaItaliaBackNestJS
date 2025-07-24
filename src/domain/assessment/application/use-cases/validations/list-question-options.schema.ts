@@ -10,4 +10,6 @@ export const listQuestionOptionsSchema = z
   })
   .strict();
 
-export type ListQuestionOptionsSchema = z.infer<typeof listQuestionOptionsSchema>;
+export type ListQuestionOptionsSchema = z.infer<
+  typeof listQuestionOptionsSchema
+>;

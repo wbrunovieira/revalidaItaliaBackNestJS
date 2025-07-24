@@ -38,7 +38,9 @@ describe('GetFlashcardTagByIdUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.flashcardTag.id).toBe('550e8400-e29b-41d4-a716-446655440001');
+        expect(result.value.flashcardTag.id).toBe(
+          '550e8400-e29b-41d4-a716-446655440001',
+        );
         expect(result.value.flashcardTag.name).toBe('Farmacologia');
         expect(result.value.flashcardTag.slug).toBe('farmacologia');
         expect(result.value.flashcardTag.createdAt).toBeInstanceOf(Date);
@@ -123,7 +125,9 @@ describe('GetFlashcardTagByIdUseCase', () => {
     ])(
       'should return validation error for $request',
       async ({ request, expectedField, expectedMessage }) => {
-        const result = await useCase.execute(request as GetFlashcardTagByIdRequest);
+        const result = await useCase.execute(
+          request as GetFlashcardTagByIdRequest,
+        );
 
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
@@ -279,7 +283,9 @@ describe('GetFlashcardTagByIdUseCase', () => {
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.flashcardTag.id).toBe('ffffffff-ffff-ffff-ffff-ffffffffffff');
+        expect(result.value.flashcardTag.id).toBe(
+          'ffffffff-ffff-ffff-ffff-ffffffffffff',
+        );
       }
     });
 
@@ -302,7 +308,9 @@ describe('GetFlashcardTagByIdUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.flashcardTag.name).toBe('Tag 3');
-        expect(result.value.flashcardTag.id).toBe('550e8400-e29b-41d4-a716-446655440003');
+        expect(result.value.flashcardTag.id).toBe(
+          '550e8400-e29b-41d4-a716-446655440003',
+        );
       }
     });
 
@@ -314,7 +322,7 @@ describe('GetFlashcardTagByIdUseCase', () => {
       mockRepository.items.push(flashcardTag);
 
       // Wait a bit to ensure updatedAt will be different
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Update the tag using the update method
       flashcardTag.updateName('Updated Name');
@@ -331,7 +339,7 @@ describe('GetFlashcardTagByIdUseCase', () => {
         expect(result.value.flashcardTag.slug).toBe('updated-name');
         // Verify updatedAt was changed
         expect(result.value.flashcardTag.updatedAt.getTime()).toBeGreaterThan(
-          result.value.flashcardTag.createdAt.getTime()
+          result.value.flashcardTag.createdAt.getTime(),
         );
       }
     });

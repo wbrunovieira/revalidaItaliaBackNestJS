@@ -34,8 +34,10 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
   describe('Success Cases', () => {
     it('should submit attempt with automatic grading successfully', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
-      const expectedResponse = AttemptControllerTestData.mockSubmitAttemptResponse.autoGraded();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const expectedResponse =
+        AttemptControllerTestData.mockSubmitAttemptResponse.autoGraded();
 
       submitAttemptUseCase.execute.mockResolvedValue(right(expectedResponse));
 
@@ -51,8 +53,10 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
 
     it('should submit attempt with manual grading (open questions)', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
-      const expectedResponse = AttemptControllerTestData.mockSubmitAttemptResponse.manualGrading();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const expectedResponse =
+        AttemptControllerTestData.mockSubmitAttemptResponse.manualGrading();
 
       submitAttemptUseCase.execute.mockResolvedValue(right(expectedResponse));
 
@@ -68,8 +72,10 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
 
     it('should handle submission with partial answers', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
-      const expectedResponse = AttemptControllerTestData.mockSubmitAttemptResponse.partialAnswers();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const expectedResponse =
+        AttemptControllerTestData.mockSubmitAttemptResponse.partialAnswers();
 
       submitAttemptUseCase.execute.mockResolvedValue(right(expectedResponse));
 
@@ -87,14 +93,19 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
   describe('Error Cases - Validation', () => {
     it('should throw BadRequestException for InvalidInputError', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
-      const error = new InvalidInputError('Invalid input', ['attemptId must be a valid UUID']);
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const error = new InvalidInputError('Invalid input', [
+        'attemptId must be a valid UUID',
+      ]);
 
       submitAttemptUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(controller.submitAttempt(params)).rejects.toThrow(BadRequestException);
-      
+      await expect(controller.submitAttempt(params)).rejects.toThrow(
+        BadRequestException,
+      );
+
       try {
         await controller.submitAttempt(params);
       } catch (exception) {
@@ -110,14 +121,17 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
   describe('Error Cases - Not Found', () => {
     it('should throw NotFoundException for AttemptNotFoundError', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
       const error = new AttemptNotFoundError();
 
       submitAttemptUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(controller.submitAttempt(params)).rejects.toThrow(NotFoundException);
-      
+      await expect(controller.submitAttempt(params)).rejects.toThrow(
+        NotFoundException,
+      );
+
       try {
         await controller.submitAttempt(params);
       } catch (exception) {
@@ -130,14 +144,17 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
 
     it('should throw NotFoundException for AssessmentNotFoundError', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
       const error = new AssessmentNotFoundError();
 
       submitAttemptUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(controller.submitAttempt(params)).rejects.toThrow(NotFoundException);
-      
+      await expect(controller.submitAttempt(params)).rejects.toThrow(
+        NotFoundException,
+      );
+
       try {
         await controller.submitAttempt(params);
       } catch (exception) {
@@ -152,14 +169,17 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
   describe('Error Cases - Business Logic', () => {
     it('should throw BadRequestException for AttemptNotActiveError', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
       const error = new AttemptNotActiveError();
 
       submitAttemptUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(controller.submitAttempt(params)).rejects.toThrow(BadRequestException);
-      
+      await expect(controller.submitAttempt(params)).rejects.toThrow(
+        BadRequestException,
+      );
+
       try {
         await controller.submitAttempt(params);
       } catch (exception) {
@@ -172,14 +192,17 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
 
     it('should throw BadRequestException for NoAnswersFoundError', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
       const error = new NoAnswersFoundError();
 
       submitAttemptUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(controller.submitAttempt(params)).rejects.toThrow(BadRequestException);
-      
+      await expect(controller.submitAttempt(params)).rejects.toThrow(
+        BadRequestException,
+      );
+
       try {
         await controller.submitAttempt(params);
       } catch (exception) {
@@ -192,14 +215,17 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
 
     it('should throw BadRequestException for AttemptExpiredError', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
       const error = new AttemptExpiredError();
 
       submitAttemptUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(controller.submitAttempt(params)).rejects.toThrow(BadRequestException);
-      
+      await expect(controller.submitAttempt(params)).rejects.toThrow(
+        BadRequestException,
+      );
+
       try {
         await controller.submitAttempt(params);
       } catch (exception) {
@@ -214,14 +240,17 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
   describe('Error Cases - Infrastructure', () => {
     it('should throw InternalServerErrorException for RepositoryError', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
       const error = new RepositoryError('Database connection failed');
 
       submitAttemptUseCase.execute.mockResolvedValue(left(error));
 
       // Act & Assert
-      await expect(controller.submitAttempt(params)).rejects.toThrow(InternalServerErrorException);
-      
+      await expect(controller.submitAttempt(params)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+
       try {
         await controller.submitAttempt(params);
       } catch (exception) {
@@ -234,14 +263,17 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
 
     it('should throw InternalServerErrorException for unmapped errors', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
       const unmappedError = new Error('Some unexpected error');
 
       submitAttemptUseCase.execute.mockResolvedValue(left(unmappedError));
 
       // Act & Assert
-      await expect(controller.submitAttempt(params)).rejects.toThrow(InternalServerErrorException);
-      
+      await expect(controller.submitAttempt(params)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+
       try {
         await controller.submitAttempt(params);
       } catch (exception) {
@@ -256,8 +288,10 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
   describe('Integration with Use Case', () => {
     it('should call submit attempt use case with correct parameters', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
-      const expectedResponse = AttemptControllerTestData.mockSubmitAttemptResponse.autoGraded();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const expectedResponse =
+        AttemptControllerTestData.mockSubmitAttemptResponse.autoGraded();
 
       submitAttemptUseCase.execute.mockResolvedValue(right(expectedResponse));
 
@@ -273,8 +307,10 @@ describe('[Unit] AttemptController - POST /:id/submit (submitAttempt)', () => {
 
     it('should return the exact response from use case on success', async () => {
       // Arrange
-      const params = AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
-      const expectedResponse = AttemptControllerTestData.mockSubmitAttemptResponse.autoGraded();
+      const params =
+        AttemptControllerTestData.validSubmitAttemptParams.withActiveAttempt();
+      const expectedResponse =
+        AttemptControllerTestData.mockSubmitAttemptResponse.autoGraded();
 
       submitAttemptUseCase.execute.mockResolvedValue(right(expectedResponse));
 

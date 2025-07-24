@@ -23,7 +23,9 @@ let assessmentRepository: InMemoryAssessmentRepository;
 let userAggregatedViewRepository: InMemoryUserAggregatedViewRepository;
 
 // Helper function to create test users
-function createTestUser(overrides: Partial<UserAggregatedView> = {}): UserAggregatedView {
+function createTestUser(
+  overrides: Partial<UserAggregatedView> = {},
+): UserAggregatedView {
   const now = new Date();
   return {
     identityId: '550e8400-e29b-41d4-a716-446655440001',
@@ -82,22 +84,28 @@ describe('ListAttemptsUseCase', () => {
         role: 'student',
       });
 
-      const assessment = Assessment.create({
-        slug: 'test-assessment',
-        title: 'Test Assessment',
-        type: 'QUIZ',
-        passingScore: 70,
-        timeLimitInMinutes: 60,
-      }, new UniqueEntityID('550e8400-e29b-41d4-a716-446655440030'));
+      const assessment = Assessment.create(
+        {
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'QUIZ',
+          passingScore: 70,
+          timeLimitInMinutes: 60,
+        },
+        new UniqueEntityID('550e8400-e29b-41d4-a716-446655440030'),
+      );
 
-      const attempt = Attempt.create({
-        status: new AttemptStatusVO('SUBMITTED'),
-        score: new ScoreVO(85),
-        startedAt: new Date('2024-01-01T10:00:00Z'),
-        submittedAt: new Date('2024-01-01T11:00:00Z'),
-        identityId: '550e8400-e29b-41d4-a716-446655440020',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440030',
-      }, new UniqueEntityID('550e8400-e29b-41d4-a716-446655440040'));
+      const attempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('SUBMITTED'),
+          score: new ScoreVO(85),
+          startedAt: new Date('2024-01-01T10:00:00Z'),
+          submittedAt: new Date('2024-01-01T11:00:00Z'),
+          identityId: '550e8400-e29b-41d4-a716-446655440020',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440030',
+        },
+        new UniqueEntityID('550e8400-e29b-41d4-a716-446655440040'),
+      );
 
       await userAggregatedViewRepository.create(adminUser);
       await userAggregatedViewRepository.create(studentUser);
@@ -118,7 +126,9 @@ describe('ListAttemptsUseCase', () => {
       if (result.isRight()) {
         const response = result.value;
         expect(response.attempts).toHaveLength(1);
-        expect(response.attempts[0].id).toBe('550e8400-e29b-41d4-a716-446655440040');
+        expect(response.attempts[0].id).toBe(
+          '550e8400-e29b-41d4-a716-446655440040',
+        );
         expect(response.attempts[0].status).toBe('SUBMITTED');
         expect(response.attempts[0].score).toBe(85);
         expect(response.attempts[0].assessment.title).toBe('Test Assessment');
@@ -144,27 +154,36 @@ describe('ListAttemptsUseCase', () => {
         role: 'student',
       });
 
-      const assessment = Assessment.create({
-        slug: 'test-assessment',
-        title: 'Test Assessment',
-        type: 'QUIZ',
-        passingScore: 70,
-        timeLimitInMinutes: 60,
-      }, new UniqueEntityID('550e8400-e29b-41d4-a716-446655440030'));
+      const assessment = Assessment.create(
+        {
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'QUIZ',
+          passingScore: 70,
+          timeLimitInMinutes: 60,
+        },
+        new UniqueEntityID('550e8400-e29b-41d4-a716-446655440030'),
+      );
 
-      const studentAttempt = Attempt.create({
-        status: new AttemptStatusVO('SUBMITTED'),
-        startedAt: new Date('2024-01-01T10:00:00Z'),
-        identityId: '550e8400-e29b-41d4-a716-446655440020',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440030',
-      }, new UniqueEntityID('550e8400-e29b-41d4-a716-446655440041'));
+      const studentAttempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('SUBMITTED'),
+          startedAt: new Date('2024-01-01T10:00:00Z'),
+          identityId: '550e8400-e29b-41d4-a716-446655440020',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440030',
+        },
+        new UniqueEntityID('550e8400-e29b-41d4-a716-446655440041'),
+      );
 
-      const otherAttempt = Attempt.create({
-        status: new AttemptStatusVO('SUBMITTED'),
-        startedAt: new Date('2024-01-01T10:00:00Z'),
-        identityId: '550e8400-e29b-41d4-a716-446655440021',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440030',
-      }, new UniqueEntityID('550e8400-e29b-41d4-a716-446655440042'));
+      const otherAttempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('SUBMITTED'),
+          startedAt: new Date('2024-01-01T10:00:00Z'),
+          identityId: '550e8400-e29b-41d4-a716-446655440021',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440030',
+        },
+        new UniqueEntityID('550e8400-e29b-41d4-a716-446655440042'),
+      );
 
       await userAggregatedViewRepository.create(studentUser);
       await userAggregatedViewRepository.create(otherStudentUser);
@@ -184,8 +203,12 @@ describe('ListAttemptsUseCase', () => {
       if (result.isRight()) {
         const response = result.value;
         expect(response.attempts).toHaveLength(1);
-        expect(response.attempts[0].id).toBe('550e8400-e29b-41d4-a716-446655440041');
-        expect(response.attempts[0].identityId).toBe('550e8400-e29b-41d4-a716-446655440020');
+        expect(response.attempts[0].id).toBe(
+          '550e8400-e29b-41d4-a716-446655440041',
+        );
+        expect(response.attempts[0].identityId).toBe(
+          '550e8400-e29b-41d4-a716-446655440020',
+        );
       }
     });
 
@@ -205,27 +228,36 @@ describe('ListAttemptsUseCase', () => {
         role: 'student',
       });
 
-      const assessment = Assessment.create({
-        slug: 'test-assessment',
-        title: 'Test Assessment',
-        type: 'QUIZ',
-        passingScore: 70,
-        timeLimitInMinutes: 60,
-      }, new UniqueEntityID('550e8400-e29b-41d4-a716-446655440030'));
+      const assessment = Assessment.create(
+        {
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'QUIZ',
+          passingScore: 70,
+          timeLimitInMinutes: 60,
+        },
+        new UniqueEntityID('550e8400-e29b-41d4-a716-446655440030'),
+      );
 
-      const submittedAttempt = Attempt.create({
-        status: new AttemptStatusVO('SUBMITTED'),
-        startedAt: new Date('2024-01-01T10:00:00Z'),
-        identityId: '550e8400-e29b-41d4-a716-446655440020',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440030',
-      }, new UniqueEntityID('550e8400-e29b-41d4-a716-446655440041'));
+      const submittedAttempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('SUBMITTED'),
+          startedAt: new Date('2024-01-01T10:00:00Z'),
+          identityId: '550e8400-e29b-41d4-a716-446655440020',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440030',
+        },
+        new UniqueEntityID('550e8400-e29b-41d4-a716-446655440041'),
+      );
 
-      const inProgressAttempt = Attempt.create({
-        status: new AttemptStatusVO('IN_PROGRESS'),
-        startedAt: new Date('2024-01-01T10:00:00Z'),
-        identityId: '550e8400-e29b-41d4-a716-446655440020',
-        assessmentId: '550e8400-e29b-41d4-a716-446655440030',
-      }, new UniqueEntityID('550e8400-e29b-41d4-a716-446655440042'));
+      const inProgressAttempt = Attempt.create(
+        {
+          status: new AttemptStatusVO('IN_PROGRESS'),
+          startedAt: new Date('2024-01-01T10:00:00Z'),
+          identityId: '550e8400-e29b-41d4-a716-446655440020',
+          assessmentId: '550e8400-e29b-41d4-a716-446655440030',
+        },
+        new UniqueEntityID('550e8400-e29b-41d4-a716-446655440042'),
+      );
 
       await userAggregatedViewRepository.create(adminUser);
       await userAggregatedViewRepository.create(studentUser);
@@ -266,11 +298,14 @@ describe('ListAttemptsUseCase', () => {
         role: 'student',
       });
 
-      const assessment = Assessment.create({
-        slug: 'test-assessment',
-        title: 'Test Assessment',
-        type: 'QUIZ',
-      }, new UniqueEntityID('550e8400-e29b-41d4-a716-446655440030'));
+      const assessment = Assessment.create(
+        {
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'QUIZ',
+        },
+        new UniqueEntityID('550e8400-e29b-41d4-a716-446655440030'),
+      );
 
       const attempt = Attempt.create({
         status: new AttemptStatusVO('GRADED'),
@@ -336,11 +371,14 @@ describe('ListAttemptsUseCase', () => {
         role: 'admin',
       });
 
-      const assessment = Assessment.create({
-        slug: 'test-assessment',
-        title: 'Test Assessment',
-        type: 'QUIZ',
-      }, new UniqueEntityID());
+      const assessment = Assessment.create(
+        {
+          slug: 'test-assessment',
+          title: 'Test Assessment',
+          type: 'QUIZ',
+        },
+        new UniqueEntityID(),
+      );
 
       await userAggregatedViewRepository.create(adminUser);
       await assessmentRepository.create(assessment);
@@ -483,7 +521,10 @@ describe('ListAttemptsUseCase', () => {
     it('should handle repository error when fetching user', async () => {
       // Arrange
       const error = new Error('Database connection failed');
-      vi.spyOn(userAggregatedViewRepository, 'findByIdentityId').mockResolvedValueOnce(left(error));
+      vi.spyOn(
+        userAggregatedViewRepository,
+        'findByIdentityId',
+      ).mockResolvedValueOnce(left(error));
 
       const request: ListAttemptsRequest = {
         requesterId: '550e8400-e29b-41d4-a716-446655440000',
@@ -503,7 +544,9 @@ describe('ListAttemptsUseCase', () => {
       await userAggregatedViewRepository.create(user);
 
       const error = new Error('Database error');
-      vi.spyOn(attemptRepository, 'findWithFilters').mockResolvedValueOnce(left(error));
+      vi.spyOn(attemptRepository, 'findWithFilters').mockResolvedValueOnce(
+        left(error),
+      );
 
       const request: ListAttemptsRequest = {
         requesterId: user.identityId,
@@ -524,7 +567,9 @@ describe('ListAttemptsUseCase', () => {
       const user = createTestUser({ role: 'admin' });
       await userAggregatedViewRepository.create(user);
 
-      vi.spyOn(attemptRepository, 'findWithFilters').mockRejectedValueOnce(new Error('Unexpected error'));
+      vi.spyOn(attemptRepository, 'findWithFilters').mockRejectedValueOnce(
+        new Error('Unexpected error'),
+      );
 
       const request: ListAttemptsRequest = {
         requesterId: user.identityId,
@@ -791,9 +836,13 @@ describe('ListAttemptsUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        const quiz = result.value.attempts.find(a => a.assessment.type === 'QUIZ');
-        const simulado = result.value.attempts.find(a => a.assessment.type === 'SIMULADO');
-        
+        const quiz = result.value.attempts.find(
+          (a) => a.assessment.type === 'QUIZ',
+        );
+        const simulado = result.value.attempts.find(
+          (a) => a.assessment.type === 'SIMULADO',
+        );
+
         expect(quiz?.pendingAnswers).toBeUndefined();
         expect(simulado?.pendingAnswers).toBeUndefined();
       }
@@ -848,7 +897,9 @@ describe('ListAttemptsUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.attempts).toHaveLength(1);
-        expect(result.value.attempts[0].assessmentId).toBe(assessment1.id.toString());
+        expect(result.value.attempts[0].assessmentId).toBe(
+          assessment1.id.toString(),
+        );
       }
     });
 
@@ -904,7 +955,9 @@ describe('ListAttemptsUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.attempts).toHaveLength(1);
-        expect(result.value.attempts[0].identityId).toBe(studentUser.identityId);
+        expect(result.value.attempts[0].identityId).toBe(
+          studentUser.identityId,
+        );
       }
     });
   });

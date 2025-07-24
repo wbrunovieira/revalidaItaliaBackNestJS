@@ -22,7 +22,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
 
   beforeEach(async () => {
     await testSetup.setupTestData();
-    
+
     // Generate tokens for common users
     const tutorUser = await testSetup.findUserById(testSetup.tutorUserId);
     const studentUser = await testSetup.findUserById(testSetup.studentUserId);
@@ -48,7 +48,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Assert
       testHelpers.expectGetAttemptResultsResponse(response.body);
       testHelpers.expectQuizResults(response.body);
-      
+
       expect(response.body.attempt.id).toBe(attemptData.attemptId);
       expect(response.body.attempt.status).toBe('GRADED');
       expect(response.body.assessment.type).toBe('QUIZ');
@@ -71,14 +71,14 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Assert
       testHelpers.expectGetAttemptResultsResponse(response.body);
       testHelpers.expectSimuladoResults(response.body);
-      
+
       expect(response.body.attempt.id).toBe(attemptData.attemptId);
       expect(response.body.attempt.status).toBe('GRADED');
       expect(response.body.assessment.type).toBe('SIMULADO');
       expect(response.body.results.argumentResults).toBeDefined();
       expect(Array.isArray(response.body.results.argumentResults)).toBe(true);
       expect(response.body.results.argumentResults.length).toBeGreaterThan(0);
-      
+
       // Verify argument results structure
       const argResult = response.body.results.argumentResults[0];
       expect(argResult).toHaveProperty('argumentId');
@@ -90,7 +90,8 @@ describe('GET /attempts/:id/results (E2E)', () => {
 
     it('should return results for a completed PROVA_ABERTA attempt (fully graded)', async () => {
       // Arrange
-      const attemptData = await testHelpers.createCompletedProvaAbertaAttempt(false);
+      const attemptData =
+        await testHelpers.createCompletedProvaAbertaAttempt(false);
 
       // Act
       const response = await request(testSetup.app.getHttpServer())
@@ -101,7 +102,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Assert
       testHelpers.expectGetAttemptResultsResponse(response.body);
       testHelpers.expectProvaAbertaResults(response.body, false);
-      
+
       expect(response.body.attempt.id).toBe(attemptData.attemptId);
       expect(response.body.attempt.status).toBe('GRADED');
       expect(response.body.assessment.type).toBe('PROVA_ABERTA');
@@ -112,7 +113,8 @@ describe('GET /attempts/:id/results (E2E)', () => {
 
     it('should return results for a PROVA_ABERTA attempt with pending review', async () => {
       // Arrange
-      const attemptData = await testHelpers.createCompletedProvaAbertaAttempt(true);
+      const attemptData =
+        await testHelpers.createCompletedProvaAbertaAttempt(true);
 
       // Act
       const response = await request(testSetup.app.getHttpServer())
@@ -123,7 +125,7 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Assert
       testHelpers.expectGetAttemptResultsResponse(response.body);
       testHelpers.expectProvaAbertaResults(response.body, true);
-      
+
       expect(response.body.attempt.id).toBe(attemptData.attemptId);
       expect(response.body.attempt.status).toBe('SUBMITTED');
       expect(response.body.assessment.type).toBe('PROVA_ABERTA');
@@ -144,9 +146,9 @@ describe('GET /attempts/:id/results (E2E)', () => {
 
       // Assert
       const multipleChoiceAnswer = response.body.answers.find(
-        (answer: any) => answer.questionType === 'MULTIPLE_CHOICE'
+        (answer: any) => answer.questionType === 'MULTIPLE_CHOICE',
       );
-      
+
       expect(multipleChoiceAnswer).toBeDefined();
       expect(multipleChoiceAnswer.selectedOptionId).toBeDefined();
       expect(multipleChoiceAnswer.selectedOptionText).toBeDefined();
@@ -158,7 +160,8 @@ describe('GET /attempts/:id/results (E2E)', () => {
 
     it('should return detailed answer information for open questions', async () => {
       // Arrange
-      const attemptData = await testHelpers.createCompletedProvaAbertaAttempt(false);
+      const attemptData =
+        await testHelpers.createCompletedProvaAbertaAttempt(false);
 
       // Act
       const response = await request(testSetup.app.getHttpServer())
@@ -168,9 +171,9 @@ describe('GET /attempts/:id/results (E2E)', () => {
 
       // Assert
       const openAnswer = response.body.answers.find(
-        (answer: any) => answer.questionType === 'OPEN'
+        (answer: any) => answer.questionType === 'OPEN',
       );
-      
+
       expect(openAnswer).toBeDefined();
       expect(openAnswer.textAnswer).toBeDefined();
       expect(openAnswer.teacherComment).toBeDefined();
@@ -219,7 +222,11 @@ describe('GET /attempts/:id/results (E2E)', () => {
         .expect(404);
 
       // Assert
-      testHelpers.expectErrorResponse(response.body, 'ATTEMPT_NOT_FOUND', 'Attempt not found');
+      testHelpers.expectErrorResponse(
+        response.body,
+        'ATTEMPT_NOT_FOUND',
+        'Attempt not found',
+      );
     });
 
     it('should return 400 for attempt that is not finalized (still in progress)', async () => {
@@ -233,7 +240,11 @@ describe('GET /attempts/:id/results (E2E)', () => {
         .expect(400);
 
       // Assert
-      testHelpers.expectErrorResponse(response.body, 'ATTEMPT_NOT_FINALIZED', 'Attempt is not finalized yet');
+      testHelpers.expectErrorResponse(
+        response.body,
+        'ATTEMPT_NOT_FINALIZED',
+        'Attempt is not finalized yet',
+      );
     });
 
     it('should return 200 for attempt that is submitted but not graded yet (PROVA_ABERTA)', async () => {
@@ -323,9 +334,10 @@ describe('GET /attempts/:id/results (E2E)', () => {
       expect(results.scorePercentage).toBeDefined();
       expect(results.correctAnswers).toBeDefined();
       expect(results.totalQuestions).toBeDefined();
-      
+
       // Score percentage should match the calculated percentage
-      const expectedScore = (results.correctAnswers / results.totalQuestions) * 100;
+      const expectedScore =
+        (results.correctAnswers / results.totalQuestions) * 100;
       expect(Math.abs(results.scorePercentage - expectedScore)).toBeLessThan(1);
     });
 
@@ -342,7 +354,9 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Assert
       const { results, answers } = response.body;
       expect(results.totalQuestions).toBe(answers.length);
-      expect(results.answeredQuestions).toBeLessThanOrEqual(results.totalQuestions);
+      expect(results.answeredQuestions).toBeLessThanOrEqual(
+        results.totalQuestions,
+      );
     });
 
     it('should return correct argument results for SIMULADO', async () => {
@@ -358,19 +372,22 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // Assert
       const { results } = response.body;
       expect(results.argumentResults).toBeDefined();
-      
+
       let totalArgumentQuestions = 0;
       let totalArgumentCorrect = 0;
-      
+
       results.argumentResults.forEach((argResult: any) => {
         totalArgumentQuestions += argResult.totalQuestions;
         totalArgumentCorrect += argResult.correctAnswers;
-        
+
         // Each argument should have valid score percentage
-        const expectedPercentage = (argResult.correctAnswers / argResult.totalQuestions) * 100;
-        expect(Math.abs(argResult.scorePercentage - expectedPercentage)).toBeLessThan(1);
+        const expectedPercentage =
+          (argResult.correctAnswers / argResult.totalQuestions) * 100;
+        expect(
+          Math.abs(argResult.scorePercentage - expectedPercentage),
+        ).toBeLessThan(1);
       });
-      
+
       // Total from arguments should match overall results
       expect(totalArgumentQuestions).toBe(results.totalQuestions);
       expect(totalArgumentCorrect).toBe(results.correctAnswers);
@@ -406,7 +423,9 @@ describe('GET /attempts/:id/results (E2E)', () => {
         .expect(200);
 
       // Assert
-      expect(response.body.results.answeredQuestions).toBeLessThan(response.body.results.totalQuestions);
+      expect(response.body.results.answeredQuestions).toBeLessThan(
+        response.body.results.totalQuestions,
+      );
       expect(response.body.results.answeredQuestions).toBeGreaterThan(0);
     });
 

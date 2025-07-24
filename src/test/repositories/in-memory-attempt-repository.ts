@@ -2,7 +2,10 @@
 import { Either, left, right } from '@/core/either';
 import { PaginationParams } from '@/core/repositories/pagination-params';
 import { Attempt } from '@/domain/assessment/enterprise/entities/attempt.entity';
-import { IAttemptRepository, ListAttemptsFilters } from '@/domain/assessment/application/repositories/i-attempt.repository';
+import {
+  IAttemptRepository,
+  ListAttemptsFilters,
+} from '@/domain/assessment/application/repositories/i-attempt.repository';
 
 export class InMemoryAttemptRepository implements IAttemptRepository {
   public items: Attempt[] = [];
@@ -26,7 +29,8 @@ export class InMemoryAttemptRepository implements IAttemptRepository {
     assessmentId: string,
   ): Promise<Either<Error, Attempt[]>> {
     const attempts = this.items.filter(
-      (item) => item.identityId === identityId && item.assessmentId === assessmentId,
+      (item) =>
+        item.identityId === identityId && item.assessmentId === assessmentId,
     );
 
     // Sort by createdAt descending to match Prisma repository behavior
@@ -53,8 +57,12 @@ export class InMemoryAttemptRepository implements IAttemptRepository {
     return right(attempt);
   }
 
-  async findByIdentityId(identityId: string): Promise<Either<Error, Attempt[]>> {
-    const attempts = this.items.filter((item) => item.identityId === identityId);
+  async findByIdentityId(
+    identityId: string,
+  ): Promise<Either<Error, Attempt[]>> {
+    const attempts = this.items.filter(
+      (item) => item.identityId === identityId,
+    );
 
     // Sort by createdAt descending to match Prisma repository behavior
     attempts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -104,7 +112,8 @@ export class InMemoryAttemptRepository implements IAttemptRepository {
     assessmentId: string,
   ): Promise<Either<Error, number>> {
     const count = this.items.filter(
-      (item) => item.identityId === identityId && item.assessmentId === assessmentId,
+      (item) =>
+        item.identityId === identityId && item.assessmentId === assessmentId,
     ).length;
 
     return right(count);

@@ -94,7 +94,8 @@ export async function setupAssessmentControllerTest(): Promise<AssessmentControl
     listAssessmentsUseCase: listAssessmentsUseCaseMock as any,
     getAssessmentUseCase: getAssessmentUseCaseMock as any,
     deleteAssessmentUseCase: deleteAssessmentUseCaseMock as any,
-    listQuestionsByAssessmentUseCase: listQuestionsByAssessmentUseCaseMock as any,
+    listQuestionsByAssessmentUseCase:
+      listQuestionsByAssessmentUseCaseMock as any,
     getQuestionsDetailedUseCase: getQuestionsDetailedUseCaseMock as any,
   };
 }

@@ -2,7 +2,7 @@
 
 /**
  * Base class for implementing the Criteria Pattern
- * 
+ *
  * Provides a fluent interface for building complex queries
  * that can be translated to different persistence mechanisms
  */

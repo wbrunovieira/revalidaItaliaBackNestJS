@@ -20,7 +20,9 @@ export abstract class IAttemptRepository {
     identityId: string,
     assessmentId: string,
   ): Promise<Either<Error, Attempt>>;
-  abstract findByIdentityId(identityId: string): Promise<Either<Error, Attempt[]>>;
+  abstract findByIdentityId(
+    identityId: string,
+  ): Promise<Either<Error, Attempt[]>>;
   abstract findByAssessmentId(
     assessmentId: string,
   ): Promise<Either<Error, Attempt[]>>;

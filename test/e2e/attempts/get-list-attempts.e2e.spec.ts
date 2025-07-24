@@ -20,7 +20,8 @@ describe('GET /attempts', () => {
 
   it('should list attempts for admin user', async () => {
     // Arrange
-    const { adminUser, studentUser, assessment, attempt } = await setup.createTestData();
+    const { adminUser, studentUser, assessment, attempt } =
+      await setup.createTestData();
 
     // Act
     const response = await request(app.getHttpServer())
@@ -32,7 +33,7 @@ describe('GET /attempts', () => {
     expect(response.body).toHaveProperty('attempts');
     expect(response.body).toHaveProperty('pagination');
     expect(Array.isArray(response.body.attempts)).toBe(true);
-    
+
     if (response.body.attempts.length > 0) {
       const attemptResponse = response.body.attempts[0];
       expect(attemptResponse).toHaveProperty('id');
@@ -46,8 +47,9 @@ describe('GET /attempts', () => {
 
   it('should list only own attempts for student user', async () => {
     // Arrange
-    const { studentUser, otherStudentUser, assessment } = await setup.createTestData();
-    
+    const { studentUser, otherStudentUser, assessment } =
+      await setup.createTestData();
+
     // Create attempts for both students
     await setup.createAttemptForUser(studentUser.id, assessment.id);
     await setup.createAttemptForUser(otherStudentUser.id, assessment.id);
@@ -60,7 +62,7 @@ describe('GET /attempts', () => {
 
     // Assert
     expect(response.body.attempts).toBeDefined();
-    
+
     // All attempts should belong to the student user
     response.body.attempts.forEach((attempt: any) => {
       expect(attempt.userId).toBe(studentUser.id);
@@ -70,10 +72,18 @@ describe('GET /attempts', () => {
   it('should filter attempts by status', async () => {
     // Arrange
     const { adminUser, studentUser, assessment } = await setup.createTestData();
-    
+
     // Create attempts with different statuses
-    await setup.createAttemptWithStatus(studentUser.id, assessment.id, 'IN_PROGRESS');
-    await setup.createAttemptWithStatus(studentUser.id, assessment.id, 'SUBMITTED');
+    await setup.createAttemptWithStatus(
+      studentUser.id,
+      assessment.id,
+      'IN_PROGRESS',
+    );
+    await setup.createAttemptWithStatus(
+      studentUser.id,
+      assessment.id,
+      'SUBMITTED',
+    );
 
     // Act
     const response = await request(app.getHttpServer())
@@ -83,7 +93,7 @@ describe('GET /attempts', () => {
 
     // Assert
     expect(response.body.attempts).toBeDefined();
-    
+
     // All attempts should have SUBMITTED status
     response.body.attempts.forEach((attempt: any) => {
       expect(attempt.status).toBe('SUBMITTED');
@@ -92,8 +102,9 @@ describe('GET /attempts', () => {
 
   it('should filter attempts by userId', async () => {
     // Arrange
-    const { adminUser, studentUser, otherStudentUser, assessment } = await setup.createTestData();
-    
+    const { adminUser, studentUser, otherStudentUser, assessment } =
+      await setup.createTestData();
+
     // Create attempts for both students
     await setup.createAttemptForUser(studentUser.id, assessment.id);
     await setup.createAttemptForUser(otherStudentUser.id, assessment.id);
@@ -106,7 +117,7 @@ describe('GET /attempts', () => {
 
     // Assert
     expect(response.body.attempts).toBeDefined();
-    
+
     // All attempts should belong to the specified user
     response.body.attempts.forEach((attempt: any) => {
       expect(attempt.userId).toBe(studentUser.id);
@@ -115,8 +126,9 @@ describe('GET /attempts', () => {
 
   it('should filter attempts by assessmentId', async () => {
     // Arrange
-    const { adminUser, studentUser, assessment, otherAssessment } = await setup.createTestData();
-    
+    const { adminUser, studentUser, assessment, otherAssessment } =
+      await setup.createTestData();
+
     // Create attempts for both assessments
     await setup.createAttemptForUser(studentUser.id, assessment.id);
     await setup.createAttemptForUser(studentUser.id, otherAssessment.id);
@@ -129,7 +141,7 @@ describe('GET /attempts', () => {
 
     // Assert
     expect(response.body.attempts).toBeDefined();
-    
+
     // All attempts should belong to the specified assessment
     response.body.attempts.forEach((attempt: any) => {
       expect(attempt.assessmentId).toBe(assessment.id);
@@ -139,7 +151,7 @@ describe('GET /attempts', () => {
   it('should handle pagination', async () => {
     // Arrange
     const { adminUser, studentUser, assessment } = await setup.createTestData();
-    
+
     // Create multiple attempts
     for (let i = 0; i < 5; i++) {
       await setup.createAttemptForUser(studentUser.id, assessment.id);
@@ -162,9 +174,7 @@ describe('GET /attempts', () => {
 
   it('should return 403 for unauthenticated requests', async () => {
     // Act & Assert
-    await request(app.getHttpServer())
-      .get('/attempts')
-      .expect(403);
+    await request(app.getHttpServer()).get('/attempts').expect(403);
   });
 
   it('should return 403 when student tries to access other user attempts', async () => {

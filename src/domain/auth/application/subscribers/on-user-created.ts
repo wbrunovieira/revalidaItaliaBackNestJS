@@ -32,7 +32,7 @@ export class OnUserCreated {
     // - Create initial profile settings
     // - Log to audit system
     // - If source is 'hotmart', enroll in purchased course
-    
+
     switch (source) {
       case 'admin':
         // Admin created user - maybe send invitation email

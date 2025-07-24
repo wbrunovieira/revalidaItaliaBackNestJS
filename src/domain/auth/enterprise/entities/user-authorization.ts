@@ -66,10 +66,10 @@ export class UserAuthorization extends Entity<UserAuthorizationProps> {
 
   get isActive(): boolean {
     const now = new Date();
-    
+
     if (now < this.effectiveFrom) return false;
     if (this.effectiveUntil && now > this.effectiveUntil) return false;
-    
+
     return true;
   }
 
@@ -88,7 +88,7 @@ export class UserAuthorization extends Entity<UserAuthorizationProps> {
   hasPermission(resource: string, action: string): boolean {
     // Check if restricted
     const isRestricted = this.restrictions.some(
-      r => r.resource === resource || r.resource === '*'
+      (r) => r.resource === resource || r.resource === '*',
     );
     if (isRestricted) return false;
 
@@ -97,16 +97,18 @@ export class UserAuthorization extends Entity<UserAuthorizationProps> {
 
     // Check custom permissions
     return this.customPermissions.some(
-      p => (p.resource === resource || p.resource === '*') && 
-           (p.action === action || p.action === '*')
+      (p) =>
+        (p.resource === resource || p.resource === '*') &&
+        (p.action === action || p.action === '*'),
     );
   }
 
   addPermission(permission: Permission) {
     const exists = this.customPermissions.some(
-      p => p.resource === permission.resource && p.action === permission.action
+      (p) =>
+        p.resource === permission.resource && p.action === permission.action,
     );
-    
+
     if (!exists) {
       this.props.customPermissions.push(permission);
       this.touch();
@@ -115,16 +117,16 @@ export class UserAuthorization extends Entity<UserAuthorizationProps> {
 
   removePermission(resource: string, action: string) {
     this.props.customPermissions = this.customPermissions.filter(
-      p => !(p.resource === resource && p.action === action)
+      (p) => !(p.resource === resource && p.action === action),
     );
     this.touch();
   }
 
   addRestriction(restriction: Restriction) {
     const exists = this.restrictions.some(
-      r => r.resource === restriction.resource
+      (r) => r.resource === restriction.resource,
     );
-    
+
     if (!exists) {
       this.props.restrictions.push(restriction);
       this.touch();
@@ -133,7 +135,7 @@ export class UserAuthorization extends Entity<UserAuthorizationProps> {
 
   removeRestriction(resource: string) {
     this.props.restrictions = this.restrictions.filter(
-      r => r.resource !== resource
+      (r) => r.resource !== resource,
     );
     this.touch();
   }
@@ -148,7 +150,10 @@ export class UserAuthorization extends Entity<UserAuthorizationProps> {
   }
 
   static create(
-    props: Optional<UserAuthorizationProps, 'createdAt' | 'effectiveFrom' | 'customPermissions' | 'restrictions'>,
+    props: Optional<
+      UserAuthorizationProps,
+      'createdAt' | 'effectiveFrom' | 'customPermissions' | 'restrictions'
+    >,
     id?: UniqueEntityID,
   ) {
     // Validate role

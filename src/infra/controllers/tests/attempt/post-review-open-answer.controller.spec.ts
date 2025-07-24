@@ -359,7 +359,9 @@ describe('AttemptController - POST /attempts/answers/:id/review', () => {
 
       // Assert
       expect(result.attemptAnswer.isCorrect).toBe(body.isCorrect);
-      expect(result.attemptAnswer.teacherComment).toBe((body as any).teacherComment);
+      expect(result.attemptAnswer.teacherComment).toBe(
+        (body as any).teacherComment,
+      );
       expect(result.attemptAnswer.status).toBe('GRADED');
       expect(result.attemptStatus.allOpenQuestionsReviewed).toBeDefined();
     });

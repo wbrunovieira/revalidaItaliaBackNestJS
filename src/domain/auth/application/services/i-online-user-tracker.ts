@@ -21,7 +21,7 @@ export interface OnlineUserStats {
 
 /**
  * Interface for tracking online users
- * 
+ *
  * This service manages the state of currently logged in users,
  * tracking their activity and providing statistics.
  */
@@ -55,7 +55,10 @@ export abstract class IOnlineUserTracker {
   /**
    * Get list of online users with pagination
    */
-  abstract getOnlineUsers(page: number, pageSize: number): Promise<OnlineUserInfo[]>;
+  abstract getOnlineUsers(
+    page: number,
+    pageSize: number,
+  ): Promise<OnlineUserInfo[]>;
 
   /**
    * Check if a specific user is online

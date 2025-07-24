@@ -111,7 +111,7 @@ export class PrismaUserAuthorizationRepository
         effectiveFrom: data.effectiveFrom,
         updatedAt: data.updatedAt,
       };
-      
+
       // Only include effectiveUntil if it's not null
       if (data.effectiveUntil !== null) {
         updateData.effectiveUntil = data.effectiveUntil;
@@ -128,7 +128,7 @@ export class PrismaUserAuthorizationRepository
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
-      
+
       // Only include effectiveUntil if it's not null
       if (data.effectiveUntil !== null && data.effectiveUntil !== undefined) {
         createData.effectiveUntil = data.effectiveUntil;

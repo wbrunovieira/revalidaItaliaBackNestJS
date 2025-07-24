@@ -93,12 +93,13 @@ export function createDuplicateMapping(resource: string): ErrorMapping {
  */
 export function createBusinessRuleMapping(
   errorType: string,
-  defaultMessage?: string
+  defaultMessage?: string,
 ): ErrorMapping {
   return {
     type: errorType,
     title: 'Unprocessable Entity',
     status: HttpStatus.UNPROCESSABLE_ENTITY,
-    extractDetail: (error) => error.message || defaultMessage || 'Business rule violation',
+    extractDetail: (error) =>
+      error.message || defaultMessage || 'Business rule violation',
   };
 }

@@ -101,7 +101,6 @@ import { SignInService } from '@/infra/auth/strategies/sign-in.service';
     JwtStrategy,
     JwtAuthGuard,
     RolesGuard,
-
   ],
   exports: [
     // Export auth-related modules/services for other parts of the app

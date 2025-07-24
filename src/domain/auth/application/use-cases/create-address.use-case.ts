@@ -43,7 +43,9 @@ export class CreateAddressUseCase {
     try {
       const result = await this.addressRepo.create(addressEntity);
       if (result.isLeft()) {
-        return left(new RepositoryError(result.value.message, 'create', result.value));
+        return left(
+          new RepositoryError(result.value.message, 'create', result.value),
+        );
       }
     } catch (err: any) {
       return left(new RepositoryError(err.message, 'create', err));

@@ -899,7 +899,7 @@ describe('FindActiveUsersUseCase', () => {
       if (result.isRight()) {
         // Strings are truthy so '2' && '2' > 0 is true, Math.floor('2') = 2
         expect(result.value.page).toBe(2);
-        // Similarly, '10' && '10' > 0 is true, Math.floor('10') = 10  
+        // Similarly, '10' && '10' > 0 is true, Math.floor('10') = 10
         expect(result.value.pageSize).toBe(10);
       }
     });

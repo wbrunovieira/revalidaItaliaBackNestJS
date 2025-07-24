@@ -92,10 +92,10 @@ export class PrismaQuestionOptionRepository
   ): Promise<Either<Error, QuestionOption[]>> {
     try {
       const questionOptions = await this.prisma.questionOption.findMany({
-        where: { 
+        where: {
           questionId: {
-            in: questionIds
-          }
+            in: questionIds,
+          },
         },
         orderBy: { createdAt: 'asc' },
       });

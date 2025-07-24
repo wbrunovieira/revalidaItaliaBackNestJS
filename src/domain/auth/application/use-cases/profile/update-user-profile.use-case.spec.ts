@@ -30,14 +30,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -58,14 +61,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -85,14 +91,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -113,14 +122,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -132,7 +144,9 @@ describe('UpdateUserProfileUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.profileImageUrl).toBe('https://example.com/avatar.jpg');
+        expect(result.value.profileImageUrl).toBe(
+          'https://example.com/avatar.jpg',
+        );
       }
     });
 
@@ -140,14 +154,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -159,7 +176,9 @@ describe('UpdateUserProfileUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
-        expect(result.value.bio).toBe('Software engineer passionate about clean code');
+        expect(result.value.bio).toBe(
+          'Software engineer passionate about clean code',
+        );
       }
     });
 
@@ -167,14 +186,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -194,14 +216,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -221,14 +246,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -248,14 +276,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -275,14 +306,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -305,7 +339,9 @@ describe('UpdateUserProfileUseCase', () => {
         expect(result.value.fullName).toBe('John Updated');
         expect(result.value.phone).toBe('+1234567890');
         expect(result.value.birthDate).toEqual(new Date('1990-01-01'));
-        expect(result.value.profileImageUrl).toBe('https://example.com/avatar.jpg');
+        expect(result.value.profileImageUrl).toBe(
+          'https://example.com/avatar.jpg',
+        );
         expect(result.value.bio).toBe('Updated bio');
         expect(result.value.profession).toBe('Senior Engineer');
         expect(result.value.specialization).toBe('Cloud Architecture');
@@ -318,20 +354,23 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        phone: '+1234567890',
-        birthDate: new Date('1990-01-01'),
-        profileImageUrl: 'https://example.com/old.jpg',
-        bio: 'Old bio',
-        profession: 'Engineer',
-        specialization: 'Backend',
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          phone: '+1234567890',
+          birthDate: new Date('1990-01-01'),
+          profileImageUrl: 'https://example.com/old.jpg',
+          bio: 'Old bio',
+          profession: 'Engineer',
+          specialization: 'Backend',
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -361,14 +400,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -381,7 +423,8 @@ describe('UpdateUserProfileUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       expect(eventDispatcher.dispatchedEvents).toHaveLength(1);
-      const event = eventDispatcher.dispatchedEvents[0] as UserProfileUpdatedEvent;
+      const event = eventDispatcher
+        .dispatchedEvents[0] as UserProfileUpdatedEvent;
       expect(event.userId).toBe(identityId.toString());
       expect(event.changedFields).toContain('fullName');
       expect(event.changedFields).toContain('phone');
@@ -391,14 +434,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -416,19 +462,26 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Mock event dispatcher to throw error
-      vi.spyOn(eventDispatcher, 'dispatch').mockRejectedValueOnce(new Error('Event dispatch failed'));
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(eventDispatcher, 'dispatch').mockRejectedValueOnce(
+        new Error('Event dispatch failed'),
+      );
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
 
       // Act
       const result = await useCase.execute({
@@ -438,8 +491,11 @@ describe('UpdateUserProfileUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to dispatch profile updated event:', expect.any(Error));
-      
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Failed to dispatch profile updated event:',
+        expect.any(Error),
+      );
+
       // Cleanup
       consoleErrorSpy.mockRestore();
     });
@@ -582,7 +638,8 @@ describe('UpdateUserProfileUseCase', () => {
         if (result.value instanceof InvalidInputError) {
           expect(result.value.details).toContainEqual({
             code: 'isIn',
-            message: 'preferredLanguage must be one of the following values: pt-BR, it, es, en',
+            message:
+              'preferredLanguage must be one of the following values: pt-BR, it, es, en',
             path: ['preferredLanguage'],
           });
         }
@@ -617,14 +674,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -636,7 +696,9 @@ describe('UpdateUserProfileUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(InvalidInputError);
-        expect(result.value.message).toBe('At least one field must be provided for update');
+        expect(result.value.message).toBe(
+          'At least one field must be provided for update',
+        );
       }
     });
 
@@ -663,18 +725,23 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Mock save to fail
-      vi.spyOn(profileRepo, 'save').mockResolvedValueOnce(left(new Error('Database error')));
+      vi.spyOn(profileRepo, 'save').mockResolvedValueOnce(
+        left(new Error('Database error')),
+      );
 
       // Act
       const result = await useCase.execute({
@@ -695,7 +762,9 @@ describe('UpdateUserProfileUseCase', () => {
     it('should return RepositoryError when findById throws', async () => {
       // Arrange
       const profileId = new UniqueEntityID();
-      vi.spyOn(profileRepo, 'findById').mockRejectedValueOnce(new Error('Database error'));
+      vi.spyOn(profileRepo, 'findById').mockRejectedValueOnce(
+        new Error('Database error'),
+      );
 
       // Act
       const result = await useCase.execute({
@@ -736,7 +805,9 @@ describe('UpdateUserProfileUseCase', () => {
     it('should handle profile repository returning error', async () => {
       // Arrange
       const profileId = new UniqueEntityID();
-      vi.spyOn(profileRepo, 'findById').mockResolvedValueOnce(left(new Error('Database error')));
+      vi.spyOn(profileRepo, 'findById').mockResolvedValueOnce(
+        left(new Error('Database error')),
+      );
 
       // Act
       const result = await useCase.execute({
@@ -755,14 +826,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -783,14 +857,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -813,15 +890,18 @@ describe('UpdateUserProfileUseCase', () => {
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
       const existingDate = new Date('1990-01-01');
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        birthDate: existingDate,
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          birthDate: existingDate,
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act - Update with different date
@@ -833,7 +913,8 @@ describe('UpdateUserProfileUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       expect(eventDispatcher.dispatchedEvents).toHaveLength(1);
-      const event = eventDispatcher.dispatchedEvents[0] as UserProfileUpdatedEvent;
+      const event = eventDispatcher
+        .dispatchedEvents[0] as UserProfileUpdatedEvent;
       expect(event.changedFields).toContain('birthDate');
     });
 
@@ -841,14 +922,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       const languages = ['pt-BR', 'it', 'es', 'en'];
@@ -872,16 +956,19 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        phone: '+1234567890',
-        bio: 'Original bio',
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          phone: '+1234567890',
+          bio: 'Original bio',
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act - Only update fullName
@@ -905,14 +992,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -930,17 +1020,20 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        phone: '+1111111111',
-        bio: 'Old bio',
-        profession: 'Developer',
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          phone: '+1111111111',
+          bio: 'Old bio',
+          profession: 'Developer',
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -956,7 +1049,8 @@ describe('UpdateUserProfileUseCase', () => {
       // Assert
       expect(result.isRight()).toBe(true);
       expect(eventDispatcher.dispatchedEvents).toHaveLength(1);
-      const event = eventDispatcher.dispatchedEvents[0] as UserProfileUpdatedEvent;
+      const event = eventDispatcher
+        .dispatchedEvents[0] as UserProfileUpdatedEvent;
       expect(event.changedFields).toHaveLength(5);
       expect(event.changedFields).toContain('fullName');
       expect(event.changedFields).toContain('phone');
@@ -969,14 +1063,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -988,7 +1085,7 @@ describe('UpdateUserProfileUseCase', () => {
 
       // Assert
       expect(result.isRight()).toBe(true);
-      
+
       // Verify data from repository
       const savedProfile = await profileRepo.findById(profileId.toString());
       expect(savedProfile.isRight()).toBe(true);
@@ -1019,14 +1116,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -1065,14 +1165,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act
@@ -1094,14 +1197,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       const largeBio = 'Lorem ipsum '.repeat(40); // ~480 characters
@@ -1141,14 +1247,17 @@ describe('UpdateUserProfileUseCase', () => {
       // Arrange
       const profileId = new UniqueEntityID();
       const identityId = new UniqueEntityID();
-      const profile = UserProfile.create({
-        identityId,
-        fullName: 'John Doe',
-        nationalId: NationalId.create('12345678901'),
-        preferredLanguage: 'en',
-        timezone: 'UTC',
-        createdAt: new Date(),
-      }, profileId);
+      const profile = UserProfile.create(
+        {
+          identityId,
+          fullName: 'John Doe',
+          nationalId: NationalId.create('12345678901'),
+          preferredLanguage: 'en',
+          timezone: 'UTC',
+          createdAt: new Date(),
+        },
+        profileId,
+      );
       await profileRepo.create(profile);
 
       // Act - Valid ISO date string

@@ -5,7 +5,7 @@ import { DomainEvent } from '@/core/domain/domain-event';
 
 /**
  * Domain Event Logger
- * 
+ *
  * Infrastructure handler that logs all domain events.
  * Listens to the wildcard event 'domain.*' to capture all events.
  */
@@ -18,7 +18,7 @@ export class DomainEventLoggerHandler {
       occurredAt: event.occurredAt,
       event: event,
     });
-    
+
     // In production, you might want to:
     // - Send to an event store
     // - Send to monitoring service

@@ -5,7 +5,7 @@ import { UserCreatedEvent } from '@/domain/auth/enterprise/events/user-created.e
 
 /**
  * User Created Event Handler
- * 
+ *
  * Handles UserCreatedEvent for domain-level side effects.
  * This is where you would add domain logic that should happen
  * after a user is created (not infrastructure concerns).
@@ -15,7 +15,7 @@ export class UserCreatedHandler {
   @OnEvent(UserCreatedEvent.name)
   async handle(event: UserCreatedEvent): Promise<void> {
     const { identityId, email, fullName, role, source } = event;
-    
+
     console.log(`[Domain] User created:`, {
       userId: identityId,
       email: email,
@@ -24,7 +24,7 @@ export class UserCreatedHandler {
       source,
       occurredAt: event.occurredAt,
     });
-    
+
     // Here you could:
     // - Send welcome email (through a domain service)
     // - Initialize user preferences

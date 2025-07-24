@@ -94,7 +94,7 @@ export class GetAttemptResultsUseCase {
       }
 
       const requester = requesterResult.value;
-      
+
       // Check if requester exists
       if (!requester) {
         return left(new UserNotFoundError());
@@ -145,7 +145,7 @@ export class GetAttemptResultsUseCase {
       const correctAnswers = correctAnswersResult.value;
 
       // Get arguments if assessment is SIMULADO
-      let argumentsMap = new Map<string, Argument>();
+      const argumentsMap = new Map<string, Argument>();
       if (assessment.type === 'SIMULADO') {
         const argumentsResult =
           await this.argumentRepository.findByAssessmentId(
@@ -153,7 +153,9 @@ export class GetAttemptResultsUseCase {
           );
         if (argumentsResult.isRight()) {
           const argumentsList = argumentsResult.value;
-          argumentsList.forEach((arg) => argumentsMap.set(arg.id.toString(), arg));
+          argumentsList.forEach((arg) =>
+            argumentsMap.set(arg.id.toString(), arg),
+          );
         }
       }
 
@@ -193,10 +195,7 @@ export class GetAttemptResultsUseCase {
         assessment: {
           id: assessment.id.toString(),
           title: assessment.title,
-          type: assessment.type as
-            | 'QUIZ'
-            | 'SIMULADO'
-            | 'PROVA_ABERTA',
+          type: assessment.type,
           passingScore: assessment.passingScore,
           timeLimitInMinutes: assessment.timeLimitInMinutes,
         },
@@ -257,7 +256,8 @@ export class GetAttemptResultsUseCase {
           if (
             correctAnswer &&
             correctAnswer.correctOptionId &&
-            attemptAnswer.selectedOptionId === correctAnswer.correctOptionId.toString()
+            attemptAnswer.selectedOptionId ===
+              correctAnswer.correctOptionId.toString()
           ) {
             correctAnswersCount++;
           }
@@ -298,9 +298,10 @@ export class GetAttemptResultsUseCase {
       totalQuestions > 0
         ? Math.round((correctAnswersCount / totalQuestions) * 100)
         : 0;
-    const passed = assessment.passingScore !== undefined 
-      ? scorePercentage >= assessment.passingScore
-      : undefined;
+    const passed =
+      assessment.passingScore !== undefined
+        ? scorePercentage >= assessment.passingScore
+        : undefined;
 
     const results = {
       ...baseResults,
@@ -377,7 +378,8 @@ export class GetAttemptResultsUseCase {
             if (
               correctAnswer &&
               correctAnswer.correctOptionId &&
-              attemptAnswer.selectedOptionId === correctAnswer.correctOptionId.toString()
+              attemptAnswer.selectedOptionId ===
+                correctAnswer.correctOptionId.toString()
             ) {
               result.correctAnswers++;
             }

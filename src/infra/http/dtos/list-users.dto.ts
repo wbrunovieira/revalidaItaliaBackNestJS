@@ -5,7 +5,7 @@ import { Type } from 'class-transformer';
 
 /**
  * List Users DTO
- * 
+ *
  * Pagination parameters for listing users.
  */
 export class ListUsersDto {

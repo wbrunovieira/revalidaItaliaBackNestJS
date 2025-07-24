@@ -52,7 +52,7 @@ describe('AuthController', () => {
   beforeEach(() => {
     authenticateUserUseCase = { execute: vi.fn() };
     jwtService = { sign: vi.fn() };
-    
+
     controller = new AuthController(
       authenticateUserUseCase as any,
       jwtService as any,
@@ -168,9 +168,9 @@ describe('AuthController', () => {
       );
 
       // Act & Assert
-      await expect(
-        controller.login(dto, ipAddress, request),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(controller.login(dto, ipAddress, request)).rejects.toThrow(
+        UnauthorizedException,
+      );
 
       await expect(
         controller.login(dto, ipAddress, request),
@@ -190,9 +190,9 @@ describe('AuthController', () => {
       );
 
       // Act & Assert
-      await expect(
-        controller.login(dto, ipAddress, request),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(controller.login(dto, ipAddress, request)).rejects.toThrow(
+        UnauthorizedException,
+      );
 
       await expect(
         controller.login(dto, ipAddress, request),
@@ -208,15 +208,21 @@ describe('AuthController', () => {
       const request = createMockRequest();
 
       authenticateUserUseCase.execute.mockResolvedValue(
-        left(new InvalidInputError('Validation failed', [
-          { path: ['password'], message: 'Password too short', code: 'too_small' },
-        ])),
+        left(
+          new InvalidInputError('Validation failed', [
+            {
+              path: ['password'],
+              message: 'Password too short',
+              code: 'too_small',
+            },
+          ]),
+        ),
       );
 
       // Act & Assert
-      await expect(
-        controller.login(dto, ipAddress, request),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(controller.login(dto, ipAddress, request)).rejects.toThrow(
+        UnauthorizedException,
+      );
 
       await expect(
         controller.login(dto, ipAddress, request),
@@ -236,9 +242,9 @@ describe('AuthController', () => {
       );
 
       // Act & Assert
-      await expect(
-        controller.login(dto, ipAddress, request),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(controller.login(dto, ipAddress, request)).rejects.toThrow(
+        UnauthorizedException,
+      );
 
       await expect(
         controller.login(dto, ipAddress, request),
@@ -400,7 +406,8 @@ describe('AuthController', () => {
       // Arrange
       const dto = createValidDto();
       const mockUser = createMockUser();
-      const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+      const mockToken =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
       const ipAddress = '192.168.1.1';
       const request = createMockRequest();
 
@@ -453,7 +460,11 @@ describe('AuthController', () => {
       const request = createMockRequest();
 
       authenticateUserUseCase.execute.mockResolvedValue(
-        left(new RepositoryError('Connection to database failed on host 192.168.1.100:5432')),
+        left(
+          new RepositoryError(
+            'Connection to database failed on host 192.168.1.100:5432',
+          ),
+        ),
       );
 
       // Act & Assert
@@ -474,10 +485,20 @@ describe('AuthController', () => {
       const request = createMockRequest();
 
       authenticateUserUseCase.execute.mockResolvedValue(
-        left(new InvalidInputError('Validation failed', [
-          { path: ['email'], message: 'Invalid email format', code: 'invalid_string' },
-          { path: ['password'], message: 'Password must be at least 6 characters', code: 'too_small' },
-        ])),
+        left(
+          new InvalidInputError('Validation failed', [
+            {
+              path: ['email'],
+              message: 'Invalid email format',
+              code: 'invalid_string',
+            },
+            {
+              path: ['password'],
+              message: 'Password must be at least 6 characters',
+              code: 'too_small',
+            },
+          ]),
+        ),
       );
 
       // Act & Assert

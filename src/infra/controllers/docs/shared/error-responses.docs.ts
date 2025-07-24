@@ -1,8 +1,8 @@
 import { ApiResponseOptions } from '@nestjs/swagger';
-import { 
-  ErrorResponseDto, 
-  ValidationErrorResponseDto, 
-  ConflictErrorResponseDto 
+import {
+  ErrorResponseDto,
+  ValidationErrorResponseDto,
+  ConflictErrorResponseDto,
 } from '@/domain/auth/application/dtos/error-response.dto';
 
 /**

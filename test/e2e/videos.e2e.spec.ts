@@ -20,7 +20,7 @@ describe('VideoController (E2E)', () => {
     const { app: testApp } = await E2ETestModule.create([AppModule]);
     app = testApp;
     prisma = app.get(PrismaService);
-    
+
     // Create admin user and generate token
     const adminUser = await prisma.user.create({
       data: {
@@ -31,7 +31,7 @@ describe('VideoController (E2E)', () => {
         role: 'admin',
       },
     });
-    
+
     // Generate test JWT token
     adminToken = 'test-jwt-token';
   });
@@ -404,9 +404,15 @@ describe('VideoController (E2E)', () => {
           { locale: 'es', title: 'Single ES', description: 'Desc1 ES' },
         ],
       };
-      await request(app.getHttpServer()).post(endpoint()).set('Authorization', `Bearer ${adminToken}`).send(payload);
+      await request(app.getHttpServer())
+        .post(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(payload);
 
-      const res = await request(app.getHttpServer()).get(endpoint()).set('Authorization', `Bearer ${adminToken}`).send();
+      const res = await request(app.getHttpServer())
+        .get(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send();
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
       expect(res.body).toHaveLength(1);
@@ -422,7 +428,10 @@ describe('VideoController (E2E)', () => {
     });
 
     it('→ Success returns empty array when lesson has no video', async () => {
-      const res = await request(app.getHttpServer()).get(endpoint()).set('Authorization', `Bearer ${adminToken}`).send();
+      const res = await request(app.getHttpServer())
+        .get(endpoint())
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send();
       expect(res.status).toBe(200);
       expect(res.body).toEqual([]);
     });

@@ -15,10 +15,10 @@ const ALPHANUMERIC_ONLY_REGEX = /[^a-zA-Z0-9]/g;
 
 /**
  * NationalId Value Object
- * 
+ *
  * Generic national identification document.
  * Accepts any format to support international users.
- * 
+ *
  * @example
  * const nationalId = NationalId.create('ABC-123-XYZ');
  * console.log(nationalId.value);      // 'ABC-123-XYZ'
@@ -34,13 +34,15 @@ export class NationalId {
 
   private validate(): void {
     const trimmed = this.value.trim();
-    
+
     if (!trimmed) {
       throw new Error('National ID cannot be empty');
     }
 
     if (trimmed.length < MIN_LENGTH) {
-      throw new Error(`National ID must have at least ${MIN_LENGTH} characters`);
+      throw new Error(
+        `National ID must have at least ${MIN_LENGTH} characters`,
+      );
     }
 
     if (trimmed.length > MAX_LENGTH) {
@@ -68,7 +70,7 @@ export class NationalId {
     if (this.value.length <= MASK_VISIBLE_CHARS) {
       return '*'.repeat(this.value.length);
     }
-    
+
     const visiblePart = this.value.slice(-MASK_VISIBLE_CHARS);
     const maskedPart = '*'.repeat(this.value.length - MASK_VISIBLE_CHARS);
     return maskedPart + visiblePart;
@@ -111,7 +113,7 @@ export class NationalId {
     Object.defineProperty(instance, 'value', {
       value: value,
       writable: false,
-      configurable: false
+      configurable: false,
     });
     return instance;
   }

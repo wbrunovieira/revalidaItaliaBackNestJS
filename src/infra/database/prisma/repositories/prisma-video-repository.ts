@@ -196,12 +196,12 @@ export class PrismaVideoRepository implements IVideoRepository {
         where: { videoId: id },
         include: {
           identity: {
-            select: { 
-              id: true, 
+            select: {
+              id: true,
               email: true,
               profile: {
-                select: { fullName: true }
-              }
+                select: { fullName: true },
+              },
             },
           },
         },

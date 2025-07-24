@@ -1,6 +1,11 @@
 // src/infra/modules/stats/stats.controller.ts
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/infra/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/infra/auth/guards/roles.guard';
 import { Roles } from '@/infra/auth/decorators/roles.decorator';

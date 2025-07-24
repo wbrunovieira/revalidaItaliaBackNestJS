@@ -5,7 +5,10 @@ import { SubmitAttemptParamDto } from '@/domain/assessment/application/dtos/subm
 import { StartAttemptResponse } from '@/domain/assessment/application/dtos/start-attempt-response.dto';
 import { SubmitAnswerResponse } from '@/domain/assessment/application/dtos/submit-answer-response.dto';
 import { SubmitAttemptResponse } from '@/domain/assessment/application/dtos/submit-attempt-response.dto';
-import { GetAttemptResultsResponse, ArgumentResult } from '@/domain/assessment/application/dtos/get-attempt-results-response.dto';
+import {
+  GetAttemptResultsResponse,
+  ArgumentResult,
+} from '@/domain/assessment/application/dtos/get-attempt-results-response.dto';
 import { ReviewOpenAnswerResponse } from '@/domain/assessment/application/dtos/review-open-answer-response.dto';
 
 export class AttemptControllerTestData {
@@ -29,7 +32,7 @@ export class AttemptControllerTestData {
       identityId: 'invalid-uuid',
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
-    
+
     invalidAssessmentId: (): any => ({
       identityId: '550e8400-e29b-41d4-a716-446655440001',
       assessmentId: 'invalid-uuid',
@@ -77,32 +80,34 @@ export class AttemptControllerTestData {
     isNew: true,
   });
 
-  static readonly mockStartAttemptResponseForQuiz = (): StartAttemptResponse => ({
-    attempt: {
-      id: '550e8400-e29b-41d4-a716-446655440011',
-      status: 'IN_PROGRESS',
-      startedAt: new Date('2023-01-01T10:00:00Z'),
-      identityId: '550e8400-e29b-41d4-a716-446655440003',
-      assessmentId: '550e8400-e29b-41d4-a716-446655440004',
-      createdAt: new Date('2023-01-01T10:00:00Z'),
-      updatedAt: new Date('2023-01-01T10:00:00Z'),
-    },
-    isNew: true,
-  });
+  static readonly mockStartAttemptResponseForQuiz =
+    (): StartAttemptResponse => ({
+      attempt: {
+        id: '550e8400-e29b-41d4-a716-446655440011',
+        status: 'IN_PROGRESS',
+        startedAt: new Date('2023-01-01T10:00:00Z'),
+        identityId: '550e8400-e29b-41d4-a716-446655440003',
+        assessmentId: '550e8400-e29b-41d4-a716-446655440004',
+        createdAt: new Date('2023-01-01T10:00:00Z'),
+        updatedAt: new Date('2023-01-01T10:00:00Z'),
+      },
+      isNew: true,
+    });
 
-  static readonly mockStartAttemptResponseWithTimeLimit = (): StartAttemptResponse => ({
-    attempt: {
-      id: '550e8400-e29b-41d4-a716-446655440011',
-      status: 'IN_PROGRESS',
-      startedAt: new Date('2023-01-01T10:00:00Z'),
-      timeLimitExpiresAt: new Date('2023-01-01T12:00:00Z'), // 2 hours later
-      identityId: '550e8400-e29b-41d4-a716-446655440005',
-      assessmentId: '550e8400-e29b-41d4-a716-446655440006',
-      createdAt: new Date('2023-01-01T10:00:00Z'),
-      updatedAt: new Date('2023-01-01T10:00:00Z'),
-    },
-    isNew: true,
-  });
+  static readonly mockStartAttemptResponseWithTimeLimit =
+    (): StartAttemptResponse => ({
+      attempt: {
+        id: '550e8400-e29b-41d4-a716-446655440011',
+        status: 'IN_PROGRESS',
+        startedAt: new Date('2023-01-01T10:00:00Z'),
+        timeLimitExpiresAt: new Date('2023-01-01T12:00:00Z'), // 2 hours later
+        identityId: '550e8400-e29b-41d4-a716-446655440005',
+        assessmentId: '550e8400-e29b-41d4-a716-446655440006',
+        createdAt: new Date('2023-01-01T10:00:00Z'),
+        updatedAt: new Date('2023-01-01T10:00:00Z'),
+      },
+      isNew: true,
+    });
 
   static readonly expectedErrorResponses = {
     invalidInput: {
@@ -294,17 +299,26 @@ export class AttemptControllerTestData {
 
   createGetAttemptResultsResponse(
     assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
-    hasPendingReview = false
+    hasPendingReview = false,
   ): GetAttemptResultsResponse {
     const baseResponse = {
       attempt: {
         id: this.validAttemptId,
         status: 'GRADED' as const,
-        score: assessmentType === 'PROVA_ABERTA' && hasPendingReview ? undefined : 85.5,
+        score:
+          assessmentType === 'PROVA_ABERTA' && hasPendingReview
+            ? undefined
+            : 85.5,
         startedAt: new Date('2023-01-01T10:00:00Z'),
         submittedAt: new Date('2023-01-01T10:15:00Z'),
-        gradedAt: assessmentType === 'PROVA_ABERTA' && hasPendingReview ? undefined : new Date('2023-01-01T10:15:00Z'),
-        timeLimitExpiresAt: assessmentType === 'SIMULADO' ? new Date('2023-01-01T12:00:00Z') : undefined,
+        gradedAt:
+          assessmentType === 'PROVA_ABERTA' && hasPendingReview
+            ? undefined
+            : new Date('2023-01-01T10:15:00Z'),
+        timeLimitExpiresAt:
+          assessmentType === 'SIMULADO'
+            ? new Date('2023-01-01T12:00:00Z')
+            : undefined,
         identityId: '550e8400-e29b-41d4-a716-446655440001',
         assessmentId: '550e8400-e29b-41d4-a716-446655440002',
       },
@@ -324,7 +338,7 @@ export class AttemptControllerTestData {
 
   private createResultsByType(
     assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
-    hasPendingReview: boolean
+    hasPendingReview: boolean,
   ) {
     const baseResults = {
       totalQuestions: 10,
@@ -379,7 +393,9 @@ export class AttemptControllerTestData {
     ];
   }
 
-  private createAnswerDetails(assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA') {
+  private createAnswerDetails(
+    assessmentType: 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
+  ) {
     const baseAnswers = [
       {
         id: '650e8400-e29b-41d4-a716-446655440030',
@@ -390,7 +406,8 @@ export class AttemptControllerTestData {
         selectedOptionText: 'Aplicar conhecimentos médicos ao direito',
         correctOptionId: '550e8400-e29b-41d4-a716-446655440021',
         correctOptionText: 'Aplicar conhecimentos médicos ao direito',
-        explanation: 'A medicina legal é a aplicação dos conhecimentos médicos na resolução de questões jurídicas.',
+        explanation:
+          'A medicina legal é a aplicação dos conhecimentos médicos na resolução de questões jurídicas.',
         isCorrect: true,
         status: 'GRADED' as const,
       },
@@ -399,7 +416,8 @@ export class AttemptControllerTestData {
         questionId: '550e8400-e29b-41d4-a716-446655440023',
         questionText: 'Como tratar hipertensão arterial?',
         questionType: 'OPEN' as const,
-        textAnswer: 'O tratamento da hipertensão envolve mudanças no estilo de vida e medicamentos anti-hipertensivos.',
+        textAnswer:
+          'O tratamento da hipertensão envolve mudanças no estilo de vida e medicamentos anti-hipertensivos.',
         teacherComment: 'Resposta correta e completa.',
         submittedAt: new Date('2023-01-01T10:10:00Z'),
         reviewedAt: new Date('2023-01-01T10:15:00Z'),
@@ -409,7 +427,7 @@ export class AttemptControllerTestData {
     ];
 
     if (assessmentType === 'SIMULADO') {
-      return baseAnswers.map(answer => ({
+      return baseAnswers.map((answer) => ({
         ...answer,
         argumentId: '550e8400-e29b-41d4-a716-446655440021',
         argumentTitle: 'Clínica Médica',
@@ -482,24 +500,25 @@ export class AttemptControllerTestData {
     isCorrect: false,
   });
 
-  static readonly mockReviewOpenAnswerResponse = (): ReviewOpenAnswerResponse => ({
-    attemptAnswer: {
-      id: '550e8400-e29b-41d4-a716-446655440030',
-      attemptId: '550e8400-e29b-41d4-a716-446655440010',
-      questionId: '550e8400-e29b-41d4-a716-446655440020',
-      textAnswer: 'This is my answer to the open question.',
-      status: 'GRADED',
-      isCorrect: true,
-      teacherComment: 'Good answer with clear explanation.',
-      createdAt: new Date('2023-01-01T10:00:00Z'),
-      updatedAt: new Date('2023-01-01T12:00:00Z'),
-    },
-    attemptStatus: {
-      id: '550e8400-e29b-41d4-a716-446655440010',
-      status: 'GRADED',
-      allOpenQuestionsReviewed: true,
-    },
-  });
+  static readonly mockReviewOpenAnswerResponse =
+    (): ReviewOpenAnswerResponse => ({
+      attemptAnswer: {
+        id: '550e8400-e29b-41d4-a716-446655440030',
+        attemptId: '550e8400-e29b-41d4-a716-446655440010',
+        questionId: '550e8400-e29b-41d4-a716-446655440020',
+        textAnswer: 'This is my answer to the open question.',
+        status: 'GRADED',
+        isCorrect: true,
+        teacherComment: 'Good answer with clear explanation.',
+        createdAt: new Date('2023-01-01T10:00:00Z'),
+        updatedAt: new Date('2023-01-01T12:00:00Z'),
+      },
+      attemptStatus: {
+        id: '550e8400-e29b-41d4-a716-446655440010',
+        status: 'GRADED',
+        allOpenQuestionsReviewed: true,
+      },
+    });
 
   static readonly reviewOpenAnswerErrorResponses = {
     invalidInput: {

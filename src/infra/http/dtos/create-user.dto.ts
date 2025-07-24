@@ -4,7 +4,7 @@ import { IsString, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';
 
 /**
  * Create User DTO
- * 
+ *
  * Validates request structure at the HTTP layer.
  * Business rules validation is delegated to Value Objects in the domain.
  */

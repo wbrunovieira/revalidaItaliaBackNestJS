@@ -21,23 +21,28 @@ export class RedisLessonProgressTracker implements ILessonProgressTracker {
       ...data,
       lastUpdatedAt: data.lastUpdatedAt || new Date().toISOString(),
     });
-    
+
     await this.redis.set(key, serializedData);
   }
 
-  async getContinueLearning(userId: string): Promise<LessonProgressData | null> {
+  async getContinueLearning(
+    userId: string,
+  ): Promise<LessonProgressData | null> {
     const key = `${this.prefix}${userId}`;
     const data = await this.redis.get(key);
-    
+
     if (!data) {
       return null;
     }
-    
+
     try {
       return JSON.parse(data);
     } catch (error) {
       // Log error and return null if data is corrupted
-      console.error(`Failed to parse lesson progress for user ${userId}:`, error);
+      console.error(
+        `Failed to parse lesson progress for user ${userId}:`,
+        error,
+      );
       return null;
     }
   }

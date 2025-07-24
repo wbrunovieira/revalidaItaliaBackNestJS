@@ -57,7 +57,14 @@ describe('VideoController', () => {
       },
     };
 
-    controller = new VideoController(createUc, getUc, updateUc, listUc, deleteUc, prisma);
+    controller = new VideoController(
+      createUc,
+      getUc,
+      updateUc,
+      listUc,
+      deleteUc,
+      prisma,
+    );
   });
 
   describe('update()', () => {
@@ -68,9 +75,21 @@ describe('VideoController', () => {
       durationInSeconds: 120,
       lessonId: 'new-lesson-id',
       translations: [
-        { locale: 'pt', title: 'Título Atualizado', description: 'Descrição Atualizada' },
-        { locale: 'it', title: 'Titolo Aggiornato', description: 'Descrizione Aggiornata' },
-        { locale: 'es', title: 'Título Actualizado', description: 'Descripción Actualizada' },
+        {
+          locale: 'pt',
+          title: 'Título Atualizado',
+          description: 'Descrição Atualizada',
+        },
+        {
+          locale: 'it',
+          title: 'Titolo Aggiornato',
+          description: 'Descrizione Aggiornata',
+        },
+        {
+          locale: 'es',
+          title: 'Título Actualizado',
+          description: 'Descripción Actualizada',
+        },
       ],
     };
 
@@ -79,7 +98,12 @@ describe('VideoController', () => {
         right({ message: 'Video updated successfully' }),
       );
 
-      const result = await controller.update(courseId, lessonId, videoId, updateDto);
+      const result = await controller.update(
+        courseId,
+        lessonId,
+        videoId,
+        updateDto,
+      );
 
       expect(updateUc.execute).toHaveBeenCalledWith({
         videoId,
@@ -128,7 +152,7 @@ describe('VideoController', () => {
 
     it('→ valida nova lesson quando lessonId é fornecido', async () => {
       const updateWithNewLesson = { ...updateDto, lessonId: 'new-lesson-id' };
-      
+
       // Mock para a nova lesson
       prisma.lesson.findUnique
         .mockResolvedValueOnce({ id: lessonId, module: { courseId } }) // lesson atual
@@ -145,7 +169,7 @@ describe('VideoController', () => {
 
     it('→ lança NotFoundException se nova lesson não existir', async () => {
       const updateWithNewLesson = { ...updateDto, lessonId: 'new-lesson-id' };
-      
+
       prisma.lesson.findUnique
         .mockResolvedValueOnce({ id: lessonId, module: { courseId } }) // lesson atual existe
         .mockResolvedValueOnce(null); // nova lesson não existe
@@ -157,9 +181,11 @@ describe('VideoController', () => {
 
     it('→ lança BadRequestException em caso de InvalidInputError', async () => {
       updateUc.execute.mockResolvedValue(
-        left(new InvalidInputError('Validation failed', [
-          { path: ['slug'], message: 'Invalid slug format' },
-        ])),
+        left(
+          new InvalidInputError('Validation failed', [
+            { path: ['slug'], message: 'Invalid slug format' },
+          ]),
+        ),
       );
 
       await expect(
@@ -229,7 +255,12 @@ describe('VideoController', () => {
         right({ message: 'Video updated successfully' }),
       );
 
-      await controller.update(courseId, lessonId, videoId, updateWithNullLesson);
+      await controller.update(
+        courseId,
+        lessonId,
+        videoId,
+        updateWithNullLesson,
+      );
 
       expect(updateUc.execute).toHaveBeenCalledWith({
         videoId,

@@ -63,7 +63,7 @@ describe('ListAnswers E2E - GET /answers', () => {
 
       // Assert
       helpers.verifyListAnswersResponseFormat(response.body);
-      
+
       // All returned answers should belong to the specified question
       response.body.answers.forEach((answer: any) => {
         expect(answer.questionId).toBe(testSetup.multipleChoiceQuestionId);
@@ -86,7 +86,7 @@ describe('ListAnswers E2E - GET /answers', () => {
       expect(response.body.pagination.page).toBe(1);
       expect(response.body.pagination.limit).toBe(3);
       expect(response.body.answers.length).toBeLessThanOrEqual(3);
-      
+
       // All returned answers should belong to the specified question
       response.body.answers.forEach((answer: any) => {
         expect(answer.questionId).toBe(testSetup.openQuestionId);
@@ -95,11 +95,12 @@ describe('ListAnswers E2E - GET /answers', () => {
 
     it('should return empty list when no answers found for question filter', async () => {
       // Arrange - Create a real question but don't create any answers for it
-      const { questionId: emptyQuestionId } = await testSetup.createTestQuestionWithOptions({
-        text: 'Question with no answers for empty list test',
-        type: 'OPEN',
-        assessmentId: testSetup.provaAbertaAssessmentId,
-      });
+      const { questionId: emptyQuestionId } =
+        await testSetup.createTestQuestionWithOptions({
+          text: 'Question with no answers for empty list test',
+          type: 'OPEN',
+          assessmentId: testSetup.provaAbertaAssessmentId,
+        });
 
       const params: ListAnswersRequest = {
         questionId: emptyQuestionId,
@@ -168,7 +169,7 @@ describe('ListAnswers E2E - GET /answers', () => {
       expect(response.body.pagination.limit).toBe(5);
       expect(response.body.pagination.total).toBeGreaterThanOrEqual(15);
       expect(response.body.pagination.totalPages).toBeGreaterThanOrEqual(3);
-      
+
       if (response.body.pagination.total > 5) {
         expect(response.body.pagination.hasNext).toBe(true);
       }
@@ -181,12 +182,14 @@ describe('ListAnswers E2E - GET /answers', () => {
 
       // Assert
       helpers.verifyListAnswersResponseFormat(response.body);
-      
+
       if (response.body.answers.length > 1) {
         for (let i = 0; i < response.body.answers.length - 1; i++) {
           const currentDate = new Date(response.body.answers[i].createdAt);
           const nextDate = new Date(response.body.answers[i + 1].createdAt);
-          expect(currentDate.getTime()).toBeGreaterThanOrEqual(nextDate.getTime());
+          expect(currentDate.getTime()).toBeGreaterThanOrEqual(
+            nextDate.getTime(),
+          );
         }
       }
     });
@@ -197,7 +200,7 @@ describe('ListAnswers E2E - GET /answers', () => {
 
       // Assert
       helpers.verifyListAnswersResponseFormat(response.body);
-      
+
       if (response.body.answers.length > 0) {
         const answer = response.body.answers[0];
         expect(answer).toHaveProperty('id');
@@ -207,7 +210,7 @@ describe('ListAnswers E2E - GET /answers', () => {
         expect(answer).toHaveProperty('createdAt');
         expect(answer).toHaveProperty('updatedAt');
         expect(Array.isArray(answer.translations)).toBe(true);
-        
+
         // Check translations structure if present
         if (answer.translations.length > 0) {
           answer.translations.forEach((translation: any) => {
@@ -285,14 +288,14 @@ describe('ListAnswers E2E - GET /answers', () => {
     it('should handle decimal page parameter (converted to integer)', async () => {
       // Note: This might depend on how NestJS handles query parameter conversion
       // We test both scenarios - either it works or returns validation error
-      
+
       // Arrange - using URL params directly to test decimal handling
       const response = await helpers.listAnswers({ page: 1.5 } as any);
 
       // Act & Assert
       // Should either succeed (if converted to integer) or fail with validation error
       expect([200, 400]).toContain(response.status);
-      
+
       if (response.status === 200) {
         helpers.verifyListAnswersResponseFormat(response.body);
         // If successful, page should be converted to integer
@@ -316,7 +319,7 @@ describe('ListAnswers E2E - GET /answers', () => {
       // This test simulates database issues
       // In a real scenario, you might temporarily disconnect the database
       // For this test, we'll use a very large page number that should still work
-      
+
       // Arrange
       const params: ListAnswersRequest = {
         page: 999999,
@@ -359,13 +362,13 @@ describe('ListAnswers E2E - GET /answers', () => {
       };
 
       // Act - Make multiple concurrent requests
-      const promises = Array.from({ length: 5 }, () => 
-        helpers.listAnswersExpectSuccess(params)
+      const promises = Array.from({ length: 5 }, () =>
+        helpers.listAnswersExpectSuccess(params),
       );
       const responses = await Promise.all(promises);
 
       // Assert - All should succeed and return consistent results
-      responses.forEach(response => {
+      responses.forEach((response) => {
         helpers.verifyListAnswersResponseFormat(response.body);
         expect(response.body.pagination.page).toBe(1);
         expect(response.body.pagination.limit).toBe(5);
@@ -373,7 +376,7 @@ describe('ListAnswers E2E - GET /answers', () => {
 
       // All responses should have the same total count
       const firstTotal = responses[0].body.pagination.total;
-      responses.forEach(response => {
+      responses.forEach((response) => {
         expect(response.body.pagination.total).toBe(firstTotal);
       });
     });
@@ -389,7 +392,8 @@ describe('ListAnswers E2E - GET /answers', () => {
       };
 
       // Act
-      const firstPageResponse = await helpers.listAnswersExpectSuccess(firstPageParams);
+      const firstPageResponse =
+        await helpers.listAnswersExpectSuccess(firstPageParams);
 
       // Assert
       helpers.verifyListAnswersResponseFormat(firstPageResponse.body);
@@ -403,7 +407,8 @@ describe('ListAnswers E2E - GET /answers', () => {
       };
 
       // Act
-      const secondPageResponse = await helpers.listAnswersExpectSuccess(secondPageParams);
+      const secondPageResponse =
+        await helpers.listAnswersExpectSuccess(secondPageParams);
 
       // Assert
       helpers.verifyListAnswersResponseFormat(secondPageResponse.body);
@@ -411,9 +416,15 @@ describe('ListAnswers E2E - GET /answers', () => {
       expect(secondPageResponse.body.pagination.hasPrevious).toBe(true);
 
       // Verify no duplicate answers between pages
-      const firstPageIds = firstPageResponse.body.answers.map((answer: any) => answer.id);
-      const secondPageIds = secondPageResponse.body.answers.map((answer: any) => answer.id);
-      const intersection = firstPageIds.filter((id: string) => secondPageIds.includes(id));
+      const firstPageIds = firstPageResponse.body.answers.map(
+        (answer: any) => answer.id,
+      );
+      const secondPageIds = secondPageResponse.body.answers.map(
+        (answer: any) => answer.id,
+      );
+      const intersection = firstPageIds.filter((id: string) =>
+        secondPageIds.includes(id),
+      );
       expect(intersection).toHaveLength(0);
     });
 
@@ -451,7 +462,7 @@ describe('ListAnswers E2E - GET /answers', () => {
       await helpers.testListAnswersPerformance(
         'Default pagination',
         params,
-        1000 // 1 second max
+        1000, // 1 second max
       );
     });
 
@@ -466,7 +477,7 @@ describe('ListAnswers E2E - GET /answers', () => {
       await helpers.testListAnswersPerformance(
         'Maximum limit',
         params,
-        2000 // 2 seconds max for larger dataset
+        2000, // 2 seconds max for larger dataset
       );
     });
 
@@ -484,7 +495,7 @@ describe('ListAnswers E2E - GET /answers', () => {
       await helpers.testListAnswersPerformance(
         'Large dataset',
         params,
-        3000 // 3 seconds max for large dataset
+        3000, // 3 seconds max for large dataset
       );
     });
   });
@@ -524,12 +535,12 @@ describe('ListAnswers E2E - GET /answers', () => {
           expect(answer).toHaveProperty('translations');
           expect(answer).toHaveProperty('createdAt');
           expect(answer).toHaveProperty('updatedAt');
-          
+
           // correctOptionId is optional and depends on question type
           if (answer.correctOptionId !== undefined) {
             expect(typeof answer.correctOptionId).toBe('string');
           }
-          
+
           // Check types of required fields
           expect(typeof answer.id).toBe('string');
           expect(typeof answer.explanation).toBe('string');
@@ -547,9 +558,13 @@ describe('ListAnswers E2E - GET /answers', () => {
 
       // Assert
       response.body.answers.forEach((answer: any) => {
-        expect(answer.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-        expect(answer.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-        
+        expect(answer.createdAt).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+        );
+        expect(answer.updatedAt).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+        );
+
         // Verify dates are valid
         expect(new Date(answer.createdAt)).toBeInstanceOf(Date);
         expect(new Date(answer.updatedAt)).toBeInstanceOf(Date);
@@ -563,12 +578,13 @@ describe('ListAnswers E2E - GET /answers', () => {
       const response = await helpers.listAnswersExpectSuccess();
 
       // Assert
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
       response.body.answers.forEach((answer: any) => {
         expect(answer.id).toMatch(uuidRegex);
         expect(answer.questionId).toMatch(uuidRegex);
-        
+
         if (answer.correctOptionId) {
           expect(answer.correctOptionId).toMatch(uuidRegex);
         }

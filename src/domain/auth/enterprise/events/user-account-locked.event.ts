@@ -12,7 +12,7 @@ export class UserAccountLockedEvent extends DomainEvent {
     userId: string,
     reason: string,
     lockedUntil: Date,
-    timestamp?: Date
+    timestamp?: Date,
   ) {
     super();
     this.userId = userId;

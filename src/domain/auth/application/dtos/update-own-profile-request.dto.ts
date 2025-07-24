@@ -1,5 +1,14 @@
 // src/domain/auth/application/dtos/update-own-profile-request.dto.ts
-import { IsOptional, IsString, IsUUID, IsEmail, IsDateString, IsUrl, MinLength, MaxLength } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsEmail,
+  IsDateString,
+  IsUrl,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdateOwnProfileRequestDto {
   @IsUUID()

@@ -9,7 +9,9 @@ export class QuestionOptionTestHelpers {
   /**
    * List question options and expect success
    */
-  async listQuestionOptionsExpectSuccess(questionId: string): Promise<Response> {
+  async listQuestionOptionsExpectSuccess(
+    questionId: string,
+  ): Promise<Response> {
     const response = await request(this.testSetup.getHttpServer())
       .get(`/questions/${questionId}/options`)
       .expect(200);
@@ -25,14 +27,17 @@ export class QuestionOptionTestHelpers {
    * List question options by ID (without expectations)
    */
   async listQuestionOptionsById(questionId: string): Promise<Response> {
-    return await request(this.testSetup.getHttpServer())
-      .get(`/questions/${questionId}/options`);
+    return await request(this.testSetup.getHttpServer()).get(
+      `/questions/${questionId}/options`,
+    );
   }
 
   /**
    * List question options and expect validation error
    */
-  async listQuestionOptionsExpectValidationError(questionId: string): Promise<Response> {
+  async listQuestionOptionsExpectValidationError(
+    questionId: string,
+  ): Promise<Response> {
     const response = await request(this.testSetup.getHttpServer())
       .get(`/questions/${questionId}/options`)
       .expect(400);
@@ -46,7 +51,9 @@ export class QuestionOptionTestHelpers {
   /**
    * List question options and expect not found error
    */
-  async listQuestionOptionsExpectNotFound(questionId: string): Promise<Response> {
+  async listQuestionOptionsExpectNotFound(
+    questionId: string,
+  ): Promise<Response> {
     const response = await request(this.testSetup.getHttpServer())
       .get(`/questions/${questionId}/options`)
       .expect(404);
@@ -60,7 +67,10 @@ export class QuestionOptionTestHelpers {
   /**
    * Create question option and expect success
    */
-  async createQuestionOptionExpectSuccess(questionId: string, optionText: string): Promise<Response> {
+  async createQuestionOptionExpectSuccess(
+    questionId: string,
+    optionText: string,
+  ): Promise<Response> {
     const response = await request(this.testSetup.getHttpServer())
       .post(`/questions/${questionId}/options`)
       .send({ text: optionText })
@@ -78,7 +88,10 @@ export class QuestionOptionTestHelpers {
   /**
    * Create question option with custom payload
    */
-  async createQuestionOptionWithPayload(questionId: string, payload: any): Promise<Response> {
+  async createQuestionOptionWithPayload(
+    questionId: string,
+    payload: any,
+  ): Promise<Response> {
     return await request(this.testSetup.getHttpServer())
       .post(`/questions/${questionId}/options`)
       .send(payload);
@@ -87,7 +100,10 @@ export class QuestionOptionTestHelpers {
   /**
    * Create question option and expect validation error
    */
-  async createQuestionOptionExpectValidationError(questionId: string, payload: any): Promise<Response> {
+  async createQuestionOptionExpectValidationError(
+    questionId: string,
+    payload: any,
+  ): Promise<Response> {
     const response = await request(this.testSetup.getHttpServer())
       .post(`/questions/${questionId}/options`)
       .send(payload)
@@ -103,7 +119,10 @@ export class QuestionOptionTestHelpers {
   /**
    * Create question option and expect not found error
    */
-  async createQuestionOptionExpectNotFound(questionId: string, optionText: string): Promise<Response> {
+  async createQuestionOptionExpectNotFound(
+    questionId: string,
+    optionText: string,
+  ): Promise<Response> {
     const response = await request(this.testSetup.getHttpServer())
       .post(`/questions/${questionId}/options`)
       .send({ text: optionText })
@@ -118,7 +137,10 @@ export class QuestionOptionTestHelpers {
   /**
    * Create question option and expect duplicate error
    */
-  async createQuestionOptionExpectDuplicateError(questionId: string, optionText: string): Promise<Response> {
+  async createQuestionOptionExpectDuplicateError(
+    questionId: string,
+    optionText: string,
+  ): Promise<Response> {
     const response = await request(this.testSetup.getHttpServer())
       .post(`/questions/${questionId}/options`)
       .send({ text: optionText });
@@ -148,8 +170,12 @@ export class QuestionOptionTestHelpers {
     expect(responseBody.questionOption.updatedAt).toBeDefined();
 
     // Verify date formats
-    expect(new Date(responseBody.questionOption.createdAt)).toBeInstanceOf(Date);
-    expect(new Date(responseBody.questionOption.updatedAt)).toBeInstanceOf(Date);
+    expect(new Date(responseBody.questionOption.createdAt)).toBeInstanceOf(
+      Date,
+    );
+    expect(new Date(responseBody.questionOption.updatedAt)).toBeInstanceOf(
+      Date,
+    );
   }
 
   /**
@@ -177,8 +203,12 @@ export class QuestionOptionTestHelpers {
     questionId: string,
     optionText: string,
   ): Promise<{ createResponse: Response; listResponse: Response }> {
-    const createResponse = await this.createQuestionOptionExpectSuccess(questionId, optionText);
-    const listResponse = await this.listQuestionOptionsExpectSuccess(questionId);
+    const createResponse = await this.createQuestionOptionExpectSuccess(
+      questionId,
+      optionText,
+    );
+    const listResponse =
+      await this.listQuestionOptionsExpectSuccess(questionId);
 
     return { createResponse, listResponse };
   }
@@ -257,15 +287,19 @@ export class QuestionOptionTestHelpers {
    */
   verifyOptionsOrder(responseBody: any, expectedTexts: string[]) {
     expect(responseBody.options).toHaveLength(expectedTexts.length);
-    
+
     for (let i = 0; i < expectedTexts.length; i++) {
       expect(responseBody.options[i].text).toBe(expectedTexts[i]);
     }
 
     // Verify timestamps are in ascending order (oldest first)
     for (let i = 1; i < responseBody.options.length; i++) {
-      const prevTimestamp = new Date(responseBody.options[i - 1].createdAt).getTime();
-      const currentTimestamp = new Date(responseBody.options[i].createdAt).getTime();
+      const prevTimestamp = new Date(
+        responseBody.options[i - 1].createdAt,
+      ).getTime();
+      const currentTimestamp = new Date(
+        responseBody.options[i].createdAt,
+      ).getTime();
       expect(currentTimestamp).toBeGreaterThanOrEqual(prevTimestamp);
     }
   }
@@ -273,12 +307,18 @@ export class QuestionOptionTestHelpers {
   /**
    * Verify question option data integrity with database
    */
-  async verifyQuestionOptionDataIntegrity(questionId: string, expectedOptionsCount: number) {
-    const dbOptions = await this.testSetup.findQuestionOptionsByQuestionId(questionId);
+  async verifyQuestionOptionDataIntegrity(
+    questionId: string,
+    expectedOptionsCount: number,
+  ) {
+    const dbOptions =
+      await this.testSetup.findQuestionOptionsByQuestionId(questionId);
     expect(dbOptions).toHaveLength(expectedOptionsCount);
 
     for (const option of dbOptions) {
-      const isValid = await this.testSetup.verifyQuestionOptionDataIntegrity(option.id);
+      const isValid = await this.testSetup.verifyQuestionOptionDataIntegrity(
+        option.id,
+      );
       expect(isValid).toBe(true);
     }
   }
@@ -309,8 +349,10 @@ export class QuestionOptionTestHelpers {
     questionText: string,
     assessmentId?: string,
   ): Promise<{ questionId: string; optionIds: string[] }> {
-    const options = Array.from({ length: optionsCount }, (_, i) => 
-      `Option ${String.fromCharCode(65 + i)}: ${questionText} option ${i + 1}`
+    const options = Array.from(
+      { length: optionsCount },
+      (_, i) =>
+        `Option ${String.fromCharCode(65 + i)}: ${questionText} option ${i + 1}`,
     );
 
     return await this.testSetup.createQuestionWithOptions({
@@ -324,15 +366,19 @@ export class QuestionOptionTestHelpers {
   /**
    * Test concurrent access to list question options
    */
-  async listQuestionOptionsConcurrently(questionIds: string[]): Promise<Response[]> {
-    const promises = questionIds.map(id => this.listQuestionOptionsById(id));
+  async listQuestionOptionsConcurrently(
+    questionIds: string[],
+  ): Promise<Response[]> {
+    const promises = questionIds.map((id) => this.listQuestionOptionsById(id));
     return await Promise.all(promises);
   }
 
   /**
    * Test sequential access to list question options
    */
-  async listQuestionOptionsSequentially(questionIds: string[]): Promise<Response[]> {
+  async listQuestionOptionsSequentially(
+    questionIds: string[],
+  ): Promise<Response[]> {
     const responses: Response[] = [];
     for (const questionId of questionIds) {
       const response = await this.listQuestionOptionsById(questionId);
@@ -344,9 +390,12 @@ export class QuestionOptionTestHelpers {
   /**
    * Verify load test results
    */
-  verifyListQuestionOptionsLoadTestResults(responses: any[], expectedCount: number) {
+  verifyListQuestionOptionsLoadTestResults(
+    responses: any[],
+    expectedCount: number,
+  ) {
     expect(responses).toHaveLength(expectedCount);
-    
+
     responses.forEach((response, index) => {
       expect(response.status).toBe(200);
       expect(response.body.options).toBeDefined();
@@ -372,12 +421,17 @@ export class QuestionOptionTestHelpers {
     }
 
     // Calculate variance
-    const avg = responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length;
-    const variance = responseTimes.reduce((sum, time) => sum + Math.pow(time - avg, 2), 0) / responseTimes.length;
+    const avg =
+      responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length;
+    const variance =
+      responseTimes.reduce((sum, time) => sum + Math.pow(time - avg, 2), 0) /
+      responseTimes.length;
     const stdDev = Math.sqrt(variance);
 
     expect(stdDev).toBeLessThan(maxVariance);
-    console.log(`Response time consistency: avg=${avg.toFixed(2)}ms, stdDev=${stdDev.toFixed(2)}ms`);
+    console.log(
+      `Response time consistency: avg=${avg.toFixed(2)}ms, stdDev=${stdDev.toFixed(2)}ms`,
+    );
   }
 
   /**
@@ -387,15 +441,21 @@ export class QuestionOptionTestHelpers {
     questionText: string,
     options: string[],
     assessmentId?: string,
-  ): Promise<{ questionId: string; optionIds: string[]; listResponse: Response }> {
-    const { questionId, optionIds } = await this.testSetup.createQuestionWithOptions({
-      questionText,
-      questionType: 'MULTIPLE_CHOICE',
-      options,
-      assessmentId,
-    });
+  ): Promise<{
+    questionId: string;
+    optionIds: string[];
+    listResponse: Response;
+  }> {
+    const { questionId, optionIds } =
+      await this.testSetup.createQuestionWithOptions({
+        questionText,
+        questionType: 'MULTIPLE_CHOICE',
+        options,
+        assessmentId,
+      });
 
-    const listResponse = await this.listQuestionOptionsExpectSuccess(questionId);
+    const listResponse =
+      await this.listQuestionOptionsExpectSuccess(questionId);
 
     return { questionId, optionIds, listResponse };
   }
@@ -407,19 +467,35 @@ export class QuestionOptionTestHelpers {
     const specialContents = [
       {
         name: 'Unicode characters',
-        options: ['Opção em português', '意见 in Chinese', 'مرحبا in Arabic', 'Привет in Russian'],
+        options: [
+          'Opção em português',
+          '意见 in Chinese',
+          'مرحبا in Arabic',
+          'Привет in Russian',
+        ],
       },
       {
         name: 'Special characters',
-        options: ['Option with @#$%^&*()', 'Math symbols: ±≤≥≠≈', 'Emojis: 🎯🚀💡'],
+        options: [
+          'Option with @#$%^&*()',
+          'Math symbols: ±≤≥≠≈',
+          'Emojis: 🎯🚀💡',
+        ],
       },
       {
         name: 'Long text',
-        options: ['A'.repeat(500), 'Very long medical question option explaining complex pathophysiology concepts'],
+        options: [
+          'A'.repeat(500),
+          'Very long medical question option explaining complex pathophysiology concepts',
+        ],
       },
       {
         name: 'Mixed whitespace',
-        options: ['Option\twith\ttabs', 'Option\nwith\nnewlines', '  Option with spaces  '],
+        options: [
+          'Option\twith\ttabs',
+          'Option\nwith\nnewlines',
+          '  Option with spaces  ',
+        ],
       },
     ];
 
@@ -430,7 +506,8 @@ export class QuestionOptionTestHelpers {
         this.testSetup.quizAssessmentId,
       );
 
-      const listResponse = await this.listQuestionOptionsExpectSuccess(questionId);
+      const listResponse =
+        await this.listQuestionOptionsExpectSuccess(questionId);
 
       // Verify content is preserved
       content.options.forEach((expectedText, index) => {
@@ -474,7 +551,8 @@ export class QuestionOptionTestHelpers {
         assessmentId: testCase.assessmentId,
       });
 
-      const listResponse = await this.listQuestionOptionsExpectSuccess(questionId);
+      const listResponse =
+        await this.listQuestionOptionsExpectSuccess(questionId);
       expect(listResponse.body.options).toHaveLength(testCase.expectedCount);
 
       console.log(`✓ Question type test passed: ${testCase.type}`);
@@ -488,18 +566,19 @@ export class QuestionOptionTestHelpers {
     // Check for data consistency
     const totalOptions = await this.testSetup.prisma.questionOption.count();
     const totalQuestions = await this.testSetup.prisma.question.count();
-    
+
     // Basic sanity checks
     expect(totalOptions).toBeGreaterThanOrEqual(0);
     expect(totalQuestions).toBeGreaterThanOrEqual(0);
 
     // Verify referential integrity by checking if all questionIds exist
     if (totalOptions > 0) {
-      const distinctQuestionIds = await this.testSetup.prisma.questionOption.findMany({
-        select: { questionId: true },
-        distinct: ['questionId'],
-      });
-      
+      const distinctQuestionIds =
+        await this.testSetup.prisma.questionOption.findMany({
+          select: { questionId: true },
+          distinct: ['questionId'],
+        });
+
       for (const { questionId } of distinctQuestionIds) {
         const questionExists = await this.testSetup.prisma.question.findUnique({
           where: { id: questionId },
@@ -508,7 +587,9 @@ export class QuestionOptionTestHelpers {
       }
     }
 
-    console.log(`Database integrity verified: ${totalOptions} options, ${totalQuestions} questions`);
+    console.log(
+      `Database integrity verified: ${totalOptions} options, ${totalQuestions} questions`,
+    );
   }
 
   /**
@@ -517,7 +598,7 @@ export class QuestionOptionTestHelpers {
   verifyTextNormalization(originalText: string, retrievedText: string) {
     expect(retrievedText).toBe(originalText);
     expect(retrievedText.length).toBe(originalText.length);
-    
+
     // Verify whitespace is preserved
     if (originalText.includes('\t')) {
       expect(retrievedText).toContain('\t');

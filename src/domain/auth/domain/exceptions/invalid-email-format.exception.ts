@@ -6,19 +6,15 @@ import { BusinessRuleException } from '@/core/domain/exceptions';
  */
 export class InvalidEmailFormatException extends BusinessRuleException {
   constructor(email: string, reason?: string) {
-    const message = reason 
+    const message = reason
       ? `Invalid email format: ${reason}`
       : 'Invalid email format';
-    
-    super(
-      message,
-      'USER.EMAIL.INVALID_FORMAT',
-      { 
-        email,
-        reason,
-        pattern: 'user@example.com'
-      }
-    );
+
+    super(message, 'USER.EMAIL.INVALID_FORMAT', {
+      email,
+      reason,
+      pattern: 'user@example.com',
+    });
   }
 
   static empty(): InvalidEmailFormatException {
@@ -27,15 +23,18 @@ export class InvalidEmailFormatException extends BusinessRuleException {
 
   static invalidPattern(email: string): InvalidEmailFormatException {
     return new InvalidEmailFormatException(
-      email, 
-      'Email must be in format user@domain.com'
+      email,
+      'Email must be in format user@domain.com',
     );
   }
 
-  static tooLong(email: string, maxLength: number): InvalidEmailFormatException {
+  static tooLong(
+    email: string,
+    maxLength: number,
+  ): InvalidEmailFormatException {
     return new InvalidEmailFormatException(
       email,
-      `Email must not exceed ${maxLength} characters`
+      `Email must not exceed ${maxLength} characters`,
     );
   }
 }

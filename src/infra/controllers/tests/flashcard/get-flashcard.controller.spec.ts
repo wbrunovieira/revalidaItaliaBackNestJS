@@ -1,6 +1,10 @@
 // src/infra/controllers/tests/flashcard/get-flashcard.controller.spec.ts
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { FlashcardControllerTestSetup } from './shared/flashcard-controller-test-setup';
 import { FlashcardControllerTestData } from './shared/flashcard-controller-test-data';
 import { InvalidInputError } from '@/domain/flashcard/application/use-cases/errors/invalid-input-error';
@@ -27,7 +31,8 @@ describe('FlashcardController - GET /flashcards/:id', () => {
     it('should get a flashcard by ID without filters', async () => {
       // Arrange
       const flashcardId = '550e8400-e29b-41d4-a716-446655440000';
-      const expectedResponse = FlashcardControllerTestData.getByIdResponses.withoutTags();
+      const expectedResponse =
+        FlashcardControllerTestData.getByIdResponses.withoutTags();
       setup.mockGetFlashcardByIdSuccess(expectedResponse);
 
       // Act
@@ -51,7 +56,8 @@ describe('FlashcardController - GET /flashcards/:id', () => {
     it('should get a flashcard with tags when includeTags is true', async () => {
       // Arrange
       const flashcardId = '550e8400-e29b-41d4-a716-446655440000';
-      const expectedResponse = FlashcardControllerTestData.getByIdResponses.withTags();
+      const expectedResponse =
+        FlashcardControllerTestData.getByIdResponses.withTags();
       setup.mockGetFlashcardByIdSuccess(expectedResponse);
 
       // Act
@@ -77,7 +83,8 @@ describe('FlashcardController - GET /flashcards/:id', () => {
     it('should handle all filters set to true', async () => {
       // Arrange
       const flashcardId = '550e8400-e29b-41d4-a716-446655440000';
-      const expectedResponse = FlashcardControllerTestData.getByIdResponses.withTags();
+      const expectedResponse =
+        FlashcardControllerTestData.getByIdResponses.withTags();
       setup.mockGetFlashcardByIdSuccess(expectedResponse);
 
       // Act
@@ -105,7 +112,8 @@ describe('FlashcardController - GET /flashcards/:id', () => {
     it('should handle all filters set to false', async () => {
       // Arrange
       const flashcardId = '550e8400-e29b-41d4-a716-446655440000';
-      const expectedResponse = FlashcardControllerTestData.getByIdResponses.withoutTags();
+      const expectedResponse =
+        FlashcardControllerTestData.getByIdResponses.withoutTags();
       setup.mockGetFlashcardByIdSuccess(expectedResponse);
 
       // Act
@@ -217,7 +225,8 @@ describe('FlashcardController - GET /flashcards/:id', () => {
     it('should handle empty query object', async () => {
       // Arrange
       const flashcardId = '550e8400-e29b-41d4-a716-446655440000';
-      const expectedResponse = FlashcardControllerTestData.getByIdResponses.withoutTags();
+      const expectedResponse =
+        FlashcardControllerTestData.getByIdResponses.withoutTags();
       setup.mockGetFlashcardByIdSuccess(expectedResponse);
 
       // Act
@@ -233,7 +242,8 @@ describe('FlashcardController - GET /flashcards/:id', () => {
     it('should handle mixed filter values', async () => {
       // Arrange
       const flashcardId = '550e8400-e29b-41d4-a716-446655440000';
-      const expectedResponse = FlashcardControllerTestData.getByIdResponses.withTags();
+      const expectedResponse =
+        FlashcardControllerTestData.getByIdResponses.withTags();
       setup.mockGetFlashcardByIdSuccess(expectedResponse);
 
       // Act

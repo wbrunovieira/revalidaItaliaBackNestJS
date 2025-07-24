@@ -75,7 +75,7 @@ export class RedisOnlineUserTracker implements IOnlineUserTracker {
     // Update last activity in user info
     const userInfoKey = `${this.USER_INFO_PREFIX}${userId}`;
     pipeline.hset(userInfoKey, 'lastActivity', new Date().toISOString());
-    
+
     // Refresh expiration
     pipeline.expire(userInfoKey, this.INACTIVE_THRESHOLD_SECONDS);
 
@@ -94,7 +94,9 @@ export class RedisOnlineUserTracker implements IOnlineUserTracker {
     const totalOnline = await this.redis.zcard(this.SORTED_SET_KEY);
 
     // Count recent logins
-    const recentLoginKeys = await this.redis.keys(`${this.RECENT_LOGIN_PREFIX}*`);
+    const recentLoginKeys = await this.redis.keys(
+      `${this.RECENT_LOGIN_PREFIX}*`,
+    );
     const recentLogins = recentLoginKeys.length;
 
     // TODO: To get usersByRole, we would need to store role in user info
@@ -110,14 +112,21 @@ export class RedisOnlineUserTracker implements IOnlineUserTracker {
     };
   }
 
-  async getOnlineUsers(page: number, pageSize: number): Promise<OnlineUserInfo[]> {
+  async getOnlineUsers(
+    page: number,
+    pageSize: number,
+  ): Promise<OnlineUserInfo[]> {
     await this.cleanupInactiveUsers();
 
     const start = (page - 1) * pageSize;
     const stop = start + pageSize - 1;
 
     // Get user IDs sorted by last activity (newest first)
-    const userIds = await this.redis.zrevrange(this.SORTED_SET_KEY, start, stop);
+    const userIds = await this.redis.zrevrange(
+      this.SORTED_SET_KEY,
+      start,
+      stop,
+    );
 
     if (userIds.length === 0) {
       return [];
@@ -155,7 +164,7 @@ export class RedisOnlineUserTracker implements IOnlineUserTracker {
 
   async isUserOnline(userId: string): Promise<boolean> {
     const score = await this.redis.zscore(this.SORTED_SET_KEY, userId);
-    
+
     if (!score) {
       return false;
     }
@@ -175,7 +184,7 @@ export class RedisOnlineUserTracker implements IOnlineUserTracker {
 
   async cleanupInactiveUsers(): Promise<number> {
     const now = Date.now();
-    const threshold = now - (this.INACTIVE_THRESHOLD_SECONDS * 1000);
+    const threshold = now - this.INACTIVE_THRESHOLD_SECONDS * 1000;
 
     // Get inactive user IDs
     const inactiveUserIds = await this.redis.zrangebyscore(

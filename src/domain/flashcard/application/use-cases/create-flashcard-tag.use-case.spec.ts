@@ -116,22 +116,27 @@ describe('CreateFlashcardTagUseCase', () => {
       {
         request: { name: 'Valid Name', slug: 'Invalid-SLUG' },
         expectedField: 'slug',
-        expectedMessage: 'Slug must contain only lowercase letters, numbers, and hyphens',
+        expectedMessage:
+          'Slug must contain only lowercase letters, numbers, and hyphens',
       },
       {
         request: { name: 'Valid Name', slug: 'invalid slug' },
         expectedField: 'slug',
-        expectedMessage: 'Slug must contain only lowercase letters, numbers, and hyphens',
+        expectedMessage:
+          'Slug must contain only lowercase letters, numbers, and hyphens',
       },
       {
         request: { name: 'Valid Name', slug: 'invalid_slug' },
         expectedField: 'slug',
-        expectedMessage: 'Slug must contain only lowercase letters, numbers, and hyphens',
+        expectedMessage:
+          'Slug must contain only lowercase letters, numbers, and hyphens',
       },
     ])(
       'should return validation error for $request',
       async ({ request, expectedField, expectedMessage }) => {
-        const result = await useCase.execute(request as CreateFlashcardTagRequest);
+        const result = await useCase.execute(
+          request as CreateFlashcardTagRequest,
+        );
 
         expect(result.isLeft()).toBe(true);
         if (result.isLeft()) {
@@ -174,7 +179,9 @@ describe('CreateFlashcardTagUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(DuplicateFlashcardTagError);
-        expect(result.value.message).toBe('FlashcardTag with this name already exists');
+        expect(result.value.message).toBe(
+          'FlashcardTag with this name already exists',
+        );
       }
 
       expect(mockRepository.items).toHaveLength(1); // Only the original tag
@@ -197,7 +204,10 @@ describe('CreateFlashcardTagUseCase', () => {
     });
 
     it('should return error when custom slug already exists', async () => {
-      const existingTag = FlashcardTag.create({ name: 'Existing Tag', slug: 'custom-slug' });
+      const existingTag = FlashcardTag.create({
+        name: 'Existing Tag',
+        slug: 'custom-slug',
+      });
       mockRepository.items.push(existingTag);
 
       const request: CreateFlashcardTagRequest = {
@@ -355,7 +365,9 @@ describe('CreateFlashcardTagUseCase', () => {
       expect(result2.isRight()).toBe(true);
 
       if (result1.isRight() && result2.isRight()) {
-        expect(result1.value.flashcardTag.slug).not.toBe(result2.value.flashcardTag.slug);
+        expect(result1.value.flashcardTag.slug).not.toBe(
+          result2.value.flashcardTag.slug,
+        );
       }
     });
   });
