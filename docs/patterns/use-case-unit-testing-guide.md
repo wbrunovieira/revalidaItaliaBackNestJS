@@ -22,6 +22,7 @@ When tests fail, **ALWAYS** fix the system implementation to make the tests pass
 ### Basic Test Suite Organization
 
 ```typescript
+// src/domain/auth/application/use-cases/profile/create-user.use-case.spec.ts
 describe('CreateUserUseCase', () => {
   // Setup
   let identityRepo: InMemoryUserIdentityRepository;
@@ -462,7 +463,20 @@ After implementing tests, verify coverage across these dimensions:
 
 ## Best Practices
 
-### 1. **Use In-Memory Implementations**
+### 1. **Always Include File Path Comment**
+Every test file must start with a comment indicating its path in the project structure:
+
+```typescript
+// src/domain/auth/application/use-cases/profile/delete-user.use-case.spec.ts
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+```
+
+This helps with:
+- Quick navigation in large codebases
+- Understanding the file structure
+- Maintaining consistency across all test files
+
+### 2. **Use In-Memory Implementations**
 Always use in-memory repository implementations for unit tests to ensure fast, isolated tests.
 
 ### 2. **Test Data Builders**
