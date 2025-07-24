@@ -12,25 +12,12 @@ import {
 } from '@/core/domain/events/i-event-dispatcher';
 import { UserLoggedInEvent } from '@/domain/auth/enterprise/events/user-logged-in.event';
 import { EmailVerificationFactory } from '@/domain/auth/domain/services/email-verification.factory';
-
-export interface AuthenticateUserRequest {
-  email: string;
-  password: string;
-  ipAddress?: string;
-  userAgent?: string;
-}
-
-export interface AuthenticateUserResponse {
-  identityId: string;
-  email: string;
-  fullName: string;
-  role: string;
-  profileImageUrl?: string | null;
-}
+import { AuthenticateUserRequestDto } from '../../dtos/authenticate-user-request.dto';
+import { AuthenticateUserResponseDto } from '../../dtos/authenticate-user-response.dto';
 
 export type AuthenticateUserResult = Either<
   AuthenticationError,
-  { user: AuthenticateUserResponse }
+  AuthenticateUserResponseDto
 >;
 
 @Injectable()
@@ -47,9 +34,9 @@ export class AuthenticateUserUseCase {
   ) {}
 
   async execute(
-    req: AuthenticateUserRequest,
+    request: AuthenticateUserRequestDto,
   ): Promise<AuthenticateUserResult> {
-    const { email, password } = req;
+    const { email, password } = request;
 
     // Create Email VO - it validates the format
     let emailVO: Email;
@@ -123,14 +110,14 @@ export class AuthenticateUserUseCase {
     }
 
     // Dispatch login event
-    if (req.ipAddress && req.userAgent) {
+    if (request.ipAddress && request.userAgent) {
       try {
         await this.eventDispatcher.dispatch(
           new UserLoggedInEvent(
             identity.id.toString(),
             identity.email.value,
-            req.ipAddress,
-            req.userAgent,
+            request.ipAddress,
+            request.userAgent,
             new Date(),
           ),
         );
