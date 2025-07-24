@@ -19,13 +19,15 @@ import { ListDocumentsUseCase } from '@/domain/course-catalog/application/use-ca
 import { GetDocumentUseCase } from '@/domain/course-catalog/application/use-cases/get-document.use-case';
 import { DeleteDocumentUseCase } from '@/domain/course-catalog/application/use-cases/delete-document.use-case';
 import { CreateDocumentRequest } from '@/domain/course-catalog/application/dtos/create-document-request.dto';
-import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
-import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
-import { DuplicateDocumentError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-document-error';
+import {
+  InvalidInputError,
+  LessonNotFoundError,
+  DuplicateDocumentError,
+  InvalidFileError,
+  RepositoryError,
+} from '@/domain/course-catalog/domain/exceptions';
 import { DocumentNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/document-not-found-error';
 import { DocumentHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/document-has-dependencies-error';
-import { InvalidFileError } from '@/domain/course-catalog/application/use-cases/errors/invalid-file-error';
-import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 import { UpdateDocumentUseCase } from '@/domain/course-catalog/application/use-cases/update-document.use-case';
 import { UpdateDocumentRequest } from '@/domain/course-catalog/application/dtos/update-document-request.dto';
 import { DocumentResponseDto } from '@/domain/course-catalog/application/dtos/document-response.dto';

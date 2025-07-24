@@ -13,13 +13,15 @@ import { ListDocumentsUseCase } from '@/domain/course-catalog/application/use-ca
 import { GetDocumentUseCase } from '@/domain/course-catalog/application/use-cases/get-document.use-case';
 import { DeleteDocumentUseCase } from '@/domain/course-catalog/application/use-cases/delete-document.use-case';
 import { UpdateDocumentUseCase } from '@/domain/course-catalog/application/use-cases/update-document.use-case';
-import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
-import { LessonNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/lesson-not-found-error';
-import { DuplicateDocumentError } from '@/domain/course-catalog/application/use-cases/errors/duplicate-document-error';
+import {
+  InvalidInputError,
+  LessonNotFoundError,
+  DuplicateDocumentError,
+  InvalidFileError,
+  RepositoryError,
+} from '@/domain/course-catalog/domain/exceptions';
 import { DocumentNotFoundError } from '@/domain/course-catalog/application/use-cases/errors/document-not-found-error';
 import { DocumentHasDependenciesError } from '@/domain/course-catalog/application/use-cases/errors/document-has-dependencies-error';
-import { InvalidFileError } from '@/domain/course-catalog/application/use-cases/errors/invalid-file-error';
-import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 import { right, left } from '@/core/either';
 import { CreateDocumentRequest } from '@/domain/course-catalog/application/dtos/create-document-request.dto';
 import { UpdateDocumentRequest } from '@/domain/course-catalog/application/dtos/update-document-request.dto';
@@ -108,12 +110,15 @@ describe('DocumentController', () => {
 
   describe('create()', () => {
     const body: Omit<CreateDocumentRequest, 'lessonId'> = {
-      url: 'http://example.com/doc.pdf',
       filename: 'document.pdf',
-      fileSize: 1024,
-      mimeType: 'application/pdf',
-      isDownloadable: true,
-      translations: [],
+      translations: [
+        {
+          locale: 'pt',
+          title: 'Test Document',
+          description: 'A test document',
+          url: 'http://example.com/doc.pdf',
+        },
+      ],
     };
 
     it('returns created document payload when successful', async () => {
@@ -169,20 +174,67 @@ describe('DocumentController', () => {
 
     it('throws ConflictException on DuplicateDocumentError', async () => {
       vi.mocked(createUc.execute).mockResolvedValueOnce(
-        left(new DuplicateDocumentError()),
+        left(new DuplicateDocumentError('document.pdf')),
       );
       await expect(controller.create(lessonId, body)).rejects.toBeInstanceOf(
         ConflictException,
       );
     });
 
-    it('throws InternalServerErrorException on other errors', async () => {
+    it('throws InternalServerErrorException on RepositoryError', async () => {
       vi.mocked(createUc.execute).mockResolvedValueOnce(
-        left(new Error('unknown')),
+        left(new RepositoryError('database error')),
       );
       await expect(controller.create(lessonId, body)).rejects.toBeInstanceOf(
         InternalServerErrorException,
       );
+    });
+
+    it('handles creation with multiple translations', async () => {
+      const bodyWithMultipleTranslations = {
+        filename: 'multi-lang.pdf',
+        translations: [
+          {
+            locale: 'pt' as const,
+            title: 'Documento Português',
+            description: 'Descrição em português',
+            url: 'http://example.com/pt-doc.pdf',
+          },
+          {
+            locale: 'it' as const,
+            title: 'Documento Italiano',
+            description: 'Descrizione in italiano',
+            url: 'http://example.com/it-doc.pdf',
+          },
+          {
+            locale: 'es' as const,
+            title: 'Documento Español',
+            description: 'Descripción en español',
+            url: 'http://example.com/es-doc.pdf',
+          },
+        ],
+      };
+
+      const mockMultiTranslations = [
+        { locale: 'pt', title: 'Documento Português', description: 'Descrição em português', url: 'http://example.com/pt-doc.pdf' },
+        { locale: 'it', title: 'Documento Italiano', description: 'Descrizione in italiano', url: 'http://example.com/it-doc.pdf' },
+        { locale: 'es', title: 'Documento Español', description: 'Descripción en español', url: 'http://example.com/es-doc.pdf' },
+      ];
+
+      vi.mocked(createUc.execute).mockResolvedValueOnce(
+        right({ document: mockDocument, translations: mockMultiTranslations }),
+      );
+
+      const result = await controller.create(lessonId, bodyWithMultipleTranslations);
+
+      expect(createUc.execute).toHaveBeenCalledWith({ 
+        ...bodyWithMultipleTranslations, 
+        lessonId 
+      });
+      expect(result.translations).toHaveLength(3);
+      expect(result.translations[0].locale).toBe('pt');
+      expect(result.translations[1].locale).toBe('it');
+      expect(result.translations[2].locale).toBe('es');
     });
   });
 
@@ -217,8 +269,10 @@ describe('DocumentController', () => {
       );
     });
 
-    it('throws InternalServerErrorException on other errors', async () => {
-      vi.mocked(listUc.execute).mockResolvedValueOnce(left(new Error('fail')));
+    it('throws InternalServerErrorException on RepositoryError', async () => {
+      vi.mocked(listUc.execute).mockResolvedValueOnce(
+        left(new RepositoryError('database error')),
+      );
       await expect(controller.findAll(lessonId)).rejects.toBeInstanceOf(
         InternalServerErrorException,
       );
@@ -347,11 +401,8 @@ describe('DocumentController', () => {
   });
 
   describe('update()', () => {
-    const updateBody: Omit<UpdateDocumentRequest, 'id' | 'lessonId'> = {
+    const updateBody: Omit<UpdateDocumentRequest, 'id'> = {
       filename: 'updated-document.pdf',
-      fileSize: 2048,
-      mimeType: 'application/pdf',
-      isDownloadable: false,
       translations: [
         {
           locale: 'pt',
@@ -382,20 +433,13 @@ describe('DocumentController', () => {
       const result = await controller.update(lessonId, documentId, updateBody);
 
       expect(updateUc.execute).toHaveBeenCalledWith({
-        ...updateBody,
         id: documentId,
+        ...updateBody,
       });
       expect(result).toEqual({
         document: {
           id: documentId,
-          url: 'http://example.com/updated-doc.pdf',
           filename: 'updated-document.pdf',
-          title: 'Documento Atualizado',
-          fileSize: 2048,
-          fileSizeInMB: 0.002,
-          mimeType: 'application/pdf',
-          isDownloadable: false,
-          downloadCount: 0,
           createdAt: expect.any(Date),
           updatedAt: expect.any(Date),
         },
@@ -404,6 +448,7 @@ describe('DocumentController', () => {
             locale: 'pt',
             title: 'Documento Atualizado',
             description: 'Descrição atualizada',
+            url: 'http://example.com/updated-doc.pdf',
           },
         ],
       });
@@ -422,14 +467,7 @@ describe('DocumentController', () => {
       expect(result).toEqual({
         document: {
           id: documentId,
-          url: '',
           filename: 'updated-document.pdf',
-          title: 'updated-document.pdf',
-          fileSize: 2048,
-          fileSizeInMB: 0.002,
-          mimeType: 'application/pdf',
-          isDownloadable: false,
-          downloadCount: 0,
           createdAt: expect.any(Date),
           updatedAt: expect.any(Date),
         },
@@ -486,7 +524,7 @@ describe('DocumentController', () => {
 
     it('throws InternalServerErrorException on unknown error', async () => {
       vi.mocked(updateUc.execute).mockResolvedValueOnce(
-        left(new Error('Unknown error')),
+        left(new RepositoryError('Unknown error')),
       );
 
       await expect(
@@ -507,9 +545,6 @@ describe('DocumentController', () => {
       expect(updateUc.execute).toHaveBeenCalledWith({
         id: documentId,
         filename: 'updated-document.pdf',
-        fileSize: 2048,
-        mimeType: 'application/pdf',
-        isDownloadable: false,
         translations: [
           {
             locale: 'pt',
@@ -524,7 +559,6 @@ describe('DocumentController', () => {
     it('handles partial updates correctly', async () => {
       const partialUpdateBody = {
         filename: 'partial-update.pdf',
-        isDownloadable: true,
       };
 
       vi.mocked(updateUc.execute).mockResolvedValueOnce(
@@ -539,7 +573,45 @@ describe('DocumentController', () => {
       expect(updateUc.execute).toHaveBeenCalledWith({
         id: documentId,
         filename: 'partial-update.pdf',
-        isDownloadable: true,
+      });
+    });
+
+    it('handles updates with no translations', async () => {
+      const updateBodyNoTranslations = {
+        filename: 'no-translations.pdf',
+      };
+
+      vi.mocked(updateUc.execute).mockResolvedValueOnce(
+        right({
+          document: mockUpdatedDocument as any,
+          translations: [],
+        }),
+      );
+
+      const result = await controller.update(lessonId, documentId, updateBodyNoTranslations);
+
+      expect(result.translations).toEqual([]);
+      expect(result.document.filename).toBe('updated-document.pdf');
+    });
+  });
+
+  describe('incrementDownload()', () => {
+    it('returns success message with documentId', async () => {
+      const result = await controller.incrementDownload(lessonId, documentId);
+      
+      expect(result).toEqual({
+        message: 'Download count incremented successfully',
+        documentId: documentId,
+      });
+    });
+
+    it('handles different documentId formats', async () => {
+      const customDocId = 'custom-doc-uuid';
+      const result = await controller.incrementDownload(lessonId, customDocId);
+      
+      expect(result).toEqual({
+        message: 'Download count incremented successfully', 
+        documentId: customDocId,
       });
     });
   });
