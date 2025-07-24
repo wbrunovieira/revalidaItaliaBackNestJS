@@ -1,47 +1,24 @@
 // src/domain/auth/application/use-cases/profile/update-user-profile.use-case.ts
 import { Injectable, Inject } from '@nestjs/common';
+import { validateSync } from 'class-validator';
 import { IUserProfileRepository } from '../../repositories/i-user-profile-repository';
 import { Either, left, right } from '@/core/either';
 import {
   ResourceNotFoundError,
   InvalidInputError,
+  RepositoryError,
 } from '@/domain/auth/domain/exceptions';
 import {
   IEventDispatcher,
   EVENT_DISPATCHER,
 } from '@/core/domain/events/i-event-dispatcher';
 import { UserProfileUpdatedEvent } from '@/domain/auth/enterprise/events/user-profile-updated.event';
-
-export interface UpdateUserProfileRequest {
-  profileId: string;
-  fullName?: string;
-  phone?: string | null;
-  birthDate?: Date | null;
-  profileImageUrl?: string | null;
-  bio?: string | null;
-  profession?: string | null;
-  specialization?: string | null;
-  preferredLanguage?: string;
-  timezone?: string;
-}
-
-export interface UpdateUserProfileResponse {
-  profileId: string;
-  fullName: string;
-  phone?: string | null;
-  birthDate?: Date | null;
-  profileImageUrl?: string | null;
-  bio?: string | null;
-  profession?: string | null;
-  specialization?: string | null;
-  preferredLanguage: string;
-  timezone: string;
-  updatedAt: Date;
-}
+import { UpdateUserProfileRequestDto } from '../../dtos/update-user-profile-request.dto';
+import { UpdateUserProfileResponseDto } from '../../dtos/update-user-profile-response.dto';
 
 export type UpdateUserProfileResult = Either<
-  ResourceNotFoundError | InvalidInputError,
-  UpdateUserProfileResponse
+  ResourceNotFoundError | InvalidInputError | RepositoryError,
+  UpdateUserProfileResponseDto
 >;
 
 @Injectable()
@@ -54,138 +31,176 @@ export class UpdateUserProfileUseCase {
   ) {}
 
   async execute(
-    req: UpdateUserProfileRequest,
+    request: UpdateUserProfileRequestDto,
   ): Promise<UpdateUserProfileResult> {
-    // Find the profile
-    const profileResult = await this.profileRepo.findById(req.profileId);
+    // Validate DTO
+    const dto = Object.assign(new UpdateUserProfileRequestDto(), request);
+    const errors = validateSync(dto);
 
-    if (profileResult.isLeft()) {
-      return left(ResourceNotFoundError.withId('Profile', req.profileId));
+    if (errors.length > 0) {
+      const details = errors.flatMap((error) =>
+        Object.entries(error.constraints || {}).map(([code, message]) => ({
+          code,
+          message,
+          path: [error.property],
+        })),
+      );
+      return left(new InvalidInputError('Validation failed', details));
     }
 
-    const profile = profileResult.value;
-    if (!profile) {
-      return left(ResourceNotFoundError.withId('Profile', req.profileId));
+    // Check if at least one field is being updated
+    const updateableFields = [
+      'fullName', 'phone', 'birthDate', 'profileImageUrl',
+      'bio', 'profession', 'specialization', 'preferredLanguage', 'timezone'
+    ];
+    const hasFieldsToUpdate = updateableFields.some(
+      field => request[field as keyof UpdateUserProfileRequestDto] !== undefined
+    );
+
+    if (!hasFieldsToUpdate) {
+      return left(
+        new InvalidInputError('At least one field must be provided for update', [
+          {
+            code: 'missingFields',
+            message: 'At least one field must be provided for update',
+            path: ['request'],
+          },
+        ]),
+      );
     }
 
-    // Validate inputs
-    if (req.fullName !== undefined && req.fullName.trim().length === 0) {
-      return left(new InvalidInputError('Full name cannot be empty'));
-    }
-
-    if (
-      req.preferredLanguage !== undefined &&
-      !['pt-BR', 'it', 'es', 'en'].includes(req.preferredLanguage)
-    ) {
-      return left(new InvalidInputError('Invalid preferred language'));
-    }
-
-    // Store old values for event
-    const oldValues = {
-      fullName: profile.fullName,
-      phone: profile.phone,
-      birthDate: profile.birthDate,
-      profileImageUrl: profile.profileImageUrl,
-      bio: profile.bio,
-      profession: profile.profession,
-      specialization: profile.specialization,
-      preferredLanguage: profile.preferredLanguage,
-      timezone: profile.timezone,
-    };
-
-    // Update profile
-    profile.updateProfile({
-      fullName: req.fullName,
-      phone: req.phone,
-      birthDate: req.birthDate,
-      profileImageUrl: req.profileImageUrl,
-      bio: req.bio,
-      profession: req.profession,
-      specialization: req.specialization,
-      preferredLanguage: req.preferredLanguage,
-      timezone: req.timezone,
-    });
-
-    // Save updated profile
-    const saveResult = await this.profileRepo.save(profile);
-
-    if (saveResult.isLeft()) {
-      return left(new InvalidInputError('Failed to update profile'));
-    }
-
-    // Dispatch profile updated event
     try {
-      const changedFields: string[] = [];
+      // Find the profile
+      const profileResult = await this.profileRepo.findById(request.profileId);
 
-      if (req.fullName !== undefined && req.fullName !== oldValues.fullName) {
-        changedFields.push('fullName');
-      }
-      if (req.phone !== undefined && req.phone !== oldValues.phone) {
-        changedFields.push('phone');
-      }
-      if (
-        req.birthDate !== undefined &&
-        req.birthDate !== oldValues.birthDate
-      ) {
-        changedFields.push('birthDate');
-      }
-      if (
-        req.profileImageUrl !== undefined &&
-        req.profileImageUrl !== oldValues.profileImageUrl
-      ) {
-        changedFields.push('profileImageUrl');
-      }
-      if (req.bio !== undefined && req.bio !== oldValues.bio) {
-        changedFields.push('bio');
-      }
-      if (
-        req.profession !== undefined &&
-        req.profession !== oldValues.profession
-      ) {
-        changedFields.push('profession');
-      }
-      if (
-        req.specialization !== undefined &&
-        req.specialization !== oldValues.specialization
-      ) {
-        changedFields.push('specialization');
-      }
-      if (
-        req.preferredLanguage !== undefined &&
-        req.preferredLanguage !== oldValues.preferredLanguage
-      ) {
-        changedFields.push('preferredLanguage');
-      }
-      if (req.timezone !== undefined && req.timezone !== oldValues.timezone) {
-        changedFields.push('timezone');
+      if (profileResult.isLeft()) {
+        return left(ResourceNotFoundError.withId('Profile', request.profileId));
       }
 
-      if (changedFields.length > 0) {
-        await this.eventDispatcher.dispatch(
-          new UserProfileUpdatedEvent(
-            profile.identityId.toString(),
-            changedFields,
-            new Date(),
+      const profile = profileResult.value;
+      if (!profile) {
+        return left(ResourceNotFoundError.withId('Profile', request.profileId));
+      }
+
+      // Store old values for event
+      const oldValues = {
+        fullName: profile.fullName,
+        phone: profile.phone,
+        birthDate: profile.birthDate,
+        profileImageUrl: profile.profileImageUrl,
+        bio: profile.bio,
+        profession: profile.profession,
+        specialization: profile.specialization,
+        preferredLanguage: profile.preferredLanguage,
+        timezone: profile.timezone,
+      };
+
+      // Update profile
+      profile.updateProfile({
+        fullName: request.fullName,
+        phone: request.phone,
+        birthDate: request.birthDate ? new Date(request.birthDate) : request.birthDate === null ? null : undefined,
+        profileImageUrl: request.profileImageUrl,
+        bio: request.bio,
+        profession: request.profession,
+        specialization: request.specialization,
+        preferredLanguage: request.preferredLanguage,
+        timezone: request.timezone,
+      });
+
+      // Save updated profile
+      const saveResult = await this.profileRepo.save(profile);
+
+      if (saveResult.isLeft()) {
+        return left(
+          RepositoryError.operationFailed(
+            'save profile',
+            saveResult.value,
           ),
         );
       }
-    } catch (error) {
-      // Log error but don't fail the operation
-      console.error('Failed to dispatch profile updated event:', error);
-    }
 
-    return right({
-      profileId: profile.id.toString(),
-      fullName: profile.fullName,
-      phone: profile.phone,
-      birthDate: profile.birthDate,
-      profileImageUrl: profile.profileImageUrl,
-      bio: profile.bio,
-      profession: profile.profession,
-      specialization: profile.specialization,
-      preferredLanguage: profile.preferredLanguage,
-      timezone: profile.timezone,
-      updatedAt: profile.updatedAt || new Date(),
-    });
+      // Dispatch profile updated event
+      try {
+        const changedFields: string[] = [];
+
+        if (request.fullName !== undefined && request.fullName !== oldValues.fullName) {
+          changedFields.push('fullName');
+        }
+        if (request.phone !== undefined && request.phone !== oldValues.phone) {
+          changedFields.push('phone');
+        }
+        if (
+          request.birthDate !== undefined &&
+          request.birthDate !== oldValues.birthDate?.toISOString()
+        ) {
+          changedFields.push('birthDate');
+        }
+        if (
+          request.profileImageUrl !== undefined &&
+          request.profileImageUrl !== oldValues.profileImageUrl
+        ) {
+          changedFields.push('profileImageUrl');
+        }
+        if (request.bio !== undefined && request.bio !== oldValues.bio) {
+          changedFields.push('bio');
+        }
+        if (
+          request.profession !== undefined &&
+          request.profession !== oldValues.profession
+        ) {
+          changedFields.push('profession');
+        }
+        if (
+          request.specialization !== undefined &&
+          request.specialization !== oldValues.specialization
+        ) {
+          changedFields.push('specialization');
+        }
+        if (
+          request.preferredLanguage !== undefined &&
+          request.preferredLanguage !== oldValues.preferredLanguage
+        ) {
+          changedFields.push('preferredLanguage');
+        }
+        if (request.timezone !== undefined && request.timezone !== oldValues.timezone) {
+          changedFields.push('timezone');
+        }
+
+        if (changedFields.length > 0) {
+          await this.eventDispatcher.dispatch(
+            new UserProfileUpdatedEvent(
+              profile.identityId.toString(),
+              changedFields,
+              new Date(),
+            ),
+          );
+        }
+      } catch (error) {
+        // Log error but don't fail the operation
+        console.error('Failed to dispatch profile updated event:', error);
+      }
+
+      return right({
+        profileId: profile.id.toString(),
+        fullName: profile.fullName,
+        phone: profile.phone,
+        birthDate: profile.birthDate,
+        profileImageUrl: profile.profileImageUrl,
+        bio: profile.bio,
+        profession: profile.profession,
+        specialization: profile.specialization,
+        preferredLanguage: profile.preferredLanguage,
+        timezone: profile.timezone,
+        updatedAt: profile.updatedAt || new Date(),
+      });
+    } catch (error: any) {
+      return left(
+        RepositoryError.operationFailed(
+          'updateProfile',
+          error instanceof Error ? error : new Error('Unknown error'),
+        ),
+      );
+    }
   }
 }
