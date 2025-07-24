@@ -5,7 +5,8 @@ import { Injectable, Inject } from '@nestjs/common';
 
 import { Email } from '@/domain/auth/enterprise/value-objects/email.vo';
 import { NationalId } from '@/domain/auth/enterprise/value-objects/national-id.vo';
-import { UpdateUserRequest } from '../../dtos/update-user-request.dto';
+import { UpdateUserRequestDto } from '../../dtos/update-user-request.dto';
+import { UpdateUserResponseDto } from '../../dtos/update-user-response.dto';
 
 import {
   InvalidInputError,
@@ -15,31 +16,18 @@ import {
   RepositoryError,
 } from '@/domain/auth/domain/exceptions';
 import { IUserIdentityRepository } from '../../repositories/i-user-identity-repository';
+
 import { IUserProfileRepository } from '../../repositories/i-user-profile-repository';
 import { IUserAuthorizationRepository } from '../../repositories/i-user-authorization-repository';
 import { UserAuthorization } from '@/domain/auth/enterprise/entities/user-authorization';
 
-export interface UpdateUserResponse {
-  identity: {
-    id: string;
-    email: string;
-  };
-  profile: {
-    fullName: string;
-    nationalId: string;
-  };
-  authorization: {
-    role: string;
-  };
-}
-
-type UpdateUserUseCaseResponse = Either<
+export type UpdateUserUseCaseResponse = Either<
   | InvalidInputError
   | ResourceNotFoundError
   | DuplicateEmailError
   | DuplicateNationalIdError
   | RepositoryError,
-  UpdateUserResponse
+  UpdateUserResponseDto
 >;
 
 @Injectable()
@@ -54,23 +42,26 @@ export class UpdateUserUseCase {
   ) {}
 
   async execute(
-    request: UpdateUserRequest,
+    request: UpdateUserRequestDto,
   ): Promise<UpdateUserUseCaseResponse> {
     const { id, name, email, nationalId, role } = request;
 
+    // Business rule: at least one field must be provided for update
     if (!name && !email && !nationalId && !role) {
       return left(
-        InvalidInputError.missingRequiredFields([
-          'name',
-          'email',
-          'nationalId',
-          'role',
+        new InvalidInputError('At least one field must be provided for update', [
+          {
+            code: 'missingFields',
+            message: 'At least one field must be provided for update',
+            path: ['request'],
+          },
         ]),
       );
     }
 
-    // Find identity
-    const identityResult = await this.identityRepository.findById(id);
+    try {
+      // Find identity
+      const identityResult = await this.identityRepository.findById(id);
     if (identityResult.isLeft()) {
       return left(ResourceNotFoundError.withId('UserIdentity', id));
     }
@@ -175,7 +166,7 @@ export class UpdateUserUseCase {
         }
       }
 
-      if (name) {
+      if (name || nationalId) {
         const result = await this.profileRepository.save(profile);
         if (result.isLeft()) {
           return left(
@@ -196,25 +187,34 @@ export class UpdateUserUseCase {
       return left(RepositoryError.operationFailed('save', error));
     }
 
-    return right({
-      identity: {
-        id: identity.id.toString(),
-        email: identity.email.value,
-      },
-      profile: {
-        fullName: profile.fullName,
-        nationalId: profile.nationalId.value,
-      },
-      authorization: {
-        role: authorization
-          ? authorization.role
-          : await (async () => {
-              const authResult = await this.authorizationRepository.findByIdentityId(id);
-              return authResult.isRight() && authResult.value 
-                ? authResult.value.role 
-                : 'student';
-            })(),
-      },
-    });
+      return right({
+        identity: {
+          id: identity.id.toString(),
+          email: identity.email.value,
+        },
+        profile: {
+          fullName: profile.fullName,
+          nationalId: profile.nationalId.value,
+        },
+        authorization: {
+          role: authorization
+            ? authorization.role
+            : await (async () => {
+                const authResult =
+                  await this.authorizationRepository.findByIdentityId(id);
+                return authResult.isRight() && authResult.value
+                  ? authResult.value.role
+                  : 'student';
+              })(),
+        },
+      });
+    } catch (error: any) {
+      return left(
+        RepositoryError.operationFailed(
+          'updateUser',
+          error instanceof Error ? error : new Error('Unknown error'),
+        ),
+      );
+    }
   }
 }

@@ -1,10 +1,26 @@
 // src/domain/auth/application/dtos/update-user-request.dto.ts
-export interface UpdateUserRequest {
+import { IsOptional, IsString, IsUUID, IsEmail, IsUrl, MinLength, MaxLength, IsIn } from 'class-validator';
+
+export class UpdateUserRequestDto {
+  @IsUUID()
   id: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  @MaxLength(255)
   name?: string;
-  nationalId?: string;
+
+  @IsOptional()
+  @IsEmail()
   email?: string;
-  password?: string;
-  profileImageUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  nationalId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['admin', 'tutor', 'student'])
   role?: 'admin' | 'tutor' | 'student';
 }
