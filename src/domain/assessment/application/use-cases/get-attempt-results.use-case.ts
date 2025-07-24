@@ -94,9 +94,14 @@ export class GetAttemptResultsUseCase {
       }
 
       const requester = requesterResult.value;
+      
+      // Check if requester exists
+      if (!requester) {
+        return left(new UserNotFoundError());
+      }
 
       // Check permissions: student can only view own attempts, tutors/admins can view any
-      if (requester && requester.role === 'student' && attempt.identityId !== requesterId) {
+      if (requester.role === 'student' && attempt.identityId !== requesterId) {
         return left(new InsufficientPermissionsError());
       }
 
