@@ -10,9 +10,10 @@ export class EntityNotFoundException extends DomainException {
   constructor(
     entityName: string,
     criteria: Record<string, any>,
-    aggregateId?: string
+    aggregateId?: string,
+    customMessage?: string
   ) {
-    const message = `${entityName} not found`;
+    const message = customMessage || `${entityName} not found`;
     const code = `DOMAIN.${entityName.toUpperCase()}_NOT_FOUND`;
     
     super(message, code, { entityName, criteria }, aggregateId);

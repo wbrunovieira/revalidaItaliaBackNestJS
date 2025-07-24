@@ -20,10 +20,15 @@ export class ResourceNotFoundError extends EntityNotFoundException {
   }
 
   /**
-   * Factory method for ID-based searches (delegates to parent)
+   * Factory method for ID-based searches
    */
   static withId(entityName: string, id: string): ResourceNotFoundError {
-    return EntityNotFoundException.withId(entityName, id) as ResourceNotFoundError;
+    return new ResourceNotFoundError(
+      entityName,
+      { id },
+      id,
+      `${entityName} with ID ${id} not found`
+    );
   }
 
   /**
