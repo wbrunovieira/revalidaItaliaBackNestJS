@@ -2,6 +2,7 @@
 
 import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
+import { validateSync } from 'class-validator';
 
 import { Email } from '@/domain/auth/enterprise/value-objects/email.vo';
 import { NationalId } from '@/domain/auth/enterprise/value-objects/national-id.vo';
@@ -15,38 +16,16 @@ import {
 } from '@/domain/auth/domain/exceptions';
 import { IUserIdentityRepository } from '../../repositories/i-user-identity-repository';
 import { IUserProfileRepository } from '../../repositories/i-user-profile-repository';
+import { UpdateOwnProfileRequestDto } from '../../dtos/update-own-profile-request.dto';
+import { UpdateOwnProfileResponseDto } from '../../dtos/update-own-profile-response.dto';
 
-export interface UpdateOwnProfileRequest {
-  identityId: string;
-  name?: string;
-  email?: string;
-  nationalId?: string;
-  phone?: string;
-  birthDate?: Date;
-  profileImageUrl?: string;
-}
-
-export interface UpdateOwnProfileResponse {
-  identity: {
-    id: string;
-    email: string;
-  };
-  profile: {
-    fullName: string;
-    nationalId: string;
-    phone?: string | null;
-    birthDate?: Date | null;
-    profileImageUrl?: string | null;
-  };
-}
-
-type UpdateOwnProfileUseCaseResponse = Either<
+export type UpdateOwnProfileUseCaseResponse = Either<
   | InvalidInputError
   | ResourceNotFoundError
   | DuplicateEmailError
   | DuplicateNationalIdError
   | RepositoryError,
-  UpdateOwnProfileResponse
+  UpdateOwnProfileResponseDto
 >;
 
 @Injectable()
@@ -59,8 +38,23 @@ export class UpdateOwnProfileUseCase {
   ) {}
 
   async execute(
-    request: UpdateOwnProfileRequest,
+    request: UpdateOwnProfileRequestDto,
   ): Promise<UpdateOwnProfileUseCaseResponse> {
+    // Validate DTO
+    const dto = Object.assign(new UpdateOwnProfileRequestDto(), request);
+    const errors = validateSync(dto);
+
+    if (errors.length > 0) {
+      const details = errors.flatMap((error) =>
+        Object.entries(error.constraints || {}).map(([code, message]) => ({
+          code,
+          message,
+          path: [error.property],
+        })),
+      );
+      return left(new InvalidInputError('Validation failed', details));
+    }
+
     const {
       identityId,
       name,
@@ -71,6 +65,7 @@ export class UpdateOwnProfileUseCase {
       profileImageUrl,
     } = request;
 
+    // Check if at least one field is being updated
     if (
       !name &&
       !email &&
@@ -80,13 +75,12 @@ export class UpdateOwnProfileUseCase {
       profileImageUrl === undefined
     ) {
       return left(
-        InvalidInputError.missingRequiredFields([
-          'name',
-          'email',
-          'nationalId',
-          'phone',
-          'birthDate',
-          'profileImageUrl',
+        new InvalidInputError('At least one field must be provided for update', [
+          {
+            code: 'missingFields',
+            message: 'At least one field must be provided for update',
+            path: ['request'],
+          },
         ]),
       );
     }
@@ -176,7 +170,10 @@ export class UpdateOwnProfileUseCase {
     if (name) profile.updateFullName(name);
     if (nationalId) profile.updateNationalId(NationalId.create(nationalId));
     if (phone !== undefined) profile.updatePhone(phone);
-    if (birthDate !== undefined) profile.updateBirthDate(birthDate);
+    if (birthDate !== undefined) {
+      const dateValue = birthDate ? new Date(birthDate) : null;
+      profile.updateBirthDate(dateValue);
+    }
     if (profileImageUrl !== undefined)
       profile.updateProfileImageUrl(profileImageUrl);
 
