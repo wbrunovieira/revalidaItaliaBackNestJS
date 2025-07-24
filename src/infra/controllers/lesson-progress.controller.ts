@@ -24,6 +24,7 @@ import { SaveLessonProgressDto } from '@/infra/http/dtos/save-lesson-progress.dt
 import { SaveLessonProgressRequest } from '@/domain/course-catalog/application/dtos/save-lesson-progress.dto';
 import { GetContinueLearningResponse } from '@/domain/course-catalog/application/dtos/get-continue-learning.dto';
 import { InvalidInputError } from '@/domain/course-catalog/application/use-cases/errors/invalid-input-error';
+import { RepositoryError } from '@/domain/course-catalog/application/use-cases/errors/repository-error';
 
 @ApiTags('User Progress')
 @Controller('users/me')
@@ -91,6 +92,13 @@ export class LessonProgressController {
         });
       }
 
+      if (error instanceof RepositoryError) {
+        throw new InternalServerErrorException({
+          message: 'Failed to save progress',
+          details: error.message,
+        });
+      }
+
       throw new InternalServerErrorException('Failed to save progress');
     }
 
@@ -114,11 +122,17 @@ export class LessonProgressController {
         lastAccessed: {
           type: 'object',
           properties: {
-            lessonId: { type: 'string', example: 'd50f6fb6-c282-402e-b8e1-00fd902dc0da' },
+            lessonId: {
+              type: 'string',
+              example: 'd50f6fb6-c282-402e-b8e1-00fd902dc0da',
+            },
             lessonTitle: { type: 'string', example: 'Introdução à Anatomia' },
             courseTitle: { type: 'string', example: 'Revalida Medicina' },
             moduleTitle: { type: 'string', example: 'Anatomia Básica' },
-            lessonImageUrl: { type: 'string', example: '/images/lesson-anatomy.jpg' },
+            lessonImageUrl: {
+              type: 'string',
+              example: '/images/lesson-anatomy.jpg',
+            },
             videoProgress: {
               type: 'object',
               properties: {
@@ -127,7 +141,11 @@ export class LessonProgressController {
                 percentage: { type: 'number', example: 40.95 },
               },
             },
-            lessonUrl: { type: 'string', example: '/pt/courses/curso-teste-pt/modules/modulo-1/lessons/d50f6fb6-c282-402e-b8e1-00fd902dc0da' },
+            lessonUrl: {
+              type: 'string',
+              example:
+                '/pt/courses/curso-teste-pt/modules/modulo-1/lessons/d50f6fb6-c282-402e-b8e1-00fd902dc0da',
+            },
             lastUpdatedAt: { type: 'string', example: '2025-01-23T10:30:00Z' },
           },
         },

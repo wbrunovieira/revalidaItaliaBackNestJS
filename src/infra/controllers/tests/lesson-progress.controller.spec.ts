@@ -1,3 +1,4 @@
+// src/infra/controllers/tests/lesson-progress.controller.spec.ts
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
@@ -154,10 +155,23 @@ describe('LessonProgressController', () => {
         lessonImageUrl: 'not-a-valid-url',
       };
 
-      await request(app.getHttpServer())
+      mockSaveLessonProgressUseCase.execute.mockResolvedValueOnce(
+        left(
+          new InvalidInputError('Validation failed', [
+            'Lesson image URL must be a valid URL',
+          ]),
+        ),
+      );
+
+      const response = await request(app.getHttpServer())
         .post('/users/me/lesson-progress')
         .send(invalidData)
         .expect(HttpStatus.BAD_REQUEST);
+
+      expect(response.body.message).toBe('Validation failed');
+      expect(response.body.errors).toContain(
+        'Lesson image URL must be a valid URL',
+      );
     });
 
     it('should return 400 for negative currentTime', async () => {
@@ -249,6 +263,196 @@ describe('LessonProgressController', () => {
 
       await unauthorizedApp.close();
     });
+
+    it('should return 500 for repository error', async () => {
+      mockSaveLessonProgressUseCase.execute.mockResolvedValueOnce(
+        left(new Error('Repository connection failed')),
+      );
+
+      const response = await request(app.getHttpServer())
+        .post('/users/me/lesson-progress')
+        .send(validProgressData)
+        .expect(HttpStatus.INTERNAL_SERVER_ERROR);
+
+      expect(response.body.message).toBe('Failed to save progress');
+    });
+
+    it('should return 400 for empty string values', async () => {
+      const invalidData = {
+        ...validProgressData,
+        lessonTitle: '',
+      };
+
+      await request(app.getHttpServer())
+        .post('/users/me/lesson-progress')
+        .send(invalidData)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 for null values', async () => {
+      const invalidData = {
+        ...validProgressData,
+        courseTitle: null,
+      };
+
+      await request(app.getHttpServer())
+        .post('/users/me/lesson-progress')
+        .send(invalidData)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 for missing video progress', async () => {
+      const invalidData = {
+        ...validProgressData,
+        videoProgress: undefined,
+      };
+
+      await request(app.getHttpServer())
+        .post('/users/me/lesson-progress')
+        .send(invalidData)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 for invalid video progress structure', async () => {
+      const invalidData = {
+        ...validProgressData,
+        videoProgress: {
+          currentTime: 'invalid',
+          duration: 600,
+          percentage: 40.95,
+        },
+      };
+
+      await request(app.getHttpServer())
+        .post('/users/me/lesson-progress')
+        .send(invalidData)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should handle edge case with zero duration', async () => {
+      const invalidData = {
+        ...validProgressData,
+        videoProgress: {
+          ...validProgressData.videoProgress,
+          duration: 0,
+        },
+      };
+
+      await request(app.getHttpServer())
+        .post('/users/me/lesson-progress')
+        .send(invalidData)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should handle edge case with negative duration', async () => {
+      const invalidData = {
+        ...validProgressData,
+        videoProgress: {
+          ...validProgressData.videoProgress,
+          duration: -100,
+        },
+      };
+
+      await request(app.getHttpServer())
+        .post('/users/me/lesson-progress')
+        .send(invalidData)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should handle progress with maximum values', async () => {
+      mockSaveLessonProgressUseCase.execute.mockResolvedValueOnce(
+        right({
+          success: true,
+          progressSaved: true,
+        }),
+      );
+
+      const maxProgressData = {
+        ...validProgressData,
+        videoProgress: {
+          currentTime: 600,
+          duration: 600,
+          percentage: 100,
+        },
+      };
+
+      const response = await request(app.getHttpServer())
+        .post('/users/me/lesson-progress')
+        .send(maxProgressData)
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toEqual({
+        success: true,
+        progressSaved: true,
+      });
+    });
+
+    it('should handle progress with zero values', async () => {
+      mockSaveLessonProgressUseCase.execute.mockResolvedValueOnce(
+        right({
+          success: true,
+          progressSaved: true,
+        }),
+      );
+
+      const zeroProgressData = {
+        ...validProgressData,
+        videoProgress: {
+          currentTime: 0,
+          duration: 600,
+          percentage: 0,
+        },
+      };
+
+      const response = await request(app.getHttpServer())
+        .post('/users/me/lesson-progress')
+        .send(zeroProgressData)
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toEqual({
+        success: true,
+        progressSaved: true,
+      });
+    });
+
+    it('should validate UUID formats correctly', async () => {
+      const testCases = [
+        { field: 'lessonId', value: '123' },
+        { field: 'courseId', value: 'abc-def-ghi' },
+        { field: 'moduleId', value: '12345678-1234-1234-1234-12345678901' }, // too short
+      ];
+
+      for (const testCase of testCases) {
+        const invalidData = {
+          ...validProgressData,
+          [testCase.field]: testCase.value,
+        };
+
+        await request(app.getHttpServer())
+          .post('/users/me/lesson-progress')
+          .send(invalidData)
+          .expect(HttpStatus.BAD_REQUEST);
+      }
+    });
+
+    it('should pass userId correctly to use case', async () => {
+      mockSaveLessonProgressUseCase.execute.mockResolvedValueOnce(
+        right({
+          success: true,
+          progressSaved: true,
+        }),
+      );
+
+      await request(app.getHttpServer())
+        .post('/users/me/lesson-progress')
+        .send(validProgressData)
+        .expect(HttpStatus.OK);
+
+      expect(mockSaveLessonProgressUseCase.execute).toHaveBeenCalledWith({
+        userId: mockUser.sub,
+        ...validProgressData,
+      });
+    });
   });
 
   describe('GET /users/me/continue-learning', () => {
@@ -284,7 +488,8 @@ describe('LessonProgressController', () => {
           duration: 600,
           percentage: 40.95,
         },
-        lessonUrl: '/pt/courses/medical-course/modules/basic-anatomy/lessons/456e7890-e89b-12d3-a456-426614174001',
+        lessonUrl:
+          '/pt/courses/medical-course/modules/basic-anatomy/lessons/456e7890-e89b-12d3-a456-426614174001',
         lastUpdatedAt: '2024-01-23T10:30:00Z',
       };
 
@@ -333,6 +538,105 @@ describe('LessonProgressController', () => {
         .expect(HttpStatus.FORBIDDEN);
 
       await unauthorizedApp.close();
+    });
+
+    it('should handle internal server errors gracefully', async () => {
+      mockGetContinueLearningUseCase.execute.mockResolvedValueOnce(
+        left(new Error('Database connection failed')),
+      );
+
+      const response = await request(app.getHttpServer())
+        .get('/users/me/continue-learning')
+        .expect(HttpStatus.INTERNAL_SERVER_ERROR);
+
+      expect(response.body.message).toBe('Failed to retrieve progress');
+    });
+
+    it('should pass userId correctly to continue learning use case', async () => {
+      mockGetContinueLearningUseCase.execute.mockResolvedValueOnce(
+        right({
+          hasProgress: false,
+        }),
+      );
+
+      await request(app.getHttpServer())
+        .get('/users/me/continue-learning')
+        .expect(HttpStatus.OK);
+
+      expect(mockGetContinueLearningUseCase.execute).toHaveBeenCalledWith({
+        userId: mockUser.sub,
+      });
+    });
+
+    it('should return progress with complete video data', async () => {
+      const completeProgressData = {
+        lessonId: '456e7890-e89b-12d3-a456-426614174001',
+        lessonTitle: 'Advanced Anatomy',
+        courseTitle: 'Complete Medical Course',
+        moduleTitle: 'Advanced Modules',
+        lessonImageUrl: 'https://example.com/advanced-lesson.jpg',
+        videoProgress: {
+          currentTime: 1200.5,
+          duration: 1800,
+          percentage: 66.69,
+        },
+        lessonUrl:
+          '/pt/courses/complete-medical/modules/advanced/lessons/456e7890-e89b-12d3-a456-426614174001',
+        lastUpdatedAt: '2024-01-24T14:45:00Z',
+      };
+
+      mockGetContinueLearningUseCase.execute.mockResolvedValueOnce(
+        right({
+          hasProgress: true,
+          lastAccessed: completeProgressData,
+        }),
+      );
+
+      const response = await request(app.getHttpServer())
+        .get('/users/me/continue-learning')
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toEqual({
+        hasProgress: true,
+        lastAccessed: completeProgressData,
+      });
+      expect(response.body.lastAccessed.videoProgress.currentTime).toBe(1200.5);
+      expect(response.body.lastAccessed.videoProgress.percentage).toBe(66.69);
+    });
+
+    it('should handle edge case with minimal progress data', async () => {
+      const minimalProgressData = {
+        lessonId: '456e7890-e89b-12d3-a456-426614174001',
+        lessonTitle: 'Quick Lesson',
+        courseTitle: 'Mini Course',
+        moduleTitle: 'Short Module',
+        lessonImageUrl: 'https://example.com/mini.jpg',
+        videoProgress: {
+          currentTime: 0.1,
+          duration: 30,
+          percentage: 0.33,
+        },
+        lessonUrl:
+          '/pt/courses/mini/modules/short/lessons/456e7890-e89b-12d3-a456-426614174001',
+        lastUpdatedAt: '2024-01-23T08:00:00Z',
+      };
+
+      mockGetContinueLearningUseCase.execute.mockResolvedValueOnce(
+        right({
+          hasProgress: true,
+          lastAccessed: minimalProgressData,
+        }),
+      );
+
+      const response = await request(app.getHttpServer())
+        .get('/users/me/continue-learning')
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toEqual({
+        hasProgress: true,
+        lastAccessed: minimalProgressData,
+      });
+      expect(response.body.lastAccessed.videoProgress.currentTime).toBe(0.1);
     });
   });
 });

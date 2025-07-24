@@ -1,13 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { Either, left, right } from '@/core/either';
 import { InvalidInputError } from './errors/invalid-input-error';
-import { ILessonProgressTracker, LessonProgressData } from '../services/i-lesson-progress-tracker';
-import { SaveLessonProgressRequest, SaveLessonProgressResponse } from '../dtos/save-lesson-progress.dto';
+import { RepositoryError } from './errors/repository-error';
+import {
+  ILessonProgressTracker,
+  LessonProgressData,
+} from '../services/i-lesson-progress-tracker';
+import {
+  SaveLessonProgressRequest,
+  SaveLessonProgressResponse,
+} from '../dtos/save-lesson-progress.dto';
 import { saveLessonProgressSchema } from './validations/save-lesson-progress.schema';
 import { ZodError } from 'zod';
 
 type SaveLessonProgressUseCaseResponse = Either<
-  InvalidInputError,
+  InvalidInputError | RepositoryError,
   SaveLessonProgressResponse
 >;
 
@@ -51,9 +58,13 @@ export class SaveLessonProgressUseCase {
       if (error instanceof ZodError) {
         return left(new InvalidInputError('Validation failed', error.errors));
       }
-      
-      // Re-throw unexpected errors
-      throw error;
+
+      // Return unexpected errors as RepositoryError instead of throwing
+      return left(
+        new RepositoryError(
+          error instanceof Error ? error.message : 'Unknown error occurred',
+        ),
+      );
     }
   }
 }
