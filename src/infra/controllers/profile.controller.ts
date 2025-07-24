@@ -39,7 +39,7 @@ export class ProfileController {
       email: dto.email,
       nationalId: dto.nationalId,
       phone: dto.phone,
-      birthDate: dto.birthDate,
+      birthDate: dto.birthDate ? dto.birthDate.toISOString() : undefined,
       profileImageUrl: dto.profileImageUrl,
     });
 

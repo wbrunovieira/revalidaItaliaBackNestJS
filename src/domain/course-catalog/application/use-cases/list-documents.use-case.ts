@@ -1,4 +1,6 @@
+//src/domain/course-catalog/application/use-cases/list-documents.use-case.ts
 import { Either, left, right } from '@/core/either';
+
 import { Injectable, Inject } from '@nestjs/common';
 
 import { IDocumentRepository } from '../repositories/i-document-repository';

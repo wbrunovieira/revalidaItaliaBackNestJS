@@ -23,10 +23,10 @@ import {
 
 // Domain DTOs (interfaces/types)
 import { CreateUserRequest } from '@/domain/auth/application/use-cases/profile/create-user.use-case';
-import { UpdateUserRequest } from '@/domain/auth/application/dtos/update-user-request.dto';
-import { UpdateUserResponse } from '@/domain/auth/application/use-cases/profile/update-user.use-case';
+import { UpdateUserRequestDto } from '@/domain/auth/application/dtos/update-user-request.dto';
+import { UpdateUserResponseDto } from '@/domain/auth/application/dtos/update-user-response.dto';
 import { FindUsersRequestDto } from '@/domain/auth/application/dtos/find-users-request.dto';
-import { ListUsersRequest } from '@/domain/auth/application/use-cases/profile/list-users.use-case';
+import { ListUsersResult } from '@/domain/auth/application/use-cases/profile/list-users.use-case';
 
 // Infrastructure DTOs (classes with validation)
 import { CreateUserDto } from '@/infra/http/dtos/create-user.dto';
@@ -93,8 +93,8 @@ export class UserController {
   @HttpCode(200)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async update(@Param('id') id: string, @Body() dto: UpdateUserDto): Promise<UpdateUserResponse> {
-    const request: UpdateUserRequest = { id, ...dto };
+  async update(@Param('id') id: string, @Body() dto: UpdateUserDto): Promise<UpdateUserResponseDto> {
+    const request: UpdateUserRequestDto = { id, ...dto };
     const result = await this.updateUser.execute(request);
 
     if (result.isLeft()) {

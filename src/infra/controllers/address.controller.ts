@@ -18,7 +18,7 @@ import { CreateAddressUseCase } from '@/domain/auth/application/use-cases/create
 
 import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update-address.use-case';
 import { CreateAddressRequestDto } from '@/domain/auth/application/dtos/create-address-request.dto';
-import { UpdateAddressRequest } from '@/domain/auth/application/dtos/update-address-request.dto';
+import { UpdateAddressRequestDto } from '@/domain/auth/application/dtos/update-address-request.dto';
 import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error';
 import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
 import { Prisma } from '@prisma/client';
@@ -129,12 +129,11 @@ export class AddressController {
         );
       }
 
-      return result.value.map((addr) => {
-        const obj = addr.toResponseObject();
+      return result.value.addresses.map((addr) => {
         return {
-          ...obj,
-          createdAt: obj.createdAt.toISOString(),
-          updatedAt: obj.updatedAt.toISOString(),
+          ...addr,
+          createdAt: addr.createdAt.toISOString(),
+          updatedAt: addr.updatedAt.toISOString(),
         };
       });
     } catch (err: any) {
@@ -151,7 +150,7 @@ export class AddressController {
   @Patch(':id')
   @HttpCode(200)
   async update(@Param('id') id: string, @Body() dto: UpdateAddressDto) {
-    const payload: UpdateAddressRequest = { id, ...dto };
+    const payload: UpdateAddressRequestDto = { id, ...dto };
 
     try {
       const result = await this.updateAddressUseCase.execute(payload);
@@ -180,11 +179,10 @@ export class AddressController {
       }
 
       const updated = result.value;
-      const resp = updated.toResponseObject();
       return {
-        ...resp,
-        createdAt: resp.createdAt.toISOString(),
-        updatedAt: resp.updatedAt.toISOString(),
+        ...updated,
+        createdAt: updated.createdAt.toISOString(),
+        updatedAt: updated.updatedAt.toISOString(),
       };
     } catch (err: any) {
       if (err instanceof HttpException) {
