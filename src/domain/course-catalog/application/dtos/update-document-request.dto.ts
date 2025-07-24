@@ -10,8 +10,5 @@ export interface TranslationDto {
 export interface UpdateDocumentRequest {
   id: string;
   filename?: string;
-  fileSize?: number;
-  mimeType?: string;
-  isDownloadable?: boolean;
   translations?: TranslationDto[];
 }
