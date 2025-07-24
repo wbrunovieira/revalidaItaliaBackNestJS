@@ -3,14 +3,11 @@ export interface DocumentTranslationDto {
   locale: 'pt' | 'it' | 'es';
   title: string;
   description: string;
+  url: string;
 }
 
 export interface CreateDocumentRequest {
   lessonId: string;
-  url: string;
   filename: string;
-  fileSize: number;
-  mimeType: string;
-  isDownloadable?: boolean;
   translations: DocumentTranslationDto[];
 }

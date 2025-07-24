@@ -3,6 +3,7 @@ import { ErrorMapping } from './shared.mappings';
 import { sharedErrorMappings } from './shared.mappings';
 import { userErrorMappings } from './user.mappings';
 import { domainExceptionMappings } from './domain-exceptions.mappings';
+import { courseCatalogErrorMappings } from './course-catalog.mappings';
 
 /**
  * Combined error mappings from all modules
@@ -12,10 +13,11 @@ export const errorMappings: Record<string, ErrorMapping> = {
   ...sharedErrorMappings,
   ...domainExceptionMappings,
   ...userErrorMappings,
+  ...courseCatalogErrorMappings,
   // Future module mappings will be added here:
-  // ...courseErrorMappings,
   // ...assessmentErrorMappings,
 };
 
 export * from './shared.mappings';
 export * from './user.mappings';
+export * from './course-catalog.mappings';

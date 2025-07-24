@@ -1,14 +1,17 @@
+// src/domain/course-catalog/application/use-cases/create-document.use-case.ts
 import { Either, left, right } from '@/core/either';
 import { Injectable, Inject } from '@nestjs/common';
 
 import { Document } from '@/domain/course-catalog/enterprise/entities/document.entity';
 import { IDocumentRepository } from '../repositories/i-document-repository';
 import { ILessonRepository } from '../repositories/i-lesson-repository';
-import { InvalidInputError } from './errors/invalid-input-error';
-import { DuplicateDocumentError } from './errors/duplicate-document-error';
-import { RepositoryError } from './errors/repository-error';
-import { LessonNotFoundError } from './errors/lesson-not-found-error';
-import { InvalidFileError } from './errors/invalid-file-error';
+import {
+  InvalidInputError,
+  DuplicateDocumentError,
+  RepositoryError,
+  LessonNotFoundError,
+  InvalidFileError,
+} from '@/domain/course-catalog/domain/exceptions';
 import {
   createDocumentSchema,
   CreateDocumentSchema,
@@ -65,19 +68,19 @@ export class CreateDocumentUseCase {
     // 2) verifica existência da aula
     const lessonOrErr = await this.lessonRepo.findById(data.lessonId);
     if (lessonOrErr.isLeft()) {
-      return left(new LessonNotFoundError());
+      return left(LessonNotFoundError.byId(data.lessonId));
     }
 
     // 3) evita duplicação de filename
     const existingOrErr = await this.documentRepo.findByFilename(data.filename);
     if (existingOrErr.isRight()) {
-      return left(new DuplicateDocumentError());
+      return left(new DuplicateDocumentError(data.filename));
     }
     if (
       existingOrErr.isLeft() &&
       existingOrErr.value.message !== 'Document not found'
     ) {
-      return left(new RepositoryError(existingOrErr.value.message));
+      return left(RepositoryError.find('document', existingOrErr.value));
     }
 
     // 4) cria entidade de domínio incluindo traduções com URL
@@ -93,7 +96,7 @@ export class CreateDocumentUseCase {
       data.translations,
     );
     if (saveOrErr.isLeft()) {
-      return left(new RepositoryError(saveOrErr.value.message));
+      return left(RepositoryError.create('document', saveOrErr.value));
     }
 
     // 7) monta resposta
