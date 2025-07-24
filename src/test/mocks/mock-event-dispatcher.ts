@@ -1,6 +1,6 @@
 // src/test/mocks/mock-event-dispatcher.ts
 import { IEventDispatcher } from '@/core/domain/events/i-event-dispatcher';
-import { DomainEvent } from '@/core/domain/events/domain-event';
+import { DomainEvent } from '@/core/domain/domain-event';
 
 export class MockEventDispatcher implements IEventDispatcher {
   public dispatchedEvents: DomainEvent[] = [];

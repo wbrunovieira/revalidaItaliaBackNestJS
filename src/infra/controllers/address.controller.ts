@@ -17,7 +17,7 @@ import {
 import { CreateAddressUseCase } from '@/domain/auth/application/use-cases/create-address.use-case';
 
 import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update-address.use-case';
-import { CreateAddressRequest } from '@/domain/auth/application/dtos/create-address-request.dto';
+import { CreateAddressRequestDto } from '@/domain/auth/application/dtos/create-address-request.dto';
 import { UpdateAddressRequest } from '@/domain/auth/application/dtos/update-address-request.dto';
 import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error';
 import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
@@ -40,7 +40,7 @@ export class AddressController {
 
   @Post()
   @HttpCode(201)
-  async create(@Body() dto: CreateAddressRequest) {
+  async create(@Body() dto: CreateAddressRequestDto) {
     const requiredFields = [
       'profileId',
       'street',
@@ -50,7 +50,7 @@ export class AddressController {
       'postalCode',
     ];
     const missing = requiredFields.filter(
-      (f) => dto[f as keyof CreateAddressRequest] === undefined,
+      (f) => dto[f as keyof CreateAddressRequestDto] === undefined,
     );
     if (missing.length > 0) {
       throw new HttpException(

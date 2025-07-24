@@ -2,10 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserPayload } from '@/infra/auth/strategies/jwt.strategy';
 
-import {
-  AuthenticateUserUseCase,
-  AuthenticateUserRequest,
-} from '@/domain/auth/application/use-cases/authentication/authenticate-user.use-case';
+import { AuthenticateUserUseCase } from '@/domain/auth/application/use-cases/authentication/authenticate-user.use-case';
+import { AuthenticateUserRequestDto } from '@/domain/auth/application/dtos/authenticate-user-request.dto';
 
 @Injectable()
 export class SignInService {
@@ -14,7 +12,7 @@ export class SignInService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(dto: AuthenticateUserRequest) {
+  async signIn(dto: AuthenticateUserRequestDto) {
     // 1) Executa o use-case
     const result = await this.authenticateUseCase.execute(dto);
     if (result.isLeft()) {

@@ -2,7 +2,7 @@
 import { Controller, Post, Body, UnauthorizedException, Req, Ip, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthenticateUserUseCase } from '@/domain/auth/application/use-cases/authentication/authenticate-user.use-case';
-import { AuthenticateUserRequest } from '@/domain/auth/application/use-cases/authentication/authenticate-user.use-case';
+import { AuthenticateUserRequestDto } from '@/domain/auth/application/dtos/authenticate-user-request.dto';
 import { AuthenticateUserDto } from '@/domain/auth/application/dtos/authenticate-user.dto';
 import { 
   AuthSuccessResponseDto, 
@@ -97,7 +97,7 @@ export class AuthController {
   @Public()
   @Post('login')
   async login(
-    @Body() dto: AuthenticateUserRequest,
+    @Body() dto: AuthenticateUserRequestDto,
     @Ip() ipAddress: string,
     @Req() request: Request,
   ) {
