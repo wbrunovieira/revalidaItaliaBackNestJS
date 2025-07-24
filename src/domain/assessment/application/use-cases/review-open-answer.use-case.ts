@@ -8,7 +8,6 @@ import { IQuestionRepository } from '../repositories/i-question-repository';
 import { IUserAggregatedViewRepository } from '@/domain/auth/application/repositories/i-user-aggregated-view-repository';
 import { ReviewOpenAnswerRequest } from '../dtos/review-open-answer-request.dto';
 import { ReviewOpenAnswerResponse } from '../dtos/review-open-answer-response.dto';
-import { ScoreVO } from '../../enterprise/value-objects/score.vo';
 import { reviewOpenAnswerSchema } from './validations/review-open-answer.schema';
 import { InvalidInputError } from './errors/invalid-input-error';
 import { AttemptAnswerNotFoundError } from './errors/attempt-answer-not-found-error';
@@ -69,7 +68,11 @@ export class ReviewOpenAnswerUseCase {
       }
 
       const reviewer = reviewerResult.value;
-      if (reviewer && reviewer.role !== 'tutor' && reviewer.role !== 'admin') {
+      if (!reviewer) {
+        return left(new UserNotFoundError());
+      }
+      
+      if (reviewer.role !== 'tutor' && reviewer.role !== 'admin') {
         return left(new InsufficientPermissionsError());
       }
 
@@ -152,28 +155,21 @@ export class ReviewOpenAnswerUseCase {
         }
       }
 
-      // If all open questions are reviewed, finalize the attempt
+      // If all open questions are reviewed, mark the attempt as grading
       let finalAttemptStatus = attempt.status.getValue();
       
       if (allOpenQuestionsReviewed) {
-        // Calculate final score including open questions
-        // Get all multiple choice answers that were already scored
-        const multipleChoiceAnswers = allAnswers.filter(answer => {
-          // This would need the question type, simplified here
-          return answer.selectedOptionId !== undefined;
-        });
-
-        // For simplicity, we'll just mark as graded without recalculating full score
-        // In a real implementation, you'd recalculate the complete score here
-        const score = new ScoreVO(100); // Simplified - should calculate actual score
-        attempt.grade(score);
+        // When all open questions are reviewed, move to GRADING status
+        // The final score calculation and GRADED status should be set
+        // by a separate process or use case
+        attempt.startGrading();
         
         const updateAttemptResult = await this.attemptRepository.update(attempt);
         if (updateAttemptResult.isLeft()) {
           return left(new RepositoryError('Failed to update attempt'));
         }
         
-        finalAttemptStatus = 'GRADED';
+        finalAttemptStatus = 'GRADING';
       }
 
       return right({
