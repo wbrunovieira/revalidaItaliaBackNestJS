@@ -14,3 +14,5 @@ export * from './invalid-input-error.exception';
 export * from './repository-error.exception';
 export * from './unauthorized-error.exception';
 export * from './resource-not-found-error.exception';
+export * from './invalid-role.exception';
+export * from './invalid-fullname.exception';

@@ -59,8 +59,8 @@ export class InMemoryUserProfileRepository extends IUserProfileRepository {
     return right(result.value.length);
   }
 
-  async delete(identityId: string): Promise<Either<Error, void>> {
-    this.items = this.items.filter(item => item.identityId.toString() !== identityId);
+  async delete(id: string): Promise<Either<Error, void>> {
+    this.items = this.items.filter(item => item.id.toString() !== id);
     return right(undefined);
   }
 }

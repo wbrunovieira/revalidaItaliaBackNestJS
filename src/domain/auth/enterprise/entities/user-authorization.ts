@@ -1,6 +1,7 @@
 import { Entity } from '@/core/entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { Optional } from '@/core/types/optional';
+import { InvalidRoleException } from '@/domain/auth/domain/exceptions/invalid-role.exception';
 
 export type UserRole = 'admin' | 'tutor' | 'student';
 
@@ -150,6 +151,12 @@ export class UserAuthorization extends Entity<UserAuthorizationProps> {
     props: Optional<UserAuthorizationProps, 'createdAt' | 'effectiveFrom' | 'customPermissions' | 'restrictions'>,
     id?: UniqueEntityID,
   ) {
+    // Validate role
+    const validRoles: UserRole[] = ['admin', 'tutor', 'student'];
+    if (!validRoles.includes(props.role)) {
+      throw new InvalidRoleException(props.role, validRoles);
+    }
+
     const userAuthorization = new UserAuthorization(
       {
         ...props,

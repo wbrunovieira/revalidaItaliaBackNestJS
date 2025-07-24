@@ -98,15 +98,18 @@ export class Password {
       throw new WeakPasswordException(`Password must be at most ${MAX_LENGTH} characters long`);
     }
 
-    // Security validations
-    if (!/[A-Z]/.test(plainPassword)) {
+    // Security validations with Unicode support
+    // Check for uppercase letters (including Unicode)
+    if (!/[A-ZÀ-ÖØ-ÞĀ-ſƀ-ɏ]/u.test(plainPassword)) {
       throw WeakPasswordException.missingUppercase();
     }
 
-    if (!/[a-z]/.test(plainPassword)) {
+    // Check for lowercase letters (including Unicode)
+    if (!/[a-zà-öø-þĀ-ſƀ-ɏ]/u.test(plainPassword)) {
       throw WeakPasswordException.missingLowercase();
     }
 
+    // Check for numbers
     if (!/[0-9]/.test(plainPassword)) {
       throw WeakPasswordException.missingNumber();
     }

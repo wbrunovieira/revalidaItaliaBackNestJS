@@ -2,6 +2,7 @@ import { Optional } from '@/core/types/optional';
 import { NationalId } from '../value-objects/national-id.vo';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { Entity } from '@/core/entity';
+import { InvalidFullNameException } from '@/domain/auth/domain/exceptions/invalid-fullname.exception';
 
 export interface UserProfileProps {
   identityId: UniqueEntityID;
@@ -191,9 +192,28 @@ export class UserProfile extends Entity<UserProfileProps> {
     >,
     id?: UniqueEntityID,
   ) {
+    // Validate fullName
+    if (typeof props.fullName !== 'string') {
+      throw InvalidFullNameException.empty();
+    }
+    
+    const trimmedFullName = props.fullName.trim();
+    
+    if (!trimmedFullName) {
+      throw InvalidFullNameException.empty();
+    }
+
+    if (trimmedFullName.length < 2) {
+      throw InvalidFullNameException.tooShort(2);
+    }
+
+    // Remove control characters
+    const cleanedFullName = trimmedFullName.replace(/[\x00-\x1F\x7F]/g, '');
+
     const userProfile = new UserProfile(
       {
         ...props,
+        fullName: cleanedFullName,
         preferredLanguage: props.preferredLanguage ?? 'pt-BR',
         timezone: props.timezone ?? 'America/Sao_Paulo',
         createdAt: props.createdAt ?? new Date(),
