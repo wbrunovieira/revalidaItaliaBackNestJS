@@ -53,9 +53,15 @@ export class StartAttemptUseCase {
     const validatedData: StartAttemptSchema = validationResult.data;
 
     // 2. Check if user exists
-    const userResult = await this.userAggregatedViewRepository.findByIdentityId(
-      validatedData.identityId,
-    );
+    let userResult;
+    try {
+      userResult = await this.userAggregatedViewRepository.findByIdentityId(
+        validatedData.identityId,
+      );
+    } catch (error) {
+      return left(new RepositoryError('Failed to fetch user'));
+    }
+    
     if (userResult.isLeft()) {
       const error = userResult.value;
       if (error.message === 'User not found') {
@@ -63,11 +69,22 @@ export class StartAttemptUseCase {
       }
       return left(new RepositoryError('Failed to fetch user'));
     }
+    
+    const user = userResult.value;
+    if (!user) {
+      return left(new UserNotFoundError());
+    }
 
     // 3. Check if assessment exists
-    const assessmentResult = await this.assessmentRepository.findById(
-      validatedData.assessmentId,
-    );
+    let assessmentResult;
+    try {
+      assessmentResult = await this.assessmentRepository.findById(
+        validatedData.assessmentId,
+      );
+    } catch (error) {
+      return left(new RepositoryError('Failed to fetch assessment'));
+    }
+    
     if (assessmentResult.isLeft()) {
       const error = assessmentResult.value;
       if (error.message === 'Assessment not found') {
