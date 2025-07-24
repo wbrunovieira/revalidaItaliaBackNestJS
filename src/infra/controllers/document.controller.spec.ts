@@ -122,26 +122,43 @@ describe('DocumentController', () => {
     };
 
     it('returns created document payload when successful', async () => {
+      const mockCreateResponse = {
+        document: {
+          id: documentId,
+          filename: 'document.pdf',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        translations: [
+          {
+            locale: 'pt' as const,
+            title: 'Test Document',
+            description: 'A test document',
+            url: 'http://example.com/doc.pdf',
+          },
+        ],
+      };
+
       vi.mocked(createUc.execute).mockResolvedValueOnce(
-        right({ document: mockDocument, translations: [] }),
+        right(mockCreateResponse),
       );
 
       const result = await controller.create(lessonId, body);
 
       expect(createUc.execute).toHaveBeenCalledWith({ ...body, lessonId });
       expect(result).toEqual({
-        id: mockDocument.id,
-        url: mockDocument.url,
-        filename: mockDocument.filename,
-        title: mockDocument.title,
-        fileSize: mockDocument.fileSize,
-        fileSizeInMB: mockDocument.fileSizeInMB,
-        mimeType: mockDocument.mimeType,
-        isDownloadable: mockDocument.isDownloadable,
-        downloadCount: mockDocument.downloadCount,
-        createdAt: mockDocument.createdAt,
-        updatedAt: mockDocument.updatedAt,
-        translations: [],
+        id: documentId,
+        filename: 'document.pdf',
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+        translations: [
+          {
+            locale: 'pt',
+            title: 'Test Document',
+            description: 'A test document',
+            url: 'http://example.com/doc.pdf',
+          },
+        ],
       });
     });
 
@@ -215,14 +232,22 @@ describe('DocumentController', () => {
         ],
       };
 
-      const mockMultiTranslations = [
-        { locale: 'pt', title: 'Documento Português', description: 'Descrição em português', url: 'http://example.com/pt-doc.pdf' },
-        { locale: 'it', title: 'Documento Italiano', description: 'Descrizione in italiano', url: 'http://example.com/it-doc.pdf' },
-        { locale: 'es', title: 'Documento Español', description: 'Descripción en español', url: 'http://example.com/es-doc.pdf' },
-      ];
+      const mockMultiResponse = {
+        document: {
+          id: documentId,
+          filename: 'multi-lang.pdf',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        translations: [
+          { locale: 'pt' as const, title: 'Documento Português', description: 'Descrição em português', url: 'http://example.com/pt-doc.pdf' },
+          { locale: 'it' as const, title: 'Documento Italiano', description: 'Descrizione in italiano', url: 'http://example.com/it-doc.pdf' },
+          { locale: 'es' as const, title: 'Documento Español', description: 'Descripción en español', url: 'http://example.com/es-doc.pdf' },
+        ],
+      };
 
       vi.mocked(createUc.execute).mockResolvedValueOnce(
-        right({ document: mockDocument, translations: mockMultiTranslations }),
+        right(mockMultiResponse),
       );
 
       const result = await controller.create(lessonId, bodyWithMultipleTranslations);
@@ -230,6 +255,17 @@ describe('DocumentController', () => {
       expect(createUc.execute).toHaveBeenCalledWith({ 
         ...bodyWithMultipleTranslations, 
         lessonId 
+      });
+      expect(result).toEqual({
+        id: documentId,
+        filename: 'multi-lang.pdf',
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+        translations: [
+          { locale: 'pt', title: 'Documento Português', description: 'Descrição em português', url: 'http://example.com/pt-doc.pdf' },
+          { locale: 'it', title: 'Documento Italiano', description: 'Descrizione in italiano', url: 'http://example.com/it-doc.pdf' },
+          { locale: 'es', title: 'Documento Español', description: 'Descripción en español', url: 'http://example.com/es-doc.pdf' },
+        ],
       });
       expect(result.translations).toHaveLength(3);
       expect(result.translations[0].locale).toBe('pt');
