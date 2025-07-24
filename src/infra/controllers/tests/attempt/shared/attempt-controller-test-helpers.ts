@@ -11,7 +11,7 @@ export class AttemptControllerTestHelpers {
     expect(response.attempt).toHaveProperty('id');
     expect(response.attempt).toHaveProperty('status');
     expect(response.attempt).toHaveProperty('startedAt');
-    expect(response.attempt).toHaveProperty('userId');
+    expect(response.attempt).toHaveProperty('identityId');
     expect(response.attempt).toHaveProperty('assessmentId');
     expect(response.attempt).toHaveProperty('createdAt');
     expect(response.attempt).toHaveProperty('updatedAt');
@@ -89,11 +89,11 @@ export class AttemptControllerTestHelpers {
    */
   static verifyUseCaseCalledWith(
     mockUseCase: any,
-    expectedUserId: string,
+    expectedIdentityId: string,
     expectedAssessmentId: string
   ): void {
     expect(mockUseCase.execute).toHaveBeenCalledWith({
-      userId: expectedUserId,
+      identityId: expectedIdentityId,
       assessmentId: expectedAssessmentId,
     });
   }
