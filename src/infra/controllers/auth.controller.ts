@@ -102,7 +102,7 @@ export class AuthController {
     @Req() request: Request,
   ) {
     // Get user agent from request headers
-    const userAgent = request.headers['user-agent'] || 'Unknown';
+    const userAgent = request.headers?.['user-agent'] || 'Unknown';
 
     const result = await this.authenticateUser.execute({
       ...dto,
