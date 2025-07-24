@@ -142,7 +142,7 @@ describe('DeleteUserUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(EntityNotFoundException);
-        expect(result.value.message).toBe('UserIdentity not found');
+        expect(result.value.message).toBe('UserIdentity with ID non-existent-id not found');
       }
     });
 
