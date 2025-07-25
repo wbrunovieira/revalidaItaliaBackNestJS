@@ -1,23 +1,24 @@
 // src/infra/controllers/tests/profile/shared/profile-controller-test-helpers.ts
 import { right, left } from '@/core/either';
-import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error';
-import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error';
-import { DuplicateNationalIdError } from '@/domain/auth/application/use-cases/errors/duplicate-national-id-error';
-import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
+import {
+  InvalidInputError,
+  DuplicateEmailError,
+  DuplicateNationalIdError,
+  ResourceNotFoundError,
+} from '@/domain/auth/domain/exceptions';
 
 export function createSuccessResponse(userData: any) {
   return right({
-    user: {
+    identity: {
       id: userData.id || 'test-user-id',
-      name: userData.name,
       email: userData.email,
-      cpf: userData.cpf || userData.nationalId,
+    },
+    profile: {
+      fullName: userData.fullName || userData.name,
+      nationalId: userData.nationalId || userData.cpf,
       phone: userData.phone,
       birthDate: userData.birthDate,
       profileImageUrl: userData.profileImageUrl,
-      role: userData.role || 'student',
-      createdAt: userData.createdAt || new Date(),
-      updatedAt: userData.updatedAt || new Date(),
     },
   });
 }
@@ -26,16 +27,16 @@ export function createInvalidInputError(message: string, details: any[] = []) {
   return left(new InvalidInputError(message, details));
 }
 
-export function createDuplicateEmailError() {
-  return left(new DuplicateEmailError());
+export function createDuplicateEmailError(email = 'test@example.com') {
+  return left(new DuplicateEmailError(email));
 }
 
-export function createDuplicateNationalIdError() {
-  return left(new DuplicateNationalIdError());
+export function createDuplicateNationalIdError(nationalId = '12345678901') {
+  return left(new DuplicateNationalIdError(nationalId));
 }
 
 export function createResourceNotFoundError(message = 'User not found') {
-  return left(new ResourceNotFoundError(message));
+  return left(new ResourceNotFoundError('User', {}, undefined, message));
 }
 
 export function createGenericError(message = 'Unexpected error') {

@@ -8,6 +8,8 @@ import {
   IsUrl,
   MinLength,
   MaxLength,
+  Matches,
+  ValidateIf,
 } from 'class-validator';
 
 export class UpdateOwnProfileRequestDto {
@@ -37,6 +39,10 @@ export class UpdateOwnProfileRequestDto {
   birthDate?: string;
 
   @IsOptional()
+  @ValidateIf((o) => o.profileImageUrl !== null && o.profileImageUrl !== undefined)
   @IsString()
+  @Matches(/^(https?:\/\/[^\s]+|\/[^\s]*)$/, {
+    message: 'profileImageUrl must be a URL address',
+  })
   profileImageUrl?: string;
 }

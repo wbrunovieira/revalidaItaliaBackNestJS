@@ -1,7 +1,7 @@
 // src/infra/controllers/tests/profile/shared/profile-controller-test-data.ts
 export function createValidUpdateProfileData() {
   return {
-    name: 'John Updated',
+    fullName: 'John Updated',
     email: 'john.updated@example.com',
     nationalId: '12345678901',
     phone: '+5511999999999',
@@ -12,7 +12,7 @@ export function createValidUpdateProfileData() {
 
 export function createPartialUpdateProfileData() {
   return {
-    name: 'Jane Updated',
+    fullName: 'Jane Updated',
     phone: '+5511888888888',
   };
 }
@@ -31,7 +31,7 @@ export function createInvalidCPFData() {
 
 export function createShortNameData() {
   return {
-    name: 'Jo', // Too short
+    fullName: 'Jo', // Too short
   };
 }
 

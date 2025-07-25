@@ -529,7 +529,7 @@ describe('UpdateOwnProfileUseCase', () => {
         expect(result.value).toBeInstanceOf(InvalidInputError);
         if (result.value instanceof InvalidInputError) {
           expect(result.value.details).toContainEqual({
-            code: 'isUrl',
+            code: 'matches',
             message: 'profileImageUrl must be a URL address',
             path: ['profileImageUrl'],
           });

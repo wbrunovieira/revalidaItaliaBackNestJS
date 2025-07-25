@@ -68,19 +68,20 @@ describe('PATCH ProfileController', () => {
       .send(validData)
       .expect(200);
 
-    expect(response.body.user).toMatchObject({
+    expect(response.body.identity).toMatchObject({
       id: 'test-user-id',
-      name: validData.name,
       email: validData.email,
-      cpf: validData.nationalId,
+    });
+    expect(response.body.profile).toMatchObject({
+      fullName: validData.fullName,
+      nationalId: validData.nationalId,
       phone: validData.phone,
       profileImageUrl: validData.profileImageUrl,
-      role: 'student',
     });
 
     expect(mockUpdateUserProfileUseCase.execute).toHaveBeenCalledWith({
       identityId: 'test-user-id',
-      name: validData.name,
+      name: validData.fullName,
       email: validData.email,
       nationalId: validData.nationalId,
       phone: validData.phone,
@@ -94,7 +95,7 @@ describe('PATCH ProfileController', () => {
     const partialData = createPartialUpdateProfileData();
     const expectedUser = {
       id: 'test-user-id',
-      name: partialData.name,
+      fullName: partialData.fullName,
       email: 'existing@example.com',
       cpf: '11111111111',
       phone: partialData.phone,
@@ -114,8 +115,8 @@ describe('PATCH ProfileController', () => {
       .send(partialData)
       .expect(200);
 
-    expect(response.body.user.name).toBe(partialData.name);
-    expect(response.body.user.phone).toBe(partialData.phone);
+    expect(response.body.profile.fullName).toBe(partialData.fullName);
+    expect(response.body.profile.phone).toBe(partialData.phone);
   });
 
   it('should return 400 when email format is invalid', async () => {
@@ -129,7 +130,9 @@ describe('PATCH ProfileController', () => {
       .send(invalidData)
       .expect(400);
 
-    expect(response.body.message).toContain('Invalid email format');
+    expect(response.body.message).toEqual(
+      expect.arrayContaining([expect.stringContaining('Invalid email format')]),
+    );
   });
 
   it('should return 400 when CPF format is invalid', async () => {
@@ -143,7 +146,9 @@ describe('PATCH ProfileController', () => {
       .send(invalidData)
       .expect(400);
 
-    expect(response.body.message).toContain('nationalId must be at least 3 characters long');
+    expect(response.body.message).toEqual(
+      expect.arrayContaining([expect.stringContaining('nationalId must be at least 3 characters long')]),
+    );
   });
 
   it('should return 400 when name is too short', async () => {
@@ -154,11 +159,17 @@ describe('PATCH ProfileController', () => {
     const response = await request(app.getHttpServer())
       .patch('/profile')
       .set('Authorization', authToken)
-      .send(invalidData)
-      .expect(400);
+      .send(invalidData);
 
-    expect(response.body.message).toContain(
-      'Name must be at least 3 characters long',
+    // Debug the response
+    if (response.status !== 400) {
+      console.log('Response status:', response.status);
+      console.log('Response body:', JSON.stringify(response.body, null, 2));
+    }
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toEqual(
+      expect.arrayContaining([expect.stringContaining('Full name must be at least 3 characters long')]),
     );
   });
 
@@ -310,7 +321,7 @@ describe('PATCH ProfileController', () => {
         .send(data)
         .expect(200);
 
-      expect(response.body.user.profileImageUrl).toBe(profileImageUrl);
+      expect(response.body.profile.profileImageUrl).toBe(profileImageUrl);
     }
   });
 
