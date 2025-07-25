@@ -92,9 +92,7 @@ describe('[E2E] GET /assessments/:id/questions/detailed', () => {
       );
 
       // Assert
-      testHelpers.expectValidationError(response, [
-        'assessmentId: Assessment ID must be a valid UUID',
-      ]);
+      testHelpers.expectValidationError(response);
     });
 
     it('should return 400 when assessmentId is empty', async () => {

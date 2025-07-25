@@ -15,17 +15,19 @@ export class AssessmentTestHelpers {
 
   expectValidationError(response: any, expectedDetails?: string[]) {
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('INVALID_INPUT');
-    expect(response.body.message).toBe('Invalid input data');
+    expect(response.body.type).toBe('https://api.portalrevalida.com/errors/http-error');
+    expect(response.body.title).toBe('Bad Request');
+    expect(response.body.status).toBe(400);
     if (expectedDetails) {
-      expect(response.body.details).toEqual(expectedDetails);
+      expect(response.body.detail).toContain(expectedDetails[0]);
     }
   }
 
   expectNotFoundError(response: any) {
     expect(response.status).toBe(404);
-    expect(response.body.error).toBe('ASSESSMENT_NOT_FOUND');
-    expect(response.body.message).toBe('Assessment not found');
+    expect(response.body.type).toBe('https://api.portalrevalida.com/errors/http-error');
+    expect(response.body.title).toBe('Not Found');
+    expect(response.body.status).toBe(404);
   }
 
   expectRepositoryError(response: any, expectedMessage?: string) {

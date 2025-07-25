@@ -7,16 +7,34 @@ export class AssessmentTestSetup {
   constructor(private prisma: PrismaClient) {}
 
   async createTestScenario() {
-    // Create user
-    const userId = new UniqueEntityID();
-    await this.prisma.user.create({
+    // Create user identity
+    const identityId = new UniqueEntityID();
+    await this.prisma.userIdentity.create({
       data: {
-        id: userId.toString(),
-        name: 'Test User',
+        id: identityId.toString(),
         email: 'test@example.com',
-        cpf: '123.456.789-00',
         password: 'hashed-password',
-        role: 'STUDENT',
+        emailVerified: true,
+      },
+    });
+
+    // Create user profile
+    const profileId = new UniqueEntityID();
+    await this.prisma.userProfile.create({
+      data: {
+        id: profileId.toString(),
+        identityId: identityId.toString(),
+        fullName: 'Test User',
+        nationalId: '123.456.789-00',
+      },
+    });
+
+    // Create user authorization
+    await this.prisma.userAuthorization.create({
+      data: {
+        id: new UniqueEntityID().toString(),
+        identityId: identityId.toString(),
+        role: 'student',
       },
     });
 
@@ -292,7 +310,7 @@ export class AssessmentTestSetup {
     });
 
     return {
-      userId: userId.toString(),
+      userId: identityId.toString(),
       lessonId: lessonId.toString(),
       quizId: quizId.toString(),
       simuladoId: simuladoId.toString(),
@@ -324,6 +342,10 @@ export class AssessmentTestSetup {
     await this.prisma.track.deleteMany();
     await this.prisma.courseTranslation.deleteMany();
     await this.prisma.course.deleteMany();
-    await this.prisma.user.deleteMany();
+    
+    // Clean up user-related tables in correct order
+    await this.prisma.userAuthorization.deleteMany();
+    await this.prisma.userProfile.deleteMany();
+    await this.prisma.userIdentity.deleteMany();
   }
 }
