@@ -142,9 +142,11 @@ vwIDAQAB
 
           // Admin-only endpoints (based on the @Roles('admin') decorator in controllers)
           const adminOnlyEndpoints = [
-            'GET /students',
-            'GET /students/search',
-            'DELETE /students/', // includes any DELETE with ID
+            'GET /users',
+            'GET /users/search',
+            'DELETE /users/', // includes any DELETE with ID
+            'POST /users', // creating users is also admin-only
+            'PATCH /users/', // updating users is admin-only
           ];
 
           const currentEndpoint = `${method} ${url.split('?')[0]}`; // Remove query params
