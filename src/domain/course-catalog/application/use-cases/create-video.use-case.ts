@@ -135,6 +135,10 @@ export class CreateVideoUseCase {
       data.translations,
     );
     if (saveOrErr.isLeft()) {
+      // Preserve specific error types from repository
+      if (saveOrErr.value instanceof DuplicateVideoError) {
+        return left(saveOrErr.value);
+      }
       return left(new RepositoryError(saveOrErr.value.message));
     }
 

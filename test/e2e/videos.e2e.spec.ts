@@ -238,8 +238,8 @@ describe('VideoController (E2E)', () => {
       expect(res.status).toBe(400);
     });
 
-    // Comentado: a API pode não estar verificando a relação one-to-one ainda
-    it.skip('→ Conflict when lesson already has a video', async () => {
+    // Teste de relação one-to-one entre lesson e video
+    it('→ Conflict when lesson already has a video', async () => {
       // Criar primeiro vídeo com todas as traduções obrigatórias
       const firstPayload = {
         slug: 'first-video',
@@ -294,7 +294,7 @@ describe('VideoController (E2E)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send(secondPayload);
       expect(secondRes.status).toBe(409);
-      expect(secondRes.body.message).toContain('already has a video');
+      expect(secondRes.body.detail).toBe('Video already exists');
     });
   });
 
@@ -706,8 +706,8 @@ describe('VideoController (E2E)', () => {
     });
   });
 
-  // Comentado pois a rota PUT pode não estar implementada ainda
-  describe.skip('[PUT] update video', () => {
+  // Testes de atualização de vídeo
+  describe('[PUT] update video', () => {
     let existingVideoId: string;
 
     beforeEach(async () => {
@@ -727,6 +727,11 @@ describe('VideoController (E2E)', () => {
               locale: 'it',
               title: 'Original IT',
               description: 'Original Desc IT',
+            },
+            {
+              locale: 'es',
+              title: 'Original ES',
+              description: 'Original Desc ES',
             },
           ],
         });
@@ -750,6 +755,15 @@ describe('VideoController (E2E)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send(updatePayload);
 
+      if (res.status !== 200) {
+        console.log('PUT update failed:', {
+          status: res.status,
+          body: res.body,
+          existingVideoId,
+          updatePayload,
+        });
+      }
+
       expect(res.status).toBe(200);
       expect(res.body).toEqual(
         expect.objectContaining({
@@ -766,15 +780,31 @@ describe('VideoController (E2E)', () => {
     });
 
     it('→ Conflict when updating to existing slug', async () => {
-      // Criar outro vídeo com slug diferente
+      // Criar outra lesson para evitar conflict de one-to-one
+      const otherLesson = await prisma.lesson.create({
+        data: {
+          slug: 'other-lesson-for-update',
+          moduleId,
+          order: 99,
+          translations: {
+            create: [
+              { locale: 'pt', title: 'Outra Aula', description: 'Outra Desc' },
+            ],
+          },
+        },
+      });
+
+      // Criar outro vídeo com slug diferente na outra lesson
       await request(app.getHttpServer())
-        .post(endpoint())
+        .post(`/courses/${courseId}/lessons/${otherLesson.id}/videos`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           slug: 'existing-slug',
           providerVideoId: 'some-id',
           translations: [
-            { locale: 'pt', title: 'Existing', description: 'Existing' },
+            { locale: 'pt', title: 'Existing PT', description: 'Existing Desc PT' },
+            { locale: 'it', title: 'Existing IT', description: 'Existing Desc IT' },
+            { locale: 'es', title: 'Existing ES', description: 'Existing Desc ES' },
           ],
         });
 

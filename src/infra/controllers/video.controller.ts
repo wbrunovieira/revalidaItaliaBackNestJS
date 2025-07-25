@@ -197,7 +197,7 @@ export class VideoController {
     }
 
     // 6. Retornar sucesso
-    return result.value;
+    return result.value.video;
   }
 
   @Delete(':videoId')

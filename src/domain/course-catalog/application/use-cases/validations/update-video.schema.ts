@@ -12,7 +12,7 @@ export const updateVideoSchema = z
       .optional(),
     imageUrl: z
       .string()
-      .url({ message: 'Invalid image URL' })
+      .min(1, { message: 'Image URL cannot be empty' })
       .nullable()
       .optional(),
     providerVideoId: z

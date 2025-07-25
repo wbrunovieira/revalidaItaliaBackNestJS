@@ -29,6 +29,7 @@ export class PrismaVideoRepository implements IVideoRepository {
       const videoEntity = Video.reconstruct(
         {
           slug: row.slug,
+          imageUrl: row.imageUrl ?? undefined,
           providerVideoId: row.providerVideoId,
           durationInSeconds: row.durationInSeconds,
           lessonId: row.lessonId ?? undefined,
@@ -81,13 +82,13 @@ export class PrismaVideoRepository implements IVideoRepository {
 
       return right(undefined);
     } catch (err: any) {
-      if (
-        err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === 'P2002' &&
-        Array.isArray(err.meta?.target) &&
-        err.meta.target.includes('slug')
-      ) {
-        return left(new DuplicateVideoError());
+      if (err.code === 'P2002' && Array.isArray(err.meta?.target)) {
+        if (err.meta.target.includes('slug')) {
+          return left(new DuplicateVideoError());
+        }
+        if (err.meta.target.includes('lessonId')) {
+          return left(new DuplicateVideoError());
+        }
       }
       return left(new Error(`Failed to create video: ${err.message}`));
     }
@@ -116,6 +117,7 @@ export class PrismaVideoRepository implements IVideoRepository {
       const videoEntity = Video.reconstruct(
         {
           slug: row.slug,
+          imageUrl: row.imageUrl ?? undefined,
           providerVideoId: row.providerVideoId,
           durationInSeconds: row.durationInSeconds,
           lessonId: row.lessonId ?? undefined,
@@ -162,6 +164,7 @@ export class PrismaVideoRepository implements IVideoRepository {
         const video = Video.reconstruct(
           {
             slug: row.slug,
+            imageUrl: row.imageUrl ?? undefined,
             providerVideoId: row.providerVideoId,
             durationInSeconds: row.durationInSeconds,
             lessonId: row.lessonId ?? undefined,

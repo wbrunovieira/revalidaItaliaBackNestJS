@@ -40,7 +40,8 @@ export class UpdateVideoDto {
   slug?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
+  @IsNotEmpty()
   imageUrl?: string | null;
 
   @IsOptional()

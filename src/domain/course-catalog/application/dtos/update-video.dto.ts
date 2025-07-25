@@ -27,6 +27,20 @@ export type UpdateVideoUseCaseResponse = Either<
   | LessonNotFoundError
   | RepositoryError,
   {
-    message: string;
+    video: {
+      id: string;
+      slug: string;
+      imageUrl?: string;
+      providerVideoId: string;
+      durationInSeconds: number;
+      lessonId?: string;
+      translations: Array<{
+        locale: 'pt' | 'it' | 'es';
+        title: string;
+        description: string;
+      }>;
+      createdAt: Date;
+      updatedAt: Date;
+    };
   }
 >;

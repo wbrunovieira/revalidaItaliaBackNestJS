@@ -109,8 +109,26 @@ export class UpdateVideoUseCase {
         return left(new RepositoryError(updateResult.value.message));
       }
 
+      // Fetch the updated video with translations
+      const updatedResult = await this.videoRepository.findById(videoId);
+      if (updatedResult.isLeft()) {
+        return left(new RepositoryError('Failed to fetch updated video'));
+      }
+
+      const { video: updatedVideo, translations: updatedTranslations } = updatedResult.value;
+
       return right({
-        message: 'Video updated successfully',
+        video: {
+          id: updatedVideo.id.toString(),
+          slug: updatedVideo.slug,
+          imageUrl: updatedVideo.imageUrl,
+          providerVideoId: updatedVideo.providerVideoId,
+          durationInSeconds: updatedVideo.durationInSeconds,
+          lessonId: updatedVideo.lessonId,
+          translations: updatedTranslations,
+          createdAt: updatedVideo.createdAt,
+          updatedAt: updatedVideo.updatedAt,
+        },
       });
     } catch (err: any) {
       // Preserve specific error types
