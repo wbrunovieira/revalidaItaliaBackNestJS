@@ -7,12 +7,12 @@ import { Lesson } from '@/domain/course-catalog/enterprise/entities/lesson.entit
 import { DocumentTranslationProps } from '@/domain/course-catalog/enterprise/entities/document.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import {
-  InvalidInputError,
-  LessonNotFoundError,
   DuplicateDocumentError,
   RepositoryError,
   InvalidFileError,
 } from '@/domain/course-catalog/domain/exceptions';
+import { InvalidInputError } from './errors/invalid-input-error';
+import { LessonNotFoundError } from './errors/lesson-not-found-error';
 import { right, left, Either } from '@/core/either';
 import { CreateDocumentRequest } from '../dtos/create-document-request.dto';
 import { CreateDocumentUseCaseResponse } from './create-document.use-case';
@@ -271,7 +271,7 @@ describe('CreateDocumentUseCase', () => {
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(LessonNotFoundError);
-        expect(result.value.message).toContain('Lesson not found with id');
+        expect(result.value.message).toBe('Lesson not found');
       }
     });
 
