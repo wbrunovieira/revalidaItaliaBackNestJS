@@ -130,7 +130,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
     const validationErrorCases = [
       {
         name: 'invalid user ID',
-        testFn: () => AttemptTestData.invalidRequests.invalidUserId(),
+        testFn: () => AttemptTestData.invalidRequests.invalidIdentityId(),
       },
       {
         name: 'invalid assessment ID',
@@ -142,7 +142,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       },
       {
         name: 'empty user ID',
-        testFn: () => AttemptTestData.invalidRequests.emptyUserId(),
+        testFn: () => AttemptTestData.invalidRequests.emptyIdentityId(),
       },
       {
         name: 'empty assessment ID',
@@ -150,7 +150,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       },
       {
         name: 'missing user ID',
-        testFn: () => AttemptTestData.invalidRequests.missingUserId(),
+        testFn: () => AttemptTestData.invalidRequests.missingIdentityId(),
       },
       {
         name: 'missing assessment ID',
@@ -158,7 +158,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       },
       {
         name: 'null user ID',
-        testFn: () => AttemptTestData.invalidRequests.nullUserId(),
+        testFn: () => AttemptTestData.invalidRequests.nullIdentityId(),
       },
       {
         name: 'null assessment ID',
@@ -166,7 +166,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       },
       {
         name: 'undefined user ID',
-        testFn: () => AttemptTestData.invalidRequests.undefinedUserId(),
+        testFn: () => AttemptTestData.invalidRequests.undefinedIdentityId(),
       },
       {
         name: 'undefined assessment ID',
@@ -174,7 +174,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       },
       {
         name: 'number user ID',
-        testFn: () => AttemptTestData.invalidRequests.numberUserId(),
+        testFn: () => AttemptTestData.invalidRequests.numberIdentityId(),
       },
       {
         name: 'number assessment ID',
@@ -182,7 +182,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       },
       {
         name: 'boolean user ID',
-        testFn: () => AttemptTestData.invalidRequests.booleanUserId(),
+        testFn: () => AttemptTestData.invalidRequests.booleanIdentityId(),
       },
       {
         name: 'boolean assessment ID',
@@ -190,7 +190,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       },
       {
         name: 'object user ID',
-        testFn: () => AttemptTestData.invalidRequests.objectUserId(),
+        testFn: () => AttemptTestData.invalidRequests.objectIdentityId(),
       },
       {
         name: 'object assessment ID',
@@ -198,7 +198,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       },
       {
         name: 'array user ID',
-        testFn: () => AttemptTestData.invalidRequests.arrayUserId(),
+        testFn: () => AttemptTestData.invalidRequests.arrayIdentityId(),
       },
       {
         name: 'array assessment ID',
@@ -403,7 +403,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
 
       // Create different request data for each concurrent request to avoid conflicts
       const requests = Array.from({ length: requestCount }, (_, index) => ({
-        userId: testSetup.studentUserId,
+        identityId: testSetup.studentUserId,
         assessmentId:
           index % 2 === 0
             ? testSetup.quizAssessmentId
@@ -419,7 +419,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
         await testHelpers.waitForDatabase(index * 10);
         try {
           const result = await testHelpers.startAttempt(
-            request.userId,
+            request.identityId,
             request.assessmentId,
             'test-jwt-token',
           );
@@ -465,7 +465,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
         );
 
         await testHelpers.startAttempt(
-          requestData.userId,
+          requestData.identityId,
           requestData.assessmentId,
           'test-jwt-token',
         );
@@ -492,7 +492,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
       const maxUuid = 'ffffffff-ffff-4fff-bfff-ffffffffffff';
 
       const requestData = {
-        userId: minUuid,
+        identityId: minUuid,
         assessmentId: maxUuid,
       };
 
@@ -506,7 +506,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
     it('should handle mixed case UUIDs correctly', async () => {
       // PostgreSQL/Prisma appears to be case-sensitive for UUID lookups
       const requestData = {
-        userId: testSetup.studentUserId.toUpperCase(),
+        identityId: testSetup.studentUserId.toUpperCase(),
         assessmentId: testSetup.quizAssessmentId.toLowerCase(),
       };
 
@@ -620,7 +620,7 @@ describe('[E2E] POST /attempts/start - Start Attempt', () => {
 
     it('should return properly formatted error responses', async () => {
       // Test invalid input error
-      const invalidRequest = AttemptTestData.invalidRequests.invalidUserId();
+      const invalidRequest = AttemptTestData.invalidRequests.invalidIdentityId();
       const invalidResponse =
         await testHelpers.startAttemptExpectValidationError(
           invalidRequest,

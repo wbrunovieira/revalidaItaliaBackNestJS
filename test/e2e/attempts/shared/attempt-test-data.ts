@@ -2,7 +2,7 @@
 import { randomUUID } from 'crypto';
 
 export interface StartAttemptRequestData {
-  userId: string;
+  identityId: string;
   assessmentId: string;
 }
 
@@ -30,7 +30,7 @@ export class AttemptTestData {
       studentId: string,
       quizId: string,
     ): StartAttemptRequestData => ({
-      userId: studentId,
+      identityId: studentId,
       assessmentId: quizId,
     }),
 
@@ -38,7 +38,7 @@ export class AttemptTestData {
       studentId: string,
       simuladoId: string,
     ): StartAttemptRequestData => ({
-      userId: studentId,
+      identityId: studentId,
       assessmentId: simuladoId,
     }),
 
@@ -46,12 +46,12 @@ export class AttemptTestData {
       studentId: string,
       provaAbertaId: string,
     ): StartAttemptRequestData => ({
-      userId: studentId,
+      identityId: studentId,
       assessmentId: provaAbertaId,
     }),
 
     tutorQuiz: (tutorId: string, quizId: string): StartAttemptRequestData => ({
-      userId: tutorId,
+      identityId: tutorId,
       assessmentId: quizId,
     }),
   };
@@ -60,8 +60,8 @@ export class AttemptTestData {
    * Invalid start attempt requests for validation testing
    */
   static readonly invalidRequests = {
-    invalidUserId: (): any => ({
-      userId: 'invalid-uuid-format',
+    invalidIdentityId: (): any => ({
+      identityId: 'invalid-uuid-format',
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
@@ -75,8 +75,8 @@ export class AttemptTestData {
       assessmentId: 'invalid-assessment-id',
     }),
 
-    emptyUserId: (): any => ({
-      userId: '',
+    emptyIdentityId: (): any => ({
+      identityId: '',
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
@@ -85,7 +85,7 @@ export class AttemptTestData {
       assessmentId: '',
     }),
 
-    missingUserId: (): any => ({
+    missingIdentityId: (): any => ({
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
@@ -93,8 +93,8 @@ export class AttemptTestData {
       userId: '550e8400-e29b-41d4-a716-446655440001',
     }),
 
-    nullUserId: (): any => ({
-      userId: null,
+    nullIdentityId: (): any => ({
+      identityId: null,
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
@@ -103,8 +103,8 @@ export class AttemptTestData {
       assessmentId: null,
     }),
 
-    undefinedUserId: (): any => ({
-      userId: undefined,
+    undefinedIdentityId: (): any => ({
+      identityId: undefined,
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
@@ -113,8 +113,8 @@ export class AttemptTestData {
       assessmentId: undefined,
     }),
 
-    numberUserId: (): any => ({
-      userId: 123456,
+    numberIdentityId: (): any => ({
+      identityId: 123456,
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
@@ -123,8 +123,8 @@ export class AttemptTestData {
       assessmentId: 123456,
     }),
 
-    booleanUserId: (): any => ({
-      userId: true,
+    booleanIdentityId: (): any => ({
+      identityId: true,
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
@@ -133,8 +133,8 @@ export class AttemptTestData {
       assessmentId: false,
     }),
 
-    objectUserId: (): any => ({
-      userId: { id: '550e8400-e29b-41d4-a716-446655440001' },
+    objectIdentityId: (): any => ({
+      identityId: { id: '550e8400-e29b-41d4-a716-446655440001' },
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
@@ -143,8 +143,8 @@ export class AttemptTestData {
       assessmentId: { id: '550e8400-e29b-41d4-a716-446655440002' },
     }),
 
-    arrayUserId: (): any => ({
-      userId: ['550e8400-e29b-41d4-a716-446655440001'],
+    arrayIdentityId: (): any => ({
+      identityId: ['550e8400-e29b-41d4-a716-446655440001'],
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
@@ -154,57 +154,57 @@ export class AttemptTestData {
     }),
 
     uuidWithSpaces: (): any => ({
-      userId: '  550e8400-e29b-41d4-a716-446655440001  ',
+      identityId: '  550e8400-e29b-41d4-a716-446655440001  ',
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
     uuidWithTabs: (): any => ({
-      userId: '\t550e8400-e29b-41d4-a716-446655440001\t',
+      identityId: '\t550e8400-e29b-41d4-a716-446655440001\t',
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
     uuidWithNewlines: (): any => ({
-      userId: '\n550e8400-e29b-41d4-a716-446655440001\n',
+      identityId: '\n550e8400-e29b-41d4-a716-446655440001\n',
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
     tooShortUuid: (): any => ({
-      userId: 'short',
+      identityId: 'short',
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
     tooLongUuid: (): any => ({
-      userId: '550e8400-e29b-41d4-a716-446655440001-extra-characters',
+      identityId: '550e8400-e29b-41d4-a716-446655440001-extra-characters',
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
     wrongHyphens: (): any => ({
-      userId: '550e8400-e29b-41d4-a716-446655440001',
+      identityId: '550e8400-e29b-41d4-a716-446655440001',
       assessmentId: '550e8400-e29b-41d4-a716-4466-55440002', // wrong hyphen placement
     }),
 
     missingHyphens: (): any => ({
-      userId: '550e8400e29b41d4a716446655440001', // no hyphens
+      identityId: '550e8400e29b41d4a716446655440001', // no hyphens
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
     specialChars: (): any => ({
-      userId: '550e8400-e29b-41d4-a716-446655440001',
+      identityId: '550e8400-e29b-41d4-a716-446655440001',
       assessmentId: '550e8400-e29b-41d4-a716-44665544000@', // special char at end
     }),
 
     invalidHexChars: (): any => ({
-      userId: 'gggggggg-gggg-gggg-gggg-gggggggggggg', // 'g' is not valid hex
+      identityId: 'gggggggg-gggg-gggg-gggg-gggggggggggg', // 'g' is not valid hex
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
     unicodeChars: (): any => ({
-      userId: '550e8400-e29b-41d4-a716-446655440αβγ', // unicode chars
+      identityId: '550e8400-e29b-41d4-a716-446655440αβγ', // unicode chars
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
 
     emojis: (): any => ({
-      userId: '550e8400-e29b-41d4-a716-446655440🎯', // emoji
+      identityId: '550e8400-e29b-41d4-a716-446655440🎯', // emoji
       assessmentId: '550e8400-e29b-41d4-a716-446655440002',
     }),
   };
@@ -214,32 +214,32 @@ export class AttemptTestData {
    */
   static readonly nonExistentRequests = {
     nonExistentUser: (assessmentId: string): StartAttemptRequestData => ({
-      userId: '10000000-0000-4000-8000-000000000000',
+      identityId: '10000000-0000-4000-8000-000000000000',
       assessmentId,
     }),
 
-    nonExistentAssessment: (userId: string): StartAttemptRequestData => ({
-      userId,
+    nonExistentAssessment: (identityId: string): StartAttemptRequestData => ({
+      identityId,
       assessmentId: '20000000-0000-4000-8000-000000000000',
     }),
 
     bothNonExistent: (): StartAttemptRequestData => ({
-      userId: '10000000-0000-4000-8000-000000000000',
+      identityId: '10000000-0000-4000-8000-000000000000',
       assessmentId: '20000000-0000-4000-8000-000000000000',
     }),
 
     randomUser: (assessmentId: string): StartAttemptRequestData => ({
-      userId: randomUUID(),
+      identityId: randomUUID(),
       assessmentId,
     }),
 
-    randomAssessment: (userId: string): StartAttemptRequestData => ({
-      userId,
+    randomAssessment: (identityId: string): StartAttemptRequestData => ({
+      identityId,
       assessmentId: randomUUID(),
     }),
 
     bothRandom: (): StartAttemptRequestData => ({
-      userId: randomUUID(),
+      identityId: randomUUID(),
       assessmentId: randomUUID(),
     }),
   };
@@ -252,7 +252,7 @@ export class AttemptTestData {
       id: expect.any(String),
       status: 'IN_PROGRESS',
       startedAt: expect.any(String),
-      userId: expect.any(String),
+      identityId: expect.any(String),
       assessmentId: expect.any(String),
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
@@ -268,7 +268,7 @@ export class AttemptTestData {
       status: 'IN_PROGRESS',
       startedAt: expect.any(String),
       timeLimitExpiresAt: expect.any(String),
-      userId: expect.any(String),
+      identityId: expect.any(String),
       assessmentId: expect.any(String),
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
@@ -345,7 +345,7 @@ export class AttemptTestData {
       status: expect.stringMatching(/^(SUBMITTED|GRADED)$/),
       startedAt: expect.any(String),
       submittedAt: expect.any(String),
-      userId: expect.any(String),
+      identityId: expect.any(String),
       assessmentId: expect.any(String),
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
@@ -366,7 +366,7 @@ export class AttemptTestData {
       status: 'SUBMITTED',
       startedAt: expect.any(String),
       submittedAt: expect.any(String),
-      userId: expect.any(String),
+      identityId: expect.any(String),
       assessmentId: expect.any(String),
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
@@ -479,19 +479,19 @@ export class AttemptTestData {
    */
   static generateRandomValidRequest(): StartAttemptRequestData {
     return {
-      userId: randomUUID(),
+      identityId: randomUUID(),
       assessmentId: randomUUID(),
     };
   }
 
   static generateRandomInvalidRequest(): any {
     const invalidTypes = [
-      this.invalidRequests.invalidUserId(),
+      this.invalidRequests.invalidIdentityId(),
       this.invalidRequests.invalidAssessmentId(),
       this.invalidRequests.bothInvalid(),
-      this.invalidRequests.emptyUserId(),
+      this.invalidRequests.emptyIdentityId(),
       this.invalidRequests.emptyAssessmentId(),
-      this.invalidRequests.nullUserId(),
+      this.invalidRequests.nullIdentityId(),
       this.invalidRequests.nullAssessmentId(),
     ];
 
@@ -804,7 +804,7 @@ export class AttemptTestData {
     attempt: {
       id: expect.any(String),
       status: expect.stringMatching(/^(SUBMITTED|GRADING|GRADED)$/),
-      userId: expect.any(String),
+      identityId: expect.any(String),
       assessmentId: expect.any(String),
       startedAt: expect.any(String),
     },
