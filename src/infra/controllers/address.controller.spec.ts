@@ -101,7 +101,7 @@ describe('AddressController', () => {
 
   beforeEach(() => {
     // Setup mock for userProfile.findUnique to return the matching profileId
-    vi.spyOn(prismaService.userProfile, 'findUnique').mockImplementation(async (args) => {
+    vi.spyOn(prismaService.userProfile, 'findUnique').mockImplementation(async (args: any) => {
       // For test user with ID 'test-user-id', return profile-1
       if (args?.where?.identityId === 'test-user-id') {
         return { id: 'profile-1' };
