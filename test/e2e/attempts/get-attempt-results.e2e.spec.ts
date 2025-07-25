@@ -274,16 +274,6 @@ describe('GET /attempts/:id/results (E2E)', () => {
       // For now, we skip this test as JWT is not yet implemented
       // TODO: Implement when JWT authentication is added to the route
     });
-
-    it.skip('should return 404 for non-existent user', async () => {
-      // Skip: This scenario cannot be tested in E2E due to foreign key constraints
-      // The unit tests for the controller and use case cover this scenario
-    });
-
-    it.skip('should return 404 for attempt with non-existent assessment', async () => {
-      // Skip: This scenario cannot be tested in E2E due to foreign key constraints
-      // The unit tests for the controller and use case cover this scenario
-    });
   });
 
   describe('Permission Tests', () => {
