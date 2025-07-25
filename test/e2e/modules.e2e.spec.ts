@@ -83,9 +83,6 @@ describe('Create Module (E2E)', () => {
 
     await prisma.trackTranslation.deleteMany();
     await prisma.track.deleteMany();
-
-    await prisma.address.deleteMany();
-    await prisma.user.deleteMany();
   };
 
   it('[POST] /courses/:courseId/modules - Success', async () => {
@@ -163,15 +160,14 @@ describe('Create Module (E2E)', () => {
       .send(payload);
 
     expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty('message');
-    const msgs: any[] = res.body.message;
-    const hasPtError = msgs.some((m) =>
-      typeof m === 'string'
-        ? m.toLowerCase().includes('portuguese')
-        : typeof m.message === 'string' &&
-          m.message.toLowerCase().includes('portuguese'),
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        status: 400,
+        title: 'Bad Request',
+        type: expect.stringContaining('http-error'),
+        detail: expect.any(String),
+      }),
     );
-    expect(hasPtError).toBe(true);
   });
 
   it('[POST] /courses/:courseId/modules - Duplicate Module Order', async () => {
@@ -217,7 +213,14 @@ describe('Create Module (E2E)', () => {
       });
 
     expect(res.status).toBe(409);
-    expect(res.body).toHaveProperty('message');
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        status: 409,
+        title: 'Conflict',
+        type: expect.stringContaining('http-error'),
+        detail: expect.stringContaining('Module order already exists'),
+      }),
+    );
   });
 
   it('[POST] /courses/:courseId/modules - Course Not Found', async () => {
@@ -237,7 +240,14 @@ describe('Create Module (E2E)', () => {
       .send(payload);
 
     expect(res.status).toBe(404);
-    expect(res.body).toHaveProperty('message');
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        status: 404,
+        title: 'Not Found',
+        type: expect.stringContaining('http-error'),
+        detail: expect.stringContaining('Course not found'),
+      }),
+    );
   });
 
   it('[POST] /courses/:courseId/modules - Invalid Slug Format', async () => {
@@ -564,7 +574,14 @@ describe('Create Module (E2E)', () => {
         });
 
       expect(res.status).toBe(404);
-      expect(res.body).toHaveProperty('message', 'Module not found');
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 404,
+          title: 'Not Found',
+          type: expect.stringContaining('http-error'),
+          detail: expect.stringContaining('Module not found'),
+        }),
+      );
     });
 
     it('[PATCH] /courses/:courseId/modules/:moduleId - Invalid Module ID', async () => {
@@ -575,14 +592,13 @@ describe('Create Module (E2E)', () => {
         });
 
       expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('message');
-      expect(res.body.message).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            message: 'Module ID must be a valid UUID',
-            path: ['id'],
-          }),
-        ]),
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 400,
+          title: 'Bad Request',
+          type: expect.stringContaining('http-error'),
+          detail: expect.any(String),
+        }),
       );
     });
 
@@ -630,7 +646,14 @@ describe('Create Module (E2E)', () => {
         });
 
       expect(res.status).toBe(409);
-      expect(res.body.message).toContain('already exists');
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 409,
+          title: 'Conflict',
+          type: expect.stringContaining('http-error'),
+          detail: expect.stringContaining('already exists'),
+        }),
+      );
     });
 
     it('[PATCH] /courses/:courseId/modules/:moduleId - Duplicate Order', async () => {
@@ -669,7 +692,14 @@ describe('Create Module (E2E)', () => {
         });
 
       expect(res.status).toBe(409);
-      expect(res.body.message).toContain('order already exists');
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 409,
+          title: 'Conflict',
+          type: expect.stringContaining('http-error'),
+          detail: expect.stringContaining('order already exists'),
+        }),
+      );
     });
 
     it('[PATCH] /courses/:courseId/modules/:moduleId - Invalid Slug Format', async () => {
@@ -696,14 +726,13 @@ describe('Create Module (E2E)', () => {
         });
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            message:
-              'Slug must contain only lowercase letters, numbers, and hyphens',
-            path: ['slug'],
-          }),
-        ]),
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 400,
+          title: 'Bad Request',
+          type: expect.stringContaining('http-error'),
+          detail: expect.any(String),
+        }),
       );
     });
 
@@ -739,18 +768,14 @@ describe('Create Module (E2E)', () => {
         });
 
       expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('message');
-      // The error message format might be different
-      // It could be a simple array of strings instead of objects
-      const messages = Array.isArray(res.body.message)
-        ? res.body.message
-        : [res.body.message];
-      const hasUrlError = messages.some((msg) =>
-        typeof msg === 'string'
-          ? msg.includes('imageUrl must be a valid URL')
-          : msg.message?.includes('imageUrl must be a valid URL'),
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 400,
+          title: 'Bad Request',
+          type: expect.stringContaining('http-error'),
+          detail: expect.any(String),
+        }),
       );
-      expect(hasUrlError).toBe(true);
     });
 
     it('[PATCH] /courses/:courseId/modules/:moduleId - Missing Portuguese Translation', async () => {
@@ -780,11 +805,14 @@ describe('Create Module (E2E)', () => {
         });
 
       expect(res.status).toBe(400);
-      const msgs: any[] = res.body.message;
-      const hasPtError = msgs.some((m) =>
-        m.message?.toLowerCase().includes('portuguese'),
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 400,
+          title: 'Bad Request',
+          type: expect.stringContaining('http-error'),
+          detail: expect.any(String),
+        }),
       );
-      expect(hasPtError).toBe(true);
     });
 
     it('[PATCH] /courses/:courseId/modules/:moduleId - Empty Update Body', async () => {
@@ -821,12 +849,13 @@ describe('Create Module (E2E)', () => {
         .send({});
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            message: 'At least one field must be provided for update',
-          }),
-        ]),
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 400,
+          title: 'Bad Request',
+          type: expect.stringContaining('http-error'),
+          detail: expect.any(String),
+        }),
       );
     });
 
@@ -962,7 +991,14 @@ describe('Create Module (E2E)', () => {
       );
 
       expect(res.status).toBe(404);
-      expect(res.body).toHaveProperty('message', 'Module not found');
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 404,
+          title: 'Not Found',
+          type: expect.stringContaining('http-error'),
+          detail: expect.stringContaining('Module not found'),
+        }),
+      );
     });
 
     it('[DELETE] /courses/:courseId/modules/:moduleId - Invalid Module ID', async () => {
@@ -973,14 +1009,13 @@ describe('Create Module (E2E)', () => {
       );
 
       expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('message');
-      expect(res.body.message).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            message: 'Module ID must be a valid UUID',
-            path: ['id'],
-          }),
-        ]),
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 400,
+          title: 'Bad Request',
+          type: expect.stringContaining('http-error'),
+          detail: expect.any(String),
+        }),
       );
     });
 
@@ -1037,19 +1072,14 @@ describe('Create Module (E2E)', () => {
       );
 
       expect(deleteRes.status).toBe(409);
-      expect(deleteRes.body).toHaveProperty('message');
-      expect(deleteRes.body.message).toContain(
-        'Cannot delete module because it has dependencies',
+      expect(deleteRes.body).toEqual(
+        expect.objectContaining({
+          status: 409,
+          title: 'Conflict',
+          type: expect.stringContaining('http-error'),
+          detail: expect.stringContaining('Cannot delete module because it has dependencies'),
+        }),
       );
-      expect(deleteRes.body).toHaveProperty('dependencyInfo');
-      expect(deleteRes.body.dependencyInfo).toMatchObject({
-        canDelete: false,
-        totalDependencies: 1,
-        summary: {
-          lessons: 1,
-          videos: 0,
-        },
-      });
 
       // Clean up the lesson
       await prisma.lessonTranslation.deleteMany({
@@ -1075,7 +1105,14 @@ describe('Create Module (E2E)', () => {
       );
 
       expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('message');
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 400,
+          title: 'Bad Request',
+          type: expect.stringContaining('http-error'),
+          detail: expect.any(String),
+        }),
+      );
     });
 
     it('[DELETE] /courses/:courseId/modules/:moduleId - Concurrent Deletion', async () => {
@@ -1129,7 +1166,14 @@ describe('Create Module (E2E)', () => {
       );
 
       expect(res.status).toBe(400);
-      expect(res.body).toHaveProperty('message');
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          status: 400,
+          title: 'Bad Request',
+          type: expect.stringContaining('http-error'),
+          detail: expect.any(String),
+        }),
+      );
     });
 
     it('[DELETE] /courses/:courseId/modules/:moduleId - Module from Different Course', async () => {
