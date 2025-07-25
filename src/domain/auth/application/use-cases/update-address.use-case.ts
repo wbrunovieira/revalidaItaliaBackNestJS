@@ -10,9 +10,10 @@ import { UpdateAddressRequestDto } from '../dtos/update-address-request.dto';
 import { UpdateAddressResponseDto } from '../dtos/update-address-response.dto';
 import { Address } from '../../enterprise/entities/address.entity';
 import { Injectable, Inject } from '@nestjs/common';
+import { InvalidInputError } from './errors/invalid-input-error';
 
 export type UpdateAddressUseCaseResponse = Either<
-  ResourceNotFoundError | RepositoryError,
+  InvalidInputError | ResourceNotFoundError | RepositoryError,
   UpdateAddressResponseDto
 >;
 
@@ -37,6 +38,19 @@ export class UpdateAddressUseCase {
       country,
       postalCode,
     } = request;
+
+    // Validação: pelo menos um campo deve ser fornecido para atualização
+    const updateFields = [street, number, complement, district, city, state, country, postalCode];
+    const hasFieldsToUpdate = updateFields.some(field => field !== undefined);
+    
+    if (!hasFieldsToUpdate) {
+      return left(
+        new InvalidInputError(
+          'At least one field must be provided for update',
+          { fields: 'No fields provided for update' }
+        )
+      );
+    }
 
     // 2) Buscar o endereço existente
     let foundAddr: Address | undefined;

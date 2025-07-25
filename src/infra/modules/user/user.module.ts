@@ -23,6 +23,8 @@ import { UserPasswordChangedHandler } from '@/domain/auth/application/event-hand
 import { IUserIdentityRepository } from '@/domain/auth/application/repositories/i-user-identity-repository';
 import { IUserProfileRepository } from '@/domain/auth/application/repositories/i-user-profile-repository';
 import { IUserAuthorizationRepository } from '@/domain/auth/application/repositories/i-user-authorization-repository';
+import { IAuthUnitOfWork } from '@/domain/auth/application/repositories/i-unit-of-work';
+import { PrismaAuthUnitOfWork } from '@/infra/database/prisma/unit-of-work/prisma-auth-unit-of-work';
 
 /**
  * User Module
@@ -71,6 +73,11 @@ import { IUserAuthorizationRepository } from '@/domain/auth/application/reposito
       provide: 'UserAggregatedViewRepository',
       useClass: PrismaUserAggregatedViewRepository,
     },
+    // Unit of Work for transactional operations
+    {
+      provide: IAuthUnitOfWork,
+      useClass: PrismaAuthUnitOfWork,
+    },
   ],
   exports: [
     IUserIdentityRepository,
@@ -78,6 +85,7 @@ import { IUserAuthorizationRepository } from '@/domain/auth/application/reposito
     IUserAuthorizationRepository,
     IUserAggregatedViewRepository,
     'UserAggregatedViewRepository', // Export string token too
+    IAuthUnitOfWork,
 
     CreateUserUseCase,
     UpdateUserUseCase,

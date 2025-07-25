@@ -39,7 +39,7 @@ export class ProfileController {
       email: dto.email,
       nationalId: dto.nationalId,
       phone: dto.phone,
-      birthDate: dto.birthDate || undefined,
+      birthDate: dto.birthDate,
       profileImageUrl: dto.profileImageUrl,
     });
 

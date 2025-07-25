@@ -8,9 +8,10 @@ import { CreateAddressResponseDto } from '../dtos/create-address-response.dto';
 import { randomUUID } from 'crypto';
 import { Address } from '@/domain/auth/enterprise/entities/address.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
+import { InvalidInputError } from './errors/invalid-input-error';
 
 export type CreateAddressUseCaseResponse = Either<
-  RepositoryError,
+  RepositoryError | InvalidInputError,
   CreateAddressResponseDto
 >;
 
@@ -24,6 +25,29 @@ export class CreateAddressUseCase {
   async execute(
     request: CreateAddressRequestDto,
   ): Promise<CreateAddressUseCaseResponse> {
+    // Validate field lengths
+    const fieldValidations = [
+      { field: 'street', value: request.street, maxLength: 255 },
+      { field: 'number', value: request.number, maxLength: 20 },
+      { field: 'complement', value: request.complement, maxLength: 255 },
+      { field: 'district', value: request.district, maxLength: 100 },
+      { field: 'city', value: request.city, maxLength: 100 },
+      { field: 'state', value: request.state, maxLength: 100 },
+      { field: 'country', value: request.country, maxLength: 100 },
+      { field: 'postalCode', value: request.postalCode, maxLength: 20 },
+    ];
+
+    for (const validation of fieldValidations) {
+      if (validation.value && validation.value.length > validation.maxLength) {
+        return left(
+          new InvalidInputError(
+            `${validation.field} exceeds maximum length of ${validation.maxLength} characters`,
+            { [validation.field]: `Too long (max ${validation.maxLength} characters)` }
+          )
+        );
+      }
+    }
+
     const newId = randomUUID();
     const addressEntity = Address.create(
       {

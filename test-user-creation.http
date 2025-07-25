@@ -1,0 +1,13 @@
+### Test user creation after fix
+POST http://localhost:3333/api/v1/users
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5NTdkMWQzMi1kYmY5LTQzYTEtOTM3Mi1lYmQwNWJiOWFhYWQiLCJlbWFpbCI6ImJydW5vQHdiZGlnaXRhbHNvbHV0aW9ucy5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MzIyMjQ4MjEsImV4cCI6MTczMjgyOTYyMX0.FYBYQnCbapDmcDdN5k1XRgHlG8_jbQA_9l4X0JbI6WsQx5z_BUJo8HXy4P2zVs2AMDxCYZPvGi5TwRCWh0h3V_r8zMrfEjzVRUMJi9O9sQ6Iy0JCcKhGhVnXjzWi8KT3oZ2cJ5QjGvS7hNlRwX9dKs5V6zY2uB8EtA4jCq3rO
+
+{
+  "name": "Test User Fixed",
+  "email": "testuser-fixed@example.com",
+  "password": "TestPassword123!",
+  "nationalId": "12345678900",
+  "role": "student",
+  "source": "admin"
+}

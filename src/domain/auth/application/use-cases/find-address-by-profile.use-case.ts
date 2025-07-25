@@ -5,9 +5,10 @@ import { IAddressRepository } from '../repositories/i-address-repository';
 import { RepositoryError } from '@/domain/auth/domain/exceptions';
 import { FindAddressByProfileRequestDto } from '../dtos/find-address-by-profile-request.dto';
 import { FindAddressByProfileResponseDto } from '../dtos/find-address-by-profile-response.dto';
+import { InvalidInputError } from './errors/invalid-input-error';
 
 export type FindAddressByProfileUseCaseResponse = Either<
-  RepositoryError,
+  InvalidInputError | RepositoryError,
   FindAddressByProfileResponseDto
 >;
 
@@ -21,6 +22,16 @@ export class FindAddressByProfileUseCase {
   async execute(
     request: FindAddressByProfileRequestDto,
   ): Promise<FindAddressByProfileUseCaseResponse> {
+    // Validação de entrada - profileId é obrigatório
+    if (!request.profileId) {
+      return left(
+        new InvalidInputError(
+          'profileId is required',
+          { profileId: 'profileId is required' }
+        )
+      );
+    }
+
     try {
       const result = await this.repo.findByProfileId(request.profileId);
       if (result.isLeft()) {

@@ -31,7 +31,7 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsDateString({}, { message: 'Invalid date format' })
-  birthDate?: Date;
+  birthDate?: string;
 
   @IsOptional()
   @ValidateIf(
