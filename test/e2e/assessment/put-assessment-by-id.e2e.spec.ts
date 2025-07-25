@@ -561,9 +561,7 @@ describe('[PUT] /assessments/:id - Update Assessment (E2E)', () => {
       expect(res.body.assessment.description).toBe('New description');
     });
 
-    it.skip('should return 404 when lessonId does not exist', async () => {
-      // TODO: The system currently does not validate if lessonId exists
-      // This should be implemented as a business rule validation
+    it('should return 404 when lessonId does not exist', async () => {
       const updatePayload = {
         lessonId: AssessmentTestData.NON_EXISTENT_UUID,
       };
@@ -576,7 +574,7 @@ describe('[PUT] /assessments/:id - Update Assessment (E2E)', () => {
       testHelpers.expectNotFoundError(res);
     });
 
-    it.skip('should validate QUIZ requires quizPosition', async () => {
+    it('should validate QUIZ requires quizPosition', async () => {
       // TODO: The system currently does not validate this business rule
       // QUIZ type should require quizPosition field
       // Update from SIMULADO to QUIZ without quizPosition
