@@ -15,7 +15,7 @@ export interface ReviewOpenAnswerResponse {
   };
   attemptStatus: {
     id: string;
-    status: 'SUBMITTED' | 'GRADED';
+    status: 'SUBMITTED' | 'GRADING' | 'GRADED';
     allOpenQuestionsReviewed: boolean; // Se todas as questões abertas foram revisadas
   };
 }

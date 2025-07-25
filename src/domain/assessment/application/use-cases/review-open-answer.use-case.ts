@@ -17,6 +17,7 @@ import { AttemptNotFoundError } from './errors/attempt-not-found-error';
 import { QuestionNotFoundError } from './errors/question-not-found-error';
 import { AnswerNotReviewableError } from './errors/answer-not-reviewable-error';
 import { RepositoryError } from './errors/repository-error';
+import { ScoreVO } from '../../enterprise/value-objects/score.vo';
 
 type ReviewOpenAnswerUseCaseResponse = Either<
   | InvalidInputError
@@ -151,6 +152,9 @@ export class ReviewOpenAnswerUseCase {
       let correctOpenAnswers = 0;
 
       // Check each answer to see if all open questions are graded
+      let totalQuestions = 0;
+      let correctAnswers = 0;
+      
       for (const answer of allAnswers) {
         const answerQuestionResult = await this.questionRepository.findById(
           answer.questionId,
@@ -158,6 +162,8 @@ export class ReviewOpenAnswerUseCase {
         if (answerQuestionResult.isRight()) {
           const answerQuestion = answerQuestionResult.value;
 
+          totalQuestions++;
+          
           if (answerQuestion.type.isOpen()) {
             totalOpenQuestions++;
 
@@ -165,19 +171,28 @@ export class ReviewOpenAnswerUseCase {
               allOpenQuestionsReviewed = false;
             } else if (answer.isCorrect) {
               correctOpenAnswers++;
+              correctAnswers++;
+            }
+          } else {
+            // Multiple choice questions
+            if (answer.isCorrect) {
+              correctAnswers++;
             }
           }
         }
       }
 
-      // If all open questions are reviewed, mark the attempt as grading
+      // If all open questions are reviewed, calculate final score and grade the attempt
       let finalAttemptStatus = attempt.status.getValue();
 
       if (allOpenQuestionsReviewed) {
-        // When all open questions are reviewed, move to GRADING status
-        // The final score calculation and GRADED status should be set
-        // by a separate process or use case
-        attempt.startGrading();
+        // Calculate final score based on all questions
+        const scoreValue =
+          totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+        const score = new ScoreVO(scoreValue);
+
+        // Grade the attempt with the final score
+        attempt.grade(score);
 
         const updateAttemptResult =
           await this.attemptRepository.update(attempt);
@@ -185,7 +200,7 @@ export class ReviewOpenAnswerUseCase {
           return left(new RepositoryError('Failed to update attempt'));
         }
 
-        finalAttemptStatus = 'GRADING';
+        finalAttemptStatus = 'GRADED';
       }
 
       return right({
@@ -206,7 +221,7 @@ export class ReviewOpenAnswerUseCase {
         },
         attemptStatus: {
           id: attempt.id.toString(),
-          status: finalAttemptStatus as 'SUBMITTED' | 'GRADED',
+          status: finalAttemptStatus as 'SUBMITTED' | 'GRADING' | 'GRADED',
           allOpenQuestionsReviewed,
         },
       });
