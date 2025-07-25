@@ -94,9 +94,21 @@ describe('VideoController', () => {
     };
 
     it('→ atualiza o vídeo e retorna mensagem de sucesso quando tudo OK', async () => {
-      updateUc.execute.mockResolvedValue(
-        right({ message: 'Video updated successfully' }),
-      );
+      const mockVideoResponse = {
+        video: {
+          id: videoId,
+          slug: 'updated-video-slug',
+          imageUrl: 'https://example.com/image.jpg',
+          providerVideoId: 'newProviderVideoId',
+          durationInSeconds: 120,
+          lessonId: 'new-lesson-id',
+          translations: updateDto.translations,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+
+      updateUc.execute.mockResolvedValue(right(mockVideoResponse));
 
       const result = await controller.update(
         courseId,
@@ -109,7 +121,7 @@ describe('VideoController', () => {
         videoId,
         ...updateDto,
       });
-      expect(result).toEqual({ message: 'Video updated successfully' });
+      expect(result).toEqual(mockVideoResponse.video);
     });
 
     it('→ lança NotFoundException se lesson não existir', async () => {

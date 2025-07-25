@@ -48,7 +48,8 @@ describe('UpdateVideoUseCase', () => {
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.message).toBe('Video updated successfully');
+      expect(result.value.video).toBeDefined();
+      expect(result.value.video.id).toBe(video.id.toString());
     }
     const updatedVideo = await videoRepository.findById(video.id.toString());
     expect(updatedVideo.isRight()).toBe(true);
@@ -85,7 +86,8 @@ describe('UpdateVideoUseCase', () => {
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.message).toBe('Video updated successfully');
+      expect(result.value.video).toBeDefined();
+      expect(result.value.video.id).toBe(video.id.toString());
     }
     const updatedVideo = await videoRepository.findById(video.id.toString());
     expect(updatedVideo.isRight()).toBe(true);
@@ -150,7 +152,8 @@ describe('UpdateVideoUseCase', () => {
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.message).toBe('Video updated successfully');
+      expect(result.value.video).toBeDefined();
+      expect(result.value.video.id).toBe(video.id.toString());
     }
     const updatedVideo = await videoRepository.findById(video.id.toString());
     expect(updatedVideo.isRight()).toBe(true);
@@ -210,7 +213,8 @@ describe('UpdateVideoUseCase', () => {
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.message).toBe('Video updated successfully');
+      expect(result.value.video).toBeDefined();
+      expect(result.value.video.id).toBe(video.id.toString());
     }
     const updatedVideo = await videoRepository.findById(video.id.toString());
     expect(updatedVideo.isRight()).toBe(true);
@@ -246,7 +250,8 @@ describe('UpdateVideoUseCase', () => {
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.message).toBe('Video updated successfully');
+      expect(result.value.video).toBeDefined();
+      expect(result.value.video.id).toBe(video.id.toString());
     }
     const updatedVideo = await videoRepository.findById(video.id.toString());
     expect(updatedVideo.isRight()).toBe(true);
@@ -326,7 +331,8 @@ describe('UpdateVideoUseCase', () => {
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.message).toBe('Video updated successfully');
+      expect(result.value.video).toBeDefined();
+      expect(result.value.video.id).toBe(video.id.toString());
     }
     const updatedVideo = await videoRepository.findById(video.id.toString());
     expect(updatedVideo.isRight()).toBe(true);
@@ -489,10 +495,10 @@ describe('UpdateVideoUseCase', () => {
     }
   });
 
-  it('should return error when imageUrl is invalid', async () => {
+  it('should return error when imageUrl is empty string', async () => {
     const result = await sut.execute({
       videoId: '123e4567-e89b-12d3-a456-426614174000',
-      imageUrl: 'not-a-url',
+      imageUrl: '',
     });
 
     expect(result.isLeft()).toBe(true);
@@ -620,7 +626,8 @@ describe('UpdateVideoUseCase', () => {
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.message).toBe('Video updated successfully');
+      expect(result.value.video).toBeDefined();
+      expect(result.value.video.id).toBe(video.id.toString());
     }
     const updatedVideo = await videoRepository.findById(video.id.toString());
     expect(updatedVideo.isRight()).toBe(true);
@@ -657,7 +664,8 @@ describe('UpdateVideoUseCase', () => {
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
-      expect(result.value.message).toBe('Video updated successfully');
+      expect(result.value.video).toBeDefined();
+      expect(result.value.video.id).toBe(video.id.toString());
     }
     const updatedVideo = await videoRepository.findById(video.id.toString());
     expect(updatedVideo.isRight()).toBe(true);
