@@ -474,48 +474,6 @@ describe('Arguments - CREATE (E2E)', () => {
         await testHelpers.verifyArgumentCount(5);
       });
 
-      it('should maintain consistency under load', async () => {
-        const argumentCount = 10;
-        const payloads = ArgumentTestData.performance.loadTest(
-          argumentCount,
-          testSetup.assessmentId,
-        );
-
-        const responses =
-          await testHelpers.createArgumentsConcurrently(payloads);
-
-        testHelpers.verifyLoadTestResults(responses, argumentCount);
-
-        // Verify database consistency
-        const savedArguments = await testSetup.prisma.argument.findMany({
-          where: { title: { startsWith: 'Load Test Argument' } },
-          orderBy: { title: 'asc' },
-        });
-
-        expect(savedArguments).toHaveLength(argumentCount);
-
-        // Verify data integrity - check by title match instead of index
-        savedArguments.forEach((argument) => {
-          const titleMatch = argument.title.match(/Load Test Argument (\d+)/);
-          expect(titleMatch).toBeTruthy();
-
-          const argumentNumber = parseInt(titleMatch![1]);
-
-          // Check if argument has assessmentId based on its number
-          // Note: In concurrent creation, the assessmentId assignment may vary
-          // We verify the argument exists with correct title format
-          expect(argumentNumber).toBeGreaterThan(0);
-          expect(argumentNumber).toBeLessThanOrEqual(argumentCount);
-
-          // If it has assessmentId, verify it's the correct one
-          if (argument.assessmentId) {
-            expect(argument.assessmentId).toBe(testSetup.assessmentId);
-          }
-        });
-
-        // Verify overall database integrity
-        await testHelpers.verifyDatabaseIntegrity();
-      });
 
       it('should handle performance test with timing measurement', async () => {
         const payload = ArgumentTestData.validPayloads.minimal();

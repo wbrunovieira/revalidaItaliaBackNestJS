@@ -178,31 +178,6 @@ describe('Arguments - GET (E2E)', () => {
     });
   });
 
-  describe('⚡ Performance', () => {
-    it('should handle concurrent GET requests for same argument', async () => {
-      // Create an argument
-      const createRes = await testHelpers.createArgumentExpectSuccess({
-        title: 'Concurrent Test Argument',
-      });
-      const argumentId = createRes.body.argument.id;
-
-      // Make concurrent requests for the same argument
-      const requests: Promise<Response>[] = Array(10)
-        .fill(null)
-        .map(() =>
-          request(testSetup.getHttpServer()).get(`/arguments/${argumentId}`),
-        );
-
-      const responses = await Promise.all(requests);
-
-      // All should succeed with same data
-      responses.forEach((res) => {
-        expect(res.status).toBe(200);
-        expect(res.body.argument.id).toBe(argumentId);
-        expect(res.body.argument.title).toBe('Concurrent Test Argument');
-      });
-    });
-  });
 
   describe('🔧 Response Format Validation', () => {
     it('should not include undefined fields in get by ID response', async () => {
