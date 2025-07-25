@@ -58,28 +58,22 @@ export class LessonController {
     if (result.isLeft()) {
       const err = result.value;
       if (err instanceof InvalidInputError) {
-        const ex = new BadRequestException(err.details);
-        (ex as any).response = err.details;
-        throw ex;
+        throw new BadRequestException({
+          message: err.details,
+          error: 'Bad Request',
+          statusCode: 400,
+        });
       }
       if (err instanceof ModuleNotFoundError) {
-        const ex = new NotFoundException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new NotFoundException(err.message);
       }
       if (err instanceof VideoNotFoundError) {
-        const ex = new BadRequestException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new BadRequestException(err.message);
       }
       if (err instanceof RepositoryError) {
-        const ex = new InternalServerErrorException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new InternalServerErrorException(err.message);
       }
-      const ex = new InternalServerErrorException('Unknown error occurred');
-      (ex as any).response = 'Unknown error occurred';
-      throw ex;
+      throw new InternalServerErrorException('Unknown error occurred');
     }
 
     return result.value.lesson;
@@ -103,23 +97,19 @@ export class LessonController {
     if (result.isLeft()) {
       const err = result.value;
       if (err instanceof InvalidInputError) {
-        const ex = new BadRequestException(err.details);
-        (ex as any).response = err.details;
-        throw ex;
+        throw new BadRequestException({
+          message: err.details,
+          error: 'Bad Request',
+          statusCode: 400,
+        });
       }
       if (err instanceof ModuleNotFoundError) {
-        const ex = new NotFoundException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new NotFoundException(err.message);
       }
       if (err instanceof RepositoryError) {
-        const ex = new InternalServerErrorException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new InternalServerErrorException(err.message);
       }
-      const ex = new InternalServerErrorException('Unknown error occurred');
-      (ex as any).response = 'Unknown error occurred';
-      throw ex;
+      throw new InternalServerErrorException('Unknown error occurred');
     }
 
     return result.value;
@@ -132,23 +122,19 @@ export class LessonController {
     if (result.isLeft()) {
       const err = result.value;
       if (err instanceof InvalidInputError) {
-        const ex = new BadRequestException(err.details);
-        (ex as any).response = err.details;
-        throw ex;
+        throw new BadRequestException({
+          message: err.details,
+          error: 'Bad Request',
+          statusCode: 400,
+        });
       }
       if (err instanceof LessonNotFoundError) {
-        const ex = new NotFoundException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new NotFoundException(err.message);
       }
       if (err instanceof RepositoryError) {
-        const ex = new InternalServerErrorException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new InternalServerErrorException(err.message);
       }
-      const ex = new InternalServerErrorException('Unknown error occurred');
-      (ex as any).response = 'Unknown error occurred';
-      throw ex;
+      throw new InternalServerErrorException('Unknown error occurred');
     }
 
     return result.value;
@@ -161,39 +147,28 @@ export class LessonController {
     if (result.isLeft()) {
       const err = result.value;
       if (err instanceof InvalidInputError) {
-        const ex = new BadRequestException(err.details);
-        (ex as any).response = err.details;
-        throw ex;
+        throw new BadRequestException({
+          message: err.details,
+          error: 'Bad Request',
+          statusCode: 400,
+        });
       }
       if (err instanceof LessonNotFoundError) {
-        const ex = new NotFoundException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new NotFoundException(err.message);
       }
       if (err instanceof LessonHasDependenciesError) {
         const errorWithInfo = err as any;
-        const ex = new ConflictException({
+        throw new ConflictException({
           message: err.message,
           statusCode: 409,
           error: 'Conflict',
           dependencyInfo: errorWithInfo.dependencyInfo,
         });
-        (ex as any).response = {
-          message: err.message,
-          statusCode: 409,
-          error: 'Conflict',
-          dependencyInfo: errorWithInfo.dependencyInfo,
-        };
-        throw ex;
       }
       if (err instanceof RepositoryError) {
-        const ex = new InternalServerErrorException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new InternalServerErrorException(err.message);
       }
-      const ex = new InternalServerErrorException('Unknown error occurred');
-      (ex as any).response = 'Unknown error occurred';
-      throw ex;
+      throw new InternalServerErrorException('Unknown error occurred');
     }
 
     return result.value;
@@ -219,28 +194,22 @@ export class LessonController {
     if (result.isLeft()) {
       const err = result.value;
       if (err instanceof InvalidInputError) {
-        const ex = new BadRequestException(err.details);
-        (ex as any).response = err.details;
-        throw ex;
+        throw new BadRequestException({
+          message: err.details,
+          error: 'Bad Request',
+          statusCode: 400,
+        });
       }
       if (err instanceof LessonNotFoundError) {
-        const ex = new NotFoundException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new NotFoundException(err.message);
       }
       if (err instanceof DuplicateLessonOrderError) {
-        const ex = new ConflictException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new ConflictException(err.message);
       }
       if (err instanceof RepositoryError) {
-        const ex = new InternalServerErrorException(err.message);
-        (ex as any).response = err.message;
-        throw ex;
+        throw new InternalServerErrorException(err.message);
       }
-      const ex = new InternalServerErrorException('Unknown error occurred');
-      (ex as any).response = 'Unknown error occurred';
-      throw ex;
+      throw new InternalServerErrorException('Unknown error occurred');
     }
 
     return result.value.lesson.toResponseObject();

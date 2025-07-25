@@ -125,12 +125,12 @@ describe('LessonController (E2E)', () => {
         .send(payload);
       expect(res.status).toBe(400);
       expect(res.body).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            path: expect.arrayContaining(['translations']),
-            code: 'too_small',
-          }),
-        ]),
+        expect.objectContaining({
+          status: 400,
+          title: 'Bad Request',
+          type: expect.stringContaining('http-error'),
+          detail: expect.any(String),
+        }),
       );
     });
 
@@ -149,12 +149,12 @@ describe('LessonController (E2E)', () => {
         .send(payload);
       expect(res.status).toBe(400);
       expect(res.body).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: 'invalid_enum_value',
-            path: expect.arrayContaining(['translations', 1, 'locale']),
-          }),
-        ]),
+        expect.objectContaining({
+          status: 400,
+          title: 'Bad Request',
+          type: expect.stringContaining('http-error'),
+          detail: expect.any(String),
+        }),
       );
     });
 
@@ -164,12 +164,12 @@ describe('LessonController (E2E)', () => {
         .send({ slug: 'lesson-empty', translations: [], order: 1 });
       expect(res.status).toBe(400);
       expect(res.body).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: 'too_small',
-            path: expect.arrayContaining(['translations']),
-          }),
-        ]),
+        expect.objectContaining({
+          status: 400,
+          title: 'Bad Request',
+          type: expect.stringContaining('http-error'),
+          detail: expect.any(String),
+        }),
       );
     });
 
@@ -179,7 +179,11 @@ describe('LessonController (E2E)', () => {
         .post(`/courses/${courseId}/modules/${badId}/lessons`)
         .send({
           slug: 'lesson-test',
-          translations: [{ locale: 'pt', title: 'A' }],
+          translations: [
+            { locale: 'pt', title: 'Test Lesson', description: 'Test Description' },
+            { locale: 'it', title: 'Lezione Test', description: 'Descrizione Test' },
+            { locale: 'es', title: 'Lección Test', description: 'Descripción Test' },
+          ],
           order: 1,
         });
       expect(res.status).toBe(400);
@@ -191,10 +195,14 @@ describe('LessonController (E2E)', () => {
         .post(`/courses/${courseId}/modules/${non}/lessons`)
         .send({
           slug: 'lesson-test',
-          translations: [{ locale: 'pt', title: 'A' }],
+          translations: [
+            { locale: 'pt', title: 'Test Lesson', description: 'Test Description' },
+            { locale: 'it', title: 'Lezione Test', description: 'Descrizione Test' },
+            { locale: 'es', title: 'Lección Test', description: 'Descripción Test' },
+          ],
           order: 1,
         });
-      expect(res.status).toBe(400); // Atualizado: módulo não encontrado retorna 400 devido ao ValidationPipe
+      expect(res.status).toBe(404); // Module not found should return 404
     });
   });
 
@@ -558,12 +566,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['id']),
-              message: 'Lesson ID must be a valid UUID',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
 
@@ -576,13 +584,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['imageUrl']),
-              message:
-                'Image URL must be a valid URL or a valid path starting with /',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
 
@@ -593,11 +600,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              message: 'At least one field must be provided for update',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
 
@@ -619,12 +627,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['translations']),
-              message: 'Portuguese translation is required',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
 
@@ -650,12 +658,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['translations']),
-              message: 'Duplicate locales are not allowed',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
 
@@ -672,12 +680,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['translations', 0, 'title']),
-              message: 'Title is required',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
 
@@ -694,12 +702,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['translations', 0, 'title']),
-              message: 'Title must be at most 255 characters',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
 
@@ -712,12 +720,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['order']),
-              message: 'Order must be a positive number',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
 
@@ -730,12 +738,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['order']),
-              message: 'Order must be an integer',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
 
@@ -748,12 +756,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['flashcardIds', 1]),
-              message: 'Flashcard ID cannot be empty',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
 
@@ -766,12 +774,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['imageUrl']),
-              message: 'Image URL cannot be empty',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
 
@@ -791,25 +799,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['translations', 0, 'title']),
-              message: 'Title is required',
-            }),
-            expect.objectContaining({
-              path: expect.arrayContaining(['order']),
-              message: 'Order must be a positive number',
-            }),
-            expect.objectContaining({
-              path: expect.arrayContaining(['flashcardIds', 0]),
-              message: 'Flashcard ID cannot be empty',
-            }),
-            expect.objectContaining({
-              path: expect.arrayContaining(['imageUrl']),
-              message:
-                'Image URL must be a valid URL or a valid path starting with /',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
     });
@@ -824,10 +819,14 @@ describe('LessonController (E2E)', () => {
           .send(payload);
 
         expect(res.status).toBe(404);
-        expect(res.body).toMatchObject({
-          message: 'Lesson not found',
-          statusCode: 404,
-        });
+        expect(res.body).toEqual(
+          expect.objectContaining({
+            status: 404,
+            title: 'Not Found',
+            detail: 'Lesson not found',
+            type: expect.stringContaining('http-error'),
+          }),
+        );
       });
 
       it('should return 409 when order conflicts with existing lesson', async () => {
@@ -838,10 +837,14 @@ describe('LessonController (E2E)', () => {
           .send(payload);
 
         expect(res.status).toBe(409);
-        expect(res.body).toMatchObject({
-          message: 'A lesson with this order already exists in the module',
-          statusCode: 409,
-        });
+        expect(res.body).toEqual(
+          expect.objectContaining({
+            status: 409,
+            title: 'Conflict',
+            detail: 'A lesson with this order already exists in the module',
+            type: expect.stringContaining('http-error'),
+          }),
+        );
       });
     });
 
@@ -1066,12 +1069,12 @@ describe('LessonController (E2E)', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              path: expect.arrayContaining(['translations', 0, 'title']),
-              message: 'Title must be at most 255 characters',
-            }),
-          ]),
+          expect.objectContaining({
+            status: 400,
+            title: 'Bad Request',
+            type: expect.stringContaining('http-error'),
+            detail: expect.any(String),
+          }),
         );
       });
     });

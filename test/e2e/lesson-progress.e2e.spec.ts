@@ -1,3 +1,4 @@
+// src/test/e2e/lesson-progress.e2e.spec.ts
 import 'dotenv/config';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
