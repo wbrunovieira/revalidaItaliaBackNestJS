@@ -219,9 +219,9 @@ export class PrismaAssessmentRepository implements IAssessmentRepository {
       title: data.title,
       description: data.description ?? undefined,
       type: data.type as 'QUIZ' | 'SIMULADO' | 'PROVA_ABERTA',
-      quizPosition: data.quizPosition ? data.quizPosition as
-        | 'BEFORE_LESSON'
-        | 'AFTER_LESSON' : undefined,
+      quizPosition: data.quizPosition
+        ? (data.quizPosition as 'BEFORE_LESSON' | 'AFTER_LESSON')
+        : undefined,
       passingScore: data.passingScore ?? undefined,
       timeLimitInMinutes: data.timeLimitInMinutes ?? undefined,
       randomizeQuestions: data.randomizeQuestions ?? undefined,

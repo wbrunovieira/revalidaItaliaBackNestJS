@@ -2,11 +2,13 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Either, left, right } from '@/core/either';
 import { IAssessmentRepository } from '@/domain/assessment/application/repositories/i-assessment-repository';
+import { ILessonRepository } from '@/domain/course-catalog/application/repositories/i-lesson-repository';
 import { UpdateAssessmentRequest } from '@/domain/assessment/application/dtos/update-assessment-request.dto';
 import { UpdateAssessmentResponse } from '@/domain/assessment/application/dtos/update-assessment-response.dto';
 import { updateAssessmentSchema } from '@/domain/assessment/application/use-cases/validations/update-assessment.schema';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
+import { LessonNotFoundError } from '@/domain/assessment/application/use-cases/errors/lesson-not-found-error';
 import { RepositoryError } from '@/domain/assessment/application/use-cases/errors/repository-error';
 import { textToSlug } from '@/core/utils/text-to-slug';
 import { DuplicateAssessmentError } from './errors/duplicate-assessment-error';
@@ -16,6 +18,7 @@ import { AssessmentProps } from '../../enterprise/entities/assessment.entity';
 export type UpdateAssessmentUseCaseResponse = Either<
   | InvalidInputError
   | AssessmentNotFoundError
+  | LessonNotFoundError
   | RepositoryError
   | DuplicateAssessmentError,
   UpdateAssessmentResponse
@@ -26,6 +29,8 @@ export class UpdateAssessmentUseCase {
   constructor(
     @Inject('AssessmentRepository')
     private readonly assessmentRepository: IAssessmentRepository,
+    @Inject('LessonRepository')
+    private readonly lessonRepository: ILessonRepository,
   ) {}
 
   async execute(
@@ -140,6 +145,11 @@ export class UpdateAssessmentUseCase {
         if (data.lessonId === null) {
           updateProps.lessonId = undefined;
         } else {
+          // Validate lesson exists
+          const lessonResult = await this.lessonRepository.findById(data.lessonId);
+          if (lessonResult.isLeft()) {
+            return left(new LessonNotFoundError());
+          }
           updateProps.lessonId = new UniqueEntityID(data.lessonId);
         }
       }
@@ -161,11 +171,35 @@ export class UpdateAssessmentUseCase {
       const finalType =
         updateProps.type !== undefined ? updateProps.type : assessment.type;
 
-      // Validar quizPosition apenas se está sendo definido (não null/undefined)
-      if (updateProps.quizPosition !== undefined && finalType !== 'QUIZ') {
+      // Get final quizPosition value after all updates
+      const finalQuizPosition =
+        updateProps.hasOwnProperty('quizPosition')
+          ? updateProps.quizPosition
+          : assessment.quizPosition;
+
+      // QUIZ type requires quizPosition
+      if (finalType === 'QUIZ' && !finalQuizPosition) {
+        return left(
+          new InvalidInputError('Validation failed', [
+            'quizPosition: QUIZ type assessments require a quiz position',
+          ]),
+        );
+      }
+
+      // Non-QUIZ types cannot have quizPosition
+      if (finalType !== 'QUIZ' && finalQuizPosition) {
         return left(
           new InvalidInputError('Validation failed', [
             'quizPosition: Quiz position can only be set for QUIZ type assessments',
+          ]),
+        );
+      }
+
+      // SIMULADO cannot have quizPosition (redundant but explicit)
+      if (finalType === 'SIMULADO' && data.quizPosition) {
+        return left(
+          new InvalidInputError('Validation failed', [
+            'quizPosition: SIMULADO type assessments cannot have quiz position',
           ]),
         );
       }

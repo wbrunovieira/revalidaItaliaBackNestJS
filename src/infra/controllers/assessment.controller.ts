@@ -147,6 +147,13 @@ export class AssessmentController {
         });
       }
 
+      if (error instanceof LessonNotFoundError) {
+        throw new NotFoundException({
+          error: 'LESSON_NOT_FOUND',
+          message: 'Lesson not found',
+        });
+      }
+
       if (error instanceof DuplicateAssessmentError) {
         throw new ConflictException({
           error: 'DUPLICATE_ASSESSMENT',
