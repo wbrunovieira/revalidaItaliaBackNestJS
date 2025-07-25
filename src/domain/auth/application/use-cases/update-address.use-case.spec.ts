@@ -145,7 +145,7 @@ describe('UpdateAddressUseCase', () => {
       addressRepo.items.push(address);
 
       // Wait a bit to ensure timestamp difference
-      await new Promise((resolve) => setTimeout(resolve, 1));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const request: UpdateAddressRequestDto = {
         id: address.id.toString(),

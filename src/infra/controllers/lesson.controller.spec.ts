@@ -116,10 +116,16 @@ describe('LessonController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(controller.create(moduleId, dto)).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      await expect(controller.create(moduleId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 404 when module not found', async () => {
@@ -132,10 +138,16 @@ describe('LessonController', () => {
         left(new ModuleNotFoundError('Module not found')),
       );
 
-      await expect(controller.create(moduleId, dto)).rejects.toMatchObject({
-        status: 404,
-        response: 'Module not found',
-      });
+      await expect(controller.create(moduleId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 404,
+          response: {
+            message: 'Module not found',
+            error: 'Not Found',
+            statusCode: 404,
+          },
+        }),
+      );
     });
 
     it('throws 400 when video not found', async () => {
@@ -149,10 +161,16 @@ describe('LessonController', () => {
         left(new VideoNotFoundError()),
       );
 
-      await expect(controller.create(moduleId, dto)).rejects.toMatchObject({
-        status: 400,
-        response: 'Video not found',
-      });
+      await expect(controller.create(moduleId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: 'Video not found',
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 500 on repository error', async () => {
@@ -165,10 +183,16 @@ describe('LessonController', () => {
         left(new RepositoryError('DB failed')),
       );
 
-      await expect(controller.create(moduleId, dto)).rejects.toMatchObject({
-        status: 500,
-        response: 'DB failed',
-      });
+      await expect(controller.create(moduleId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 500,
+          response: {
+            message: 'DB failed',
+            error: 'Internal Server Error',
+            statusCode: 500,
+          },
+        }),
+      );
     });
   });
 
@@ -233,7 +257,16 @@ describe('LessonController', () => {
 
       await expect(
         controller.list(moduleId, '0' as any, '10' as any, 'false' as any),
-      ).rejects.toMatchObject({ status: 400, response: details });
+      ).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 404 when module not found', async () => {
@@ -243,7 +276,16 @@ describe('LessonController', () => {
 
       await expect(
         controller.list(moduleId, '1' as any, '10' as any, 'false' as any),
-      ).rejects.toMatchObject({ status: 404, response: 'Module missing' });
+      ).rejects.toThrow(
+        expect.objectContaining({
+          status: 404,
+          response: {
+            message: 'Module missing',
+            error: 'Not Found',
+            statusCode: 404,
+          },
+        }),
+      );
     });
 
     it('throws 500 on repository error', async () => {
@@ -253,7 +295,16 @@ describe('LessonController', () => {
 
       await expect(
         controller.list(moduleId, '1' as any, '10' as any, 'false' as any),
-      ).rejects.toMatchObject({ status: 500, response: 'DB error' });
+      ).rejects.toThrow(
+        expect.objectContaining({
+          status: 500,
+          response: {
+            message: 'DB error',
+            error: 'Internal Server Error',
+            statusCode: 500,
+          },
+        }),
+      );
     });
   });
 
@@ -332,19 +383,31 @@ describe('LessonController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(controller.get('invalid-id')).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      await expect(controller.get('invalid-id')).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 404 when lesson not found', async () => {
       getLesson.execute.mockResolvedValueOnce(left(new LessonNotFoundError()));
 
-      await expect(controller.get(lessonId)).rejects.toMatchObject({
-        status: 404,
-        response: 'Lesson not found',
-      });
+      await expect(controller.get(lessonId)).rejects.toThrow(
+        expect.objectContaining({
+          status: 404,
+          response: {
+            message: 'Lesson not found',
+            error: 'Not Found',
+            statusCode: 404,
+          },
+        }),
+      );
     });
 
     it('throws 500 on repository error', async () => {
@@ -352,19 +415,31 @@ describe('LessonController', () => {
         left(new RepositoryError('Database connection failed')),
       );
 
-      await expect(controller.get(lessonId)).rejects.toMatchObject({
-        status: 500,
-        response: 'Database connection failed',
-      });
+      await expect(controller.get(lessonId)).rejects.toThrow(
+        expect.objectContaining({
+          status: 500,
+          response: {
+            message: 'Database connection failed',
+            error: 'Internal Server Error',
+            statusCode: 500,
+          },
+        }),
+      );
     });
 
     it('throws 500 on unknown error', async () => {
       getLesson.execute.mockResolvedValueOnce(left(new Error('Unknown error')));
 
-      await expect(controller.get(lessonId)).rejects.toMatchObject({
-        status: 500,
-        response: 'Unknown error occurred',
-      });
+      await expect(controller.get(lessonId)).rejects.toThrow(
+        expect.objectContaining({
+          status: 500,
+          response: {
+            message: 'Unknown error occurred',
+            error: 'Internal Server Error',
+            statusCode: 500,
+          },
+        }),
+      );
     });
 
     it('verifies lessonId parameter is used correctly', async () => {
@@ -606,10 +681,16 @@ describe('LessonController', () => {
 
       await expect(
         controller.update('invalid-uuid', dto),
-      ).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      ).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 400 on invalid imageUrl format', async () => {
@@ -626,10 +707,16 @@ describe('LessonController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 400 when no fields provided for update', async () => {
@@ -645,10 +732,16 @@ describe('LessonController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 400 when translations missing Portuguese', async () => {
@@ -672,10 +765,16 @@ describe('LessonController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 400 when translations have duplicate locales', async () => {
@@ -700,10 +799,16 @@ describe('LessonController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 400 when translation title is empty', async () => {
@@ -723,10 +828,16 @@ describe('LessonController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 400 when order is zero or negative', async () => {
@@ -742,10 +853,16 @@ describe('LessonController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 400 when array contains empty IDs', async () => {
@@ -761,10 +878,16 @@ describe('LessonController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 404 when lesson not found', async () => {
@@ -773,10 +896,16 @@ describe('LessonController', () => {
         left(new LessonNotFoundError()),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 404,
-        response: 'Lesson not found',
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 404,
+          response: {
+            message: 'Lesson not found',
+            error: 'Not Found',
+            statusCode: 404,
+          },
+        }),
+      );
     });
 
     it('throws 409 when order conflicts with existing lesson', async () => {
@@ -785,10 +914,16 @@ describe('LessonController', () => {
         left(new DuplicateLessonOrderError()),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 409,
-        response: 'A lesson with this order already exists in the module',
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 409,
+          response: {
+            message: 'A lesson with this order already exists in the module',
+            error: 'Conflict',
+            statusCode: 409,
+          },
+        }),
+      );
     });
 
     it('throws 500 on repository error', async () => {
@@ -797,10 +932,16 @@ describe('LessonController', () => {
         left(new RepositoryError('Database connection failed')),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 500,
-        response: 'Database connection failed',
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 500,
+          response: {
+            message: 'Database connection failed',
+            error: 'Internal Server Error',
+            statusCode: 500,
+          },
+        }),
+      );
     });
 
     it('throws 500 on unknown error', async () => {
@@ -809,10 +950,16 @@ describe('LessonController', () => {
         left(new Error('Unexpected error')),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 500,
-        response: 'Unknown error occurred',
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 500,
+          response: {
+            message: 'Unknown error occurred',
+            error: 'Internal Server Error',
+            statusCode: 500,
+          },
+        }),
+      );
     });
 
     it('correctly passes lessonId from URL parameter', async () => {
@@ -871,10 +1018,16 @@ describe('LessonController', () => {
         left(new InvalidInputError('Multiple validation errors', details)),
       );
 
-      await expect(controller.update(lessonId, dto)).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      await expect(controller.update(lessonId, dto)).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
   });
 
@@ -897,10 +1050,16 @@ describe('LessonController', () => {
         left(new InvalidInputError('Validation failed', details)),
       );
 
-      await expect(controller.delete('invalid-id')).rejects.toMatchObject({
-        status: 400,
-        response: details,
-      });
+      await expect(controller.delete('invalid-id')).rejects.toThrow(
+        expect.objectContaining({
+          status: 400,
+          response: {
+            message: details,
+            error: 'Bad Request',
+            statusCode: 400,
+          },
+        }),
+      );
     });
 
     it('throws 404 when lesson not found', async () => {
@@ -908,10 +1067,16 @@ describe('LessonController', () => {
         left(new LessonNotFoundError()),
       );
 
-      await expect(controller.delete(lessonId)).rejects.toMatchObject({
-        status: 404,
-        response: 'Lesson not found',
-      });
+      await expect(controller.delete(lessonId)).rejects.toThrow(
+        expect.objectContaining({
+          status: 404,
+          response: {
+            message: 'Lesson not found',
+            error: 'Not Found',
+            statusCode: 404,
+          },
+        }),
+      );
     });
 
     it('throws 409 when lesson has dependencies', async () => {
@@ -945,10 +1110,16 @@ describe('LessonController', () => {
         left(new RepositoryError('DB error')),
       );
 
-      await expect(controller.delete(lessonId)).rejects.toMatchObject({
-        status: 500,
-        response: 'DB error',
-      });
+      await expect(controller.delete(lessonId)).rejects.toThrow(
+        expect.objectContaining({
+          status: 500,
+          response: {
+            message: 'DB error',
+            error: 'Internal Server Error',
+            statusCode: 500,
+          },
+        }),
+      );
     });
   });
 });
