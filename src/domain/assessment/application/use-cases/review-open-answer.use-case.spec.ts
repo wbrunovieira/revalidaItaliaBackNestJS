@@ -329,7 +329,7 @@ describe('ReviewOpenAnswerUseCase', () => {
       }
     });
 
-    it('should mark attempt as GRADING when all open questions are reviewed', async () => {
+    it('should mark attempt as GRADED when all open questions are reviewed', async () => {
       // Arrange
       const attemptId = new UniqueEntityID(
         '550e8400-e29b-41d4-a716-446655440001',
@@ -385,7 +385,7 @@ describe('ReviewOpenAnswerUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.attemptStatus.allOpenQuestionsReviewed).toBe(true);
-        expect(result.value.attemptStatus.status).toBe('GRADING');
+        expect(result.value.attemptStatus.status).toBe('GRADED');
       }
     });
 
@@ -464,7 +464,7 @@ describe('ReviewOpenAnswerUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.attemptStatus.allOpenQuestionsReviewed).toBe(true);
-        expect(result.value.attemptStatus.status).toBe('GRADING');
+        expect(result.value.attemptStatus.status).toBe('GRADED');
       }
     });
 
@@ -560,7 +560,7 @@ describe('ReviewOpenAnswerUseCase', () => {
       expect(result2.isRight()).toBe(true);
       if (result2.isRight()) {
         expect(result2.value.attemptStatus.allOpenQuestionsReviewed).toBe(true);
-        expect(result2.value.attemptStatus.status).toBe('GRADING');
+        expect(result2.value.attemptStatus.status).toBe('GRADED');
       }
     });
 
@@ -2130,7 +2130,7 @@ describe('ReviewOpenAnswerUseCase', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.attemptStatus.allOpenQuestionsReviewed).toBe(true);
-        expect(result.value.attemptStatus.status).toBe('GRADING');
+        expect(result.value.attemptStatus.status).toBe('GRADED');
       }
     });
 
