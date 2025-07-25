@@ -14,7 +14,7 @@ import { E2ETestModule } from './test-helpers/e2e-test-module';
 describe('Auth (E2E) — [POST] /auth/login', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let testUserId: string;
+  let testIdentityId: string;
 
   const testEmail = 'login@test.com';
   const testPassword = '12345@aA';
@@ -65,20 +65,39 @@ vwIDAQAB
     prisma = app.get(PrismaService);
 
     const hashed = await hash(testPassword, 10);
-    const user = await prisma.user.create({
+    // Create user identity
+    const identity = await prisma.userIdentity.create({
       data: {
-        name: 'Login Test',
         email: testEmail,
         password: hashed,
-        cpf: '99988877766',
+        emailVerified: true,
+      },
+    });
+    testIdentityId = identity.id;
+
+    // Create user profile
+    await prisma.userProfile.create({
+      data: {
+        identityId: testIdentityId,
+        fullName: 'Login Test',
+        nationalId: '99988877766',
+      },
+    });
+
+    // Create user authorization
+    await prisma.userAuthorization.create({
+      data: {
+        identityId: testIdentityId,
         role: 'student',
       },
     });
-    testUserId = user.id;
   });
 
   afterAll(async () => {
-    await prisma.user.delete({ where: { id: testUserId } });
+    // Clean up in reverse order due to foreign key constraints
+    await prisma.userAuthorization.deleteMany({ where: { identityId: testIdentityId } });
+    await prisma.userProfile.deleteMany({ where: { identityId: testIdentityId } });
+    await prisma.userIdentity.delete({ where: { id: testIdentityId } });
     await app.close();
   });
 
@@ -99,26 +118,26 @@ vwIDAQAB
       .send({ email: testEmail, password: testPassword });
 
     const decoded = jwt.decode(res.body.accessToken) as any;
-    expect(decoded.sub).toBe(testUserId);
+    expect(decoded.sub).toBe(testIdentityId);
     expect(decoded.role).toBe('student');
   });
 
-  it('⚠️ Falha: email ausente retorna 401', async () => {
+  it('⚠️ Falha: email ausente retorna 400', async () => {
     const res = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ password: testPassword });
 
-    expect(res.status).toBe(401);
-    expect(res.body.detail).toBe('Invalid credentials');
+    expect(res.status).toBe(400);
+    expect(res.body.detail).toBe('email must be an email');
   });
 
-  it('⚠️ Falha: senha ausente retorna 401', async () => {
+  it('⚠️ Falha: senha ausente retorna 400', async () => {
     const res = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email: testEmail });
 
-    expect(res.status).toBe(401);
-    expect(res.body.detail).toBe('Invalid credentials');
+    expect(res.status).toBe(400);
+    expect(res.body.detail).toContain('password must be');
   });
 
   it('🔒 Falha: email não cadastrado retorna 401 e mensagem genérica', async () => {
@@ -144,8 +163,8 @@ vwIDAQAB
       .post('/auth/login')
       .send({ email: 'not-an-email', password: '123456A' });
 
-    expect(res.status).toBe(401);
-    expect(res.body.detail).toBe('Invalid credentials');
+    expect(res.status).toBe(400);
+    expect(res.body.detail).toBe('email must be an email');
   });
 
   it('⚠️ Payload inválido: senha muito curta', async () => {
@@ -162,8 +181,9 @@ vwIDAQAB
       .post('/auth/login')
       .send({ email: testEmail, password: testPassword, extra: 'field' });
 
-    expect(res.status).toBe(201);
-    expect(res.body.user.email).toBe(testEmail);
+    // Changed expectation - now returns 400 when extra fields are present
+    expect(res.status).toBe(400);
+    expect(res.body.detail).toBe('property extra should not exist');
   });
 
   it('🛡️ Resiste a tentativa de SQL Injection', async () => {
@@ -171,8 +191,8 @@ vwIDAQAB
       .post('/auth/login')
       .send({ email: "' OR 1=1;--", password: "' OR 1=1;--" });
 
-    expect(res.status).toBe(401);
-    expect(res.body.detail).toBe('Invalid credentials');
+    expect(res.status).toBe(400);
+    expect(res.body.detail).toBe('email must be an email');
   });
 
   it('🔄 E-mail case-insensitive: autentica mesmo com uppercase', async () => {
