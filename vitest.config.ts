@@ -27,6 +27,33 @@ export default defineConfig(async () => {
       exclude: ['node_modules', 'dist'],
       hookTimeout: 120_000,
       testTimeout: 120_000,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html', 'lcov'],
+        exclude: [
+          'node_modules/**',
+          'dist/**',
+          'test/**',
+          '**/*.d.ts',
+          '**/*.config.*',
+          '**/mockData.ts',
+          'src/main.ts',
+          'src/seed.ts',
+          'src/test/**',
+          'src/**/*.module.ts',
+          'src/infra/env/**',
+          'src/infra/database/**',
+          'src/infra/auth/**',
+        ],
+        include: ['src/**/*.ts'],
+        all: true,
+        thresholds: {
+          lines: 80,
+          functions: 80,
+          branches: 80,
+          statements: 80,
+        },
+      },
     },
   };
 });

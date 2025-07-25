@@ -76,3 +76,4 @@ fix-*.py
 # Backup files
 *.tar.gz
 revalida-backup-*.tar.gz
+coverage-e2e/

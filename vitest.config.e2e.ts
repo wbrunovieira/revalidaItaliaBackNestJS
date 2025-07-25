@@ -13,6 +13,22 @@ export default defineConfig(async () => {
       setupFiles: ['./test/setup-e2e.ts'],
       hookTimeout: 120_000,
       testTimeout: 120_000,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html'],
+        reportsDirectory: './coverage-e2e',
+        include: ['src/**/*.ts'],
+        exclude: [
+          '**/*.spec.ts',
+          '**/*.e2e.spec.ts',
+          'src/test/**',
+          'src/**/*.module.ts',
+          'src/main.ts',
+          'src/seed.ts',
+          '**/*.d.ts',
+          'src/infra/env/**',
+        ],
+      },
     },
     plugins: [
       tsConfigPaths(),
