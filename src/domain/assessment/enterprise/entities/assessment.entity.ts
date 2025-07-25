@@ -113,7 +113,6 @@ export class Assessment extends Entity<AssessmentProps> {
       slug: this.slug,
       title: this.title,
       type: this.type,
-      passingScore: this.passingScore,
       randomizeQuestions: this.randomizeQuestions,
       randomizeOptions: this.randomizeOptions,
     };
@@ -125,6 +124,10 @@ export class Assessment extends Entity<AssessmentProps> {
 
     if (this.quizPosition !== undefined) {
       response.quizPosition = this.quizPosition;
+    }
+
+    if (this.passingScore !== undefined) {
+      response.passingScore = this.passingScore;
     }
 
     if (this.timeLimitInMinutes !== undefined) {

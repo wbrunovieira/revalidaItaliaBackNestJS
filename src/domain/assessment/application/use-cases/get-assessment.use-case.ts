@@ -44,21 +44,7 @@ export class GetAssessmentUseCase {
       const assessment = result.value;
 
       return right({
-        assessment: {
-          id: assessment.id.toString(),
-          slug: assessment.slug,
-          title: assessment.title,
-          description: assessment.description,
-          type: assessment.type,
-          quizPosition: assessment.quizPosition,
-          passingScore: assessment.passingScore,
-          timeLimitInMinutes: assessment.timeLimitInMinutes,
-          randomizeQuestions: assessment.randomizeQuestions,
-          randomizeOptions: assessment.randomizeOptions,
-          lessonId: assessment.lessonId?.toString(),
-          createdAt: assessment.createdAt,
-          updatedAt: assessment.updatedAt,
-        },
+        assessment: assessment.toResponseObject(),
       });
     } catch (err: any) {
       return left(new RepositoryError(err.message));

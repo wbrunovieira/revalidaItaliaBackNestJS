@@ -89,35 +89,44 @@ export class ListAssessmentsUseCase {
 
       assessmentsResult = { assessments, total };
     } else {
-      // Get all assessments with pagination
-      const allAssessmentsResult = await this.assessmentRepo.findAllPaginated(
-        data.limit,
-        offset,
-      );
-
-      if (allAssessmentsResult.isLeft()) {
-        return left(new RepositoryError(allAssessmentsResult.value.message));
-      }
-
-      let { assessments, total } = allAssessmentsResult.value;
-
       // Apply type filter if provided
       if (data.type) {
-        assessments = assessments.filter(
+        // Get all assessments and filter by type
+        const allAssessmentsResult = await this.assessmentRepo.findAll();
+        if (allAssessmentsResult.isLeft()) {
+          return left(new RepositoryError(allAssessmentsResult.value.message));
+        }
+        
+        let filteredAssessments = allAssessmentsResult.value.filter(
           (assessment) => assessment.type === data.type,
         );
-        // Recalculate total for filtered results
-        // Note: This is not optimal for large datasets, but works for this use case
-        const allFilteredResult = await this.assessmentRepo.findAll();
-        if (allFilteredResult.isLeft()) {
-          return left(new RepositoryError(allFilteredResult.value.message));
-        }
-        total = allFilteredResult.value.filter(
-          (assessment) => assessment.type === data.type,
-        ).length;
-      }
+        
+        // Sort by creation date descending
+        filteredAssessments.sort(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+        );
+        
+        // Apply pagination manually
+        const total = filteredAssessments.length;
+        const assessments = filteredAssessments.slice(
+          offset,
+          offset + data.limit,
+        );
+        
+        assessmentsResult = { assessments, total };
+      } else {
+        // Get all assessments with pagination (no filter)
+        const allAssessmentsResult = await this.assessmentRepo.findAllPaginated(
+          data.limit,
+          offset,
+        );
 
-      assessmentsResult = { assessments, total };
+        if (allAssessmentsResult.isLeft()) {
+          return left(new RepositoryError(allAssessmentsResult.value.message));
+        }
+
+        assessmentsResult = allAssessmentsResult.value;
+      }
     }
 
     const { assessments, total } = assessmentsResult;
