@@ -146,7 +146,9 @@ export class UpdateAssessmentUseCase {
           updateProps.lessonId = undefined;
         } else {
           // Validate lesson exists
-          const lessonResult = await this.lessonRepository.findById(data.lessonId);
+          const lessonResult = await this.lessonRepository.findById(
+            data.lessonId,
+          );
           if (lessonResult.isLeft()) {
             return left(new LessonNotFoundError());
           }
@@ -172,10 +174,9 @@ export class UpdateAssessmentUseCase {
         updateProps.type !== undefined ? updateProps.type : assessment.type;
 
       // Get final quizPosition value after all updates
-      const finalQuizPosition =
-        updateProps.hasOwnProperty('quizPosition')
-          ? updateProps.quizPosition
-          : assessment.quizPosition;
+      const finalQuizPosition = updateProps.hasOwnProperty('quizPosition')
+        ? updateProps.quizPosition
+        : assessment.quizPosition;
 
       // QUIZ type requires quizPosition
       if (finalType === 'QUIZ' && !finalQuizPosition) {
@@ -206,7 +207,8 @@ export class UpdateAssessmentUseCase {
 
       // Validar timeLimitInMinutes apenas se está sendo definido (não null/undefined)
       if (
-        updateProps.timeLimitInMinutes !== undefined &&
+        data.timeLimitInMinutes !== undefined &&
+        data.timeLimitInMinutes !== null &&
         finalType !== 'SIMULADO'
       ) {
         return left(
@@ -222,9 +224,6 @@ export class UpdateAssessmentUseCase {
 
       return right({ assessment });
     } catch (err: any) {
-      // Log do erro para debug (remover em produção)
-      console.error('UpdateAssessmentUseCase error:', err);
-
       // Check if it's a validation error from our code
       if (err instanceof InvalidInputError) {
         return left(err);

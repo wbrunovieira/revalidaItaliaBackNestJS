@@ -3,10 +3,13 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { left, right } from '@/core/either';
 import { UpdateAssessmentUseCase } from '@/domain/assessment/application/use-cases/update-assessment.use-case';
 import { IAssessmentRepository } from '@/domain/assessment/application/repositories/i-assessment-repository';
+import { ILessonRepository } from '@/domain/course-catalog/application/repositories/i-lesson-repository';
 import { InvalidInputError } from '@/domain/assessment/application/use-cases/errors/invalid-input-error';
 import { AssessmentNotFoundError } from '@/domain/assessment/application/use-cases/errors/assessment-not-found-error';
+import { LessonNotFoundError } from '@/domain/assessment/application/use-cases/errors/lesson-not-found-error';
 import { RepositoryError } from './errors/repository-error';
 import { Assessment } from '@/domain/assessment/enterprise/entities/assessment.entity';
+import { Lesson } from '@/domain/course-catalog/enterprise/entities/lesson.entity';
 import { UniqueEntityID } from '@/core/unique-entity-id';
 import { DuplicateAssessmentError } from './errors/duplicate-assessment-error';
 
@@ -22,13 +25,29 @@ class MockAssessmentRepository implements IAssessmentRepository {
   findByTitle = vi.fn();
 }
 
+class MockLessonRepository implements ILessonRepository {
+  findById = vi.fn();
+  create = vi.fn();
+  update = vi.fn();
+  delete = vi.fn();
+  findAll = vi.fn();
+  findAllPaginated = vi.fn();
+  findBySlug = vi.fn();
+  findByModuleId = vi.fn();
+  countByModuleId = vi.fn();
+  getMaxOrderByModuleId = vi.fn();
+  findByIdsInOrder = vi.fn();
+}
+
 describe('UpdateAssessmentUseCase', () => {
   let useCase: UpdateAssessmentUseCase;
   let repository: MockAssessmentRepository;
+  let lessonRepository: MockLessonRepository;
 
   beforeEach(() => {
     repository = new MockAssessmentRepository();
-    useCase = new UpdateAssessmentUseCase(repository);
+    lessonRepository = new MockLessonRepository();
+    useCase = new UpdateAssessmentUseCase(repository, lessonRepository);
   });
 
   it('should successfully update an assessment with all fields', async () => {
@@ -82,6 +101,7 @@ describe('UpdateAssessmentUseCase', () => {
         slug: 'old-title',
         description: 'Old description',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -173,6 +193,7 @@ describe('UpdateAssessmentUseCase', () => {
         slug: 'test-assessment',
         description: 'A test assessment',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -182,7 +203,7 @@ describe('UpdateAssessmentUseCase', () => {
 
     repository.findById.mockResolvedValue(right(assessment));
     repository.findByTitleExcludingId.mockResolvedValue(right(null)); // No duplicate found
-    repository.update.mockRejectedValue(new RepositoryError('Database error'));
+    repository.update.mockRejectedValue(new Error('Database error'));
 
     const result = await useCase.execute({
       id: assessmentId,
@@ -202,6 +223,7 @@ describe('UpdateAssessmentUseCase', () => {
         slug: 'test-title',
         description: 'Old description',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -233,6 +255,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -264,6 +287,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -302,6 +326,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -310,7 +335,17 @@ describe('UpdateAssessmentUseCase', () => {
       new UniqueEntityID(assessmentId),
     );
 
+    // Mock the new lesson to exist
+    const newLesson = Lesson.create(
+      {
+        moduleId: new UniqueEntityID('module-id'),
+        order: 1,
+      },
+      new UniqueEntityID(newLessonId),
+    );
+
     repository.findById.mockResolvedValue(right(assessment));
+    lessonRepository.findById.mockResolvedValue(right(newLesson));
     repository.update.mockResolvedValue(right(undefined));
 
     const result = await useCase.execute({
@@ -336,6 +371,7 @@ describe('UpdateAssessmentUseCase', () => {
         slug: 'test-title',
         description: 'Existing description',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -380,6 +416,7 @@ describe('UpdateAssessmentUseCase', () => {
 
     const result = await useCase.execute({
       id: assessmentId,
+      type: 'PROVA_ABERTA', // Change type to allow unsetting quizPosition
       quizPosition: null, // Changed from undefined to null
     });
 
@@ -431,6 +468,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -465,6 +503,7 @@ describe('UpdateAssessmentUseCase', () => {
         slug: 'test-title',
         description: 'Existing description',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -494,6 +533,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -614,6 +654,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ', // Non-SIMULADO type
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -631,7 +672,7 @@ describe('UpdateAssessmentUseCase', () => {
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(InvalidInputError);
     if (result.isLeft() && result.value instanceof InvalidInputError) {
-      expect(result.value.details).toContain(
+      expect(result.value.details[0]).toBe(
         'timeLimitInMinutes: Time limit can only be set for SIMULADO type assessments',
       );
     }
@@ -645,6 +686,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -673,6 +715,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -701,6 +744,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -731,6 +775,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -823,6 +868,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -861,6 +907,7 @@ describe('UpdateAssessmentUseCase', () => {
         slug: 'existing-title',
         description: 'Old description',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -1054,6 +1101,7 @@ describe('UpdateAssessmentUseCase', () => {
         slug: 'test-title',
         description: 'Old description',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -1086,6 +1134,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Old Title',
         slug: 'old-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -1123,6 +1172,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Old Title',
         slug: 'old-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -1154,6 +1204,7 @@ describe('UpdateAssessmentUseCase', () => {
         title: 'Test Title',
         slug: 'test-title',
         type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
         passingScore: 70,
         randomizeQuestions: false,
         randomizeOptions: false,
@@ -1175,6 +1226,68 @@ describe('UpdateAssessmentUseCase', () => {
       expect(result.value.assessment.lessonId).toBeUndefined();
       expect(repository.update).toHaveBeenCalledWith(
         expect.objectContaining({ lessonId: undefined }),
+      );
+    }
+  });
+
+  // Test for LessonNotFoundError
+  it('should return LessonNotFoundError when lessonId does not exist', async () => {
+    const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
+    const nonExistentLessonId = '999e4567-e89b-12d3-a456-426614174999';
+    const assessment = Assessment.create(
+      {
+        title: 'Test Title',
+        slug: 'test-title',
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      new UniqueEntityID(assessmentId),
+    );
+
+    repository.findById.mockResolvedValue(right(assessment));
+    lessonRepository.findById.mockResolvedValue(left(new LessonNotFoundError()));
+
+    const result = await useCase.execute({
+      id: assessmentId,
+      lessonId: nonExistentLessonId,
+    });
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(LessonNotFoundError);
+  });
+
+  // Test for QUIZ type validation
+  it('should return InvalidInputError when QUIZ type is missing quizPosition after type change', async () => {
+    const assessmentId = '123e4567-e89b-12d3-a456-426614174000';
+    const assessment = Assessment.create(
+      {
+        title: 'Test Title',
+        slug: 'test-title',
+        type: 'SIMULADO',
+        timeLimitInMinutes: 60,
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      new UniqueEntityID(assessmentId),
+    );
+
+    repository.findById.mockResolvedValue(right(assessment));
+
+    const result = await useCase.execute({
+      id: assessmentId,
+      type: 'QUIZ',
+      // Missing quizPosition
+    });
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(InvalidInputError);
+    if (result.isLeft() && result.value instanceof InvalidInputError) {
+      expect(result.value.details).toContain(
+        'quizPosition: QUIZ type assessments require a quiz position',
       );
     }
   });
