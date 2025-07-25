@@ -111,7 +111,7 @@ export class AttemptTestSetup {
 
           // Check if Authorization header is present
           if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return true; // Allow requests without auth header for testing
+            return false; // Reject requests without auth header
           }
 
           // Extract user info from mock token
@@ -964,7 +964,8 @@ export class AttemptTestSetup {
    */
   generateJwtToken(user: any): string {
     // Simple mock token - in real tests you might want to use actual JWT
-    return `mock-token-${user.id}-${user.role}`;
+    const role = user.authorization?.role || user.role || 'student';
+    return `mock-token-${user.id}-${role}`;
   }
 
   /**

@@ -65,7 +65,7 @@ describe('GET /attempts', () => {
 
     // All attempts should belong to the student user
     response.body.attempts.forEach((attempt: any) => {
-      expect(attempt.userId).toBe(studentUser.id);
+      expect(attempt.identityId).toBe(studentUser.id);
     });
   });
 
@@ -100,7 +100,7 @@ describe('GET /attempts', () => {
     });
   });
 
-  it('should filter attempts by userId', async () => {
+  it('should filter attempts by identityId', async () => {
     // Arrange
     const { adminUser, studentUser, otherStudentUser, assessment } =
       await setup.createTestData();
@@ -111,7 +111,7 @@ describe('GET /attempts', () => {
 
     // Act
     const response = await request(app.getHttpServer())
-      .get(`/attempts?userId=${studentUser.id}`)
+      .get(`/attempts?identityId=${studentUser.id}`)
       .set('Authorization', `Bearer ${setup.generateJwtToken(adminUser)}`)
       .expect(200);
 
@@ -120,7 +120,7 @@ describe('GET /attempts', () => {
 
     // All attempts should belong to the specified user
     response.body.attempts.forEach((attempt: any) => {
-      expect(attempt.userId).toBe(studentUser.id);
+      expect(attempt.identityId).toBe(studentUser.id);
     });
   });
 
@@ -183,7 +183,7 @@ describe('GET /attempts', () => {
 
     // Act & Assert
     await request(app.getHttpServer())
-      .get(`/attempts?userId=${otherStudentUser.id}`)
+      .get(`/attempts?identityId=${otherStudentUser.id}`)
       .set('Authorization', `Bearer ${setup.generateJwtToken(studentUser)}`)
       .expect(403);
   });
@@ -199,13 +199,13 @@ describe('GET /attempts', () => {
       .expect(400);
   });
 
-  it('should return 400 for invalid UUID in userId filter', async () => {
+  it('should return 400 for invalid UUID in identityId filter', async () => {
     // Arrange
     const { adminUser } = await setup.createTestData();
 
     // Act & Assert
     await request(app.getHttpServer())
-      .get('/attempts?userId=invalid-uuid')
+      .get('/attempts?identityId=invalid-uuid')
       .set('Authorization', `Bearer ${setup.generateJwtToken(adminUser)}`)
       .expect(400);
   });
