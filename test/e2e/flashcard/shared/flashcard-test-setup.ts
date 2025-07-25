@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Module } from '@nestjs/common';
 import { FlashcardContentType } from '@prisma/client';
+8;
 import { PrismaService } from '../../../../src/prisma/prisma.service';
 import { FlashcardController } from '../../../../src/infra/controllers/flashcard.controller';
 import { CreateFlashcardUseCase } from '../../../../src/domain/flashcard/application/use-cases/create-flashcard.use-case';
@@ -82,20 +83,34 @@ export class FlashcardTestSetup {
       await tx.lesson.deleteMany({});
       await tx.module.deleteMany({});
       await tx.course.deleteMany({});
-      await tx.user.deleteMany({});
+      await tx.address.deleteMany({});
+      await tx.userAuthorization.deleteMany({});
+      await tx.userProfile.deleteMany({});
+      await tx.userIdentity.deleteMany({});
     });
 
     // Create test data
     await this.prisma.$transaction(async (tx) => {
-      // Create test user
-      await tx.user.create({
+      // Create test user with new user system
+      await tx.userIdentity.create({
         data: {
           id: this.userId,
           email: 'test@example.com',
-          name: 'Test User',
-          cpf: '12345678901',
           password: 'hashedpassword',
-          role: 'STUDENT',
+          emailVerified: true,
+          profile: {
+            create: {
+              fullName: 'Test User',
+              nationalId: '12345678901',
+              preferredLanguage: 'pt-BR',
+              timezone: 'America/Sao_Paulo',
+            },
+          },
+          authorization: {
+            create: {
+              role: 'student',
+            },
+          },
         },
       });
 
@@ -303,7 +318,10 @@ export class FlashcardTestSetup {
       await tx.lesson.deleteMany({});
       await tx.module.deleteMany({});
       await tx.course.deleteMany({});
-      await tx.user.deleteMany({});
+      await tx.address.deleteMany({});
+      await tx.userAuthorization.deleteMany({});
+      await tx.userProfile.deleteMany({});
+      await tx.userIdentity.deleteMany({});
     });
 
     await this.app.close();
