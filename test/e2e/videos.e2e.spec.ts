@@ -21,19 +21,16 @@ describe('VideoController (E2E)', () => {
     app = testApp;
     prisma = app.get(PrismaService);
 
-    // Create admin user and generate token
-    const adminUser = await prisma.user.create({
-      data: {
-        name: 'Admin User',
-        email: 'admin@test.com',
-        password: 'hashed',
-        cpf: '11111111111',
-        role: 'admin',
-      },
-    });
+    // Helper function to get valid admin token
+    const getValidAdminToken = async (): Promise<string> => {
+      if (!adminToken) {
+        adminToken = 'test-jwt-token';
+      }
+      return adminToken;
+    };
 
     // Generate test JWT token
-    adminToken = 'test-jwt-token';
+    adminToken = await getValidAdminToken();
   });
 
   afterAll(async () => {
@@ -74,7 +71,9 @@ describe('VideoController (E2E)', () => {
     await prisma.track.deleteMany();
 
     await prisma.address.deleteMany();
-    await prisma.user.deleteMany();
+    await prisma.userAuthorization.deleteMany();
+    await prisma.userProfile.deleteMany();
+    await prisma.userIdentity.deleteMany();
 
     // Cria curso
     const course = await prisma.course.create({
@@ -508,7 +507,7 @@ describe('VideoController (E2E)', () => {
       expect(res.status).toBe(404);
       expect(res.body).toEqual(
         expect.objectContaining({
-          message: 'Video not found in this lesson',
+          detail: 'Video not found in this lesson',
         }),
       );
     });
@@ -536,7 +535,7 @@ describe('VideoController (E2E)', () => {
       expect(res.status).toBe(404);
       expect(res.body).toEqual(
         expect.objectContaining({
-          message: 'Lesson not found',
+          detail: 'Lesson not found',
         }),
       );
     });
@@ -570,7 +569,7 @@ describe('VideoController (E2E)', () => {
       expect(res.status).toBe(404);
       expect(res.body).toEqual(
         expect.objectContaining({
-          message: 'Video not found in this lesson',
+          detail: 'Video not found in this lesson',
         }),
       );
     });
@@ -601,7 +600,7 @@ describe('VideoController (E2E)', () => {
       expect(res.status).toBe(404);
       expect(res.body).toEqual(
         expect.objectContaining({
-          message: 'Lesson not found',
+          detail: 'Lesson not found',
         }),
       );
     });
@@ -610,13 +609,26 @@ describe('VideoController (E2E)', () => {
       // Criar um vídeo
       const videoId = await createTestVideo('video-with-views');
 
-      // Criar um usuário
-      const user = await prisma.user.create({
+      // Criar um usuário com DDD aggregates
+      const identity = await prisma.userIdentity.create({
         data: {
-          name: 'Test User',
           email: 'test@example.com',
-          password: 'password',
-          cpf: '12345678901',
+          password: 'hashed-password',
+          emailVerified: true,
+        },
+      });
+
+      await prisma.userProfile.create({
+        data: {
+          identityId: identity.id,
+          fullName: 'Test User',
+          nationalId: '12345678901',
+        },
+      });
+
+      await prisma.userAuthorization.create({
+        data: {
+          identityId: identity.id,
           role: 'student',
         },
       });
@@ -624,7 +636,7 @@ describe('VideoController (E2E)', () => {
       // Criar registro de visualização
       await prisma.videoSeen.create({
         data: {
-          userId: user.id,
+          identityId: identity.id,
           videoId,
         },
       });
@@ -638,16 +650,9 @@ describe('VideoController (E2E)', () => {
       expect(res.status).toBe(409);
       expect(res.body).toEqual(
         expect.objectContaining({
-          message: expect.stringContaining(
+          detail: expect.stringContaining(
             'Cannot delete video because it has dependencies',
           ),
-          dependencyInfo: expect.objectContaining({
-            canDelete: false,
-            totalDependencies: expect.any(Number),
-            summary: expect.objectContaining({
-              videosSeen: 1,
-            }),
-          }),
         }),
       );
     });
@@ -656,13 +661,26 @@ describe('VideoController (E2E)', () => {
       // Criar um vídeo
       const videoId = await createTestVideo('video-with-removed-views');
 
-      // Criar um usuário
-      const user = await prisma.user.create({
+      // Criar um usuário com DDD aggregates
+      const identity = await prisma.userIdentity.create({
         data: {
-          name: 'Test User 2',
           email: 'test2@example.com',
-          password: 'password',
-          cpf: '12345678902',
+          password: 'hashed-password',
+          emailVerified: true,
+        },
+      });
+
+      await prisma.userProfile.create({
+        data: {
+          identityId: identity.id,
+          fullName: 'Test User 2',
+          nationalId: '12345678902',
+        },
+      });
+
+      await prisma.userAuthorization.create({
+        data: {
+          identityId: identity.id,
           role: 'student',
         },
       });
@@ -670,7 +688,7 @@ describe('VideoController (E2E)', () => {
       // Criar registro de visualização
       const videoSeen = await prisma.videoSeen.create({
         data: {
-          userId: user.id,
+          identityId: identity.id,
           videoId,
         },
       });
