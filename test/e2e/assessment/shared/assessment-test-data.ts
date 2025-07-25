@@ -10,6 +10,7 @@ export class AssessmentTestData {
 
   static readonly INVALID_UUID = 'invalid-uuid';
   static readonly NON_EXISTENT_UUID = '00000000-0000-0000-0000-000000000000';
+  static readonly UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   static readonly QUIZ_DATA = {
     slug: 'test-quiz',
@@ -94,4 +95,154 @@ export class AssessmentTestData {
       },
     ],
   };
+
+  // Payload generators for POST /assessments
+  static createQuizPayload(overrides?: Partial<any>) {
+    const base = {
+      title: 'JavaScript Fundamentals Quiz',
+      description: 'Test your knowledge of JavaScript basics',
+      type: 'QUIZ',
+      quizPosition: 'AFTER_LESSON',
+      passingScore: 70,
+      randomizeQuestions: false,
+      randomizeOptions: false,
+    };
+    
+    // Handle explicit undefined description by not including it
+    if (overrides && 'description' in overrides && overrides.description === undefined) {
+      const { description, ...baseWithoutDescription } = base;
+      return { ...baseWithoutDescription, ...overrides };
+    }
+    
+    return { ...base, ...overrides };
+  }
+
+  static createSimuladoPayload(overrides?: Partial<any>) {
+    const base = {
+      title: 'Programming Simulation Exam',
+      description: 'Comprehensive programming simulation',
+      type: 'SIMULADO',
+      passingScore: 80,
+      timeLimitInMinutes: 120,
+      randomizeQuestions: true,
+      randomizeOptions: true,
+    };
+    
+    // Handle explicit undefined description by not including it
+    if (overrides && 'description' in overrides && overrides.description === undefined) {
+      const { description, ...baseWithoutDescription } = base;
+      return { ...baseWithoutDescription, ...overrides };
+    }
+    
+    return { ...base, ...overrides };
+  }
+
+  static createProvaAbertaPayload(overrides?: Partial<any>) {
+    const base = {
+      title: 'Advanced Programming Essay',
+      description: 'Open-ended programming assessment',
+      type: 'PROVA_ABERTA',
+      passingScore: 75,
+      randomizeQuestions: false,
+      randomizeOptions: false,
+    };
+    
+    // Handle explicit undefined description by not including it
+    if (overrides && 'description' in overrides && overrides.description === undefined) {
+      const { description, ...baseWithoutDescription } = base;
+      return { ...baseWithoutDescription, ...overrides };
+    }
+    
+    return { ...base, ...overrides };
+  }
+
+  static createInvalidPayloads() {
+    return {
+      missingTitle: {
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      shortTitle: {
+        title: 'AB',
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      invalidType: {
+        title: 'Valid Title',
+        type: 'INVALID_TYPE',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      negativeScore: {
+        title: 'Valid Title',
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: -10,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      scoreAbove100: {
+        title: 'Valid Title',
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 150,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      invalidLessonId: {
+        title: 'Quiz With Invalid Lesson',
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+        lessonId: 'invalid-uuid',
+      },
+    };
+  }
+
+  static createEdgeCasePayloads() {
+    return {
+      longTitle: {
+        title: 'A'.repeat(255),
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      longDescription: {
+        title: 'Assessment With Long Description',
+        description: 'B'.repeat(1000),
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      unicodeTitle: {
+        title: 'Avaliação 中文 العربية русский 🎯',
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+      specialCharsTitle: {
+        title: 'Avaliação de Programação & Lógica!',
+        type: 'QUIZ',
+        quizPosition: 'AFTER_LESSON',
+        passingScore: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+      },
+    };
+  }
 }

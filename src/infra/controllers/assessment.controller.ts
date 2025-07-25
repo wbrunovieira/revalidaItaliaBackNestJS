@@ -83,8 +83,8 @@ export class AssessmentController {
       }
 
       if (error instanceof LessonNotFoundError) {
-        throw new InternalServerErrorException({
-          error: 'INTERNAL_ERROR',
+        throw new NotFoundException({
+          error: 'LESSON_NOT_FOUND',
           message: 'Lesson not found',
         });
       }

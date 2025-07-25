@@ -7,6 +7,32 @@ import { Test } from 'supertest';
 export class AssessmentTestHelpers {
   constructor(private app: INestApplication) {}
 
+  async createAssessment(payload: any): Promise<request.Response> {
+    return request(this.app.getHttpServer())
+      .post('/assessments')
+      .send(payload);
+  }
+
+  async getAssessment(id: string): Promise<request.Response> {
+    return request(this.app.getHttpServer()).get(`/assessments/${id}`);
+  }
+
+  async listAssessments(query?: any): Promise<request.Response> {
+    return request(this.app.getHttpServer())
+      .get('/assessments')
+      .query(query || {});
+  }
+
+  async updateAssessment(id: string, payload: any): Promise<request.Response> {
+    return request(this.app.getHttpServer())
+      .put(`/assessments/${id}`)
+      .send(payload);
+  }
+
+  async deleteAssessment(id: string): Promise<request.Response> {
+    return request(this.app.getHttpServer()).delete(`/assessments/${id}`);
+  }
+
   async getQuestionsDetailed(assessmentId: string): Promise<request.Response> {
     return request(this.app.getHttpServer()).get(
       `/assessments/${assessmentId}/questions/detailed`,
@@ -28,6 +54,13 @@ export class AssessmentTestHelpers {
     expect(response.body.type).toBe('https://api.portalrevalida.com/errors/http-error');
     expect(response.body.title).toBe('Not Found');
     expect(response.body.status).toBe(404);
+  }
+
+  expectConflictError(response: any) {
+    expect(response.status).toBe(409);
+    expect(response.body.type).toBe('https://api.portalrevalida.com/errors/http-error');
+    expect(response.body.title).toBe('Conflict');
+    expect(response.body.status).toBe(409);
   }
 
   expectRepositoryError(response: any, expectedMessage?: string) {

@@ -6,6 +6,66 @@ import { UniqueEntityID } from '@/core/unique-entity-id';
 export class AssessmentTestSetup {
   constructor(private prisma: PrismaClient) {}
 
+  async createCourseStructure() {
+    // Create course
+    const courseId = new UniqueEntityID();
+    await this.prisma.course.create({
+      data: {
+        id: courseId.toString(),
+        slug: 'test-course',
+        translations: {
+          create: [
+            { locale: 'pt', title: 'Curso de Teste', description: 'Desc PT' },
+            { locale: 'it', title: 'Corso di Test', description: 'Desc IT' },
+            { locale: 'es', title: 'Curso de Prueba', description: 'Desc ES' },
+          ],
+        },
+      },
+    });
+
+    // Create module
+    const moduleId = new UniqueEntityID();
+    await this.prisma.module.create({
+      data: {
+        id: moduleId.toString(),
+        slug: 'test-module',
+        order: 1,
+        courseId: courseId.toString(),
+        translations: {
+          create: [
+            { locale: 'pt', title: 'Módulo de Teste', description: 'Desc PT' },
+            { locale: 'it', title: 'Modulo di Test', description: 'Desc IT' },
+            { locale: 'es', title: 'Módulo de Prueba', description: 'Desc ES' },
+          ],
+        },
+      },
+    });
+
+    // Create lesson
+    const lessonId = new UniqueEntityID();
+    await this.prisma.lesson.create({
+      data: {
+        id: lessonId.toString(),
+        slug: 'test-lesson',
+        moduleId: moduleId.toString(),
+        order: 1,
+        translations: {
+          create: [
+            { locale: 'pt', title: 'Aula de Teste', description: 'Desc PT' },
+            { locale: 'it', title: 'Lezione di Test', description: 'Desc IT' },
+            { locale: 'es', title: 'Lección de Prueba', description: 'Desc ES' },
+          ],
+        },
+      },
+    });
+
+    return {
+      courseId: courseId.toString(),
+      moduleId: moduleId.toString(),
+      lessonId: lessonId.toString(),
+    };
+  }
+
   async createTestScenario() {
     // Create user identity
     const identityId = new UniqueEntityID();

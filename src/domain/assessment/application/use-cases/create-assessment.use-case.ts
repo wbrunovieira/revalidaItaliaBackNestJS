@@ -125,19 +125,7 @@ export class CreateAssessmentUseCase {
     }
 
     const responsePayload = {
-      assessment: {
-        id: assessment.id.toString(),
-        slug: assessment.slug,
-        title: assessment.title,
-        description: assessment.description,
-        type: assessment.type,
-        quizPosition: assessment.quizPosition,
-        passingScore: assessment.passingScore,
-        timeLimitInMinutes: assessment.timeLimitInMinutes,
-        randomizeQuestions: assessment.randomizeQuestions,
-        randomizeOptions: assessment.randomizeOptions,
-        lessonId: assessment.lessonId?.toString(),
-      },
+      assessment: assessment.toResponseObject(),
     };
 
     return right(responsePayload);
