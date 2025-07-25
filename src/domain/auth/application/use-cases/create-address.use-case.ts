@@ -42,7 +42,7 @@ export class CreateAddressUseCase {
         return left(
           new InvalidInputError(
             `${validation.field} exceeds maximum length of ${validation.maxLength} characters`,
-            { [validation.field]: `Too long (max ${validation.maxLength} characters)` }
+            [{ [validation.field]: `Too long (max ${validation.maxLength} characters)` }]
           )
         );
       }

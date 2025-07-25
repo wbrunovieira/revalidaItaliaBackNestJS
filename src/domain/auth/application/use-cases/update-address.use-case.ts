@@ -47,9 +47,32 @@ export class UpdateAddressUseCase {
       return left(
         new InvalidInputError(
           'At least one field must be provided for update',
-          { fields: 'No fields provided for update' }
+          [{ fields: 'No fields provided for update' }]
         )
       );
+    }
+
+    // Validate field lengths
+    const fieldValidations = [
+      { field: 'street', value: street, maxLength: 255 },
+      { field: 'number', value: number, maxLength: 20 },
+      { field: 'complement', value: complement, maxLength: 255 },
+      { field: 'district', value: district, maxLength: 100 },
+      { field: 'city', value: city, maxLength: 100 },
+      { field: 'state', value: state, maxLength: 100 },
+      { field: 'country', value: country, maxLength: 100 },
+      { field: 'postalCode', value: postalCode, maxLength: 20 },
+    ];
+
+    for (const validation of fieldValidations) {
+      if (validation.value && validation.value.length > validation.maxLength) {
+        return left(
+          new InvalidInputError(
+            `${validation.field} exceeds maximum length of ${validation.maxLength} characters`,
+            [{ [validation.field]: `Too long (max ${validation.maxLength} characters)` }]
+          )
+        );
+      }
     }
 
     // 2) Buscar o endereço existente

@@ -21,6 +21,10 @@ describe('[GET] /addresses - E2E', () => {
     prisma = app.get(PrismaService);
   });
 
+  beforeEach(async () => {
+    await AddressE2ETestSetup.cleanupTestData(prisma);
+  });
+
   afterAll(async () => {
     await AddressE2ETestSetup.cleanupTestData(prisma);
     if (app) {
@@ -39,8 +43,18 @@ describe('[GET] /addresses - E2E', () => {
         prisma,
         AddressE2ETestData.testUsers.getUser.email,
       );
-
+      const identityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.getUser.email,
+      );
       expect(profileId).toBeTruthy();
+      expect(identityId).toBeTruthy();
+
+      // Generate JWT token for user
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: identityId!,
+        role: 'student',
+      });
 
       const addressData = AddressE2ETestData.validAddress({
         profileId: profileId!,
@@ -53,12 +67,13 @@ describe('[GET] /addresses - E2E', () => {
         postalCode: '22233-445',
       });
 
-      await AddressE2ETestHelpers.createAddress(app, addressData);
+      await AddressE2ETestHelpers.createAddress(app, addressData, userToken);
 
       // Act
       const response = await AddressE2ETestHelpers.getAddressesByProfileId(
         app,
         profileId!,
+        userToken,
       );
 
       // Assert
@@ -66,28 +81,37 @@ describe('[GET] /addresses - E2E', () => {
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
       expect(response.body[0].street).toBe('200 Main St');
-
-      // Cleanup
-      await prisma.address.deleteMany({ where: { profileId } });
-      await prisma.userIdentity.delete({
-        where: { email: AddressE2ETestData.testUsers.getUser.email },
-      });
     });
 
-    it('should return empty array when no addresses exist for profileId', async () => {
+    it('should return 403 when user tries to get addresses from another profile', async () => {
       // Arrange
-      const nonExistentProfileId = AddressE2ETestData.invalidUUID;
+      // Create user with their own profileId
+      await AddressE2ETestSetup.createTestUser(
+        app,
+        AddressE2ETestData.testUsers.getUser,
+      );
+      const userIdentityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.getUser.email,
+      );
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: userIdentityId!,
+        role: 'student',
+      });
+
+      // Try to access a different profileId
+      const otherProfileId = AddressE2ETestData.invalidUUID;
 
       // Act
       const response = await AddressE2ETestHelpers.getAddressesByProfileId(
         app,
-        nonExistentProfileId,
+        otherProfileId,
+        userToken,
       );
 
       // Assert
-      expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBe(0);
+      expect(response.status).toBe(403);
+      expect(response.body.message || response.body.detail).toMatch(/forbidden/i);
     });
   });
 
@@ -116,7 +140,18 @@ describe('[GET] /addresses - E2E', () => {
         prisma,
         AddressE2ETestData.testUsers.user1.email,
       );
+      const identityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user1.email,
+      );
       expect(profileId).toBeTruthy();
+      expect(identityId).toBeTruthy();
+
+      // Generate JWT token for user
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: identityId!,
+        role: 'student',
+      });
 
       // Create multiple addresses
       const address1 = AddressE2ETestData.validAddress({
@@ -130,13 +165,14 @@ describe('[GET] /addresses - E2E', () => {
         city: 'Los Angeles',
       });
 
-      await AddressE2ETestHelpers.createAddress(app, address1);
-      await AddressE2ETestHelpers.createAddress(app, address2);
+      await AddressE2ETestHelpers.createAddress(app, address1, userToken);
+      await AddressE2ETestHelpers.createAddress(app, address2, userToken);
 
       // Act
       const response = await AddressE2ETestHelpers.getAddressesByProfileId(
         app,
         profileId!,
+        userToken,
       );
 
       // Assert
@@ -148,6 +184,9 @@ describe('[GET] /addresses - E2E', () => {
       );
     });
 
+  });
+
+  describe('Security', () => {
     it('should return 401 when no authentication token provided', async () => {
       // Act
       const response = await request(app.getHttpServer())
@@ -157,6 +196,68 @@ describe('[GET] /addresses - E2E', () => {
       // Assert
       expect(response.status).toBe(401);
     });
+
+    it('should allow admin to view addresses from any user', async () => {
+      // Arrange
+      // Create a regular user with address
+      await AddressE2ETestSetup.createTestUser(
+        app,
+        AddressE2ETestData.testUsers.user1,
+      );
+      const userProfileId = await AddressE2ETestSetup.getProfileIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user1.email,
+      );
+      const userIdentityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user1.email,
+      );
+      expect(userProfileId).toBeTruthy();
+
+      // Generate token for regular user
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: userIdentityId!,
+        role: 'student',
+      });
+
+      // Create address for regular user
+      const addressData = AddressE2ETestData.validAddress({
+        profileId: userProfileId!,
+        street: 'User Street 123',
+      });
+      await AddressE2ETestHelpers.createAddress(app, addressData, userToken);
+
+      // Create admin user
+      await AddressE2ETestSetup.createTestUser(app, {
+        ...AddressE2ETestData.testUsers.user2,
+        email: 'admin-get@example.com',
+        role: 'admin',
+      });
+      const adminIdentityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        'admin-get@example.com',
+      );
+      const adminToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: adminIdentityId!,
+        role: 'admin',
+      });
+
+      // Act - Admin gets user's addresses
+      const response = await AddressE2ETestHelpers.getAddressesByProfileId(
+        app,
+        userProfileId!,
+        adminToken,
+      );
+
+      // Assert
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(1);
+      expect(response.body[0].street).toBe('User Street 123');
+    });
+  });
+
+  describe('Edge cases', () => {
 
     it('should return addresses sorted by creation date', async () => {
       // Arrange
@@ -168,14 +269,25 @@ describe('[GET] /addresses - E2E', () => {
         prisma,
         AddressE2ETestData.testUsers.user2.email,
       );
+      const identityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user2.email,
+      );
       expect(profileId).toBeTruthy();
+      expect(identityId).toBeTruthy();
+
+      // Generate JWT token for user
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: identityId!,
+        role: 'student',
+      });
 
       // Create addresses with delay to ensure different timestamps
       const address1 = AddressE2ETestData.validAddress({
         profileId: profileId!,
         street: 'Old Address',
       });
-      await AddressE2ETestHelpers.createAddress(app, address1);
+      await AddressE2ETestHelpers.createAddress(app, address1, userToken);
 
       // Small delay to ensure different createdAt
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -184,12 +296,13 @@ describe('[GET] /addresses - E2E', () => {
         profileId: profileId!,
         street: 'New Address',
       });
-      await AddressE2ETestHelpers.createAddress(app, address2);
+      await AddressE2ETestHelpers.createAddress(app, address2, userToken);
 
       // Act
       const response = await AddressE2ETestHelpers.getAddressesByProfileId(
         app,
         profileId!,
+        userToken,
       );
 
       // Assert

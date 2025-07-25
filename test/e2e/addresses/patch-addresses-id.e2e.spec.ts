@@ -21,6 +21,10 @@ describe('[PATCH] /addresses/:id - E2E', () => {
     prisma = app.get(PrismaService);
   });
 
+  beforeEach(async () => {
+    await AddressE2ETestSetup.cleanupTestData(prisma);
+  });
+
   afterAll(async () => {
     await AddressE2ETestSetup.cleanupTestData(prisma);
     if (app) {
@@ -39,8 +43,18 @@ describe('[PATCH] /addresses/:id - E2E', () => {
         prisma,
         AddressE2ETestData.testUsers.patchUser.email,
       );
-
+      const identityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.patchUser.email,
+      );
       expect(profileId).toBeTruthy();
+      expect(identityId).toBeTruthy();
+
+      // Generate JWT token for user
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: identityId!,
+        role: 'student',
+      });
 
       const initialAddress = AddressE2ETestData.validAddress({
         profileId: profileId!,
@@ -56,6 +70,7 @@ describe('[PATCH] /addresses/:id - E2E', () => {
       const createRes = await AddressE2ETestHelpers.createAddress(
         app,
         initialAddress,
+        userToken,
       );
       expect(createRes.status).toBe(201);
       const addressId = createRes.body.addressId;
@@ -69,6 +84,7 @@ describe('[PATCH] /addresses/:id - E2E', () => {
         app,
         addressId,
         updateData,
+        userToken,
       );
 
       // Assert
@@ -78,43 +94,82 @@ describe('[PATCH] /addresses/:id - E2E', () => {
       // Other fields should remain unchanged
       expect(updateRes.body.city).toBe(initialAddress.city);
       expect(updateRes.body.postalCode).toBe(initialAddress.postalCode);
-
-      // Cleanup
-      await prisma.address.deleteMany({ where: { profileId } });
-      await prisma.userIdentity.delete({
-        where: { email: AddressE2ETestData.testUsers.patchUser.email },
-      });
     });
   });
 
   describe('Validation errors', () => {
     it('should return 400 when no fields provided for update', async () => {
-      // Act
+      // Arrange - Create a user with an address
+      await AddressE2ETestSetup.createTestUser(
+        app,
+        AddressE2ETestData.testUsers.user1,
+      );
+      const profileId = await AddressE2ETestSetup.getProfileIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user1.email,
+      );
+      const identityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user1.email,
+      );
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: identityId!,
+        role: 'student',
+      });
+
+      // Create an address first
+      const addressData = AddressE2ETestData.validAddress({
+        profileId: profileId!,
+      });
+      const createRes = await AddressE2ETestHelpers.createAddress(
+        app,
+        addressData,
+        userToken,
+      );
+      const addressId = createRes.body.addressId;
+
+      // Act - Try to update with empty object
       const response = await AddressE2ETestHelpers.updateAddress(
         app,
-        AddressE2ETestData.invalidUUID,
+        addressId,
         {},
+        userToken,
       );
 
       // Assert
       expect(response.status).toBe(400);
-      expect(response.body.detail).toMatch(/at least one field/i);
+      expect(response.body.detail || response.body.message).toMatch(/at least one field/i);
     });
   });
 
   describe('Business rules', () => {
     it('should return 404 when address not found', async () => {
+      // Arrange - Create a user to get a valid token
+      await AddressE2ETestSetup.createTestUser(
+        app,
+        AddressE2ETestData.testUsers.user1,
+      );
+      const identityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user1.email,
+      );
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: identityId!,
+        role: 'student',
+      });
+
       // Act
       const updateData = { street: 'New Street' };
       const response = await AddressE2ETestHelpers.updateAddress(
         app,
         AddressE2ETestData.invalidUUID,
         updateData,
+        userToken,
       );
 
       // Assert
       expect(response.status).toBe(404);
-      expect(response.body.detail).toMatch(/not found/i);
+      expect(response.body.message || response.body.detail).toMatch(/not found/i);
     });
 
     it('should return 400 when fields exceed maximum length', async () => {
@@ -127,7 +182,18 @@ describe('[PATCH] /addresses/:id - E2E', () => {
         prisma,
         AddressE2ETestData.testUsers.user1.email,
       );
+      const identityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user1.email,
+      );
       expect(profileId).toBeTruthy();
+      expect(identityId).toBeTruthy();
+
+      // Generate JWT token for user
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: identityId!,
+        role: 'student',
+      });
 
       const initialAddress = AddressE2ETestData.validAddress({
         profileId: profileId!,
@@ -135,6 +201,7 @@ describe('[PATCH] /addresses/:id - E2E', () => {
       const createRes = await AddressE2ETestHelpers.createAddress(
         app,
         initialAddress,
+        userToken,
       );
       const addressId = createRes.body.addressId;
 
@@ -146,11 +213,12 @@ describe('[PATCH] /addresses/:id - E2E', () => {
         app,
         addressId,
         updateData,
+        userToken,
       );
 
       // Assert
       expect(response.status).toBe(400);
-      expect(response.body.detail).toMatch(/street.*length|too long/i);
+      expect(response.body.detail || response.body.message).toMatch(/street.*length|too long/i);
     });
 
     it('should successfully update multiple fields at once', async () => {
@@ -163,7 +231,18 @@ describe('[PATCH] /addresses/:id - E2E', () => {
         prisma,
         AddressE2ETestData.testUsers.user2.email,
       );
+      const identityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user2.email,
+      );
       expect(profileId).toBeTruthy();
+      expect(identityId).toBeTruthy();
+
+      // Generate JWT token for user
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: identityId!,
+        role: 'student',
+      });
 
       const initialAddress = AddressE2ETestData.validAddress({
         profileId: profileId!,
@@ -171,6 +250,7 @@ describe('[PATCH] /addresses/:id - E2E', () => {
       const createRes = await AddressE2ETestHelpers.createAddress(
         app,
         initialAddress,
+        userToken,
       );
       const addressId = createRes.body.addressId;
 
@@ -185,6 +265,7 @@ describe('[PATCH] /addresses/:id - E2E', () => {
         app,
         addressId,
         updateData,
+        userToken,
       );
 
       // Assert
@@ -209,12 +290,92 @@ describe('[PATCH] /addresses/:id - E2E', () => {
       expect(response.status).toBe(401);
     });
 
+    it('should return 403 when user tries to update address of another user', async () => {
+      // Arrange
+      // Create user1 with address
+      await AddressE2ETestSetup.createTestUser(
+        app,
+        AddressE2ETestData.testUsers.user1,
+      );
+      const user1ProfileId = await AddressE2ETestSetup.getProfileIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user1.email,
+      );
+      const user1IdentityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user1.email,
+      );
+      expect(user1ProfileId).toBeTruthy();
+      expect(user1IdentityId).toBeTruthy();
+
+      // Generate JWT token for user1
+      const user1Token = await AddressE2ETestSetup.generateJwtToken({
+        identityId: user1IdentityId!,
+        role: 'student',
+      });
+
+      // Create address for user1
+      const addressData = AddressE2ETestData.validAddress({
+        profileId: user1ProfileId!,
+      });
+      const createRes = await AddressE2ETestHelpers.createAddress(app, addressData, user1Token);
+      expect(createRes.status).toBe(201);
+      const addressId = createRes.body.addressId;
+
+      // Create user2
+      await AddressE2ETestSetup.createTestUser(
+        app,
+        AddressE2ETestData.testUsers.user2,
+      );
+      const user2IdentityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user2.email,
+      );
+      const user2Token = await AddressE2ETestSetup.generateJwtToken({
+        identityId: user2IdentityId!,
+        role: 'student',
+      });
+
+      // Act - User2 tries to update User1's address
+      const response = await AddressE2ETestHelpers.updateAddress(
+        app,
+        addressId,
+        { street: 'Hacked Street' },
+        user2Token,
+      );
+
+      // Assert
+      expect(response.status).toBe(403);
+      expect(response.body.message || response.body.detail).toMatch(/forbidden/i);
+
+      // Verify address was not updated
+      const unchangedAddress = await prisma.address.findUnique({
+        where: { id: addressId },
+      });
+      expect(unchangedAddress?.street).not.toBe('Hacked Street');
+    });
+
     it('should return 400 when invalid UUID format', async () => {
+      // Arrange - Create a user to get a valid token
+      await AddressE2ETestSetup.createTestUser(
+        app,
+        AddressE2ETestData.testUsers.user1,
+      );
+      const identityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user1.email,
+      );
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: identityId!,
+        role: 'student',
+      });
+
       // Act
       const response = await AddressE2ETestHelpers.updateAddress(
         app,
         'invalid-uuid',
         { street: 'New Street' },
+        userToken,
       );
 
       // Assert
@@ -232,7 +393,18 @@ describe('[PATCH] /addresses/:id - E2E', () => {
         prisma,
         AddressE2ETestData.testUsers.securityUser.email,
       );
+      const identityId = await AddressE2ETestSetup.getIdentityIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.securityUser.email,
+      );
       expect(profileId).toBeTruthy();
+      expect(identityId).toBeTruthy();
+
+      // Generate JWT token for user
+      const userToken = await AddressE2ETestSetup.generateJwtToken({
+        identityId: identityId!,
+        role: 'student',
+      });
 
       const initialAddress = AddressE2ETestData.validAddress({
         profileId: profileId!,
@@ -240,6 +412,7 @@ describe('[PATCH] /addresses/:id - E2E', () => {
       const createRes = await AddressE2ETestHelpers.createAddress(
         app,
         initialAddress,
+        userToken,
       );
       const addressId = createRes.body.addressId;
 
@@ -252,6 +425,7 @@ describe('[PATCH] /addresses/:id - E2E', () => {
         app,
         addressId,
         updateData,
+        userToken,
       );
 
       // Assert

@@ -16,6 +16,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/infra/auth/guards/jwt-auth.guard';
+import { CurrentUser } from '@/infra/auth/current-user-decorator';
+import { UserPayload } from '@/infra/auth/strategies/jwt.strategy';
 import { CreateAddressUseCase } from '@/domain/auth/application/use-cases/create-address.use-case';
 
 import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update-address.use-case';
@@ -30,6 +32,7 @@ import {
   DeleteAddressUseCase,
 } from '@/domain/auth/application/use-cases/delete-address.use-case';
 import { FindAddressByProfileUseCase as FindAddressByUserUseCase } from '@/domain/auth/application/use-cases/find-address-by-profile.use-case';
+import { PrismaService } from '@/prisma/prisma.service';
 
 @Controller('addresses')
 @UseGuards(JwtAuthGuard)
@@ -39,11 +42,23 @@ export class AddressController {
     private readonly findAddressByUserUseCase: FindAddressByUserUseCase,
     private readonly updateAddressUseCase: UpdateAddressUseCase,
     private readonly deleteAddressUseCase: DeleteAddressUseCase,
+    private readonly prisma: PrismaService,
   ) {}
+
+  private async getProfileIdFromIdentityId(identityId: string): Promise<string | null> {
+    const profile = await this.prisma.userProfile.findUnique({
+      where: { identityId },
+      select: { id: true },
+    });
+    return profile?.id || null;
+  }
 
   @Post()
   @HttpCode(201)
-  async create(@Body() dto: CreateAddressRequestDto) {
+  async create(
+    @Body() dto: CreateAddressRequestDto,
+    @CurrentUser() user: UserPayload,
+  ) {
     const requiredFields = [
       'profileId',
       'street',
@@ -59,6 +74,15 @@ export class AddressController {
       throw new HttpException(
         { message: `Missing required fields: ${missing.join(', ')}` },
         HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Validate that the profileId belongs to the current user
+    const userProfileId = await this.getProfileIdFromIdentityId(user.sub);
+    if (!userProfileId || userProfileId !== dto.profileId) {
+      throw new HttpException(
+        { message: 'Forbidden: Cannot create address for another user' },
+        HttpStatus.FORBIDDEN,
       );
     }
 
@@ -113,7 +137,22 @@ export class AddressController {
 
   @Get()
   @HttpCode(200)
-  async findByUser(@Query('profileId') profileId: string) {
+  async findByUser(
+    @Query('profileId') profileId: string,
+    @CurrentUser() user: UserPayload,
+  ) {
+    // Admin can view any user's addresses
+    if (user.role !== 'admin') {
+      // Regular users can only view their own addresses
+      const userProfileId = await this.getProfileIdFromIdentityId(user.sub);
+      if (!userProfileId || userProfileId !== profileId) {
+        throw new HttpException(
+          { message: 'Forbidden: Cannot view addresses of another user' },
+          HttpStatus.FORBIDDEN,
+        );
+      }
+    }
+
     try {
       const result = await this.findAddressByUserUseCase.execute({ profileId });
 
@@ -152,7 +191,33 @@ export class AddressController {
 
   @Patch(':id')
   @HttpCode(200)
-  async update(@Param('id') id: string, @Body() dto: UpdateAddressDto) {
+  async update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateAddressDto,
+    @CurrentUser() user: UserPayload,
+  ) {
+    // First, get the address to check ownership
+    const address = await this.prisma.address.findUnique({
+      where: { id },
+      select: { profileId: true },
+    });
+
+    if (!address) {
+      throw new HttpException(
+        { message: 'Address not found' },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Validate that the address belongs to the current user
+    const userProfileId = await this.getProfileIdFromIdentityId(user.sub);
+    if (!userProfileId || userProfileId !== address.profileId) {
+      throw new HttpException(
+        { message: 'Forbidden: Cannot update address of another user' },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const payload: UpdateAddressRequestDto = { id, ...dto };
 
     try {
@@ -200,7 +265,32 @@ export class AddressController {
 
   @Delete(':id')
   @HttpCode(204)
-  async remove(@Param('id', new ParseUUIDPipe()) id: string) {
+  async remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @CurrentUser() user: UserPayload,
+  ) {
+    // First, get the address to check ownership
+    const address = await this.prisma.address.findUnique({
+      where: { id },
+      select: { profileId: true },
+    });
+
+    if (!address) {
+      throw new HttpException(
+        { message: 'Address not found' },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Validate that the address belongs to the current user
+    const userProfileId = await this.getProfileIdFromIdentityId(user.sub);
+    if (!userProfileId || userProfileId !== address.profileId) {
+      throw new HttpException(
+        { message: 'Forbidden: Cannot delete address of another user' },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     try {
       const result = await this.deleteAddressUseCase.execute({
         id,

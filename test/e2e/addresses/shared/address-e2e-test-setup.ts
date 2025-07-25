@@ -1,6 +1,7 @@
 // test/e2e/addresses/shared/address-e2e-test-setup.ts
 import { INestApplication } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import * as jwt from 'jsonwebtoken';
 
 export class AddressE2ETestSetup {
   static testEmails = [
@@ -12,6 +13,7 @@ export class AddressE2ETestSetup {
     'postal-addr@example.com',
     'length-addr@example.com',
     'security-addr@example.com',
+    'admin-get@example.com',
   ];
 
   static async cleanupTestData(prisma: PrismaService) {
@@ -81,5 +83,31 @@ export class AddressE2ETestSetup {
       include: { profile: true },
     });
     return identity?.profile?.id;
+  }
+
+  static async generateJwtToken(payload: { identityId: string; role: string }): Promise<string> {
+    // Use the same secret and configuration as your application
+    const secret = process.env.JWT_SECRET || 'test-secret';
+    return jwt.sign(
+      {
+        sub: payload.identityId,
+        role: payload.role,
+      },
+      secret,
+      {
+        expiresIn: '1h',
+      },
+    );
+  }
+
+  static async getIdentityIdByEmail(
+    prisma: PrismaService,
+    email: string,
+  ): Promise<string | undefined> {
+    const identity = await prisma.userIdentity.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+    return identity?.id;
   }
 }

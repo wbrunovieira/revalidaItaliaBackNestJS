@@ -27,7 +27,7 @@ export class FindAddressByProfileUseCase {
       return left(
         new InvalidInputError(
           'profileId is required',
-          { profileId: 'profileId is required' }
+          [{ profileId: 'profileId is required' }]
         )
       );
     }
