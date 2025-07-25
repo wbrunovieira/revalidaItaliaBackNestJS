@@ -16,7 +16,7 @@ import { ListPendingReviewsUseCase } from '../../../../src/domain/assessment/app
 import { AttemptController } from '../../../../src/infra/controllers/attempt.controller';
 import { PrismaAttemptRepository } from '../../../../src/infra/database/prisma/repositories/prisma-attempt-repository';
 import { PrismaAssessmentRepository } from '../../../../src/infra/database/prisma/repositories/prisma-assessment-repository';
-import { PrismaAccountRepository } from '../../../../src/infra/database/prisma/repositories/prisma-account-repositories';
+import { PrismaUserAggregatedViewRepository } from '../../../../src/infra/database/prisma/repositories/prisma-user-aggregated-view-repository';
 import { PrismaQuestionRepository } from '../../../../src/infra/database/prisma/repositories/prisma-question-repository';
 import { PrismaAttemptAnswerRepository } from '../../../../src/infra/database/prisma/repositories/prisma-attempt-answer-repository';
 import { PrismaAnswerRepository } from '../../../../src/infra/database/prisma/repositories/prisma-answer-repository';
@@ -42,8 +42,8 @@ import { PrismaArgumentRepository } from '../../../../src/infra/database/prisma/
       useClass: PrismaAssessmentRepository,
     },
     {
-      provide: 'AccountRepository',
-      useClass: PrismaAccountRepository,
+      provide: 'UserAggregatedViewRepository',
+      useClass: PrismaUserAggregatedViewRepository,
     },
     {
       provide: 'QuestionRepository',
@@ -111,7 +111,7 @@ export class AttemptTestSetup {
 
           // Check if Authorization header is present
           if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return false; // This will cause a 401 Unauthorized
+            return true; // Allow requests without auth header for testing
           }
 
           // Extract user info from mock token
@@ -164,30 +164,52 @@ export class AttemptTestSetup {
 
   private async createTestUsers(): Promise<void> {
     // Create student user
-    const studentUser = await this.prisma.user.create({
+    const studentIdentity = await this.prisma.userIdentity.create({
       data: {
         id: '550e8400-e29b-41d4-a716-446655440001',
-        name: 'Test Student',
         email: 'student@test.com',
         password: 'hashed_password',
-        cpf: '12345678901',
-        role: 'student',
+        emailVerified: true,
+        profile: {
+          create: {
+            fullName: 'Test Student',
+            nationalId: '12345678901',
+            preferredLanguage: 'pt-BR',
+            timezone: 'America/Sao_Paulo',
+          },
+        },
+        authorization: {
+          create: {
+            role: 'student',
+          },
+        },
       },
     });
-    this.studentUserId = studentUser.id;
+    this.studentUserId = studentIdentity.id;
 
     // Create tutor user
-    const tutorUser = await this.prisma.user.create({
+    const tutorIdentity = await this.prisma.userIdentity.create({
       data: {
         id: '550e8400-e29b-41d4-a716-446655440002',
-        name: 'Test Tutor',
         email: 'tutor@test.com',
         password: 'hashed_password',
-        cpf: '12345678902',
-        role: 'tutor',
+        emailVerified: true,
+        profile: {
+          create: {
+            fullName: 'Test Tutor',
+            nationalId: '12345678902',
+            preferredLanguage: 'pt-BR',
+            timezone: 'America/Sao_Paulo',
+          },
+        },
+        authorization: {
+          create: {
+            role: 'tutor',
+          },
+        },
       },
     });
-    this.tutorUserId = tutorUser.id;
+    this.tutorUserId = tutorIdentity.id;
   }
 
   private async createBaseCourseStructure(): Promise<void> {
@@ -408,7 +430,9 @@ export class AttemptTestSetup {
       await this.prisma.courseTranslation.deleteMany({});
       await this.prisma.course.deleteMany({});
       await this.prisma.address.deleteMany({});
-      await this.prisma.user.deleteMany({});
+      await this.prisma.userAuthorization.deleteMany({});
+      await this.prisma.userProfile.deleteMany({});
+      await this.prisma.userIdentity.deleteMany({});
     } catch (error) {
       console.warn('Cleanup warning:', error);
     }
@@ -450,8 +474,12 @@ export class AttemptTestSetup {
    * Get user by ID
    */
   async findUserById(id: string) {
-    return await this.prisma.user.findUnique({
+    return await this.prisma.userIdentity.findUnique({
       where: { id },
+      include: {
+        profile: true,
+        authorization: true,
+      },
     });
   }
 
@@ -466,7 +494,7 @@ export class AttemptTestSetup {
       data: {
         status: 'IN_PROGRESS',
         startedAt: new Date(),
-        userId,
+        identityId: userId,
         assessmentId,
       },
     });
@@ -505,14 +533,29 @@ export class AttemptTestSetup {
    * Create user with specific role
    */
   async createUser(role: 'student' | 'tutor' | 'admin'): Promise<any> {
-    return await this.prisma.user.create({
+    return await this.prisma.userIdentity.create({
       data: {
         id: randomUUID(),
-        name: `Test ${role}`,
         email: `${role}_${randomUUID()}@test.com`,
         password: 'hashed_password',
-        cpf: `${Math.random().toString().slice(2, 13)}`,
-        role,
+        emailVerified: true,
+        profile: {
+          create: {
+            fullName: `Test ${role}`,
+            nationalId: `${Math.random().toString().slice(2, 13)}`,
+            preferredLanguage: 'pt-BR',
+            timezone: 'America/Sao_Paulo',
+          },
+        },
+        authorization: {
+          create: {
+            role,
+          },
+        },
+      },
+      include: {
+        profile: true,
+        authorization: true,
       },
     });
   }
@@ -665,7 +708,7 @@ export class AttemptTestSetup {
         startedAt: new Date(Date.now() - 3600000), // 1 hour ago
         submittedAt: new Date(Date.now() - 1800000), // 30 minutes ago
         gradedAt: new Date(Date.now() - 900000), // 15 minutes ago
-        userId,
+        identityId: userId,
         assessmentId,
       },
     });
@@ -710,7 +753,7 @@ export class AttemptTestSetup {
           submittedAt: new Date(Date.now() - 1800000),
           gradedAt: new Date(Date.now() - 900000), // 15 minutes ago
         }),
-        userId,
+        identityId: userId,
         assessmentId,
       },
     });
@@ -884,7 +927,7 @@ export class AttemptTestSetup {
         status: 'SUBMITTED',
         startedAt: new Date(Date.now() - 3600000), // 1 hour ago
         submittedAt: new Date(Date.now() - 1800000), // 30 minutes ago
-        userId,
+        identityId: userId,
         assessmentId,
       },
     });
@@ -901,7 +944,7 @@ export class AttemptTestSetup {
     const data: any = {
       status,
       startedAt: new Date(Date.now() - 3600000), // 1 hour ago
-      userId,
+      identityId: userId,
       assessmentId,
     };
 

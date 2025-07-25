@@ -3,7 +3,7 @@ import request, { Response } from 'supertest';
 import { expect } from 'vitest';
 
 export interface StartAttemptRequest {
-  userId: string;
+  identityId: string;
   assessmentId: string;
 }
 
@@ -40,7 +40,7 @@ export class AttemptTestHelpers {
   ): Promise<any> {
     const req = request(this.getApp().getHttpServer())
       .post('/attempts/start')
-      .send({ userId, assessmentId });
+      .send({ identityId: userId, assessmentId });
 
     if (token) {
       req.set('Authorization', `Bearer ${token}`);
@@ -346,7 +346,7 @@ export class AttemptTestHelpers {
     expect(attempt).toHaveProperty('id');
     expect(attempt).toHaveProperty('status');
     expect(attempt).toHaveProperty('startedAt');
-    expect(attempt).toHaveProperty('userId');
+    expect(attempt).toHaveProperty('identityId');
     expect(attempt).toHaveProperty('assessmentId');
     expect(attempt).toHaveProperty('createdAt');
     expect(attempt).toHaveProperty('updatedAt');
@@ -355,7 +355,7 @@ export class AttemptTestHelpers {
     expect(typeof attempt.id).toBe('string');
     expect(typeof attempt.status).toBe('string');
     expect(typeof attempt.startedAt).toBe('string');
-    expect(typeof attempt.userId).toBe('string');
+    expect(typeof attempt.identityId).toBe('string');
     expect(typeof attempt.assessmentId).toBe('string');
     expect(typeof attempt.createdAt).toBe('string');
     expect(typeof attempt.updatedAt).toBe('string');
@@ -364,7 +364,7 @@ export class AttemptTestHelpers {
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     expect(attempt.id).toMatch(uuidRegex);
-    expect(attempt.userId).toMatch(uuidRegex);
+    expect(attempt.identityId).toMatch(uuidRegex);
     expect(attempt.assessmentId).toMatch(uuidRegex);
   }
 
@@ -557,7 +557,7 @@ export class AttemptTestHelpers {
     assessmentId?: string,
   ): StartAttemptRequest {
     return {
-      userId:
+      identityId:
         userId ||
         this.testSetup.studentUserId ||
         '550e8400-e29b-41d4-a716-446655440001',
@@ -599,7 +599,7 @@ export class AttemptTestHelpers {
     expect(attempt).toHaveProperty('id');
     expect(attempt).toHaveProperty('status', 'IN_PROGRESS');
     expect(attempt).toHaveProperty('startedAt');
-    expect(attempt).toHaveProperty('userId', expectedUserId);
+    expect(attempt).toHaveProperty('identityId', expectedUserId);
     expect(attempt).toHaveProperty('assessmentId', expectedAssessmentId);
     expect(attempt).toHaveProperty('createdAt');
     expect(attempt).toHaveProperty('updatedAt');
@@ -614,7 +614,7 @@ export class AttemptTestHelpers {
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     expect(attempt.id).toMatch(uuidRegex);
-    expect(attempt.userId).toMatch(uuidRegex);
+    expect(attempt.identityId).toMatch(uuidRegex);
     expect(attempt.assessmentId).toMatch(uuidRegex);
 
     // Verify timestamps are valid ISO strings
@@ -677,7 +677,7 @@ export class AttemptTestHelpers {
     expect(dbAttempt).toBeDefined();
     expect(dbAttempt.id).toBe(attempt.id);
     expect(dbAttempt.status).toBe(attempt.status);
-    expect(dbAttempt.userId).toBe(expectedUserId);
+    expect(dbAttempt.identityId).toBe(expectedUserId);
     expect(dbAttempt.assessmentId).toBe(expectedAssessmentId);
 
     // Compare timestamps (API returns ISO strings, DB returns Date objects)
@@ -720,7 +720,7 @@ export class AttemptTestHelpers {
 
     expect(dbAttempt).toBeDefined();
     expect(dbAttempt.id).toBe(attemptId);
-    expect(dbAttempt.userId).toBe(expectedUserId);
+    expect(dbAttempt.identityId).toBe(expectedUserId);
     expect(dbAttempt.assessmentId).toBe(expectedAssessmentId);
     expect(dbAttempt.status).toBe('IN_PROGRESS');
   }
@@ -757,7 +757,7 @@ export class AttemptTestHelpers {
     const attempt = await prisma.attempt.create({
       data: {
         id: '550e8400-e29b-41d4-a716-446655440100',
-        userId: testSetup.studentUserId,
+        identityId: testSetup.studentUserId,
         assessmentId: testSetup.quizAssessmentId,
         status: 'GRADED',
         startedAt: new Date('2023-01-01T10:00:00Z'),
@@ -877,7 +877,7 @@ export class AttemptTestHelpers {
     const attempt = await prisma.attempt.create({
       data: {
         id: '550e8400-e29b-41d4-a716-446655440110',
-        userId: testSetup.studentUserId,
+        identityId: testSetup.studentUserId,
         assessmentId: testSetup.simuladoAssessmentId,
         status: 'GRADED',
         startedAt: new Date('2023-01-01T10:00:00Z'),
@@ -956,7 +956,7 @@ export class AttemptTestHelpers {
     const attempt = await prisma.attempt.create({
       data: {
         id: '550e8400-e29b-41d4-a716-446655440120',
-        userId: testSetup.studentUserId,
+        identityId: testSetup.studentUserId,
         assessmentId: testSetup.provaAbertaAssessmentId,
         status: hasPendingReview ? 'SUBMITTED' : 'GRADED',
         startedAt: new Date('2023-01-01T10:00:00Z'),
@@ -1047,7 +1047,7 @@ export class AttemptTestHelpers {
     const attempt = await prisma.attempt.create({
       data: {
         id: '550e8400-e29b-41d4-a716-446655440130',
-        userId: testSetup.studentUserId,
+        identityId: testSetup.studentUserId,
         assessmentId: testSetup.quizAssessmentId,
         status: 'IN_PROGRESS',
         startedAt: new Date('2023-01-01T10:00:00Z'),
@@ -1069,7 +1069,7 @@ export class AttemptTestHelpers {
     const attempt = await prisma.attempt.create({
       data: {
         id: '550e8400-e29b-41d4-a716-446655440140',
-        userId: testSetup.studentUserId,
+        identityId: testSetup.studentUserId,
         assessmentId: testSetup.provaAbertaAssessmentId,
         status: 'SUBMITTED',
         startedAt: new Date('2023-01-01T10:00:00Z'),
@@ -1128,7 +1128,7 @@ export class AttemptTestHelpers {
     const attempt = await prisma.attempt.create({
       data: {
         id: '550e8400-e29b-41d4-a716-446655440170',
-        userId: testSetup.studentUserId,
+        identityId: testSetup.studentUserId,
         assessmentId: testSetup.quizAssessmentId,
         status: 'GRADED',
         startedAt: new Date('2023-01-01T10:00:00Z'),
@@ -1152,7 +1152,7 @@ export class AttemptTestHelpers {
     const attempt = await prisma.attempt.create({
       data: {
         id: '550e8400-e29b-41d4-a716-446655440180',
-        userId: testSetup.studentUserId,
+        identityId: testSetup.studentUserId,
         assessmentId: testSetup.quizAssessmentId,
         status: 'GRADED',
         startedAt: new Date('2023-01-01T10:00:00Z'),
@@ -1204,7 +1204,7 @@ export class AttemptTestHelpers {
     const attempt = await prisma.attempt.create({
       data: {
         id: '550e8400-e29b-41d4-a716-446655440190',
-        userId: testSetup.studentUserId,
+        identityId: testSetup.studentUserId,
         assessmentId: assessment.id,
         status: 'GRADED',
         startedAt: new Date('2023-01-01T10:00:00Z'),
@@ -1232,7 +1232,7 @@ export class AttemptTestHelpers {
     const attempt = response.attempt;
     expect(attempt).toHaveProperty('id');
     expect(attempt).toHaveProperty('status');
-    expect(attempt).toHaveProperty('userId');
+    expect(attempt).toHaveProperty('identityId');
     expect(attempt).toHaveProperty('assessmentId');
     expect(attempt).toHaveProperty('startedAt');
 
@@ -1511,7 +1511,7 @@ export class AttemptTestHelpers {
         status: 'SUBMITTED',
         startedAt: new Date(Date.now() - 3600000), // 1 hour ago
         submittedAt: new Date(Date.now() - 1800000), // 30 minutes ago
-        userId,
+        identityId: userId,
         assessmentId,
       },
     });
