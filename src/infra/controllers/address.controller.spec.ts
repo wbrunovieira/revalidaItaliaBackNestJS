@@ -10,6 +10,8 @@ import { CreateAddressUseCase } from '@/domain/auth/application/use-cases/create
 import { FindAddressByProfileUseCase } from '@/domain/auth/application/use-cases/find-address-by-profile.use-case';
 import { UpdateAddressUseCase } from '@/domain/auth/application/use-cases/update-address.use-case';
 import { DeleteAddressUseCase } from '@/domain/auth/application/use-cases/delete-address.use-case';
+import { PrismaService } from '@/prisma/prisma.service';
+import { JwtAuthGuard } from '@/infra/auth/guards/jwt-auth.guard';
 import { CreateAddressRequestDto } from '@/domain/auth/application/dtos/create-address-request.dto';
 import { CreateAddressUseCaseResponse } from '@/domain/auth/application/use-cases/create-address.use-case';
 import { FindAddressByProfileUseCaseResponse } from '@/domain/auth/application/use-cases/find-address-by-profile.use-case';
@@ -29,6 +31,7 @@ describe('AddressController', () => {
   let findAddressByProfile: FindAddressByProfileUseCase;
   let updateAddress: UpdateAddressUseCase;
   let deleteAddress: DeleteAddressUseCase;
+  let prismaService: any;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -41,8 +44,32 @@ describe('AddressController', () => {
         },
         { provide: UpdateAddressUseCase, useValue: { execute: vi.fn() } },
         { provide: DeleteAddressUseCase, useValue: { execute: vi.fn() } },
+        {
+          provide: PrismaService,
+          useValue: {
+            userProfile: {
+              findUnique: vi.fn(),
+            },
+            address: {
+              findUnique: vi.fn(),
+            },
+          },
+        },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({
+        canActivate: (context) => {
+          const request = context.switchToHttp().getRequest();
+          request.user = {
+            sub: 'test-user-id',
+            email: 'test@example.com',
+            role: 'student',
+          };
+          return true;
+        },
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(
@@ -52,6 +79,7 @@ describe('AddressController', () => {
     findAddressByProfile = moduleFixture.get(FindAddressByProfileUseCase);
     updateAddress = moduleFixture.get(UpdateAddressUseCase);
     deleteAddress = moduleFixture.get(DeleteAddressUseCase);
+    prismaService = moduleFixture.get(PrismaService);
     await app.init();
   });
 
@@ -70,6 +98,22 @@ describe('AddressController', () => {
     country: 'Freedonia',
     postalCode: '12345-678',
   };
+
+  beforeEach(() => {
+    // Setup mock for userProfile.findUnique to return the matching profileId
+    vi.spyOn(prismaService.userProfile, 'findUnique').mockImplementation(async (args) => {
+      // For test user with ID 'test-user-id', return profile-1
+      if (args?.where?.identityId === 'test-user-id') {
+        return { id: 'profile-1' };
+      }
+      return null;
+    });
+    // Setup default mock for address.findUnique
+    vi.spyOn(prismaService.address, 'findUnique').mockResolvedValue({
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      profileId: 'profile-1',
+    });
+  });
 
   describe('POST /addresses', () => {
     // Success Cases
@@ -110,7 +154,7 @@ describe('AddressController', () => {
 
       it('should create address without optional fields', async () => {
         const minimalDto = {
-          profileId: 'profile-minimal',
+          profileId: 'profile-1', // Use profile-1 to match the mock
           street: 'Main St',
           number: '123',
           city: 'City',
@@ -339,7 +383,7 @@ describe('AddressController', () => {
       });
 
       it('should return 200 with single address', async () => {
-        const profileId = new UniqueEntityID('profile-single');
+        const profileId = new UniqueEntityID('profile-1'); // Use profile-1 to match the mock
         const addr = Address.create({
           profileId,
           street: 'Single Street',
@@ -369,7 +413,7 @@ describe('AddressController', () => {
 
         const res = await request(app.getHttpServer())
           .get('/addresses')
-          .query({ profileId: 'profile-no-addresses' })
+          .query({ profileId: 'profile-1' }) // Use profile-1 to match the mock
           .expect(HttpStatus.OK);
 
         expect(res.body).toEqual([]);
@@ -392,9 +436,9 @@ describe('AddressController', () => {
         const res = await request(app.getHttpServer())
           .get('/addresses')
           .query({}) // No profileId
-          .expect(HttpStatus.INTERNAL_SERVER_ERROR);
+          .expect(HttpStatus.FORBIDDEN); // Now expects 403 due to security check
 
-        expect(res.body).toHaveProperty('message', 'Missing profileId');
+        expect(res.body.message).toMatch(/forbidden/i);
       });
 
       it('should handle empty profileId query parameter', async () => {
@@ -411,13 +455,13 @@ describe('AddressController', () => {
         const res = await request(app.getHttpServer())
           .get('/addresses')
           .query({ profileId: '' })
-          .expect(HttpStatus.INTERNAL_SERVER_ERROR);
+          .expect(HttpStatus.FORBIDDEN); // Now expects 403 due to security check
 
-        expect(res.body).toHaveProperty('message', 'Invalid profileId');
+        expect(res.body.message).toMatch(/forbidden/i);
       });
 
       it('should handle multiple query parameters correctly', async () => {
-        const profileId = 'profile-multi-query';
+        const profileId = 'profile-1'; // Use profile-1 to match the mock
         vi.spyOn(findAddressByProfile, 'execute').mockResolvedValue(
           right({ addresses: [] }),
         );
