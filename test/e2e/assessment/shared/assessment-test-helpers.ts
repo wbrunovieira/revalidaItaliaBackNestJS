@@ -7,6 +7,10 @@ import { Test } from 'supertest';
 export class AssessmentTestHelpers {
   constructor(private app: INestApplication) {}
 
+  get request() {
+    return request(this.app.getHttpServer());
+  }
+
   async createAssessment(payload: any): Promise<request.Response> {
     return request(this.app.getHttpServer())
       .post('/assessments')
