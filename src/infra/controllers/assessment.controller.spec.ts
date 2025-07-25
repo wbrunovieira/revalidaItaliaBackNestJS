@@ -526,7 +526,7 @@ describe('AssessmentController', () => {
       }
     });
 
-    it('throws InternalServerErrorException on LessonNotFoundError', async () => {
+    it('throws NotFoundException on LessonNotFoundError', async () => {
       createUseCase.execute.mockResolvedValueOnce(
         left(new LessonNotFoundError()),
       );
@@ -534,9 +534,9 @@ describe('AssessmentController', () => {
       try {
         await controller.create(validQuizDto);
       } catch (error) {
-        expect(error).toBeInstanceOf(InternalServerErrorException);
+        expect(error).toBeInstanceOf(NotFoundException);
         expect(error.getResponse()).toEqual({
-          error: 'INTERNAL_ERROR',
+          error: 'LESSON_NOT_FOUND',
           message: 'Lesson not found',
         });
       }
