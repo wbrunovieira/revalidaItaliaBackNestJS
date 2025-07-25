@@ -3,6 +3,7 @@ import { execSync } from 'child_process';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
+import request from 'supertest';
 import { E2ETestModule } from '../test-helpers/e2e-test-module';
 import { AddressE2ETestSetup } from './shared/address-e2e-test-setup';
 import { AddressE2ETestHelpers } from './shared/address-e2e-test-helpers';
@@ -30,14 +31,19 @@ describe('[PATCH] /addresses/:id - E2E', () => {
   describe('Success cases', () => {
     it('should update address fields successfully', async () => {
       // Arrange
-      await AddressE2ETestSetup.createTestUser(app, AddressE2ETestData.testUsers.patchUser);
+      await AddressE2ETestSetup.createTestUser(
+        app,
+        AddressE2ETestData.testUsers.patchUser,
+      );
       const profileId = await AddressE2ETestSetup.getProfileIdByEmail(
         prisma,
         AddressE2ETestData.testUsers.patchUser.email,
       );
 
+      expect(profileId).toBeTruthy();
+
       const initialAddress = AddressE2ETestData.validAddress({
-        profileId,
+        profileId: profileId!,
         street: '300 Oak St',
         number: '30',
         complement: 'Apt 1',
@@ -47,7 +53,10 @@ describe('[PATCH] /addresses/:id - E2E', () => {
         postalCode: '33344-556',
       });
 
-      const createRes = await AddressE2ETestHelpers.createAddress(app, initialAddress);
+      const createRes = await AddressE2ETestHelpers.createAddress(
+        app,
+        initialAddress,
+      );
       expect(createRes.status).toBe(201);
       const addressId = createRes.body.addressId;
 
@@ -56,7 +65,11 @@ describe('[PATCH] /addresses/:id - E2E', () => {
         street: '301 Oak St',
         number: '31',
       };
-      const updateRes = await AddressE2ETestHelpers.updateAddress(app, addressId, updateData);
+      const updateRes = await AddressE2ETestHelpers.updateAddress(
+        app,
+        addressId,
+        updateData,
+      );
 
       // Assert
       expect(updateRes.status).toBe(200);
@@ -102,6 +115,153 @@ describe('[PATCH] /addresses/:id - E2E', () => {
       // Assert
       expect(response.status).toBe(404);
       expect(response.body.detail).toMatch(/not found/i);
+    });
+
+    it('should return 400 when fields exceed maximum length', async () => {
+      // Arrange
+      await AddressE2ETestSetup.createTestUser(
+        app,
+        AddressE2ETestData.testUsers.user1,
+      );
+      const profileId = await AddressE2ETestSetup.getProfileIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user1.email,
+      );
+      expect(profileId).toBeTruthy();
+
+      const initialAddress = AddressE2ETestData.validAddress({
+        profileId: profileId!,
+      });
+      const createRes = await AddressE2ETestHelpers.createAddress(
+        app,
+        initialAddress,
+      );
+      const addressId = createRes.body.addressId;
+
+      // Act
+      const updateData = {
+        street: 'A'.repeat(256), // Exceeds 255 character limit
+      };
+      const response = await AddressE2ETestHelpers.updateAddress(
+        app,
+        addressId,
+        updateData,
+      );
+
+      // Assert
+      expect(response.status).toBe(400);
+      expect(response.body.detail).toMatch(/street.*length|too long/i);
+    });
+
+    it('should successfully update multiple fields at once', async () => {
+      // Arrange
+      await AddressE2ETestSetup.createTestUser(
+        app,
+        AddressE2ETestData.testUsers.user2,
+      );
+      const profileId = await AddressE2ETestSetup.getProfileIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.user2.email,
+      );
+      expect(profileId).toBeTruthy();
+
+      const initialAddress = AddressE2ETestData.validAddress({
+        profileId: profileId!,
+      });
+      const createRes = await AddressE2ETestHelpers.createAddress(
+        app,
+        initialAddress,
+      );
+      const addressId = createRes.body.addressId;
+
+      // Act
+      const updateData = {
+        street: 'Updated Street',
+        number: '999',
+        city: 'Updated City',
+        postalCode: '99999-999',
+      };
+      const response = await AddressE2ETestHelpers.updateAddress(
+        app,
+        addressId,
+        updateData,
+      );
+
+      // Assert
+      expect(response.status).toBe(200);
+      expect(response.body.street).toBe('Updated Street');
+      expect(response.body.number).toBe('999');
+      expect(response.body.city).toBe('Updated City');
+      expect(response.body.postalCode).toBe('99999-999');
+      // Other fields should remain unchanged
+      expect(response.body.country).toBe(initialAddress.country);
+    });
+  });
+
+  describe('Security', () => {
+    it('should return 401 when no authentication token provided', async () => {
+      // Act
+      const response = await request(app.getHttpServer())
+        .patch('/addresses/123')
+        .send({ street: 'New Street' });
+
+      // Assert
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 400 when invalid UUID format', async () => {
+      // Act
+      const response = await AddressE2ETestHelpers.updateAddress(
+        app,
+        'invalid-uuid',
+        { street: 'New Street' },
+      );
+
+      // Assert
+      expect(response.status).toBe(400);
+      expect(response.body.detail).toMatch(/uuid/i);
+    });
+
+    it('should sanitize input values', async () => {
+      // Arrange
+      await AddressE2ETestSetup.createTestUser(
+        app,
+        AddressE2ETestData.testUsers.securityUser,
+      );
+      const profileId = await AddressE2ETestSetup.getProfileIdByEmail(
+        prisma,
+        AddressE2ETestData.testUsers.securityUser.email,
+      );
+      expect(profileId).toBeTruthy();
+
+      const initialAddress = AddressE2ETestData.validAddress({
+        profileId: profileId!,
+      });
+      const createRes = await AddressE2ETestHelpers.createAddress(
+        app,
+        initialAddress,
+      );
+      const addressId = createRes.body.addressId;
+
+      // Act
+      const updateData = {
+        street: "'; DROP TABLE addresses; --",
+        city: "<script>alert('xss')</script>",
+      };
+      const response = await AddressE2ETestHelpers.updateAddress(
+        app,
+        addressId,
+        updateData,
+      );
+
+      // Assert
+      expect(response.status).toBe(200);
+      // Verify the data was properly sanitized/escaped
+      const updatedAddress = await prisma.address.findUnique({
+        where: { id: addressId },
+      });
+      expect(updatedAddress?.street).toBe("'; DROP TABLE addresses; --");
+      expect(updatedAddress?.city).toBe("<script>alert('xss')</script>");
     });
   });
 });
