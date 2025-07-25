@@ -6,12 +6,12 @@ import { Document } from '@/domain/course-catalog/enterprise/entities/document.e
 import { IDocumentRepository } from '../repositories/i-document-repository';
 import { ILessonRepository } from '../repositories/i-lesson-repository';
 import {
-  InvalidInputError,
   DuplicateDocumentError,
   RepositoryError,
-  LessonNotFoundError,
   InvalidFileError,
 } from '@/domain/course-catalog/domain/exceptions';
+import { InvalidInputError } from './errors/invalid-input-error';
+import { LessonNotFoundError } from './errors/lesson-not-found-error';
 import {
   createDocumentSchema,
   CreateDocumentSchema,
@@ -68,7 +68,7 @@ export class CreateDocumentUseCase {
     // 2) verifica existência da aula
     const lessonOrErr = await this.lessonRepo.findById(data.lessonId);
     if (lessonOrErr.isLeft()) {
-      return left(LessonNotFoundError.byId(data.lessonId));
+      return left(new LessonNotFoundError());
     }
 
     // 3) evita duplicação de filename
