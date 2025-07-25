@@ -15,10 +15,12 @@ import { CurrentUser } from '@/infra/auth/current-user-decorator';
 import { UserPayload } from '@/infra/auth/strategies/jwt.strategy';
 import { JwtAuthGuard } from '@/infra/auth/guards/jwt-auth.guard';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
-import { InvalidInputError } from '@/domain/auth/application/use-cases/errors/invalid-input-error';
-import { DuplicateEmailError } from '@/domain/auth/application/use-cases/errors/duplicate-email-error';
-import { DuplicateNationalIdError } from '@/domain/auth/application/use-cases/errors/duplicate-national-id-error';
-import { ResourceNotFoundError } from '@/domain/auth/application/use-cases/errors/resource-not-found-error';
+import {
+  InvalidInputError,
+  DuplicateEmailError,
+  DuplicateNationalIdError,
+  ResourceNotFoundError,
+} from '@/domain/auth/domain/exceptions';
 
 @Controller('profile')
 @UseGuards(JwtAuthGuard)
@@ -35,7 +37,7 @@ export class ProfileController {
   ): Promise<any> {
     const result = await this.updateOwnProfileUseCase.execute({
       identityId: user.sub,
-      name: dto.name,
+      name: dto.fullName,
       email: dto.email,
       nationalId: dto.nationalId,
       phone: dto.phone,

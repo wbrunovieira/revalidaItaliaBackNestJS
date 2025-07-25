@@ -37,6 +37,6 @@ export class UpdateOwnProfileRequestDto {
   birthDate?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   profileImageUrl?: string;
 }

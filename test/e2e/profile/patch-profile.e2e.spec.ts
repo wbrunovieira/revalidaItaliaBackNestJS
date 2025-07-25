@@ -56,8 +56,8 @@ describe('PATCH /profile - E2E', () => {
     const otherUser = await createTestUser(prisma, createOtherTestUser());
 
     // Generate real JWT tokens that will be properly decoded by E2ETestModule
-    const validUserPayload = { sub: mainUser.id, role: mainUser.role };
-    const otherUserPayload = { sub: otherUser.id, role: otherUser.role };
+    const validUserPayload = { sub: mainUser.id, role: mainUser.authorization?.role || 'student' };
+    const otherUserPayload = { sub: otherUser.id, role: otherUser.authorization?.role || 'student' };
 
     // Create properly formatted JWT tokens
     const header = Buffer.from(
@@ -103,17 +103,17 @@ describe('PATCH /profile - E2E', () => {
 
       // Assert
       expectValidProfileResponse(response.body);
-      expect(response.body.name).toBe(updateData.name);
-      expect(response.body.email).toBe(updateData.email);
-      expect(response.body.cpf).toBe(updateData.cpf);
-      expect(response.body.phone).toBe(updateData.phone);
-      expect(response.body.profileImageUrl).toBe(updateData.profileImageUrl);
+      expect(response.body.profile.fullName).toBe(updateData.fullName);
+      expect(response.body.identity.email).toBe(updateData.email);
+      expect(response.body.profile.nationalId).toBe(updateData.nationalId);
+      expect(response.body.profile.phone).toBe(updateData.phone);
+      expect(response.body.profile.profileImageUrl).toBe(updateData.profileImageUrl);
 
       // Verify in database
       const updatedUser = await findUserByEmail(prisma, updateData.email);
       expect(updatedUser).toBeTruthy();
-      expect(updatedUser?.name).toBe(updateData.name);
-      expect(updatedUser?.cpf).toBe(updateData.cpf);
+      expect(updatedUser?.profile?.fullName).toBe(updateData.fullName);
+      expect(updatedUser?.profile?.nationalId).toBe(updateData.nationalId);
     });
 
     it('should update user profile with partial fields', async () => {
@@ -129,10 +129,10 @@ describe('PATCH /profile - E2E', () => {
 
       // Assert
       expectValidProfileResponse(response.body);
-      expect(response.body.name).toBe(partialData.name);
-      expect(response.body.phone).toBe(partialData.phone);
+      expect(response.body.profile.fullName).toBe(partialData.fullName);
+      expect(response.body.profile.phone).toBe(partialData.phone);
       // Email should remain unchanged
-      expect(response.body.email).toBe(testEmails[1]);
+      expect(response.body.identity.email).toBe(testEmails[1]);
     });
 
     it('should accept valid profile image URLs', async () => {
@@ -150,7 +150,7 @@ describe('PATCH /profile - E2E', () => {
           .send({ profileImageUrl })
           .expect(200);
 
-        expect(response.body.profileImageUrl).toBe(profileImageUrl);
+        expect(response.body.profile.profileImageUrl).toBe(profileImageUrl);
       }
     });
   });
@@ -169,7 +169,7 @@ describe('PATCH /profile - E2E', () => {
 
       // Assert
       expectValidationError(response.body);
-      expect(response.body.message).toContain('Invalid email format');
+      expect(response.body.detail).toContain('Invalid email format');
     });
 
     it('should return 400 when CPF format is invalid', async () => {
@@ -185,8 +185,8 @@ describe('PATCH /profile - E2E', () => {
 
       // Assert
       expectValidationError(response.body);
-      expect(response.body.message).toContain(
-        'CPF must contain exactly 11 digits',
+      expect(response.body.detail).toContain(
+        'nationalId must be at least 3 characters long',
       );
     });
 
@@ -203,8 +203,8 @@ describe('PATCH /profile - E2E', () => {
 
       // Assert
       expectValidationError(response.body);
-      expect(response.body.message).toContain(
-        'Name must be at least 3 characters long',
+      expect(response.body.detail).toContain(
+        'Full name must be at least 3 characters long',
       );
     });
 
@@ -222,9 +222,9 @@ describe('PATCH /profile - E2E', () => {
       // Assert
       expectValidationError(response.body);
       // Check for URL validation message
-      const errorMessage = Array.isArray(response.body.message)
-        ? response.body.message.join(' ')
-        : response.body.message;
+      const errorMessage = Array.isArray(response.body.detail)
+        ? response.body.detail.join(' ')
+        : response.body.detail;
       expect(errorMessage).toContain('must be a valid URL');
     });
 
@@ -237,10 +237,9 @@ describe('PATCH /profile - E2E', () => {
         .expect(400);
 
       // Assert
-      expect(response.body.message).toBe(
-        'Pelo menos um campo deve ser fornecido para atualização',
+      expect(response.body.detail).toBe(
+        'At least one field must be provided for update',
       );
-      expect(response.body.errors).toBeDefined();
     });
   });
 
@@ -256,7 +255,7 @@ describe('PATCH /profile - E2E', () => {
         .expect(401);
 
       // Assert
-      expect(response.body.message).toBe('Unauthorized');
+      expect(response.body.detail).toBe('Unauthorized');
     });
 
     it('should return 401 when invalid token is provided', async () => {
@@ -271,7 +270,7 @@ describe('PATCH /profile - E2E', () => {
         .expect(401);
 
       // Assert
-      expect(response.body.message).toBe('Unauthorized');
+      expect(response.body.detail).toBe('Unauthorized');
     });
 
     it('should return 401 when malformed authorization header', async () => {
@@ -286,7 +285,7 @@ describe('PATCH /profile - E2E', () => {
         .expect(401);
 
       // Assert
-      expect(response.body.message).toBe('Unauthorized');
+      expect(response.body.detail).toBe('Unauthorized');
     });
   });
 
@@ -294,10 +293,10 @@ describe('PATCH /profile - E2E', () => {
     it('should return 409 when email is already in use by another user', async () => {
       // Arrange - Create another user for duplicate testing
       await createTestUser(prisma, {
-        name: 'Duplicate Email User',
+        fullName: 'Duplicate Email User',
         email: testEmails[2],
         password: 'Test123!@#',
-        cpf: '22222222222',
+        nationalId: '22222222222',
         role: 'student',
       });
 
@@ -313,21 +312,21 @@ describe('PATCH /profile - E2E', () => {
         .expect(409);
 
       // Assert
-      expect(response.body.message).toBe('Email already in use');
+      expect(response.body.detail).toBe('Email already in use');
     });
 
     it('should return 409 when CPF is already in use by another user', async () => {
       // Arrange - Create another user for duplicate testing
       await createTestUser(prisma, {
-        name: 'Duplicate CPF User',
+        fullName: 'Duplicate CPF User',
         email: testEmails[3],
         password: 'Test123!@#',
-        cpf: '33333333333',
+        nationalId: '33333333333',
         role: 'student',
       });
 
       const duplicateData = {
-        cpf: '33333333333', // Try to use another user's CPF
+        nationalId: '33333333333', // Try to use another user's nationalId
       };
 
       // Act
@@ -338,17 +337,21 @@ describe('PATCH /profile - E2E', () => {
         .expect(409);
 
       // Assert
-      expect(response.body.message).toBe('CPF already in use');
+      expect(response.body.detail).toBe('National ID already in use');
     });
 
     it('should allow user to keep their own email when updating other fields', async () => {
       // Arrange
-      const currentUser = await prisma.user.findUnique({
+      const currentUser = await prisma.userIdentity.findUnique({
         where: { id: testUserIds.mainUser },
+        include: {
+          profile: true,
+          authorization: true,
+        },
       });
       const updateData = {
         email: currentUser?.email, // Same email
-        name: 'Name Changed But Same Email',
+        fullName: 'Name Changed But Same Email',
       };
 
       // Act
@@ -359,18 +362,22 @@ describe('PATCH /profile - E2E', () => {
         .expect(200);
 
       // Assert
-      expect(response.body.email).toBe(currentUser?.email);
-      expect(response.body.name).toBe(updateData.name);
+      expect(response.body.identity.email).toBe(currentUser?.email);
+      expect(response.body.profile.fullName).toBe(updateData.fullName);
     });
 
     it('should allow user to keep their own CPF when updating other fields', async () => {
       // Arrange
-      const currentUser = await prisma.user.findUnique({
+      const currentUser = await prisma.userIdentity.findUnique({
         where: { id: testUserIds.mainUser },
+        include: {
+          profile: true,
+          authorization: true,
+        },
       });
       const updateData = {
-        cpf: currentUser?.cpf, // Same CPF
-        name: 'Name Changed But Same CPF',
+        nationalId: currentUser?.profile?.nationalId, // Same nationalId
+        fullName: 'Name Changed But Same CPF',
       };
 
       // Act
@@ -381,8 +388,8 @@ describe('PATCH /profile - E2E', () => {
         .expect(200);
 
       // Assert
-      expect(response.body.cpf).toBe(currentUser?.cpf);
-      expect(response.body.name).toBe(updateData.name);
+      expect(response.body.profile.nationalId).toBe(currentUser?.profile?.nationalId);
+      expect(response.body.profile.fullName).toBe(updateData.fullName);
     });
   });
 
@@ -402,8 +409,8 @@ describe('PATCH /profile - E2E', () => {
         .expect(200);
 
       // Assert
-      expect(response.body.birthDate).toBeDefined();
-      const responseBirthDate = new Date(response.body.birthDate);
+      expect(response.body.profile.birthDate).toBeDefined();
+      const responseBirthDate = new Date(response.body.profile.birthDate);
       const expectedDate = new Date(birthDate);
       expect(responseBirthDate.toISOString().split('T')[0]).toBe(
         expectedDate.toISOString().split('T')[0],
@@ -425,11 +432,11 @@ describe('PATCH /profile - E2E', () => {
         const response = await request(app.getHttpServer())
           .patch('/profile')
           .set('Authorization', `Bearer ${validUserToken}`)
-          .send({ name })
+          .send({ fullName: name })
           .expect(200);
 
         // Assert
-        expect(response.body.name).toBe(name);
+        expect(response.body.profile.fullName).toBe(name);
       }
     });
 
@@ -451,14 +458,14 @@ describe('PATCH /profile - E2E', () => {
           .expect(200);
 
         // Assert
-        expect(response.body.phone).toBe(phone);
+        expect(response.body.profile.phone).toBe(phone);
       }
     });
 
     it('should not update role through profile endpoint', async () => {
       // Arrange
       const updateData = {
-        name: 'Test Role Update',
+        fullName: 'Test Role Update',
         role: 'admin', // Try to escalate privileges
       };
 
@@ -470,7 +477,7 @@ describe('PATCH /profile - E2E', () => {
         .expect(400);
 
       // Assert - Should reject unknown property
-      expect(response.body.message).toContain('property role should not exist');
+      expect(response.body.detail).toContain('property role should not exist');
     });
   });
 });

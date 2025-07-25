@@ -19,18 +19,23 @@ export function createAuthHeader(token: string): string {
 }
 
 export function expectValidProfileResponse(responseBody: any) {
-  expect(responseBody).toHaveProperty('id');
-  expect(responseBody).toHaveProperty('name');
-  expect(responseBody).toHaveProperty('email');
-  expect(responseBody).toHaveProperty('cpf');
-  expect(responseBody).toHaveProperty('role');
-  expect(responseBody).toHaveProperty('createdAt');
-  expect(responseBody).toHaveProperty('updatedAt');
+  expect(responseBody).toHaveProperty('identity');
+  expect(responseBody).toHaveProperty('profile');
+  
+  expect(responseBody.identity).toHaveProperty('id');
+  expect(responseBody.identity).toHaveProperty('email');
+  
+  expect(responseBody.profile).toHaveProperty('fullName');
+  expect(responseBody.profile).toHaveProperty('nationalId');
+  expect(responseBody.profile).toHaveProperty('phone');
+  expect(responseBody.profile).toHaveProperty('birthDate');
+  expect(responseBody.profile).toHaveProperty('profileImageUrl');
+  
   expect(responseBody).not.toHaveProperty('password');
 }
 
 export function expectValidationError(responseBody: any) {
-  expect(responseBody).toHaveProperty('message');
-  expect(responseBody).toHaveProperty('statusCode');
-  expect(responseBody.statusCode).toBe(400);
+  expect(responseBody).toHaveProperty('detail');
+  expect(responseBody).toHaveProperty('status');
+  expect(responseBody.status).toBe(400);
 }

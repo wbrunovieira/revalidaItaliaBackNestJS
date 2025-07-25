@@ -13,8 +13,8 @@ import {
 export class UpdateProfileDto {
   @IsOptional()
   @IsString()
-  @MinLength(3, { message: 'Name must be at least 3 characters long' })
-  name?: string;
+  @MinLength(3, { message: 'Full name must be at least 3 characters long' })
+  fullName?: string;
 
   @IsOptional()
   @IsEmail({}, { message: 'Invalid email format' })
@@ -34,11 +34,9 @@ export class UpdateProfileDto {
   birthDate?: string;
 
   @IsOptional()
-  @ValidateIf(
-    (o) => o.profileImageUrl !== null && o.profileImageUrl !== undefined,
-  )
+  @ValidateIf((o) => o.profileImageUrl !== null && o.profileImageUrl !== undefined)
   @IsString()
-  @Matches(/^(https?:\/\/|\/[\w-]*)/, {
+  @Matches(/^(https?:\/\/[^\s]+|\/[^\s]*)$/, {
     message: 'Profile image URL must be a valid URL or start with /',
   })
   profileImageUrl?: string;

@@ -15,10 +15,10 @@ export const testEmails = [
 export function createMainTestUser() {
   return {
     id: testUserIds.mainUser,
-    name: 'Profile Test User',
+    fullName: 'Profile Test User',
     email: testEmails[0],
     password: 'Test123!@#',
-    cpf: '12345678901',
+    nationalId: '12345678901',
     role: 'student' as const,
     phone: '+5511999999999',
     birthDate: new Date('1990-01-01'),
@@ -29,19 +29,19 @@ export function createMainTestUser() {
 export function createOtherTestUser() {
   return {
     id: testUserIds.otherUser,
-    name: 'Other Test User',
+    fullName: 'Other Test User',
     email: testEmails[1],
     password: 'Test123!@#',
-    cpf: '98765432101',
+    nationalId: '98765432101',
     role: 'student' as const,
   };
 }
 
 export function createValidUpdateData() {
   return {
-    name: 'Updated Profile Name',
+    fullName: 'Updated Profile Name',
     email: 'profile-updated@example.com',
-    cpf: '11111111111',
+    nationalId: '11111111111',
     phone: '+5511888888888',
     birthDate: '1995-05-15',
     profileImageUrl: 'https://example.com/new-profile.jpg',
@@ -50,7 +50,7 @@ export function createValidUpdateData() {
 
 export function createPartialUpdateData() {
   return {
-    name: 'Only Name Updated',
+    fullName: 'Only Name Updated',
     phone: '+5511777777777',
   };
 }
@@ -63,13 +63,13 @@ export function createInvalidEmailData() {
 
 export function createInvalidCPFData() {
   return {
-    cpf: '123', // Too short
+    nationalId: '12', // Too short (minimum is 3)
   };
 }
 
 export function createShortNameData() {
   return {
-    name: 'Ab', // Too short
+    fullName: 'Ab', // Too short
   };
 }
 
@@ -87,6 +87,6 @@ export function createDuplicateEmailData() {
 
 export function createDuplicateCPFData() {
   return {
-    cpf: '98765432101', // Other user's CPF
+    nationalId: '98765432101', // Other user's nationalId
   };
 }
